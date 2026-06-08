@@ -1,0 +1,59 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Sidebar } from "@/features/sales/components/Sidebar";
+import { NotificationMenu } from "@/features/sales/components/NotificationMenu";
+import { Search, User } from "lucide-react";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Sales Dashboard",
+  description: "Sales Dashboard built with Next.js",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <div className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark theme-sales bg-background text-foreground`}>
+        <div className="min-h-screen bg-background">
+          <Sidebar />
+          <div className="lg:pl-64">
+            <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-md lg:px-10">
+              <div className="flex flex-1 items-center gap-3">
+                <div className="relative w-full max-w-md">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    className="h-10 w-full rounded-full border border-border bg-secondary/40 pl-9 pr-4 text-sm outline-none transition focus:border-primary focus:bg-card"
+                    placeholder="Search subscribers, plans, campaigns…"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <NotificationMenu />
+                <div
+                  className="grid h-10 w-10 place-items-center rounded-full font-semibold text-white"
+                  style={{ background: "var(--gradient-love)" }}
+                >
+                  <User className="h-5 w-5" />
+                </div>
+              </div>
+            </header>
+            <main className="px-6 py-10 lg:px-10">
+              {children}
+            </main>
+          </div>
+        </div>
+    </div>
+  );
+}
