@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { getToken, clearToken } from "@/lib/auth";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 /**
  * SessionProvider historically handled JWT session lifecycle.

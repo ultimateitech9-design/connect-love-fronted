@@ -29,12 +29,12 @@ export function Footer() {
  Join a community of thousands who have found authentic connection. Your journey to a deeper, intentional relationship starts here.
  </p>
  <div className="mt-8 flex flex-wrap justify-center gap-4">
- <button className="px-8 py-3.5 rounded-full bg-white text-rose-700 text-sm font-bold hover:bg-rose-50 transition-all hover:scale-105 shadow-xl">
+ <Link href="/register" className="px-8 py-3.5 rounded-full bg-white text-rose-700 text-sm font-bold hover:bg-rose-50 transition-all hover:scale-105 shadow-xl">
  Create Your Account
- </button>
- <button className="px-8 py-3.5 rounded-full border border-white/30 text-white text-sm font-semibold hover:bg-white/10 transition-all">
+ </Link>
+ <Link href="/#features" className="px-8 py-3.5 rounded-full border border-white/30 text-white text-sm font-semibold hover:bg-white/10 transition-all">
  Explore Stories
- </button>
+ </Link>
  </div>
  <p className="mt-6 text-xs text-white/40">No credit card required. Set up in 60 seconds.</p>
  </div>

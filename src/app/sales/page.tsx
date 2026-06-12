@@ -1,8 +1,10 @@
 "use client";
-"use client";
 import { Kpi } from "@/features/sales/components/dashboard/Kpi";
 import { Panel, PageHeader } from "@/features/sales/components/dashboard/Panel";
 import { CreditCard, Crown, Repeat, Sparkles } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 import {
   Area,
   AreaChart,
@@ -18,36 +20,39 @@ import {
 } from "recharts";
 
 
-const revenueData = [
-  { day: "Mon", revenue: 12400, signups: 320 },
-  { day: "Tue", revenue: 15200, signups: 410 },
-  { day: "Wed", revenue: 13800, signups: 380 },
-  { day: "Thu", revenue: 17600, signups: 460 },
-  { day: "Fri", revenue: 21900, signups: 590 },
-  { day: "Sat", revenue: 28400, signups: 720 },
-  { day: "Sun", revenue: 25100, signups: 640 },
-];
-
-const planSplit = [
-  { name: "Basic", value: 38 },
-  { name: "Gold", value: 42 },
-  { name: "Platinum", value: 20 },
-];
-
 const COLORS = ["oklch(0.85 0.18 30)", "oklch(0.75 0.22 0)", "oklch(0.65 0.15 340)"];
 
 export default function Overview() {
+  const [kpis, setKpis] = useState<{ label: string; value: string; delta: number; icon: LucideIcon; tint: "rose" | "gold" | "coral" | "plum" }[]>([]);
+  const [liveRevenue, setLiveRevenue] = useState<{ day: string; revenue: number; signups: number }[]>([]);
+  const [livePlanSplit, setLivePlanSplit] = useState<{ name: string; value: number }[]>([]);
+  const [topMarkets, setTopMarkets] = useState<{ city: string; value: number }[]>([]);
+  const [upgrades, setUpgrades] = useState<{ name: string; plan: string; amt: string; t: string }[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    Promise.all([api.salesOverview(), api.salesPlans()])
+      .then(([data, plans]) => {
+        const icons = [CreditCard, Crown, Repeat, Sparkles];
+        const tints = ["rose", "gold", "coral", "plum"] as const;
+        setKpis(data.kpis.map((k, index) => ({ ...k, icon: icons[index] || Sparkles, tint: tints[index] || "rose" })));
+        setLiveRevenue(data.revenueData);
+        setLivePlanSplit(data.planSplit);
+        setUpgrades(data.recentUpgrades);
+        setTopMarkets(plans.topMarkets);
+      })
+      .catch(() => setError("Failed to load sales overview from backend."));
+  }, []);
+
   return (
     <>
       <PageHeader
         title="Sales Overview"
         subtitle="A live pulse of subscriptions, premium upgrades, and the love-driven revenue powering connectLove."
       />
+      {error && <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi label="Total Subscriptions" value="48,219" delta={12.4} icon={CreditCard} tint="rose" />
-        <Kpi label="New Premium Users" value="3,842" delta={8.1} icon={Crown} tint="gold" />
-        <Kpi label="Renewal Rate" value="78.6%" delta={2.3} icon={Repeat} tint="coral" />
-        <Kpi label="Conversion Rate" value="14.2%" delta={-1.1} icon={Sparkles} tint="plum" />
+        {kpis.map((k) => <Kpi key={k.label} label={k.label} value={k.value} delta={k.delta} icon={k.icon} tint={k.tint} />)}
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
@@ -57,8 +62,8 @@ export default function Overview() {
           className="xl:col-span-2"
         >
           <div className="h-72 w-full">
-            <ResponsiveContainer>
-              <AreaChart data={revenueData}>
+            {liveRevenue.length === 0 ? <div className="flex h-full items-center justify-center text-sm text-muted-foreground">No revenue data yet.</div> : <ResponsiveContainer>
+              <AreaChart data={liveRevenue}>
                 <defs>
                   <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="oklch(0.62 0.22 0)" stopOpacity={0.5} />
@@ -83,29 +88,29 @@ export default function Overview() {
                   fill="url(#rev)"
                 />
               </AreaChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer>}
           </div>
         </Panel>
 
         <Panel title="Plan Mix" subtitle="Share of active subscriptions">
           <div className="h-72 w-full">
-            <ResponsiveContainer>
+            {livePlanSplit.length === 0 ? <div className="flex h-full items-center justify-center text-sm text-muted-foreground">No plan mix data yet.</div> : <ResponsiveContainer>
               <PieChart>
                 <Pie
-                  data={planSplit}
+                  data={livePlanSplit}
                   innerRadius={60}
                   outerRadius={95}
                   paddingAngle={4}
                   dataKey="value"
                 >
-                  {planSplit.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
+                  {livePlanSplit.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
                 <Legend />
                 <Tooltip />
               </PieChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer>}
           </div>
         </Panel>
       </div>
@@ -113,37 +118,28 @@ export default function Overview() {
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <Panel title="Top Markets" subtitle="Subscriptions by city">
           <ul className="space-y-3">
-            {[
-              { city: "Mumbai, IN", value: 6420, pct: 92 },
-              { city: "New York, US", value: 5810, pct: 84 },
-              { city: "London, UK", value: 4320, pct: 64 },
-              { city: "Dubai, AE", value: 3110, pct: 48 },
-              { city: "Bangalore, IN", value: 2880, pct: 42 },
-            ].map((r) => (
+            {topMarkets.length === 0 ? <li className="py-8 text-center text-sm text-muted-foreground">No market data yet.</li> : topMarkets.map((r) => {
+              const max = Math.max(...topMarkets.map((m) => m.value), 1);
+              const pct = Math.round((r.value / max) * 100);
+              return (
               <li key={r.city} className="flex items-center gap-3 text-sm">
                 <span className="w-32 truncate font-medium">{r.city}</span>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
                   <div
                     className="h-full rounded-full"
-                    style={{ width: `${r.pct}%`, background: "var(--gradient-love)" }}
+                    style={{ width: `${pct}%`, background: "var(--gradient-love)" }}
                   />
                 </div>
                 <span className="w-16 text-right tabular-nums text-muted-foreground">
                   {r.value.toLocaleString()}
                 </span>
               </li>
-            ))}
+            )})}
           </ul>
         </Panel>
         <Panel title="Recent Premium Upgrades" subtitle="Last 24 hours">
           <ul className="divide-y divide-border">
-            {[
-              { name: "Aarav S.", plan: "Platinum", amt: "$49.99", t: "2m" },
-              { name: "Sofia R.", plan: "Gold", amt: "$19.99", t: "8m" },
-              { name: "Liam K.", plan: "Gold", amt: "$19.99", t: "15m" },
-              { name: "Priya M.", plan: "Platinum", amt: "$49.99", t: "31m" },
-              { name: "Noah J.", plan: "Basic", amt: "$9.99", t: "47m" },
-            ].map((u) => (
+            {upgrades.length === 0 ? <li className="py-8 text-center text-sm text-muted-foreground">No premium upgrades yet.</li> : upgrades.map((u) => (
               <li key={u.name} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
                   <div

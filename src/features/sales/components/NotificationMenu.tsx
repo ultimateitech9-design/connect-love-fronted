@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel,
-} from "@/features/sales/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 const notifications = [
   {

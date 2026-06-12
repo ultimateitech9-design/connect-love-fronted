@@ -67,7 +67,7 @@ export default function LogsPage() {
 
  {logsError && (
  <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-sm flex items-center gap-2">
- <AlertCircle className="h-[1.111vw] w-[1.111vw] shrink-0" /> {logsError}
+ <AlertCircle className="h-4 w-4 shrink-0" /> {logsError}
  </div>
  )}
 
@@ -84,20 +84,20 @@ export default function LogsPage() {
  {/* Search + Filter Bar */}
  <div className="flex flex-wrap items-center gap-3 mb-4">
  {/* Search */}
- <div className="relative w-full sm:w-[20vw]">
- <Search className="absolute left-3 top-1/2 h-[1.111vw] w-[1.111vw] -translate-y-1/2 text-muted-foreground" />
+ <div className="relative w-full sm:w-[250px]">
+ <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
  <input
  value={searchQuery}
  onChange={(e) => setSearchQuery(e.target.value)}
  placeholder="Search by username..."
- className="h-[2.5vw] w-full rounded-full border border-border bg-card pl-9 pr-3 text-sm outline-none focus:border-primary transition-colors"
+ className="h-10 w-full rounded-full border border-border bg-card pl-9 pr-3 text-sm outline-none focus:border-primary transition-colors"
  />
  </div>
 
  {/* Action Filter */}
  <div className="flex items-center gap-2">
  <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
- <Filter className="h-[0.972vw] w-[0.972vw]" /> Action:
+ <Filter className="h-3.5 w-3.5" /> Action:
  </span>
  {(["All", "Success", "Blocked"] as const).map((f) => (
  <button
@@ -149,7 +149,7 @@ export default function LogsPage() {
  Array.from({ length: 5 }).map((_, i) => (
  <tr key={i} className="border-t border-border">
  {Array.from({ length: 6 }).map((__, j) => (
- <td key={j} className="px-4 py-3"><div className="h-[1.389vw] rounded bg-muted animate-pulse" /></td>
+ <td key={j} className="px-4 py-3"><div className="h-5 rounded bg-muted animate-pulse" /></td>
  ))}
  </tr>
  ))
@@ -162,7 +162,7 @@ export default function LogsPage() {
  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{log.time}</td>
  <td className="px-4 py-3 whitespace-nowrap">
  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${actionStyles[log.action]}`}>
- <span className="h-[0.417vw] w-[0.417vw] rounded-full bg-current" />
+ <span className="h-1.5 w-1.5 rounded-full bg-current" />
  {log.action}
  </span>
  </td>

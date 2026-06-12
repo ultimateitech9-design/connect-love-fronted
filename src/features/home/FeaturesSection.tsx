@@ -6,18 +6,18 @@ import { motion, useInView } from "framer-motion";
 import { Check, Crown, Zap, Heart, MessageCircle, Star, Shield, Sparkles, Video, Globe } from "lucide-react";
 
 const basicFeatures = [
- { icon: Heart, title: "Smart Matching", desc: "AI-powered compatibility algorithm based on personality & values" },
- { icon: MessageCircle, title: "Basic Messaging", desc: "Text chat with up to 5 active matches per day" },
- { icon: Star, title: "Profile Creation", desc: "Detailed profile with photos and personality badges" },
- { icon: Shield, title: "Safety Reports", desc: "Report and block suspicious profiles instantly" },
+ { icon: Heart, title: "Smart Matching", desc: "AI-powered compatibility algorithm based on personality & values", href: "/user/discover" },
+ { icon: MessageCircle, title: "Basic Messaging", desc: "Text chat with up to 5 active matches per day", href: "/user/messages" },
+ { icon: Star, title: "Profile Creation", desc: "Detailed profile with photos and personality badges", href: "/user/profile" },
+ { icon: Shield, title: "Safety Reports", desc: "Report and block suspicious profiles instantly", href: "/#support" },
 ];
 
 const premiumFeatures = [
  { icon: Sparkles, title: "Unlimited Matches", desc: "No daily limit — explore as many connections as you want" },
- { icon: Crown, title: "Priority Visibility", desc: "Appear at the top of discovery queues in your area" },
- { icon: Video, title: "Video Dates", desc: "Built-in encrypted video calling before meeting in person" },
- { icon: Globe, title: "Global Search", desc: "Connect with singles worldwide, not just your city" },
- { icon: Zap, title: "Instant Icebreakers", desc: "AI-generated conversation starters tailored to both profiles" },
+ { icon: Crown, title: "Priority Visibility", desc: "Appear at the top of discovery queues in your area", href: "/user/premium" },
+ { icon: Video, title: "Video Dates", desc: "Built-in encrypted video calling before meeting in person", href: "/user/messages" },
+ { icon: Globe, title: "Global Search", desc: "Connect with singles worldwide, not just your city", href: "/user/discover" },
+ { icon: Zap, title: "Instant Icebreakers", desc: "AI-generated conversation starters tailored to both profiles", href: "/user/messages" },
  { icon: Shield, title: "Verified Badge", desc: "Government ID verification — stand out as a trusted member" },
 ];
 
@@ -61,13 +61,28 @@ export function FeaturesSection() {
  const [tab, setTab] = useState<"basic" | "premium">("basic");
  const ref = useRef(null);
  const inView = useInView(ref, { once: true, margin: "-80px" });
+ const openFeature = (feature: { title: string; href?: string }) => {
+ const routes: Record<string, string> = {
+ "Smart Matching": "/user/discover",
+ "Basic Messaging": "/user/messages",
+ "Profile Creation": "/user/profile",
+ "Safety Reports": "/#support",
+ "Unlimited Matches": "/user/discover",
+ "Priority Visibility": "/user/premium",
+ "Video Dates": "/user/messages",
+ "Global Search": "/user/discover",
+ "Instant Icebreakers": "/user/messages",
+ "Verified Badge": "/user/profile",
+ };
+ window.location.href = feature.href || routes[feature.title] || "/";
+ };
 
  return (
- <section id="features" className="bg-slate-50 py-28" ref={ref}>
+ <section id="features" className="bg-slate-50 pt-24 pb-20" ref={ref}>
  <div className="mx-auto w-[90vw]">
  {/* Header */}
  <motion.div
- initial={{ opacity: 0, y: 30 }}
+ initial={false}
  animate={inView ? { opacity: 1, y: 0 } : {}}
  transition={{ duration: 0.7 }}
  className="text-center"
@@ -85,7 +100,7 @@ export function FeaturesSection() {
  </motion.div>
 
  {/* Tab toggle */}
- <div className="mt-10 flex justify-center">
+ <div className="mt-8 flex justify-center">
  <div className="inline-flex rounded-full bg-white border border-slate-200 p-1 shadow-sm">
  <button
  onClick={() => setTab("basic")}
@@ -111,41 +126,37 @@ export function FeaturesSection() {
  </div>
 
  {/* Feature cards */}
- <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
- {(tab === "basic" ? basicFeatures : premiumFeatures).map((feature, i) => (
- <motion.div
+ <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+ {(tab === "basic" ? basicFeatures : premiumFeatures).map((feature) => (
+ <button
+ type="button"
  key={feature.title}
- initial={{ opacity: 0, y: 20 }}
- animate={{ opacity: 1, y: 0 }}
- transition={{ duration: 0.4, delay: i * 0.07 }}
- className="rounded-2xl bg-white border border-slate-100 p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all"
+ onClick={() => openFeature(feature)}
+ className="min-h-[190px] rounded-2xl bg-white border border-slate-100 p-6 text-left shadow-sm hover:shadow-md hover:-translate-y-1 transition-all focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2"
  >
- <div className="flex h-[3.056vw] w-[3.056vw] items-center justify-center rounded-xl bg-gradient-to-br from-rose-50 to-pink-100">
- <feature.icon className="h-[1.389vw] w-[1.389vw] text-rose-500" />
+ <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-50 to-pink-100">
+ <feature.icon className="h-6 w-6 text-rose-500" />
  </div>
  <h3 className="mt-4 font-semibold text-slate-800">{feature.title}</h3>
  <p className="mt-1.5 text-sm text-slate-500 leading-relaxed">{feature.desc}</p>
- </motion.div>
+ </button>
  ))}
  </div>
 
  {/* Pricing plans */}
  <motion.div
- initial={{ opacity: 0, y: 40 }}
+ initial={false}
  animate={inView ? { opacity: 1, y: 0 } : {}}
  transition={{ duration: 0.7, delay: 0.3 }}
- className="mt-20"
+ className="mt-16"
  >
  <h3 className="text-center text-3xl font-bold text-slate-900">Choose your plan</h3>
  <p className="text-center mt-2 text-slate-500">Start free. Upgrade anytime. Cancel whenever.</p>
 
- <div className="mt-10 grid md:grid-cols-3 gap-6 mx-auto">
- {plans.map((plan, i) => (
- <motion.div
+ <div className="mt-8 grid md:grid-cols-3 gap-6 mx-auto">
+ {plans.map((plan) => (
+ <div
  key={plan.name}
- initial={{ opacity: 0, y: 30 }}
- animate={inView ? { opacity: 1, y: 0 } : {}}
- transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
  className={`relative rounded-3xl overflow-hidden ${plan.popular ? "ring-2 ring-rose-500 shadow-2xl shadow-rose-500/20 scale-105" : "border border-slate-200 shadow-sm"}`}
  >
  {plan.popular && (
@@ -174,12 +185,16 @@ export function FeaturesSection() {
  ))}
  </ul>
  <button
+ type="button"
+ onClick={() => {
+ window.location.href = plan.name === "Free" ? "/register" : "/user/premium";
+ }}
  className={`mt-6 w-full py-3 rounded-full text-sm font-semibold transition-all hover:scale-105 active:scale-95 ${plan.btn}`}
  >
  {plan.name === "Free" ? "Get Started Free" : `Buy ${plan.name}`}
  </button>
  </div>
- </motion.div>
+ </div>
  ))}
  </div>
  </motion.div>

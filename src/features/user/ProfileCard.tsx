@@ -7,14 +7,14 @@ import { getToken } from "@/lib/auth";
 export interface Profile {
   id: string;
   name: string;
-  age: number;
+  age: number | null;
   photo?: string;
   photos?: string[];
   images?: string[];
   avatarUrl?: string;
   profession: string;
-  distanceMi: number;
-  goals: string;
+  distanceMi?: number | null;
+  goals?: string | null;
   bio?: string;
   height?: string;
   city?: string;
@@ -32,7 +32,7 @@ export interface ProfileCardProps {
   onAction?: (id: string, action: string) => void;
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 type Action = "pass" | "like" | "super";
 
@@ -88,9 +88,9 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   const next = profiles[(idx + 1) % profiles.length];
   
   const currentPhotos = profile.photos && profile.photos.length > 0 ? profile.photos : (profile.photo ? [profile.photo] : []);
-  const currentDisplayPhoto = currentPhotos[photoIndex] || currentPhotos[0] || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=800&fit=crop";
+  const currentDisplayPhoto = currentPhotos[photoIndex] || currentPhotos[0] || null;
   const nextPhotos = next.photos && next.photos.length > 0 ? next.photos : (next.photo ? [next.photo] : []);
-  const nextDisplayPhoto = nextPhotos[0] || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=800&fit=crop";
+  const nextDisplayPhoto = nextPhotos[0] || null;
 
 
 
@@ -136,24 +136,10 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
         const data = await res.json();
         setDetailedProfile(data);
       } else {
-        setDetailedProfile({
-          ...profile,
-          bio: profile.bio || "No bio available.",
-          height: "5'6\"",
-          city: "New York",
-          personality: profile.personality || [],
-          hobbies: ["Photography", "Traveling", "Music", "Art", "Writing"],
-        });
+        setDetailedProfile(profile);
       }
     } catch (e) {
-      setDetailedProfile({
-        ...profile,
-        bio: profile.bio || "No bio available.",
-        height: "5'6\"",
-        city: "New York",
-        personality: profile.personality || [],
-        hobbies: ["Photography", "Traveling", "Music", "Art"],
-      });
+      setDetailedProfile(profile);
     } finally {
       setLoadingDetails(false);
     }
@@ -257,7 +243,11 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
 
       <div className="absolute inset-0 -z-10 scale-[0.96] opacity-70">
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-lg">
-          <img src={nextDisplayPhoto} alt="" className="h-full w-full object-cover" />
+          {nextDisplayPhoto ? (
+            <img src={nextDisplayPhoto} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full bg-slate-800" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         </div>
       </div>
@@ -308,7 +298,11 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
           }
           className="relative aspect-[4/5] w-full cursor-grab overflow-hidden rounded-3xl bg-slate-900 shadow-2xl active:cursor-grabbing border border-white/5"
         >
-          <img src={currentDisplayPhoto} alt={profile.name} draggable={false} className={`h-full w-full select-none object-cover ${profile.photosVisibleToNonMatches === false ? 'blur-2xl scale-110 opacity-60' : ''}`} />
+          {currentDisplayPhoto ? (
+            <img src={currentDisplayPhoto} alt={profile.name} draggable={false} className={`h-full w-full select-none object-cover ${profile.photosVisibleToNonMatches === false ? 'blur-2xl scale-110 opacity-60' : ''}`} />
+          ) : (
+            <div className="h-full w-full bg-slate-800" />
+          )}
           {profile.photosVisibleToNonMatches === false && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none z-10 opacity-80">
               <div className="bg-black/50 p-3 rounded-full backdrop-blur-md">
@@ -366,11 +360,11 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
             className="absolute inset-x-0 bottom-0 p-6 text-white pointer-events-none"
           >
             <div className="flex items-center gap-2">
-              <h3 className="text-3xl font-semibold tracking-tight">{profile.name}, {profile.age}</h3>
+              <h3 className="text-3xl font-semibold tracking-tight">{profile.name}{profile.age ? `, ${profile.age}` : ""}</h3>
               {profile.verified && <BadgeCheck className="h-6 w-6 text-emerald-400" fill="currentColor" />}
             </div>
             <div className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
-              {profile.showDistance !== false && (
+              {profile.showDistance !== false && typeof profile.distanceMi === "number" && (
                 <>
                   <MapPin className="h-4 w-4" />
                   {profile.distanceMi} mi away · 
@@ -378,9 +372,9 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
               )}
               {profile.profession}
             </div>
-            <div className="mt-1 inline-block rounded-md bg-white/20 dark:bg-black/40 px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
+            {profile.goals && <div className="mt-1 inline-block rounded-md bg-white/20 dark:bg-black/40 px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
             {profile.goals}
-          </div>
+          </div>}
           <div className="mt-3 flex flex-wrap gap-1.5">
             {(profile.interests ?? []).map((t) => (
               <span key={t} className="rounded-full bg-white/20 dark:bg-black/40 px-2.5 py-1 text-xs font-medium backdrop-blur-sm border border-white/10 dark:border-white/5">
@@ -410,7 +404,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                 <div className="space-y-6">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-2xl font-bold text-foreground">{detailedProfile.name}, {detailedProfile.age}</h2>
+                      <h2 className="text-2xl font-bold text-foreground">{detailedProfile.name}{detailedProfile.age ? `, ${detailedProfile.age}` : ""}</h2>
                       {detailedProfile.isVerified && <BadgeCheck className="h-[1.667vw] w-[1.667vw] text-emerald-500" fill="currentColor" />}
                     </div>
                     <p className="mt-1 text-sm font-medium text-muted-foreground">
@@ -431,12 +425,12 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                     )}
                   </div>
 
-                  <div>
+                  {detailedProfile.bio && <div>
                     <h4 className="text-sm font-bold text-foreground mb-2">About Me</h4>
                     <p className="text-sm leading-relaxed text-foreground/80 whitespace-pre-wrap">
                           {detailedProfile.bio}
                         </p>
-                      </div>
+                      </div>}
 
                       {detailedProfile.personality && detailedProfile.personality.length > 0 && (
                     <div>

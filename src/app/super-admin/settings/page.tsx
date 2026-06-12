@@ -45,7 +45,7 @@ export default function SettingsPage() {
  { key: "premiumMemberships", label: "Premium Memberships", desc: "Allow new subscriptions.", on: s.premiumMemberships },
  ]);
  } catch {
- setError("Failed to load settings from backend — showing default values.");
+ setError("Failed to load settings from backend.");
  } finally {
  setLoading(false);
  }
@@ -64,15 +64,20 @@ export default function SettingsPage() {
 
  const handleSave = async () => {
  setSaving(true);
- await new Promise((r) => setTimeout(r, 800));
- setSaving(false);
+ setError("");
+ try {
+ const payload = Object.fromEntries(toggles.map((t) => [t.key, t.on])) as Record<string, boolean>;
+ await api.updateSettings(payload);
  setSaved(true);
  setTimeout(() => setSaved(false), 3000);
+ } catch {
+ setError("Failed to save settings to backend.");
+ } finally {
+ setSaving(false);
+ }
  };
 
- const handleLinkClick = (_action: string) => {
- // No-op: navigation actions not yet implemented
- };
+ const handleLinkClick = (_action: string) => {};
 
  return (
  <div>
@@ -82,10 +87,10 @@ export default function SettingsPage() {
  <button
  onClick={handleSave}
  disabled={saving || loading}
- className="flex items-center gap-2 h-[2.5vw] px-4 rounded-lg text-primary-foreground text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+ className="flex items-center gap-2 h-10 px-4 rounded-lg text-primary-foreground text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
  style={{ background: "var(--gradient-brand)" }}
  >
- <Save className="h-[1.111vw] w-[1.111vw]" />
+ <Save className="h-4 w-4" />
  {saving ? "Saving..." : saved ? "✓ Saved!" : "Save Changes"}
  </button>
  </div>
@@ -108,10 +113,10 @@ export default function SettingsPage() {
  } disabled:opacity-50`}
  >
  <div
- className="h-[3.333vw] w-[3.333vw] rounded-xl flex items-center justify-center text-primary-foreground shrink-0 transition-opacity group-hover:opacity-90"
+ className="h-12 w-12 rounded-xl flex items-center justify-center text-primary-foreground shrink-0 transition-opacity group-hover:opacity-90"
  style={{ background: t.on ? "var(--gradient-brand)" : "var(--muted)" }}
  >
- <Icon className={`h-[1.389vw] w-[1.389vw] ${t.on ? "text-white" : "text-muted-foreground"}`} />
+ <Icon className={`h-5 w-5 ${t.on ? "text-white" : "text-muted-foreground"}`} />
  </div>
  <div className="flex-1 min-w-[0vw]">
  <p className="font-semibold text-foreground">{t.label}</p>
@@ -120,8 +125,8 @@ export default function SettingsPage() {
  <p className="text-xs text-rose-600 font-medium mt-1">⚠️ App is currently OFFLINE</p>
  )}
  </div>
- <div className={`w-[3.333vw] h-[1.667vw] rounded-full p-0.5 transition-colors shrink-0 ${t.on ? "bg-primary" : "bg-muted"}`}>
- <div className={`h-[1.389vw] w-[1.389vw] bg-white rounded-full shadow-sm transition-transform ${t.on ? "translate-x-6" : ""}`} />
+ <div className={`w-11 h-6 rounded-full p-0.5 transition-colors shrink-0 ${t.on ? "bg-primary" : "bg-muted"}`}>
+ <div className={`h-5 w-5 bg-white rounded-full shadow-sm transition-transform ${t.on ? "translate-x-5" : ""}`} />
  </div>
  </button>
  );
@@ -137,7 +142,7 @@ export default function SettingsPage() {
  onClick={() => handleLinkClick(l.action)}
  className="rounded-2xl bg-card border border-border p-4 flex flex-col items-start gap-2 hover:border-primary hover:shadow-md transition-all text-left shadow-sm group"
  >
- <Icon className="h-[1.389vw] w-[1.389vw] text-primary group-hover:scale-110 transition-transform" />
+ <Icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
  <span className="text-sm font-medium">{l.label}</span>
  </button>
  );

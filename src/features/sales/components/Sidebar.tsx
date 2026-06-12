@@ -19,7 +19,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/features/sales/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 const nav = [
   { href: "/sales", label: "Overview", icon: LayoutDashboard },

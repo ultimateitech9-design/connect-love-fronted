@@ -67,7 +67,7 @@ export default function ReportsPage() {
  </span>
  )}
  </div>
- <div className="h-[20vw]">
+ <div className="h-[300px]">
  {loading ? (
  <div className="h-full flex items-center justify-center">
  <div className="animate-pulse text-muted-foreground text-sm">Loading chart...</div>
@@ -102,7 +102,7 @@ export default function ReportsPage() {
  <div className="space-y-3">
  {loading
  ? Array.from({ length: 5 }).map((_, i) => (
- <div key={i} className="h-[2.778vw] rounded-lg bg-muted animate-pulse" />
+ <div key={i} className="h-10 rounded-lg bg-muted animate-pulse" />
  ))
  : data.map((item, i) => (
  <button
@@ -115,7 +115,7 @@ export default function ReportsPage() {
  }`}
  >
  <div className="flex items-center gap-2">
- <span className="h-[0.694vw] w-[0.694vw] rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+ <span className="h-2.5 w-2.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
  <span className="text-sm font-medium">{item.type}</span>
  </div>
  <span className="text-sm font-bold text-foreground">{item.count}</span>
@@ -124,7 +124,7 @@ export default function ReportsPage() {
  </div>
  {!loading && data.length > 0 && (
  <button
- className="mt-4 w-full h-[2.5vw] rounded-lg border border-border text-sm font-medium hover:bg-accent transition-colors"
+ className="mt-4 w-full h-10 rounded-lg border border-border text-sm font-medium hover:bg-accent transition-colors"
  >
  Export Report
  </button>

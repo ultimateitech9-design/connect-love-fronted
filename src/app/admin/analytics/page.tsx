@@ -8,7 +8,7 @@ import {
 import { getToken } from "@/lib/auth";
 
 const COLORS = ["var(--brand)", "#60a5fa", "#34d399"];
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export default function AnalyticsPage() {
  const [analytics, setAnalytics] = useState({ genderRatio: [], geo: [], revenueMonthly: [] });

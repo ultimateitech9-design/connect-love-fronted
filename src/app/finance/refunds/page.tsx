@@ -13,22 +13,21 @@ export default function Refunds() {
  const [refunds, setRefunds] = useState<any[]>([]);
 
  useEffect(() => {
- api.payments()
+ api.financeRefunds()
  .then((data) => {
- const rows = (data.transactions || [])
- .filter((tx) => tx.status === "refunded" || tx.status === "pending")
- .map((tx) => ({
- id: tx.id,
- user: tx.user,
- amount: tx.amount,
- reason: tx.status === "pending" ? "Payment pending review" : "Refund processed from payment record",
- status: tx.status === "refunded" ? "Approved" : "Pending",
- date: tx.date,
- }));
- setRefunds(rows);
+ setRefunds(data.refunds.map((r) => ({
+ ...r,
+ reason: r.status === "Requests" ? "Payment pending review" : "Refund processed from payment record",
+ status: r.status === "Requests" ? "Pending" : r.status,
+ })));
  })
  .catch(() => setRefunds([]));
  }, []);
+
+ const approveRefund = async (id: string) => {
+ await api.refundPayment(id);
+ setRefunds((rows) => rows.map((row) => row.id === id ? { ...row, status: "Approved" } : row));
+ };
 
  const filtered = refunds.filter((r) => {
  if (tab === "Requests") return r.status === "Pending";
@@ -74,7 +73,7 @@ export default function Refunds() {
  <td className="px-5 py-4 text-right">
  {r.status === "Pending" && (
  <div className="flex items-center justify-end gap-2">
- <button className="size-8 rounded-lg grid place-items-center text-success bg-success/15 hover:bg-success/25 transition-colors">
+ <button onClick={() => approveRefund(r.id)} className="size-8 rounded-lg grid place-items-center text-success bg-success/15 hover:bg-success/25 transition-colors">
  <Check className="size-4" />
  </button>
  <button className="size-8 rounded-lg grid place-items-center text-destructive bg-destructive/15 hover:bg-destructive/25 transition-colors">

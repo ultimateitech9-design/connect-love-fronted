@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
@@ -35,12 +36,32 @@ const toneMap: Record<string, "pink" | "blue" | "violet" | "amber"> = {
 };
 
 export default function HomePage() {
+ const router = useRouter();
  const [stats, setStats] = useState<{ label: string; value: string; delta: string }[]>([]);
  const [growth, setGrowth] = useState<{ m: string; users: number; matches: number }[]>([]);
  const [activityLog, setActivityLog] = useState<{ action: string; time: string; module: string }[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState("");
- const [lastRefresh, setLastRefresh] = useState(new Date());
+ const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
+ const handleCardClick = (label: string) => {
+   switch (label) {
+     case "Total Users":
+     case "Active Users":
+     case "Premium Users":
+       router.push("/super-admin/users");
+       break;
+     case "Total Revenue":
+       router.push("/super-admin/payments");
+       break;
+     case "Pending Reports":
+       router.push("/super-admin/reports");
+       break;
+     default:
+       router.push("/super-admin");
+       break;
+   }
+ };
 
  const fetchStats = async () => {
  setLoading(true);
@@ -78,10 +99,10 @@ export default function HomePage() {
  )}
 
  {/* Live stats from backend */}
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
  {loading
  ? Array.from({ length: 6 }).map((_, i) => (
- <div key={i} className="rounded-3xl border border-border bg-card p-5 shadow-card animate-pulse h-[6.667vw]" />
+ <div key={i} className="rounded-3xl border border-border bg-card p-5 shadow-card animate-pulse h-28" />
  ))
  : stats.map((s) => (
  <StatCard
@@ -91,21 +112,21 @@ export default function HomePage() {
  delta={s.delta}
  icon={iconMap[s.label] ?? Users}
  tone={toneMap[s.label] ?? "pink"}
- onClick={() => {}}
+ onClick={() => handleCardClick(s.label)}
  />
  ))}
  </div>
 
  <div className="flex items-center justify-between mb-4">
  <span className="text-xs text-muted-foreground">
- Last updated: {lastRefresh.toLocaleTimeString()}
+ Last updated: {lastRefresh ? lastRefresh.toLocaleTimeString() : "..."}
  </span>
  </div>
 
  {/* Access Summary */}
  <div className="rounded-2xl bg-gradient-to-br from-primary/8 via-secondary/5 to-primary/8 border border-primary/20 p-5 mb-6">
  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
- <Shield className="h-[1.389vw] w-[1.389vw] text-primary" /> My Access Summary
+ <Shield className="h-5 w-5 text-primary" /> My Access Summary
  </h3>
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
  {[
@@ -131,14 +152,14 @@ export default function HomePage() {
  </div>
  <div className="flex items-center gap-4 text-xs">
  <span className="flex items-center gap-1.5">
- <span className="h-[0.556vw] w-[0.556vw] rounded-full bg-primary" /> Users
+ <span className="h-2 w-2 rounded-full bg-primary" /> Users
  </span>
  <span className="flex items-center gap-1.5">
- <span className="h-[0.556vw] w-[0.556vw] rounded-full bg-secondary" /> Matches
+ <span className="h-2 w-2 rounded-full bg-secondary" /> Matches
  </span>
  </div>
  </div>
- <div className="h-[22.222vw]">
+ <div className="h-[350px]">
  <ResponsiveContainer width="100%" height="100%">
  <AreaChart data={growth}>
  <defs>
@@ -167,7 +188,7 @@ export default function HomePage() {
  {/* Recent Activity */}
  <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden flex flex-col">
  <div className="px-6 py-4 border-b border-border flex items-center gap-2 shrink-0">
- <Activity className="h-[1.111vw] w-[1.111vw] text-primary" />
+ <Activity className="h-4.5 w-4.5 text-primary" />
  <h2 className="font-semibold text-foreground">Recent Activity</h2>
  </div>
  <div className="divide-y divide-border overflow-y-auto flex-1">
@@ -175,8 +196,8 @@ export default function HomePage() {
  const tagColor = activityModuleColor[entry.module] ?? "text-muted-foreground bg-muted";
  return (
  <div key={i} className="px-6 py-3.5 flex items-center gap-3 hover:bg-muted/20 transition-colors">
- <div className="h-[2.222vw] w-[2.222vw] rounded-full bg-primary/10 flex items-center justify-center shrink-0">
- <Shield className="h-[1.111vw] w-[1.111vw] text-primary" />
+ <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+ <Shield className="h-4.5 w-4.5 text-primary" />
  </div>
  <div className="flex-1 min-w-[0vw]">
  <p className="text-sm font-medium text-foreground truncate">{entry.action}</p>

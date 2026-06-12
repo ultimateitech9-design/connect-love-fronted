@@ -38,14 +38,14 @@ function ActionMenu() {
  <div className="relative" ref={menuRef}>
  <button 
  onClick={() => setIsOpen(!isOpen)}
- className="h-[2.222vw] w-[2.222vw] rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground transition-colors"
+ className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground transition-colors"
  >
- <MoreVertical className="h-[1.111vw] w-[1.111vw]" />
+ <MoreVertical className="h-4 w-4" />
  </button>
  {isOpen && (
- <div className="absolute left-0 top-full mt-1 w-[8.889vw] bg-card rounded-xl shadow-lg border border-border z-50 py-1.5 overflow-hidden">
+ <div className="absolute left-0 top-full mt-1 w-32 bg-card rounded-xl shadow-lg border border-border z-50 py-1.5 overflow-hidden">
  <button className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-rose-500/10 hover:text-rose-400 text-rose-500 transition-colors">
- <Trash2 className="h-[1.111vw] w-[1.111vw]" /> Delete
+ <Trash2 className="h-4 w-4" /> Delete
  </button>
  </div>
  )}
@@ -88,18 +88,18 @@ export default function NotificationsPage() {
  <div className="flex items-center gap-2">
  
  <button
- className="h-[2.778vw] px-4 rounded-lg text-primary-foreground font-medium text-sm flex items-center gap-2"
+ className="h-10 px-4 rounded-lg text-primary-foreground font-medium text-sm flex items-center gap-2"
  style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-brand)" }}
  onClick={() => {}}
  >
- <Plus className="h-[1.111vw] w-[1.111vw]" /> New Campaign
+ <Plus className="h-4 w-4" /> New Campaign
  </button>
  </div>
  </PageHeader>
 
  {error && (
  <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-sm flex items-center gap-2">
- <AlertCircle className="h-[1.111vw] w-[1.111vw] shrink-0" /> {error}
+ <AlertCircle className="h-4 w-4 shrink-0" /> {error}
  </div>
  )}
 
@@ -117,7 +117,7 @@ export default function NotificationsPage() {
  {/* Status Filter */}
  <div className="flex flex-wrap gap-2 mb-4 items-center">
  <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
- <Filter className="h-[0.972vw] w-[0.972vw]" /> Status:
+ <Filter className="h-3.5 w-3.5" /> Status:
  </span>
  {(["All", "Active", "Scheduled", "Paused"] as const).map((s) => (
  <button
@@ -153,7 +153,7 @@ export default function NotificationsPage() {
  Array.from({ length: 3 }).map((_, i) => (
  <tr key={i} className="border-t border-border">
  {Array.from({ length: 6 }).map((__, j) => (
- <td key={j} className="px-4 py-3"><div className="h-[1.389vw] rounded bg-muted animate-pulse" /></td>
+ <td key={j} className="px-4 py-3"><div className="h-5 rounded bg-muted animate-pulse" /></td>
  ))}
  </tr>
  ))
@@ -164,7 +164,7 @@ export default function NotificationsPage() {
  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{row.audience}</td>
  <td className="px-4 py-3 whitespace-nowrap">
  <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider ${statusStyles[row.status]}`}>
- <span className="h-[0.417vw] w-[0.417vw] rounded-full bg-current" />
+ <span className="h-1.5 w-1.5 rounded-full bg-current" />
  {row.status}
  </span>
  </td>

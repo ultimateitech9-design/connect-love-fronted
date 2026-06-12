@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as jose from "jose";
 
 const protectedManagementPaths = [
   "/admin",
@@ -10,8 +9,23 @@ const protectedManagementPaths = [
   "/support",
 ];
 
-export async function proxy(request: NextRequest) {
+const managementRoleAccess: Record<string, string[]> = {
+  "/admin": ["admin", "super_admin"],
+  "/super-admin": ["super_admin"],
+  "/marketing": ["marketing", "super_admin"],
+  "/finance": ["finance", "super_admin"],
+  "/sales": ["sales", "super_admin"],
+  "/support": ["support", "admin", "super_admin"],
+};
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname === "/super-admin/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/management/super-admin";
+    return NextResponse.redirect(url);
+  }
 
   // 1. User Dashboard Auth Protection
   if (pathname.startsWith("/user")) {
@@ -32,6 +46,7 @@ export async function proxy(request: NextRequest) {
 
   if (isProtectedManagementPath) {
     const token = request.cookies.get("management_token")?.value;
+    const role = request.cookies.get("management_role")?.value;
 
     if (!token) {
       const url = request.nextUrl.clone();
@@ -39,30 +54,18 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || "soulmatch_super_secret_key_change_in_production");
-      const { payload } = await jose.jwtVerify(token, secret);
-
-      const requestedPath = protectedManagementPaths.find(
-        (path) => pathname === path || pathname.startsWith(`${path}/`)
-      )?.replace("/", "");
-      const requestedRole = requestedPath === "super-admin" ? "super_admin" : requestedPath;
-      const tokenRole = String(payload.role || "");
-
-      if (tokenRole !== requestedRole && tokenRole !== "super_admin") {
-        const url = request.nextUrl.clone();
-        url.pathname = "/management";
-        return NextResponse.redirect(url);
-      }
-      
-      return NextResponse.next();
-    } catch (error) {
+    const matchedPath = protectedManagementPaths.find(
+      (path) => pathname === path || pathname.startsWith(`${path}/`)
+    );
+    const allowedRoles = matchedPath ? managementRoleAccess[matchedPath] : undefined;
+    if (allowedRoles && (!role || !allowedRoles.includes(role))) {
       const url = request.nextUrl.clone();
       url.pathname = "/management";
-      const response = NextResponse.redirect(url);
-      response.cookies.delete("management_token");
-      return response;
+      url.searchParams.set("reason", "forbidden");
+      return NextResponse.redirect(url);
     }
+
+    return NextResponse.next();
   }
 
   return NextResponse.next();

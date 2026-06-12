@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { getToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 const COMPLETION_FIELDS = [
  "name", "birthDate", "gender", "profession", "height", "city", "bio", "interests", "personalityWords", "hobbies",
 ] as const;

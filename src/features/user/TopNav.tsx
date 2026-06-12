@@ -9,7 +9,7 @@ import { logout, getToken } from "@/lib/auth";
 import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 const navItems = [
  { to: "/user/discover", label: "Discover" },

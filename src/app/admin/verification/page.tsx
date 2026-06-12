@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BadgeCheck, ShieldAlert } from "lucide-react";
 import { getToken } from "@/lib/auth";
+import { api } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export default function VerificationPage() {
  const [pending, setPending] = useState<any[]>([]);
@@ -22,6 +23,15 @@ export default function VerificationPage() {
  .then((data) => setPending(Array.isArray(data) ? data : []))
  .finally(() => setLoading(false));
  }, []);
+
+ const updateVerification = async (id: string, status: "approved" | "rejected") => {
+ try {
+ await api.updateVerification(id, status);
+ setPending((rows) => rows.filter((row) => row.id !== id));
+ } catch {
+ alert("Verification update failed.");
+ }
+ };
 
  return (
  <div className="space-y-6">
@@ -46,8 +56,8 @@ export default function VerificationPage() {
  <div className="aspect-[3/2] rounded-lg bg-muted" />
  </div>
  <div className="mt-4 flex gap-2">
- <Button className="flex-1 bg-primary"><BadgeCheck className="mr-2 h-[1.111vw] w-[1.111vw]" />Approve</Button>
- <Button className="flex-1" variant="outline">Reject</Button>
+ <Button className="flex-1 bg-primary" onClick={() => updateVerification(u.id, "approved")}><BadgeCheck className="mr-2 h-[1.111vw] w-[1.111vw]" />Approve</Button>
+ <Button className="flex-1" variant="outline" onClick={() => updateVerification(u.id, "rejected")}>Reject</Button>
  </div>
  </div>
  ))}

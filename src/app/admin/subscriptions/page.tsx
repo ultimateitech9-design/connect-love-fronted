@@ -5,7 +5,7 @@ import { StatCard } from "@/features/admin/StatCard";
 import { Crown, Users, TrendingUp } from "lucide-react";
 import { getToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export default function SubscriptionsPage() {
  const [totals, setTotals] = useState({ free: 0, plus: 0, premium: 0 });

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 // Fields that count toward profile completion (in order of weight)
 const COMPLETION_FIELDS = [

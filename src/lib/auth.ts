@@ -2,7 +2,7 @@ const TOKEN_KEY = "sm_token";
 // Short-lived cookie used by Edge Middleware to protect /user/* routes.
 // Value is just "1" — actual JWT validation is done server-side.
 const COOKIE_NAME = "sm_auth";
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 function storage(): Storage | null {
  if (typeof window === "undefined") return null;
@@ -54,7 +54,7 @@ export function clearToken(): void {
 
 /** Return true when a valid-looking token is present */
 export function isAuthenticated(): boolean {
- return !!getToken();
+ return !!storage()?.getItem(TOKEN_KEY);
 }
 
 /**

@@ -10,7 +10,6 @@ import { SafetySection } from "@/features/home/SafetySection";
 import { SupportSection } from "@/features/home/SupportSection";
 import { Footer } from "@/features/home/Footer";
 import { LoginModal } from "@/features/home/LoginModal";
-import { SignupModal } from "@/features/home/SignupModal";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShieldX, X } from "lucide-react";
 
@@ -35,7 +34,7 @@ function AuthBanner() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -60 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 rounded-2xl bg-slate-900 text-white px-5 py-3.5 shadow-2xl shadow-slate-900/40 w-full mx-4"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex w-[calc(100vw-2rem)] max-w-xl items-center gap-3 rounded-2xl bg-slate-900 px-5 py-3.5 text-white shadow-2xl shadow-slate-900/40"
         >
           <div className="flex h-[2.222vw] w-[2.222vw] shrink-0 items-center justify-center rounded-full bg-rose-500/20">
             <ShieldX className="h-[1.111vw] w-[1.111vw] text-rose-400" />
@@ -57,24 +56,36 @@ function AuthBanner() {
   );
 }
 
+function SignupIntent() {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("signup") === "1") {
+      window.location.href = "/register";
+    }
+  }, [searchParams]);
+
+  return null;
+}
+
 export default function HomePage() {
   const [loginOpen, setLoginOpen] = useState(false);
-  const [signupOpen, setSignupOpen] = useState(false);
 
   return (
   <div className="min-h-screen">
   {/* ── Unauthenticated banner ───────────────────────────────────────── */}
   <Suspense fallback={null}>
     <AuthBanner />
+    <SignupIntent />
   </Suspense>
 
  <Navbar
- onLoginClick={() => setLoginOpen(true)}
- onSignupClick={() => setSignupOpen(true)}
+ onLoginClick={() => { window.location.href = "/login"; }}
+ onSignupClick={() => { window.location.href = "/register"; }}
  />
 
  <main>
- <HeroSection onSignupClick={() => setSignupOpen(true)} />
+ <HeroSection onSignupClick={() => { window.location.href = "/register"; }} />
  <AboutSection />
  <FeaturesSection />
  <SafetySection />
@@ -86,12 +97,7 @@ export default function HomePage() {
  <LoginModal
  open={loginOpen}
  onClose={() => setLoginOpen(false)}
- onSwitchToSignup={() => setSignupOpen(true)}
- />
- <SignupModal
- open={signupOpen}
- onClose={() => setSignupOpen(false)}
- onSwitchToLogin={() => setLoginOpen(true)}
+ onSwitchToSignup={() => { window.location.href = "/register"; }}
  />
  </div>
  );

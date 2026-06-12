@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5002';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
+const VOICE_MESSAGE_PREFIX = "__voice_message__:";
 
 export interface Message {
  id: string;
@@ -65,7 +66,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  if (match.id === message.conversationId) {
  return {
  ...match,
- lastMessage: message.content,
+ lastMessage: message.content.startsWith(VOICE_MESSAGE_PREFIX) ? "Voice message" : message.content,
  lastMessageTime: message.createdAt,
  // Only increment unread if we are not the sender and not actively viewing this conversation
  unreadCount: (String(message.senderId) === userId || activeConversationRef.current === message.conversationId) 

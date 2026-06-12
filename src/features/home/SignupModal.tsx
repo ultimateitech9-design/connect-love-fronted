@@ -9,6 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { setToken } from "@/lib/auth";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+
 const signupSchema = z.object({
  name: z.string().min(2, "Name must be at least 2 characters"),
  email: z.string().email("Enter a valid email address"),
@@ -59,7 +61,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  setError("");
  try {
  // Step 1: Register
- const regRes = await fetch("http://localhost:3001/auth/register", {
+ const regRes = await fetch(`${API_BASE}/auth/register`, {
  method: "POST",
  headers: { "Content-Type": "application/json" },
  body: JSON.stringify({ name: data.name, email: data.email, password: data.password, birthDate: data.birthDate, gender: data.gender }),
@@ -71,7 +73,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  }
 
  // Step 2: Auto-login to get token
- const loginRes = await fetch("http://localhost:3001/auth/login", {
+ const loginRes = await fetch(`${API_BASE}/auth/login`, {
  method: "POST",
  headers: { "Content-Type": "application/json" },
  body: JSON.stringify({ email: data.email, password: data.password }),

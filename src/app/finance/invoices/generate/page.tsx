@@ -26,19 +26,20 @@ export default function InvoicesModule() {
  ]);
 
  useEffect(() => {
- api.payments()
+ Promise.all([api.payments(), api.invoices()])
  .then((data) => {
- const plans = data.plans.map((p) => p.name);
+ const [payments, invoiceData] = data;
+ const plans = payments.plans.map((p) => p.name);
  setPlanOptions(plans.length ? plans : ["Premium Match"]);
  setPlan(plans[0] || "Premium Match");
- setInvoices((data.transactions || []).map((tx) => ({
- id: `INV-${tx.id.slice(0, 8)}`,
- user: tx.user,
+ setInvoices(invoiceData.invoices.map((tx) => ({
+ id: tx.id,
+ user: tx.customer,
  plan: tx.plan,
  amount: tx.amount,
- status: tx.status === "successful" ? "Paid" : tx.status === "failed" ? "Overdue" : "Unpaid",
- issued: tx.date,
- due: tx.date,
+ status: tx.status,
+ issued: tx.due,
+ due: tx.due,
  })));
  })
  .catch(() => setInvoices([]));
@@ -63,6 +64,19 @@ export default function InvoicesModule() {
 
  const totalPaid = invoices.filter((i) => i.status === "Paid").reduce((s, i) => s + i.amount, 0);
  const totalUnpaid = invoices.filter((i) => i.status !== "Paid").reduce((s, i) => s + i.amount, 0);
+ const generateInvoice = async () => {
+ const created: any = await api.createInvoice({ customer, email, plan, due, notes, amount: total });
+ setInvoices((rows) => [{
+ id: created.id,
+ user: created.customer,
+ plan: created.plan,
+ amount: created.amount,
+ status: created.status,
+ issued: new Date().toISOString().slice(0, 10),
+ due: created.due,
+ }, ...rows]);
+ setActiveView("history");
+ };
 
  return (
  <DashboardLayout title="Invoices" subtitle="Generate new invoices or view your billing history.">
@@ -93,10 +107,10 @@ export default function InvoicesModule() {
  <h2 className="text-sm font-semibold mb-4">Customer details</h2>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  <Field label="Full name">
- <input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Aanya Sharma" className={inputCls} />
+ <input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Customer name" className={inputCls} />
  </Field>
  <Field label="Email">
- <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="aanya@example.com" className={inputCls} />
+ <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="customer@email.com" className={inputCls} />
  </Field>
  <Field label="Plan">
  <select value={plan} onChange={(e) => setPlan(e.target.value)} className={inputCls}>
@@ -167,7 +181,7 @@ export default function InvoicesModule() {
  <span className="font-semibold text-lg">${total.toFixed(2)}</span>
  </div>
  </div>
- <button className="w-full mt-5 inline-flex items-center justify-center gap-2 h-[3.056vw] rounded-lg text-primary-foreground font-medium shadow-[var(--shadow-rose)]" style={{ background: "var(--gradient-rose)" }}>
+ <button onClick={generateInvoice} className="w-full mt-5 inline-flex items-center justify-center gap-2 h-[3.056vw] rounded-lg text-primary-foreground font-medium shadow-[var(--shadow-rose)]" style={{ background: "var(--gradient-rose)" }}>
  <Send className="size-4" /> Generate & Send
  </button>
  <button className="w-full mt-2 h-[2.778vw] rounded-lg bg-muted text-sm font-medium hover:bg-secondary">

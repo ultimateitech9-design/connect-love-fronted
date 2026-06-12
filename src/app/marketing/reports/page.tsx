@@ -1,27 +1,37 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, CalendarDays, CalendarRange, Megaphone, Download, FileText, FileSpreadsheet, ChevronDown } from "lucide-react";
-import {
- DropdownMenu,
- DropdownMenuContent,
- DropdownMenuItem,
- DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { api } from "@/lib/api";
 
-const reports = [
- { title: "Daily Report", desc: "Marketing performance for today", icon: Calendar, meta: "Today · auto-generated" },
- { title: "Weekly Report", desc: "Last 7 days roll-up across all channels", icon: CalendarDays, meta: "Week 23" },
- { title: "Monthly Report", desc: "Full month performance & spend breakdown", icon: CalendarRange, meta: "May 2026" },
- { title: "Campaigns Report", desc: "Per-campaign performance & ROI", icon: Megaphone, meta: "7 active campaigns" },
-];
+const iconMap: Record<string, React.ElementType> = {
+ daily: Calendar,
+ users: CalendarDays,
+ campaigns: Megaphone,
+ leads: CalendarRange,
+};
+
+type Report = { title: string; desc: string; meta: string; type: string };
 
 export default function ReportsPage() {
+ const [reports, setReports] = useState<Report[]>([]);
+ const [error, setError] = useState("");
+
+ useEffect(() => {
+ api.marketingReports()
+ .then((res) => setReports(res.reports))
+ .catch(() => setError("Failed to load marketing reports from backend."));
+ }, []);
+
  return (
  <div className="space-y-6">
  <div className="flex items-center justify-between flex-wrap gap-4 pb-2">
  <div>
  <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
- <p className="text-sm text-muted-foreground">Download marketing performance reports.</p>
+ <p className="text-sm text-muted-foreground">Live marketing performance report summaries.</p>
  </div>
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
@@ -40,13 +50,19 @@ export default function ReportsPage() {
  </DropdownMenu>
  </div>
 
+ {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+
  <div className="grid gap-4 sm:grid-cols-2">
- {reports.map((r) => (
+ {reports.length === 0 ? (
+ <Card className="sm:col-span-2"><CardContent className="py-10 text-center text-sm text-muted-foreground">No marketing report data yet.</CardContent></Card>
+ ) : reports.map((r) => {
+ const Icon = iconMap[r.type] || FileText;
+ return (
  <Card key={r.title} className="group hover:border-primary/40 transition-colors">
  <CardHeader className="flex flex-row items-start justify-between space-y-0">
  <div className="flex items-center gap-3">
  <div className="h-[3.056vw] w-[3.056vw] rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
- <r.icon className="h-[1.389vw] w-[1.389vw] text-primary" />
+ <Icon className="h-[1.389vw] w-[1.389vw] text-primary" />
  </div>
  <div>
  <CardTitle className="text-base">{r.title}</CardTitle>
@@ -73,7 +89,8 @@ export default function ReportsPage() {
  </DropdownMenu>
  </CardContent>
  </Card>
- ))}
+ );
+ })}
  </div>
  </div>
  );

@@ -16,23 +16,26 @@ import {
  Star,
  TrendingUp,
  UserPlus,
- 
+ Trash2,
+ X,
  AlertCircle,
 } from "lucide-react";
 
 type Status = "Active" | "Pending" | "Under Review" | "Banned";
 type StatusFilter = "All" | Status;
 type Verification = "Verified" | "Pending" | "Revoked";
-type Account = "Premium Plus" | "Premium" | "Free Tier";
-type Role = "Admin" | "Finance" | "Accounts" | "User" | "Marketing";
+type Account = string;
+type Role = string;
 type RoleFilter = "All" | Role;
 
 interface Row {
+ id: string;
  name: string;
  email: string;
  account: Account;
  role: Role;
  verification: Verification;
+ city: string;
  joinDate: string;
  lastActive: string;
  status: Status;
@@ -42,26 +45,40 @@ interface Row {
 }
 
 const avatarColors = ["bg-rose-400", "bg-slate-600", "bg-amber-500", "bg-indigo-500", "bg-slate-300", "bg-emerald-500", "bg-violet-500"];
-const verificationMap: Record<string, Verification> = {
- "Premium Plus": "Verified",
- "Premium": "Verified",
- "Free Tier": "Pending",
-};
+const verificationMap: Record<string, Verification> = {};
 
-function buildRow(u: { id: number; name: string; email: string; account: string; status: string }, i: number): Row {
+function formatDate(value?: string) {
+ if (!value) return "-";
+ const date = new Date(value);
+ if (Number.isNaN(date.getTime())) return "-";
+ return date.toISOString().split("T")[0];
+}
+
+function labelize(value?: string) {
+ return (value || "user")
+ .replace(/[_-]/g, " ")
+ .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function normalizeStatus(value?: string): Status {
+ const normalized = (value || "active").toLowerCase();
+ if (normalized === "active") return "Active";
+ if (normalized === "banned") return "Banned";
+ if (normalized === "pending" || normalized === "pending_verification") return "Pending";
+ return "Under Review";
+}
+
+function buildRow(u: { id: string; name: string; email: string; role: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string }, i: number): Row {
  const parts = u.name.trim().split(" ");
  const initials = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
  const color = avatarColors[i % avatarColors.length];
- const verification = (verificationMap[u.account] ?? "Pending") as Verification;
- const account = (["Premium Plus", "Premium", "Free Tier"].includes(u.account) ? u.account : "Free Tier") as Account;
- const status = (["Active", "Pending", "Under Review", "Banned"].includes(u.status) ? u.status : "Pending") as Status;
+ const verification = u.isVerified ? "Verified" : (verificationMap[u.account] ?? "Pending") as Verification;
+ const account = labelize(u.account);
+ const status = normalizeStatus(u.status);
  
- let role: Role = "User";
- if (i % 10 === 0) role = "Admin";
- else if (i % 7 === 0) role = "Finance";
- else if (i % 5 === 0) role = "Accounts";
+ const role = labelize(u.role);
+ return { id: u.id, name: u.name, email: u.email, account, role, verification, city: u.city || "-", joinDate: formatDate(u.joined), lastActive: formatDate(u.lastActive), status, initials: initials.toUpperCase(), color };
 
- return { name: u.name, email: u.email, account, role, verification, joinDate: "—", lastActive: "—", status, initials: initials.toUpperCase(), color };
 }
 
 const monoLabel = "font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground";
@@ -75,39 +92,79 @@ export default function UsersPage() {
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState("");
 
- const [showModal, setShowModal] = useState(false);
- const [newName, setNewName] = useState("");
- const [newEmail, setNewEmail] = useState("");
- const [newPassword, setNewPassword] = useState("");
- const [newRole, setNewRole] = useState<Role>("Admin");
+  const [showModal, setShowModal] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newRole, setNewRole] = useState<Role>("Super Admin");
 
- const handleCreateUser = (e: React.FormEvent) => {
- e.preventDefault();
- if (!newName || !newEmail || !newPassword) return;
+  const [selectedUser, setSelectedUser] = useState<Row | null>(null);
+  const [selectedUserDetails, setSelectedUserDetails] = useState<any | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<Row | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
- const parts = newName.trim().split(" ");
- const initials = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
- const color = avatarColors[rows.length % avatarColors.length];
+  const handleViewDetails = async (row: Row) => {
+    setSelectedUser(row);
+    setLoadingDetails(true);
+    setError("");
+    try {
+      const res = await api.userDetails(row.id);
+      setSelectedUserDetails(res.user);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch user details.");
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
 
- const newUser: Row = {
- name: newName,
- email: newEmail,
- account: "Free Tier",
- role: newRole,
- verification: "Pending",
- joinDate: new Date().toISOString().split("T")[0],
- lastActive: "Just now",
- status: "Active",
- initials: initials.toUpperCase(),
- color
- };
+  const handleToggleBan = async (row: Row) => {
+    setActionLoading(row.id);
+    setError("");
+    try {
+      const isBanned = row.status === "Banned";
+      await api.banUser(row.id, !isBanned);
+      await fetchUsers();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to update user status.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
- setRows([newUser, ...rows]);
- setNewName("");
- setNewEmail("");
- setNewPassword("");
- setNewRole("Admin");
- };
+  const handleDeleteUser = async (id: string) => {
+    setActionLoading(id);
+    setError("");
+    try {
+      await api.deleteUser(id);
+      setDeleteConfirmUser(null);
+      await fetchUsers();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to delete user.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName || !newEmail || !newPassword) return;
+    setError("");
+    try {
+      await api.createUser({ name: newName, email: newEmail, password: newPassword, role: newRole });
+      await fetchUsers();
+    } catch {
+      setError("Failed to create user in backend.");
+      return;
+    }
+    setNewName("");
+    setNewEmail("");
+    setNewPassword("");
+    setNewRole("Admin");
+  };
 
  const fetchUsers = async () => {
  setLoading(true);
@@ -139,11 +196,11 @@ export default function UsersPage() {
  }, [query, status, roleFilter, rows]);
 
  return (
- <div className="max-w-[88.889vw] relative pb-20">
+ <div className="w-full relative pb-20">
  <div className="mb-8">
  <h1 className="text-3xl font-bold tracking-tight text-foreground">User Management</h1>
  <p className="text-sm text-muted-foreground mt-2">
- Create and manage system access IDs for Admin, Finance, Accounts, and Marketing.
+ Create and manage system access IDs for Admin, Finance, Sales, Support, and Marketing.
  </p>
  </div>
 
@@ -152,27 +209,29 @@ export default function UsersPage() {
  <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
  <div className="space-y-1.5">
  <label className="text-xs font-semibold uppercase text-muted-foreground">Name</label>
- <input required value={newName} onChange={e => setNewName(e.target.value)} className="w-full h-[2.778vw] px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary" placeholder="Full Name" />
+ <input required value={newName} onChange={e => setNewName(e.target.value)} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary" placeholder="Full Name" />
  </div>
  <div className="space-y-1.5">
  <label className="text-xs font-semibold uppercase text-muted-foreground">Email</label>
- <input required type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="w-full h-[2.778vw] px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary" placeholder="name@company.com" />
+ <input required type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary" placeholder="name@company.com" />
  </div>
  <div className="space-y-1.5">
  <label className="text-xs font-semibold uppercase text-muted-foreground">Password</label>
- <input required type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full h-[2.778vw] px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary" placeholder="••••••••" />
+ <input required type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary" placeholder="••••••••" />
  </div>
  <div className="space-y-1.5">
  <label className="text-xs font-semibold uppercase text-muted-foreground">Role</label>
- <select value={newRole} onChange={e => setNewRole(e.target.value as Role)} className="w-full h-[2.778vw] px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary">
+ <select value={newRole} onChange={e => setNewRole(e.target.value as Role)} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary">
+ <option value="Super Admin">Super Admin</option>
  <option value="Admin">Admin</option>
  <option value="Finance">Finance</option>
- <option value="Accounts">Accounts</option>
+ <option value="Sales">Sales</option>
+ <option value="Support">Support</option>
  <option value="Marketing">Marketing</option>
  </select>
  </div>
  <div>
- <button type="submit" className="w-full h-[2.778vw] rounded-lg text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-md" style={{ background: "var(--gradient-brand)" }}>
+ <button type="submit" className="w-full h-10 rounded-lg text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity shadow-md" style={{ background: "var(--gradient-brand)" }}>
  Create ID
  </button>
  </div>
@@ -181,67 +240,80 @@ export default function UsersPage() {
 
  {error && (
  <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-sm flex items-center gap-2">
- <AlertCircle className="h-[1.111vw] w-[1.111vw] shrink-0" /> {error}
+ <AlertCircle className="h-4 w-4 shrink-0" /> {error}
  </div>
  )}
 
  <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
- <div className="flex flex-wrap items-center gap-2">
- <div className="relative w-full sm:w-[20vw]">
- <Search className="absolute left-3 top-1/2 h-[1.111vw] w-[1.111vw] -translate-y-1/2 text-muted-foreground" />
- <input
- value={query}
- onChange={(event) => setQuery(event.target.value)}
- placeholder="Search by name or email"
- className="h-[2.5vw] w-full rounded-full border border-border bg-card pl-9 pr-3 text-sm outline-none focus:border-primary"
- />
- </div>
- <div className="inline-flex items-center gap-1 rounded-full border border-border bg-card p-1">
- <span className="flex items-center gap-1 px-2 text-xs font-medium text-muted-foreground">
- <Filter className="h-[0.972vw] w-[0.972vw]" /> Status
- </span>
- {(["All", "Active", "Pending", "Under Review", "Banned"] as const).map((item) => (
- <button
- key={item}
- onClick={() => setStatus(item)}
- className={
- "rounded-full px-3 py-1 text-xs font-medium transition " +
- (status === item ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted")
- }
- >
- {item}
- </button>
- ))}
- </div>
- <div className="inline-flex items-center gap-1 rounded-full border border-border bg-card p-1">
- <span className="flex items-center gap-1 px-2 text-xs font-medium text-muted-foreground">
- <ShieldCheck className="h-[0.972vw] w-[0.972vw]" /> Role
- </span>
- {(["All", "Admin", "Finance", "Accounts", "Marketing"] as const).map((item) => (
- <button
- key={item}
- onClick={() => setRoleFilter(item as RoleFilter)}
- className={
- "rounded-full px-3 py-1 text-xs font-medium transition " +
- (roleFilter === item ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted")
- }
- >
- {item}
- </button>
- ))}
- </div>
- <button onClick={() => { setStatus("All"); setRoleFilter("All"); setQuery(""); }} className="text-xs text-secondary font-medium hover:underline">
- Clear all
- </button>
- </div>
+    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+      {/* Search Bar */}
+      <div className="relative w-full sm:w-[250px]">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search by name or email"
+          className="h-10 w-full rounded-full border border-border bg-card pl-9 pr-3 text-sm outline-none focus:border-primary transition-colors"
+        />
+      </div>
+
+      {/* Status Dropdown */}
+      <div className="relative w-full sm:w-[160px]">
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value as StatusFilter)}
+          className="h-10 w-full rounded-full border border-border bg-card px-4 pr-10 text-sm text-foreground outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
+        >
+          <option value="All" className="bg-slate-900 text-slate-100">All Statuses</option>
+          <option value="Active" className="bg-slate-900 text-slate-100">Active</option>
+          <option value="Pending" className="bg-slate-900 text-slate-100">Pending</option>
+          <option value="Under Review" className="bg-slate-900 text-slate-100">Under Review</option>
+          <option value="Banned" className="bg-slate-900 text-slate-100">Banned</option>
+        </select>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+          <Filter className="h-4 w-4" />
+        </div>
+      </div>
+
+      {/* Role Dropdown */}
+      <div className="relative w-full sm:w-[180px]">
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
+          className="h-10 w-full rounded-full border border-border bg-card px-4 pr-10 text-sm text-foreground outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
+        >
+          <option value="All" className="bg-slate-900 text-slate-100">All Roles</option>
+          <option value="Super Admin" className="bg-slate-900 text-slate-100">Super Admin</option>
+          <option value="Admin" className="bg-slate-900 text-slate-100">Admin</option>
+          <option value="Finance" className="bg-slate-900 text-slate-100">Finance</option>
+          <option value="Sales" className="bg-slate-900 text-slate-100">Sales</option>
+          <option value="Support" className="bg-slate-900 text-slate-100">Support</option>
+          <option value="Marketing" className="bg-slate-900 text-slate-100">Marketing</option>
+          <option value="User" className="bg-slate-900 text-slate-100">User</option>
+        </select>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+          <ShieldCheck className="h-4 w-4" />
+        </div>
+      </div>
+
+      {/* Clear All */}
+      {(status !== "All" || roleFilter !== "All" || query !== "") && (
+        <button
+          onClick={() => { setStatus("All"); setRoleFilter("All"); setQuery(""); }}
+          className="text-xs text-secondary font-medium hover:underline px-2 cursor-pointer"
+        >
+          Clear all
+        </button>
+      )}
+    </div>
  <div className="flex items-center gap-3 text-xs text-muted-foreground">
  <span>Showing {filteredRows.length} of {rows.length}</span>
  <div className="flex items-center gap-1">
- <button className="h-[1.944vw] w-[1.944vw] rounded-md border border-border flex items-center justify-center hover:bg-card">
- <ChevronLeft className="h-[0.972vw] w-[0.972vw]" />
+ <button className="h-8 w-8 rounded-md border border-border flex items-center justify-center hover:bg-card">
+ <ChevronLeft className="h-4 w-4" />
  </button>
- <button className="h-[1.944vw] w-[1.944vw] rounded-md border border-border flex items-center justify-center hover:bg-card">
- <ChevronRight className="h-[0.972vw] w-[0.972vw]" />
+ <button className="h-8 w-8 rounded-md border border-border flex items-center justify-center hover:bg-card">
+ <ChevronRight className="h-4 w-4" />
  </button>
  </div>
  </div>
@@ -254,6 +326,7 @@ export default function UsersPage() {
  <th className="text-left py-3 pl-6 font-mono">Name / Avatar</th>
  <th className="text-left py-3 font-mono">Role & Account</th>
  <th className="text-left py-3 font-mono">Verification</th>
+ <th className="text-left py-3 font-mono">City</th>
  <th className="text-left py-3 font-mono">Join Date</th>
  <th className="text-left py-3 font-mono">Last Active</th>
  <th className="text-left py-3 font-mono">Status</th>
@@ -264,16 +337,16 @@ export default function UsersPage() {
  {loading ? (
  Array.from({ length: 5 }).map((_, i) => (
  <tr key={i} className="border-b border-border">
- {Array.from({ length: 7 }).map((__, j) => (
- <td key={j} className="py-4 pl-6"><div className="h-[1.389vw] rounded bg-muted animate-pulse" /></td>
+ {Array.from({ length: 8 }).map((__, j) => (
+ <td key={j} className="py-4 pl-6"><div className="h-5 rounded bg-muted animate-pulse" /></td>
  ))}
  </tr>
  ))
  ) : filteredRows.map((row) => (
- <tr key={row.email} className={"border-b border-border last:border-0 hover:bg-muted/30 transition-colors " + (row.muted ? "opacity-60" : "")}>
+ <tr key={row.id} className={"border-b border-border last:border-0 hover:bg-muted/30 transition-colors " + (row.muted ? "opacity-60" : "")}>
  <td className="py-4 pl-6">
  <div className="flex items-center gap-3">
- <div className={`h-[2.778vw] w-[2.778vw] rounded-full ${row.color} text-white flex items-center justify-center text-sm font-semibold`}>
+ <div className={`h-10 w-10 rounded-full ${row.color} text-white flex items-center justify-center text-sm font-semibold`}>
  {row.initials}
  </div>
  <div>
@@ -289,7 +362,7 @@ export default function UsersPage() {
  <span className="text-xs text-muted-foreground">Free Tier</span>
  ) : (
  <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
- <Star className="h-[0.833vw] w-[0.833vw] fill-primary" /> {row.account}
+ <Star className="h-3.5 w-3.5 fill-primary" /> {row.account}
  </span>
  )}
  </div>
@@ -297,6 +370,7 @@ export default function UsersPage() {
  <td className="py-4">
  <VerificationPill value={row.verification} />
  </td>
+ <td className="py-4 text-sm text-foreground">{row.city}</td>
  <td className="py-4 text-sm text-foreground">{row.joinDate}</td>
  <td className="py-4 text-sm">
  <span className={row.status === "Under Review" ? "text-amber-600 font-medium" : "text-foreground"}>
@@ -306,25 +380,38 @@ export default function UsersPage() {
  <td className="py-4">
  <StatusDot status={row.status} />
  </td>
- <td className="py-4 pr-6 text-right">
- {row.status === "Banned" ? (
- <div className="inline-flex items-center gap-2 justify-end">
- <button className="hover:text-secondary"><Eye className="h-[1.111vw] w-[1.111vw] text-muted-foreground" /></button>
- <button className="px-3 py-1 rounded-md bg-muted text-foreground text-xs font-semibold hover:bg-accent">UNBAN</button>
- </div>
- ) : (
- <div className="inline-flex items-center gap-3 justify-end text-muted-foreground">
- <button className="hover:text-secondary"><Eye className="h-[1.111vw] w-[1.111vw]" /></button>
- <button className="hover:text-secondary"><Pencil className="h-[1.111vw] w-[1.111vw]" /></button>
- <button className="hover:text-primary"><Ban className="h-[1.111vw] w-[1.111vw]" /></button>
- </div>
- )}
- </td>
+  <td className="py-4 pr-6 text-right">
+    <div className="inline-flex items-center gap-3 justify-end text-muted-foreground">
+      <button 
+        onClick={() => handleViewDetails(row)} 
+        title="View Details"
+        className="hover:text-secondary p-1 hover:bg-muted/80 rounded transition-colors cursor-pointer"
+      >
+        <Eye className="h-4 w-4" />
+      </button>
+      <button 
+        onClick={() => handleToggleBan(row)} 
+        disabled={actionLoading === row.id}
+        title={row.status === "Banned" ? "Unban User" : "Ban User"}
+        className={`p-1 hover:bg-muted/80 rounded transition-colors cursor-pointer ${row.status === "Banned" ? "text-amber-500 hover:text-amber-600 animate-pulse" : "hover:text-primary"}`}
+      >
+        <Ban className="h-4 w-4" />
+      </button>
+      <button 
+        onClick={() => setDeleteConfirmUser(row)}
+        disabled={actionLoading === row.id}
+        title="Delete User"
+        className="hover:text-rose-500 p-1 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  </td>
  </tr>
  ))}
  {!loading && filteredRows.length === 0 && (
  <tr>
- <td colSpan={7} className="py-10 text-center text-muted-foreground text-sm">
+ <td colSpan={8} className="py-10 text-center text-muted-foreground text-sm">
  No users found.
  </td>
  </tr>
@@ -338,7 +425,7 @@ export default function UsersPage() {
  <select
  value={perPage}
  onChange={(event) => setPerPage(Number(event.target.value))}
- className="h-[1.944vw] rounded-md border border-border bg-card px-2 text-xs"
+ className="h-8 rounded-md border border-border bg-card px-2 text-xs"
  >
  <option>10</option>
  <option>25</option>
@@ -346,17 +433,17 @@ export default function UsersPage() {
  </select>
  </div>
  <div className="flex items-center gap-1">
- <button className="h-[2.222vw] w-[2.222vw] rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
- <ChevronsLeft className="h-[1.111vw] w-[1.111vw]" />
+ <button className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
+ <ChevronsLeft className="h-4 w-4" />
  </button>
- <button className="h-[2.222vw] w-[2.222vw] rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
- <ChevronLeft className="h-[1.111vw] w-[1.111vw]" />
+ <button className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
+ <ChevronLeft className="h-4 w-4" />
  </button>
  {[1, 2, 3].map((page) => (
  <button
  key={page}
  className={
- "h-[2.222vw] w-[2.222vw] rounded-md text-sm font-medium flex items-center justify-center " +
+ "h-8 w-8 rounded-md text-sm font-medium flex items-center justify-center " +
  (page === 1 ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted")
  }
  >
@@ -364,19 +451,38 @@ export default function UsersPage() {
  </button>
  ))}
  <span className="px-2 text-muted-foreground">...</span>
- <button className="h-[2.222vw] w-[2.222vw] rounded-md text-sm font-medium text-foreground hover:bg-muted">128</button>
- <button className="h-[2.222vw] w-[2.222vw] rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
- <ChevronRight className="h-[1.111vw] w-[1.111vw]" />
+ <button className="h-8 w-8 rounded-md text-sm font-medium text-foreground hover:bg-muted">128</button>
+ <button className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
+ <ChevronRight className="h-4 w-4" />
  </button>
- <button className="h-[2.222vw] w-[2.222vw] rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
- <ChevronsRight className="h-[1.111vw] w-[1.111vw]" />
+ <button className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
+ <ChevronsRight className="h-4 w-4" />
  </button>
  </div>
  </div>
  </div>
 
- </div>
- );
+  {selectedUser && (
+    <UserDetailsModal
+      user={selectedUserDetails}
+      loading={loadingDetails}
+      onClose={() => {
+        setSelectedUser(null);
+        setSelectedUserDetails(null);
+      }}
+    />
+  )}
+
+  {deleteConfirmUser && (
+    <DeleteConfirmModal
+      user={deleteConfirmUser}
+      loading={actionLoading === deleteConfirmUser.id}
+      onClose={() => setDeleteConfirmUser(null)}
+      onConfirm={() => handleDeleteUser(deleteConfirmUser.id)}
+    />
+  )}
+  </div>
+  );
 }
 
 function VerificationPill({ value }: { value: Verification }) {
@@ -388,7 +494,7 @@ function VerificationPill({ value }: { value: Verification }) {
 
  return (
  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${map[value]}`}>
- <span className="h-[0.417vw] w-[0.417vw] rounded-full bg-current" /> {value}
+ <span className="h-1.5 w-1.5 rounded-full bg-current" /> {value}
  </span>
  );
 }
@@ -404,7 +510,239 @@ function StatusDot({ status }: { status: Status }) {
 
  return (
  <span className={`inline-flex items-center gap-2 text-sm font-medium ${style.text}`}>
- <span className={`h-[0.556vw] w-[0.556vw] rounded-full ${style.dot}`} /> {status}
+ <span className={`h-2 w-2 rounded-full ${style.dot}`} /> {status}
  </span>
  );
+}
+
+function UserDetailsModal({ user, loading, onClose }: { user: any; loading: boolean; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-muted/40">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-gradient-to-tr from-rose-500 to-amber-500 shadow-md">
+              <Eye className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-foreground">User Account Details</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Comprehensive profile info and system settings</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <X className="h-4.5 w-4.5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+          {loading || !user ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-3">
+              <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              <p className="text-sm text-muted-foreground">Loading account details...</p>
+            </div>
+          ) : (
+            <>
+              {/* Avatar and Header Card */}
+              <div className="flex flex-col sm:flex-row gap-4 items-center p-4 rounded-xl border border-border bg-muted/20">
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.name} className="h-16 w-16 rounded-full object-cover border border-border shadow-sm" />
+                ) : (
+                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-white flex items-center justify-center text-xl font-bold shadow-md">
+                    {((user.name || "").split(" ").map((n: string) => n[0]).join("").slice(0, 2)).toUpperCase()}
+                  </div>
+                )}
+                <div className="text-center sm:text-left flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <h3 className="text-lg font-bold text-foreground truncate">{user.name}</h3>
+                    {user.isVerified && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-500 uppercase">
+                        Verified
+                      </span>
+                    )}
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      user.status === "Active" || user.status === "active" ? "bg-emerald-500/10 text-emerald-500" :
+                      user.status === "Banned" || user.status === "banned" ? "bg-rose-500/10 text-rose-500" : "bg-amber-500/10 text-amber-500"
+                    }`}>
+                      {user.status || "Active"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
+                    <span className="text-[11px] font-semibold text-foreground px-2 py-0.5 rounded-full bg-muted border border-border">
+                      Role: {user.role ? user.role.toUpperCase() : "USER"}
+                    </span>
+                    <span className="text-[11px] font-semibold text-foreground px-2 py-0.5 rounded-full bg-muted border border-border flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-primary text-primary" /> {user.plan ? user.plan.toUpperCase() : "FREE"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Metrics / Details */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="p-3 rounded-lg border border-border bg-card">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase">City</span>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{user.city || "-"}</p>
+                </div>
+                <div className="p-3 rounded-lg border border-border bg-card">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase">Profession</span>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{user.profession || "-"}</p>
+                </div>
+                <div className="p-3 rounded-lg border border-border bg-card">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase">Height</span>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{user.height || "-"}</p>
+                </div>
+                <div className="p-3 rounded-lg border border-border bg-card">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase">Gender</span>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{user.gender || "-"}</p>
+                </div>
+                <div className="p-3 rounded-lg border border-border bg-card">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase">Age / Birth Date</span>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
+                    {user.age ? `${user.age} yrs` : "-"} {user.birthDate ? `(${new Date(user.birthDate).toISOString().split('T')[0]})` : ""}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg border border-border bg-card">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase">Joined Date</span>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
+                    {user.joined ? new Date(user.joined).toISOString().split('T')[0] : "-"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Bio */}
+              {user.bio && (
+                <div className="space-y-1.5">
+                  <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Bio / Introduction</span>
+                  <div className="p-4 rounded-xl border border-border bg-card text-sm text-foreground italic leading-relaxed">
+                    "{user.bio}"
+                  </div>
+                </div>
+              )}
+
+              {/* Interests, Hobbies, Personality */}
+              <div className="space-y-4">
+                {user.interests && user.interests.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Interests</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {user.interests.map((tag: string) => (
+                        <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-500 font-medium">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {user.hobbies && user.hobbies.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Hobbies</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {user.hobbies.map((tag: string) => (
+                        <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-500 font-medium">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {user.personality && user.personality.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Personality Words</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {user.personality.map((tag: string) => (
+                        <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 font-medium">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Photos */}
+              {user.photos && user.photos.length > 0 && (
+                <div className="space-y-1.5">
+                  <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Profile Photos ({user.photos.length})</span>
+                  <div className="grid grid-cols-3 gap-3">
+                    {user.photos.map((photo: string, index: number) => (
+                      <div key={index} className="aspect-square rounded-xl border border-border bg-muted overflow-hidden">
+                        <img src={photo} alt={`${user.name} profile ${index}`} className="h-full w-full object-cover hover:scale-105 transition-transform duration-300" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end px-6 py-4 border-t border-border bg-muted/20">
+          <button
+            onClick={onClose}
+            className="px-5 h-10 rounded-lg border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeleteConfirmModal({ user, onClose, onConfirm, loading }: { user: any; onClose: () => void; onConfirm: () => void; loading: boolean }) {
+  if (!user) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="p-6 text-center space-y-4">
+          <div className="h-12 w-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+            <Trash2 className="h-6 w-6" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Confirm Account Deletion</h3>
+            <p className="text-sm text-muted-foreground mt-1.5">
+              Are you sure you want to permanently delete the account of <strong>{user.name}</strong> ({user.email})?
+            </p>
+            <p className="text-xs text-rose-500 mt-2 bg-rose-500/10 border border-rose-500/20 p-2 rounded-lg font-semibold">
+              Warning: This action is permanent and cannot be undone. All chats, matches, and images will be permanently erased.
+            </p>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 h-10 rounded-lg border border-border bg-card text-sm font-semibold text-foreground hover:bg-muted transition-colors disabled:opacity-50 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={loading}
+              className="flex-1 h-10 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-lg disabled:opacity-50 cursor-pointer"
+            >
+              {loading ? "Deleting..." : "Permanently Delete"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

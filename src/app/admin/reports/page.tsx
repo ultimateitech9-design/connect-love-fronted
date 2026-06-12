@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getToken } from "@/lib/auth";
+import { api } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export default function ReportsPage() {
  const [list, setList] = useState<any[]>([]);
@@ -31,7 +32,7 @@ export default function ReportsPage() {
  id: c.id.toString(),
  reportedUser: c.email,
  reason: c.subject || c.message.substring(0, 20) + '...',
- reportedBy: "System/User", // Assuming general source for now
+ reportedBy: c.email || c.name,
  createdAt: new Date(c.createdAt).toISOString().split('T')[0],
  status: c.status,
  }));
@@ -47,6 +48,11 @@ export default function ReportsPage() {
  };
  fetchReports();
  }, []);
+
+ const updateStatus = async (id: string, status: string) => {
+ await api.updateTicketStatus(Number(id), status);
+ setList((rows) => rows.map((row) => row.id === id ? { ...row, status } : row));
+ };
 
  return (
  <div className="space-y-6 pb-12">
@@ -75,8 +81,8 @@ export default function ReportsPage() {
  r.status === "reviewing" && "bg-amber-100 text-amber-700",
  r.status === "closed" && "bg-emerald-100 text-emerald-700",
  )}>{r.status}</span>
- <Button size="sm" variant="outline" className="h-[2.5vw] rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm font-semibold">Review</Button>
- <Button size="sm" className="h-[2.5vw] rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-lg shadow-rose-500/30 font-semibold">Resolve</Button>
+ <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, "reviewing")} className="h-[2.5vw] rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm font-semibold">Review</Button>
+ <Button size="sm" onClick={() => updateStatus(r.id, "closed")} className="h-[2.5vw] rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-lg shadow-rose-500/30 font-semibold">Resolve</Button>
  </div>
  </div>
  ))}

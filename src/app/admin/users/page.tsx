@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 type AdminUser = {
  id: string;
@@ -48,7 +48,7 @@ export default function UsersPage() {
  plan: u.plan === 'free' ? 'Free' : 'Premium',
  joined: new Date(u.createdAt).toISOString().split('T')[0],
  status: u.status,
- verified: true // Assuming database users are verified for demo
+ verified: Boolean(u.isVerified)
  }));
  
  setList(mappedUsers);
@@ -71,8 +71,6 @@ export default function UsersPage() {
  // Optimistic UI update
  setList((prev) => prev.map((u) => (u.id === id ? { ...u, status } : u)));
  
- // Check if it's a real backend user (usually simple numeric ID, mock users start with 'u')
- if (!id.startsWith('u')) {
  const token = getToken();
  if (token) {
  try {
@@ -88,7 +86,6 @@ export default function UsersPage() {
  console.error("Failed to update status on backend", err);
  toast.error("Failed to sync status with server");
  return;
- }
  }
  }
  toast.success(`User ${status}`);

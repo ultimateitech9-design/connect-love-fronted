@@ -9,6 +9,11 @@ export const metadata: Metadata = {
  description:
  "Connect Love is a premium, verified dating platform built for intentional connection. AI-powered matching, end-to-end encryption, and a safe community of 500K+ singles.",
  keywords: ["dating app", "online dating", "soulmate", "relationships", "matches"],
+ icons: {
+ icon: "/favicon.svg",
+ shortcut: "/favicon.svg",
+ apple: "/favicon.svg",
+ },
  openGraph: {
  title: "Connect Love — Find the spark that feels like home",
  description: "A premium sanctuary for modern connection. Verified profiles, AI compatibility, and genuine love.",
@@ -41,4 +46,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
  </html>
  );
 }
-

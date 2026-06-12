@@ -123,7 +123,7 @@ export default function SettingsPage() {
  const handleDeleteAccount = async () => {
    if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
    try {
-     const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+     const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
      const res = await fetch(`${API}/users/me`, {
        method: "DELETE",
        headers: { Authorization: `Bearer ${getToken()}` },

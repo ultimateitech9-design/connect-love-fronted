@@ -18,7 +18,7 @@ export interface UserSettings {
 const defaultSettings: UserSettings = {
  showOnlineStatus: true,
  showDistance: true,
- photosVisibleToNonMatches: false,
+ photosVisibleToNonMatches: true,
  onlyShowVerifiedProfiles: false,
  notifyMessages: true,
  notifyMatches: true,
@@ -55,7 +55,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
  return;
  }
  try {
- const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
  const res = await fetch(`${API}/users/me`, {
  headers: { Authorization: `Bearer ${token}` },
  });
@@ -64,7 +64,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
  setSettings({
  showOnlineStatus: data.showOnlineStatus ?? true,
  showDistance: data.showDistance ?? true,
- photosVisibleToNonMatches: data.photosVisibleToNonMatches ?? false,
+ photosVisibleToNonMatches: data.photosVisibleToNonMatches ?? true,
  onlyShowVerifiedProfiles: data.onlyShowVerifiedProfiles ?? false,
  notifyMessages: data.notifyMessages ?? true,
  notifyMatches: data.notifyMatches ?? true,
@@ -87,7 +87,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
  const token = getToken();
  if (!token) return;
  try {
- const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
  await fetch(`${API}/users/me`, {
  method: "PATCH",
  headers: {

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   images: {
@@ -10,6 +11,8 @@ const nextConfig: NextConfig = {
     ],
   },
   output: "standalone",
+  outputFileTracingRoot: path.join(__dirname),
+  turbopack: {},
   webpack: (config) => {
     // Add memory limits for Next.js webpack
     config.optimization = {

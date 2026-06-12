@@ -11,7 +11,7 @@ import { StepCity } from "@/features/onboarding/StepCity";
 import { StepBio } from "@/features/onboarding/StepBio";
 import { StepTags } from "@/features/onboarding/StepTags";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 const STEPS = [
  { id: "height", title: "How tall are you?" },
@@ -78,7 +78,7 @@ export default function OnboardingPage() {
  setProfile((prev: any) => ({ ...prev, ...payload }));
 
  if (isFinal) {
- router.push("/user/discover");
+ router.push("/user/profile");
  } else {
  setCurrentStepIndex((prev) => prev + 1);
  }

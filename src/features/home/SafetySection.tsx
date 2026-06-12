@@ -67,7 +67,7 @@ export function SafetySection() {
  <div className="relative z-10 mx-auto w-[90vw]">
  {/* Header */}
  <motion.div
- initial={{ opacity: 0, y: 30 }}
+ initial={false}
  animate={inView ? { opacity: 1, y: 0 } : {}}
  transition={{ duration: 0.7 }}
  className="text-center"
@@ -92,7 +92,7 @@ export function SafetySection() {
  {safetyFeatures.map((feat, i) => (
  <motion.div
  key={feat.title}
- initial={{ opacity: 0, y: 30 }}
+ initial={false}
  animate={inView ? { opacity: 1, y: 0 } : {}}
  transition={{ duration: 0.5, delay: 0.1 + i * 0.08 }}
  className="group rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm hover:bg-white/10 hover:-translate-y-1 transition-all"
@@ -108,7 +108,7 @@ export function SafetySection() {
 
  {/* Trust badges row */}
  <motion.div
- initial={{ opacity: 0 }}
+ initial={false}
  animate={inView ? { opacity: 1 } : {}}
  transition={{ duration: 0.7, delay: 0.6 }}
  className="mt-16 flex flex-wrap justify-center gap-6"

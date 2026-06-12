@@ -48,39 +48,9 @@ const roleColumns: { key: RoleKey; label: string; color: string }[] = [
  { key: "finance", label: "Finance", color: "text-indigo-600" },
 ];
 
-const pendingRequests = [
- {
- id: 1,
- user: "Riya Sharma",
- initials: "RS",
- color: "bg-rose-400",
- role: "Support Team",
- request: "Requesting access to User Management module to assist with ticket resolution and account queries.",
- time: "2 hours ago",
- },
- {
- id: 2,
- user: "Arjun Mehta",
- initials: "AM",
- color: "bg-indigo-500",
- role: "Finance Manager",
- request: "Requesting view access to Payment Reports and Revenue Analytics for monthly auditing purposes.",
- time: "5 hours ago",
- },
- {
- id: 3,
- user: "Priya Nair",
- initials: "PN",
- color: "bg-emerald-500",
- role: "Moderator",
- request: "Requesting elevated permissions to handle flagged content and user ban/unban actions without admin approval.",
- time: "1 day ago",
- },
-];
-
 const MODULE_LIST = ["Dashboard", "User Management", "Verification", "Payments", "Reports", "Notifications", "Security", "Settings", "System Logs"];
 
-function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (role: (string | number)[]) => void }) {
+function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (role: (string | number)[]) => Promise<void> }) {
  const [roleName, setRoleName] = useState("");
  const [description, setDescription] = useState("");
  const [accessLevel, setAccessLevel] = useState("Restricted");
@@ -89,10 +59,10 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
  const toggleModule = (mod: string) =>
  setSelectedModules((prev) => prev.includes(mod) ? prev.filter((m) => m !== mod) : [...prev, mod]);
 
- const handleSubmit = (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
  e.preventDefault();
  if (!roleName.trim()) return;
- onSave([roleName.trim(), 0, selectedModules.length * 2, "Active", "Just now"]);
+ await onSave([roleName.trim(), 0, selectedModules.length * 2, "Active", new Date().toISOString().slice(0, 10)]);
  onClose();
  };
 
@@ -106,8 +76,8 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
  {/* Header */}
  <div className="flex items-center justify-between px-6 py-5 border-b border-border">
  <div className="flex items-center gap-3">
- <div className="h-[2.5vw] w-[2.5vw] rounded-lg flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
- <KeyRound className="h-[1.111vw] w-[1.111vw] text-white" />
+ <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
+ <KeyRound className="h-4.5 w-4.5 text-white" />
  </div>
  <div>
  <h2 className="text-base font-bold text-foreground">Create New Role</h2>
@@ -116,9 +86,9 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
  </div>
  <button
  onClick={onClose}
- className="h-[2.222vw] w-[2.222vw] rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+ className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
  >
- <X className="h-[1.111vw] w-[1.111vw]" />
+ <X className="h-4 w-4" />
  </button>
  </div>
 
@@ -132,7 +102,7 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
  onChange={(e) => setRoleName(e.target.value)}
  placeholder="e.g. Content Reviewer"
  required
- className="w-full h-[2.778vw] px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary transition-all"
+ className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary transition-all"
  />
  </div>
 
@@ -157,7 +127,7 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
  key={level}
  type="button"
  onClick={() => setAccessLevel(level)}
- className={`h-[2.5vw] rounded-lg border text-xs font-semibold transition-all ${
+ className={`h-10 rounded-lg border text-xs font-semibold transition-all ${
  accessLevel === level
  ? "border-primary bg-primary/10 text-primary"
  : "border-border bg-card text-muted-foreground hover:bg-muted"
@@ -189,8 +159,8 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
  : "border-border bg-card text-muted-foreground hover:bg-muted"
  }`}
  >
- <span className={`h-[1.111vw] w-[1.111vw] rounded flex items-center justify-center shrink-0 transition-colors ${active ? "bg-primary" : "bg-muted border border-border"}`}>
- {active && <Check className="h-[0.694vw] w-[0.694vw] text-white" />}
+ <span className={`h-4 w-4 rounded flex items-center justify-center shrink-0 transition-colors ${active ? "bg-primary" : "bg-muted border border-border"}`}>
+ {active && <Check className="h-2.5 w-2.5 text-white" />}
  </span>
  {mod}
  </button>
@@ -204,17 +174,17 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
  <button
  type="button"
  onClick={onClose}
- className="flex-1 h-[2.778vw] rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-muted transition-colors"
+ className="flex-1 h-10 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-muted transition-colors"
  >
  Cancel
  </button>
  <button
  type="submit"
  disabled={!roleName.trim()}
- className="flex-1 h-[2.778vw] rounded-lg text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-40"
+ className="flex-1 h-10 rounded-lg text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-40"
  style={{ background: "var(--gradient-brand)" }}
  >
- <Plus className="h-[1.111vw] w-[1.111vw]" />
+ <Plus className="h-4 w-4" />
  Create Role
  </button>
  </div>
@@ -226,12 +196,8 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
 
 export default function RolesPage() {
  const [status, setStatus] = useState<RoleStatus>("All");
- const [pendingList, setPendingList] = useState(pendingRequests);
- const [allRows, setAllRows] = useState<(string | number)[][]>([
- ["Super Admin", 2, 42, "Active", "—"],
- ["Admin", 6, 32, "Active", "—"],
- ["Moderator", 24, 18, "Active", "—"],
- ]);
+ const [pendingList, setPendingList] = useState<any[]>([]);
+ const [allRows, setAllRows] = useState<(string | number)[][]>([]);
  const [loadingRoles, setLoadingRoles] = useState(true);
  const [rolesError, setRolesError] = useState("");
  const [createRoleOpen, setCreateRoleOpen] = useState(false);
@@ -288,34 +254,37 @@ export default function RolesPage() {
  {createRoleOpen && (
  <CreateRoleModal
  onClose={() => setCreateRoleOpen(false)}
- onSave={(newRole) => setAllRows((prev) => [...prev, newRole])}
+ onSave={async (newRole) => {
+ const created: any = await api.createRole({ role: String(newRole[0]), permissions: Number(newRole[2]), status: "Active" });
+ setAllRows((prev) => [...prev, [created.role, 0, created.permissions, created.status, new Date().toISOString().slice(0, 10)]]);
+ }}
  />
  )}
  <PageHeader title="Roles & Permissions" description="Manage team access levels.">
  <div className="flex items-center gap-2">
  
  <button
- className="h-[2.778vw] px-4 rounded-lg text-primary-foreground font-medium text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
+ className="h-10 px-4 rounded-lg text-primary-foreground font-medium text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
  style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-brand)" }}
  onClick={() => setCreateRoleOpen(true)}
  >
- <Plus className="h-[1.111vw] w-[1.111vw]" /> Create Role
+ <Plus className="h-4 w-4" /> Create Role
  </button>
  </div>
  </PageHeader>
 
  {rolesError && (
  <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-sm flex items-center gap-2">
- <AlertCircle className="h-[1.111vw] w-[1.111vw] shrink-0" /> {rolesError}
+ <AlertCircle className="h-4 w-4 shrink-0" /> {rolesError}
  </div>
  )}
 
  {/* Stat Cards — without Perm Changes */}
  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
- <StatCard label="Total Roles" value="8" icon={KeyRound} tone="pink" />
- <StatCard label="Active Admins" value="14" icon={Shield} tone="blue" />
- <StatCard label="Moderators" value="32" icon={UserCog} tone="violet" />
- <StatCard label="Restricted" value="6" icon={Users} tone="amber" />
+ <StatCard label="Total Roles" value={String(allRows.length)} icon={KeyRound} tone="pink" />
+ <StatCard label="Active Roles" value={String(allRows.filter((row) => row[3] === "Active").length)} icon={Shield} tone="blue" />
+ <StatCard label="Assigned Users" value={String(allRows.reduce((sum, row) => sum + Number(row[1] || 0), 0))} icon={UserCog} tone="violet" />
+ <StatCard label="Pending Requests" value={String(pendingList.length)} icon={Users} tone="amber" />
  </div>
 
  {/* Roles Table with filter */}
@@ -345,7 +314,7 @@ export default function RolesPage() {
  {/* Access Control Matrix */}
  <div className="mt-8 mb-6">
  <div className="flex items-center gap-2 mb-4">
- <ShieldCheck className="h-[1.389vw] w-[1.389vw] text-primary" />
+ <ShieldCheck className="h-5 w-5 text-primary" />
  <h2 className="text-lg font-semibold text-foreground">Access Control Matrix</h2>
  <span className="text-xs text-muted-foreground ml-2">Toggle module access for each role</span>
  </div>
@@ -354,7 +323,7 @@ export default function RolesPage() {
  <table className="w-full text-sm">
  <thead className="bg-muted/60">
  <tr>
- <th className="text-left font-semibold text-foreground px-4 py-3 min-w-[11.111vw]">Module</th>
+ <th className="text-left font-semibold text-foreground px-4 py-3 min-w-[150px]">Module</th>
  {roleColumns.map((rc) => (
  <th key={rc.key} className="text-center font-semibold px-6 py-3 whitespace-nowrap text-black">
  {rc.label}
@@ -369,7 +338,7 @@ export default function RolesPage() {
  <tr key={perm.label} className="border-t border-border hover:bg-muted/20 transition-colors">
  <td className="px-4 py-3">
  <div className="flex items-center gap-2 text-foreground font-medium">
- <IconComp className="h-[1.111vw] w-[1.111vw] text-muted-foreground" />
+ <IconComp className="h-4 w-4 text-muted-foreground" />
  {perm.label}
  </div>
  </td>
@@ -406,24 +375,24 @@ export default function RolesPage() {
  {/* Pending Access Requests */}
  <div className="mt-6">
  <div className="flex items-center gap-2 mb-4">
- <Inbox className="h-[1.389vw] w-[1.389vw] text-primary" />
+ <Inbox className="h-5 w-5 text-primary" />
  <h2 className="text-lg font-semibold text-foreground">Pending Access Requests</h2>
  {pendingList.length > 0 && (
- <span className="ml-2 h-[1.389vw] min-w-[1.389vw] px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+ <span className="ml-2 h-5 min-w-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
  {pendingList.length}
  </span>
  )}
  </div>
  {pendingList.length === 0 ? (
  <div className="rounded-2xl bg-card border border-border p-8 text-center text-muted-foreground text-sm">
- No pending access requests 🎉
+ No pending access requests.
  </div>
  ) : (
  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
  {pendingList.map((req) => (
  <div key={req.id} className="rounded-2xl bg-card border border-border p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
  <div className="flex items-start gap-3 mb-3">
- <div className={`h-[2.778vw] w-[2.778vw] rounded-full ${req.color} text-white flex items-center justify-center text-sm font-semibold shrink-0`}>
+ <div className={`h-10 w-10 rounded-full ${req.color} text-white flex items-center justify-center text-sm font-semibold shrink-0`}>
  {req.initials}
  </div>
  <div className="min-w-[0vw]">
@@ -438,15 +407,15 @@ export default function RolesPage() {
  <div className="flex gap-2">
  <button
  onClick={() => handleApprove(req.id)}
- className="flex-1 h-[2.222vw] rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+ className="flex-1 h-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
  >
- <Check className="h-[0.972vw] w-[0.972vw]" /> Approve
+ <Check className="h-3.5 w-3.5" /> Approve
  </button>
  <button
  onClick={() => handleReject(req.id)}
- className="flex-1 h-[2.222vw] rounded-lg bg-muted hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-border text-foreground text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+ className="flex-1 h-8 rounded-lg bg-muted hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 border border-border text-foreground text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
  >
- <X className="h-[0.972vw] w-[0.972vw]" /> Reject
+ <X className="h-3.5 w-3.5" /> Reject
  </button>
  </div>
  </div>

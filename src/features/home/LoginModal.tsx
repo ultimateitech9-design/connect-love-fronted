@@ -9,6 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { setToken } from "@/lib/auth";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+
 const loginSchema = z.object({
  email: z.string().email("Enter a valid email address"),
  password: z.string().min(6, "Password must be at least 6 characters"),
@@ -24,6 +26,7 @@ interface LoginModalProps {
 export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps) {
  const [showPass, setShowPass] = useState(false);
  const [error, setError] = useState("");
+ const [showManagementLogin, setShowManagementLogin] = useState(false);
 
  const {
  register,
@@ -34,15 +37,18 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
 
  const onSubmit = async (data: LoginData) => {
  setError("");
+ setShowManagementLogin(false);
  try {
- const res = await fetch("http://localhost:3001/auth/login", {
+ const res = await fetch(`${API_BASE}/auth/login`, {
  method: "POST",
  headers: { "Content-Type": "application/json" },
  body: JSON.stringify(data),
  });
  if (!res.ok) {
  const body = await res.json();
- setError(body.message || "Invalid email or password.");
+ const message = body.message || "Invalid email or password.";
+ setError(message);
+ setShowManagementLogin(message.toLowerCase().includes("management login"));
  return;
  }
  const { access_token } = await res.json();
@@ -56,7 +62,7 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  };
 
 
- const handleClose = () => { reset(); setError(""); onClose(); };
+ const handleClose = () => { reset(); setError(""); setShowManagementLogin(false); onClose(); };
 
  return (
  <AnimatePresence>
@@ -102,6 +108,14 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  {error && (
  <div className="mb-4 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-600">
  {error}
+ {showManagementLogin && (
+ <a
+ href="/management/super-admin"
+ className="mt-3 flex w-fit rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-500"
+ >
+ Open Super Admin Login
+ </a>
+ )}
  </div>
  )}
  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

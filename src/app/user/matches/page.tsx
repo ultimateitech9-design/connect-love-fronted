@@ -13,6 +13,13 @@ import { motion } from "framer-motion";
 
 type MatchStatus = "PENDING" | "MATCHED" | "DECLINED" | "BLOCKED";
 type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; createdAt?: string };
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+
+async function readMatches(res: Response): Promise<DBMatch[]> {
+ if (!res.ok) return [];
+ const data = await res.json().catch(() => []);
+ return Array.isArray(data) ? data : [];
+}
 
 export default function MatchesDashboard() {
  const [activeMatches, setActiveMatches] = useState<DBMatch[]>([]);
@@ -52,22 +59,19 @@ export default function MatchesDashboard() {
      const token = getToken();
      if (!token) return;
      
-     // Fetch all categories simultaneously
      const [activeRes, sentRes, receivedRes, blockedRes] = await Promise.all([
-       fetch("http://localhost:3001/matches?filter=active", { headers: { Authorization: `Bearer ${token}` } }),
-       fetch("http://localhost:3001/matches?filter=sent", { headers: { Authorization: `Bearer ${token}` } }),
-       fetch("http://localhost:3001/matches?filter=received", { headers: { Authorization: `Bearer ${token}` } }),
-       fetch("http://localhost:3001/matches?filter=blocked", { headers: { Authorization: `Bearer ${token}` } })
+       fetch(`${API_URL}/matches?filter=active`, { headers: { Authorization: `Bearer ${token}` } }),
+       fetch(`${API_URL}/matches?filter=sent`, { headers: { Authorization: `Bearer ${token}` } }),
+       fetch(`${API_URL}/matches?filter=received`, { headers: { Authorization: `Bearer ${token}` } }),
+       fetch(`${API_URL}/matches?filter=blocked`, { headers: { Authorization: `Bearer ${token}` } })
      ]);
 
      const [active, sent, received, blocked] = await Promise.all([
-       activeRes.json(), sentRes.json(), receivedRes.json(), blockedRes.json()
+       readMatches(activeRes),
+       readMatches(sentRes),
+       readMatches(receivedRes),
+       readMatches(blockedRes)
      ]);
-
-     if (!Array.isArray(active)) {
-         setIsLoading(false);
-         return;
-     }
 
      setActiveMatches(active);
      setSentLikes(sent);
@@ -86,7 +90,7 @@ export default function MatchesDashboard() {
 
  const handleBlock = async (id: string) => {
    try {
-     await fetch(`http://localhost:3001/matches/block/${id}`, {
+     await fetch(`${API_URL}/matches/block/${id}`, {
        method: "PATCH",
        headers: { "Authorization": `Bearer ${getToken()}` },
      });
@@ -99,7 +103,7 @@ export default function MatchesDashboard() {
 
  const handleUnblock = async (id: string) => {
    try {
-     await fetch(`http://localhost:3001/matches/unblock/${id}`, {
+     await fetch(`${API_URL}/matches/unblock/${id}`, {
        method: "PATCH",
        headers: { "Authorization": `Bearer ${getToken()}` },
      });
@@ -112,7 +116,7 @@ export default function MatchesDashboard() {
 
  const handleWithdrawLike = async (id: string) => {
     try {
-      await fetch(`http://localhost:3001/matches/unblock/${id}`, { // Using unblock (delete) to withdraw
+      await fetch(`${API_URL}/matches/unblock/${id}`, {
         method: "PATCH",
         headers: { "Authorization": `Bearer ${getToken()}` },
       });
@@ -125,7 +129,7 @@ export default function MatchesDashboard() {
 
  const handleAcceptMatch = async (matchId: string, profileName: string) => {
    try {
-     await fetch(`http://localhost:3001/matches/respond`, {
+     await fetch(`${API_URL}/matches/respond`, {
        method: "POST",
        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
        body: JSON.stringify({ matchId, action: "accept" }),
@@ -139,7 +143,7 @@ export default function MatchesDashboard() {
 
  const handlePassMatch = async (matchId: string) => {
    try {
-     await fetch(`http://localhost:3001/matches/respond`, {
+     await fetch(`${API_URL}/matches/respond`, {
        method: "POST",
        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
        body: JSON.stringify({ matchId, action: "decline" }),
@@ -151,9 +155,11 @@ export default function MatchesDashboard() {
    }
  };
 
- const totalPending = sentLikes.length + receivedLikes.length;
- const superLikes = sentLikes.filter(m => m.isSuperLike);
- const normalSentLikes = sentLikes.filter(m => !m.isSuperLike);
+ const safeSentLikes = Array.isArray(sentLikes) ? sentLikes : [];
+ const safeReceivedLikes = Array.isArray(receivedLikes) ? receivedLikes : [];
+ const totalPending = safeSentLikes.length + safeReceivedLikes.length;
+ const superLikes = safeSentLikes.filter(m => m.isSuperLike);
+ const normalSentLikes = safeSentLikes.filter(m => !m.isSuperLike);
 
  if (isLoading) return <div className="p-8 flex items-center justify-center min-h-[50vh]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500"></div></div>;
 

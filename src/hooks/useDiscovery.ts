@@ -1,8 +1,9 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
 
 export function useDiscovery(token: string) {
  const queryClient = useQueryClient();
@@ -44,6 +45,19 @@ export function useDiscovery(token: string) {
  },
  onError: (err, variables, context: any) => {
  queryClient.setQueryData(['discovery'], context.previousProfiles);
+ },
+ onSuccess: (match: any) => {
+ if (match?.status === 'MATCHED') {
+ toast.success("It's a match!", {
+ description: "You can message or video call from the chat screen.",
+ action: {
+ label: "Open chat",
+ onClick: () => {
+ if (typeof window !== "undefined") window.location.href = `/user/messages?id=${match.id}`;
+ },
+ },
+ });
+ }
  },
  onSettled: () => {
  queryClient.invalidateQueries({ queryKey: ['discovery'] });

@@ -14,7 +14,7 @@ export function AboutSection() {
  <div className="mx-auto w-[90vw] grid lg:grid-cols-2 gap-20 items-center">
  {/* Left */}
  <motion.div
- initial={{ opacity: 0, x: -40 }}
+ initial={false}
  animate={inView ? { opacity: 1, x: 0 } : {}}
  transition={{ duration: 0.7 }}
  >
@@ -55,7 +55,7 @@ export function AboutSection() {
  ].map((item, i) => (
  <motion.div
  key={item.title}
- initial={{ opacity: 0, x: -20 }}
+ initial={false}
  animate={inView ? { opacity: 1, x: 0 } : {}}
  transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
  className="flex items-start gap-4"
@@ -74,7 +74,7 @@ export function AboutSection() {
 
  {/* Right — visual block */}
  <motion.div
- initial={{ opacity: 0, x: 40 }}
+ initial={false}
  animate={inView ? { opacity: 1, x: 0 } : {}}
  transition={{ duration: 0.7, delay: 0.15 }}
  className="relative"

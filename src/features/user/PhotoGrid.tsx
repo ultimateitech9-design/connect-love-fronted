@@ -60,6 +60,10 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
     setUploading(true);
     try {
       const base64 = await processImage(file);
+      if (photos.includes(base64)) {
+        alert("This photo is already uploaded.");
+        return;
+      }
       const newPhotos = [...photos, base64];
       onPhotosChange(newPhotos);
     } catch (err) {
@@ -70,8 +74,11 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
     }
   };
 
+  // Deduplicate photos to prevent React and framer-motion duplicate key/value errors
+  const uniquePhotos = Array.from(new Set(photos));
+
   const removePhoto = (index: number) => {
-    const newPhotos = [...photos];
+    const newPhotos = [...uniquePhotos];
     newPhotos.splice(index, 1);
     onPhotosChange(newPhotos);
   };
@@ -81,8 +88,8 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
   };
 
   // We need exactly 5 slots. We fill the empty slots with placeholders.
-  const emptySlotsCount = 5 - photos.length;
-  const emptySlots = Array.from({ length: emptySlotsCount }).map((_, i) => i + photos.length);
+  const emptySlotsCount = 5 - uniquePhotos.length;
+  const emptySlots = Array.from({ length: emptySlotsCount }).map((_, i) => i + uniquePhotos.length);
 
   return (
     <div className="w-full">
@@ -96,13 +103,13 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
       <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
         <Reorder.Group
           axis="x" // Actually we'd prefer 2D grid sorting, but framer-motion Reorder works best on 1 axis or requires a custom setup. We can wrap it in a flex to allow wrapping.
-          values={photos}
+          values={uniquePhotos}
           onReorder={handleReorder}
           className="contents" // "contents" allows children to participate in the grid
         >
-          {photos.map((photo, index) => (
+          {uniquePhotos.map((photo, index) => (
             <Reorder.Item
-              key={photo} // React key must be unique, photo string works if no duplicates
+              key={photo}
               value={photo}
               dragListener={!disabled}
               className="relative aspect-[3/4] w-full cursor-grab overflow-hidden rounded-2xl shadow-md active:cursor-grabbing border border-rose-100"
@@ -140,7 +147,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
               disabled || uploading ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:bg-rose-50 hover:border-rose-300"
             }`}
           >
-            {uploading && slotIndex === photos.length ? (
+            {uploading && slotIndex === uniquePhotos.length ? (
               <span className="animate-pulse rounded-full bg-rose-100 p-3 text-rose-500">
                  {/* This just shows uploading state on the first empty slot */}
                 <Camera className="h-6 w-6 animate-pulse" />

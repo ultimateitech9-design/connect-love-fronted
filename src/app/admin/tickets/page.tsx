@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getToken } from "@/lib/auth";
+import { api } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export default function TicketsPage() {
  const [tickets, setTickets] = useState<any[]>([]);
@@ -22,6 +23,11 @@ export default function TicketsPage() {
  .then((data) => setTickets(Array.isArray(data) ? data : []))
  .finally(() => setLoading(false));
  }, []);
+
+ const updateStatus = async (id: number, status: string) => {
+ await api.updateTicketStatus(id, status);
+ setTickets((rows) => rows.map((row) => row.id === id ? { ...row, status } : row));
+ };
 
  return (
  <div className="space-y-6">
@@ -47,7 +53,8 @@ export default function TicketsPage() {
  t.status === "reviewing" && "bg-amber-100 text-amber-700",
  t.status === "closed" && "bg-emerald-100 text-emerald-700",
  )}>{t.status}</span>
- <Button size="sm" variant="outline">Reply</Button>
+ <Button size="sm" variant="outline" onClick={() => updateStatus(t.id, "reviewing")}>Review</Button>
+ <Button size="sm" onClick={() => updateStatus(t.id, "closed")}>Close</Button>
  </div>
  </div>
  ))}

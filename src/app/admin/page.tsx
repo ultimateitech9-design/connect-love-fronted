@@ -12,7 +12,7 @@ const RevenueChart = dynamic(() => import("@/features/admin/AdminRevenueChart"),
  loading: () => <div className="w-full h-full flex items-center justify-center text-slate-400">Loading chart...</div>
 });
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export default function AdminOverview() {
  const [stats, setStats] = useState({

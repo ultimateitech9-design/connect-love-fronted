@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getToken, clearToken } from "@/lib/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
  const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
  .then(user => {
  if (cancelled) return;
 
- // Enforce onboarding flow
+ // New users must complete onboarding before entering the user app.
  if (!user.onboardingCompleted && pathname !== "/user/onboarding") {
  setLoading(false);
  router.replace("/user/onboarding");
@@ -41,7 +41,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
  if (user.onboardingCompleted && pathname === "/user/onboarding") {
  setLoading(false);
- router.replace("/user/discover");
+ router.replace("/user/profile");
  return;
  }
 

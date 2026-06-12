@@ -16,6 +16,8 @@ const contactSchema = z.object({
 });
 type ContactData = z.infer<typeof contactSchema>;
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+
 const faqs = [
  {
  q: "Is Connect Love free to use?",
@@ -58,7 +60,7 @@ export function SupportSection() {
 
  const onSubmit = async (data: ContactData) => {
  try {
- await fetch("http://localhost:3001/support/contact", {
+ await fetch(`${API_BASE}/support/contact`, {
  method: "POST",
  headers: { "Content-Type": "application/json" },
  body: JSON.stringify(data),
@@ -76,7 +78,7 @@ export function SupportSection() {
  <div className="mx-auto w-[90vw]">
  {/* Header */}
  <motion.div
- initial={{ opacity: 0, y: 30 }}
+ initial={false}
  animate={inView ? { opacity: 1, y: 0 } : {}}
  transition={{ duration: 0.7 }}
  className="text-center"
@@ -115,7 +117,7 @@ export function SupportSection() {
  <div className="mt-16 grid lg:grid-cols-2 gap-16">
  {/* Contact form */}
  <motion.div
- initial={{ opacity: 0, x: -30 }}
+ initial={false}
  animate={inView ? { opacity: 1, x: 0 } : {}}
  transition={{ duration: 0.7, delay: 0.2 }}
  >
@@ -196,7 +198,7 @@ export function SupportSection() {
 
  {/* FAQ */}
  <motion.div
- initial={{ opacity: 0, x: 30 }}
+ initial={false}
  animate={inView ? { opacity: 1, x: 0 } : {}}
  transition={{ duration: 0.7, delay: 0.3 }}
  >
