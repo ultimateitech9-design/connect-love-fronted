@@ -26,6 +26,7 @@ type StatusFilter = "All" | Status;
 type Verification = "Verified" | "Pending" | "Revoked";
 type Account = string;
 type Role = string;
+type CreatableRole = "Admin" | "Marketing" | "Finance" | "Sales" | "Support";
 type RoleFilter = "All" | Role;
 
 interface Row {
@@ -96,7 +97,9 @@ export default function UsersPage() {
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [newRole, setNewRole] = useState<Role>("Super Admin");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [newRole, setNewRole] = useState<CreatableRole>("Marketing");
+  const [creatingId, setCreatingId] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<Row | null>(null);
   const [selectedUserDetails, setSelectedUserDetails] = useState<any | null>(null);
@@ -152,18 +155,27 @@ export default function UsersPage() {
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newEmail || !newPassword) return;
-    setError("");
-    try {
-      await api.createUser({ name: newName, email: newEmail, password: newPassword, role: newRole });
-      await fetchUsers();
-    } catch {
-      setError("Failed to create user in backend.");
+    if (newPassword !== confirmPassword) {
+      setError("Password and confirm password do not match.");
       return;
+    }
+    setError("");
+    setCreatingId(true);
+    try {
+      await api.createManagementUser({ name: newName, email: newEmail, password: newPassword, role: newRole.toLowerCase() as "admin" | "marketing" | "finance" | "sales" | "support" });
+      await fetchUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create user in backend.");
+      return;
+    } finally {
+      setCreatingId(false);
     }
     setNewName("");
     setNewEmail("");
     setNewPassword("");
-    setNewRole("Admin");
+    setConfirmPassword("");
+    setNewRole("Marketing");
+    setShowModal(false);
   };
 
  const fetchUsers = async () => {
@@ -197,14 +209,19 @@ export default function UsersPage() {
 
  return (
  <div className="w-full relative pb-20">
- <div className="mb-8">
+ <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+ <div>
  <h1 className="text-3xl font-bold tracking-tight text-foreground">User Management</h1>
  <p className="text-sm text-muted-foreground mt-2">
  Create and manage system access IDs for Admin, Finance, Sales, Support, and Marketing.
  </p>
  </div>
+ <button onClick={() => setShowModal(true)} className="inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-90" style={{ background: "var(--gradient-brand)" }}>
+ <UserPlus className="h-4 w-4" /> Create ID
+ </button>
+ </div>
 
- <div className="bg-card border border-border rounded-xl shadow-sm p-6 mb-8">
+ <div className="hidden">
  <h2 className="text-lg font-bold mb-4">Create New ID</h2>
  <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
  <div className="space-y-1.5">
@@ -221,13 +238,11 @@ export default function UsersPage() {
  </div>
  <div className="space-y-1.5">
  <label className="text-xs font-semibold uppercase text-muted-foreground">Role</label>
- <select value={newRole} onChange={e => setNewRole(e.target.value as Role)} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary">
- <option value="Super Admin">Super Admin</option>
- <option value="Admin">Admin</option>
+ <select value={newRole} onChange={e => setNewRole(e.target.value as CreatableRole)} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary">
+ <option value="Marketing">Marketing</option>
  <option value="Finance">Finance</option>
  <option value="Sales">Sales</option>
  <option value="Support">Support</option>
- <option value="Marketing">Marketing</option>
  </select>
  </div>
  <div>
@@ -237,6 +252,28 @@ export default function UsersPage() {
  </div>
  </form>
  </div>
+
+ {showModal && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.68)", backdropFilter: "blur(7px)" }} onClick={(event) => { if (event.target === event.currentTarget && !creatingId) setShowModal(false); }}>
+ <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+ <div className="flex items-center justify-between border-b border-border px-6 py-5">
+ <div><h2 className="text-xl font-bold text-foreground">Create New Dashboard ID</h2><p className="mt-1 text-sm text-muted-foreground">Create secure login credentials for a management dashboard.</p></div>
+ <button type="button" disabled={creatingId} onClick={() => setShowModal(false)} className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><X className="h-5 w-5" /></button>
+ </div>
+ <form onSubmit={handleCreateUser} className="p-6">
+ {error && <div className="mb-5 flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-500"><AlertCircle className="h-4 w-4 shrink-0" />{error}</div>}
+ <div className="grid gap-5 sm:grid-cols-2">
+ <div className="space-y-1.5"><label className={monoLabel}>Full Name</label><input required minLength={2} value={newName} onChange={(e) => setNewName(e.target.value)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white caret-pink-400 outline-none placeholder:text-slate-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Full name" /></div>
+ <div className="space-y-1.5"><label className={monoLabel}>Login Email</label><input required type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white caret-pink-400 outline-none placeholder:text-slate-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="name@company.com" /></div>
+ <div className="space-y-1.5"><label className={monoLabel}>Password</label><input required minLength={8} type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white caret-pink-400 outline-none placeholder:text-slate-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Minimum 8 characters" /></div>
+ <div className="space-y-1.5"><label className={monoLabel}>Confirm Password</label><input required minLength={8} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white caret-pink-400 outline-none placeholder:text-slate-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Repeat password" /></div>
+ <div className="space-y-1.5 sm:col-span-2"><label className={monoLabel}>Dashboard Role</label><select value={newRole} onChange={(e) => setNewRole(e.target.value as CreatableRole)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"><option value="Admin">Admin</option><option value="Marketing">Marketing</option><option value="Finance">Finance</option><option value="Sales">Sales</option><option value="Support">Support</option></select><p className="text-xs text-slate-400">Admin IDs can only be created from the Super Admin panel.</p></div>
+ </div>
+ <div className="mt-6 flex justify-end gap-3 border-t border-slate-700 pt-5"><button type="button" disabled={creatingId} onClick={() => setShowModal(false)} className="h-10 rounded-lg border border-slate-600 bg-slate-800 px-5 text-sm font-semibold text-slate-200 hover:bg-slate-700 disabled:opacity-50">Cancel</button><button type="submit" disabled={creatingId} className="h-10 min-w-32 rounded-lg px-5 text-sm font-semibold text-white shadow-md disabled:opacity-50" style={{ background: "var(--gradient-brand)" }}>{creatingId ? "Creating..." : "Create ID"}</button></div>
+ </form>
+ </div>
+ </div>
+ )}
 
  {error && (
  <div className="mb-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 text-sm flex items-center gap-2">

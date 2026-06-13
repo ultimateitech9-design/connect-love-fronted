@@ -34,6 +34,11 @@ export function getToken(): string | null {
  return storage()?.getItem(TOKEN_KEY) ?? getCookie("management_client_token");
 }
 
+/** Retrieve the management JWT without being shadowed by a normal user session. */
+export function getManagementToken(): string | null {
+ return getCookie("management_client_token") ?? storage()?.getItem(TOKEN_KEY) ?? null;
+}
+
 /**
  * Persist the JWT token after a successful login.
  * Also sets the sm_auth cookie so Edge Middleware can protect /user/* routes.
@@ -73,6 +78,7 @@ export function logout(redirectTo = "/"): void {
  if (token) {
  fetch(`${API_BASE}/auth/logout`, {
  method: "POST",
+ keepalive: true,
  headers: {
  Authorization: `Bearer ${token}`,
  "Content-Type": "application/json",

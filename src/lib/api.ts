@@ -8,7 +8,7 @@ function getClientToken(): string | null {
  .split("; ")
  .find((row) => row.startsWith("management_client_token="))
  ?.split("=")[1];
- return localToken || (cookieToken ? decodeURIComponent(cookieToken) : null);
+ return (cookieToken ? decodeURIComponent(cookieToken) : null) || localToken;
 }
 
 async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
@@ -42,7 +42,7 @@ export const api = {
  security: () => apiFetch<{ loginActivity: { day: string; success: number; failed: number }[]; blockedAccounts: number }>("/security"),
  settings: () => apiFetch<{ settings: { maintenanceMode: boolean; userRegistrations: boolean; matchingSystem: boolean; premiumMemberships: boolean } }>("/settings"),
  roles: () => apiFetch<{ roles: { role: string; assignedUsers: number; permissions: number; status: string }[] }>("/roles"),
- logs: () => apiFetch<{ logs: { user: string; activity: string; ipAddress: string; action: string; module?: string; createdAt?: string }[] }>("/logs"),
+ logs: () => apiFetch<{ logs: { id: string; user: string; activity: string; ipAddress: string; action: string; module?: string; role?: string; device?: string; loginAt?: string; lastActivityAt?: string; logoutAt?: string; durationSeconds?: number | null; createdAt?: string }[] }>("/logs"),
  superAdmin: () => apiFetch<{
  superAdmin: {
  profile: {
@@ -90,6 +90,7 @@ export const api = {
  updateSettings: (settings: Record<string, boolean>) => apiFetch<{ settings: Record<string, boolean> }>("/settings", { method: "PATCH", body: JSON.stringify(settings) }),
  createRole: (body: { role: string; permissions?: number; status?: string }) => apiFetch("/roles", { method: "POST", body: JSON.stringify(body) }),
  createUser: (body: { name: string; email: string; password: string; role: string }) => apiFetch<{ user: unknown; message?: string }>("/users", { method: "POST", body: JSON.stringify(body) }),
+ createManagementUser: (body: { name: string; email: string; password: string; role: "admin" | "marketing" | "finance" | "sales" | "support" }) => directFetch<{ user: unknown; message: string }>("/admin/management-users", { method: "POST", body: JSON.stringify(body) }),
  banUser: (id: string, banned: boolean) => apiFetch<{ success: boolean }>(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: banned ? "banned" : "active" }) }),
  deleteUser: (id: string) => apiFetch<{ success: boolean }>(`/users/${id}`, { method: "DELETE" }),
  userDetails: (id: string) => apiFetch<{ user: any }>(`/users/${id}`),
