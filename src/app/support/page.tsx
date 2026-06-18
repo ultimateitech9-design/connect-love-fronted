@@ -9,7 +9,7 @@ import { api } from "@/lib/api";
 
 const pieColors = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)"];
 
-type RecentTicket = { id: string; user: string; topic: string; priority: string; status: string };
+type RecentTicket = { id: string; user: string; phone?: string; photoDataUrl?: string; topic: string; message: string; priority: string; status: string };
 
 export default function Overview() {
   const [stats, setStats] = useState({ totalTickets: 0, resolvedToday: 0, openTickets: 0, escalated: 0 });
@@ -27,7 +27,10 @@ export default function Overview() {
         setRecentTickets(data.recent.map((ticket) => ({
           id: `#${ticket.id}`,
           user: ticket.name,
+          phone: ticket.phone,
+          photoDataUrl: ticket.photoDataUrl,
           topic: ticket.subject,
+          message: ticket.message,
           priority: ticket.status === "escalated" ? "High" : ticket.status === "open" ? "Medium" : "Low",
           status: ticket.status.replace(/\b\w/g, (c) => c.toUpperCase()),
         })));
@@ -113,19 +116,25 @@ export default function Overview() {
                 <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-muted-foreground">
                   <th className="py-2 pr-4 font-medium">Ticket</th>
                   <th className="py-2 pr-4 font-medium">User</th>
+                  <th className="py-2 pr-4 font-medium">Phone</th>
                   <th className="py-2 pr-4 font-medium">Topic</th>
+                  <th className="py-2 pr-4 font-medium">Message</th>
+                  <th className="py-2 pr-4 font-medium">Photo</th>
                   <th className="py-2 pr-4 font-medium">Priority</th>
                   <th className="py-2 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {recentTickets.length === 0 ? (
-                  <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No support tickets found.</td></tr>
+                  <tr><td colSpan={8} className="py-8 text-center text-muted-foreground">No support tickets found.</td></tr>
                 ) : recentTickets.map((r) => (
                   <tr key={r.id} className="border-b border-border/40 last:border-0">
                     <td className="py-3 pr-4 font-mono text-xs">{r.id}</td>
                     <td className="py-3 pr-4">{r.user}</td>
+                    <td className="py-3 pr-4 text-xs text-muted-foreground">{r.phone || "No phone"}</td>
                     <td className="py-3 pr-4">{r.topic}</td>
+                    <td className="max-w-xs py-3 pr-4 text-xs text-muted-foreground">{r.message}</td>
+                    <td className="py-3 pr-4">{r.photoDataUrl ? <img src={r.photoDataUrl} alt="Support ticket attachment" className="h-14 w-14 rounded-lg object-cover" /> : <span className="text-xs text-muted-foreground">No photo</span>}</td>
                     <td className="py-3 pr-4">{r.priority}</td>
                     <td className="py-3 font-medium">{r.status}</td>
                   </tr>

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/features/support/com
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { api } from "@/lib/api";
 
-type TicketRow = { id: number; user: string; subject: string; priority: string; status: string; age: string };
+type TicketRow = { id: number; user: string; email: string; phone?: string; photoDataUrl?: string; message: string; subject: string; priority: string; status: string; age: string };
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<TicketRow[]>([]);
@@ -18,6 +18,10 @@ export default function TicketsPage() {
       .then((rows) => setTickets(rows.map((ticket: any) => ({
         id: ticket.id,
         user: ticket.name,
+        email: ticket.email,
+        phone: ticket.phone,
+        photoDataUrl: ticket.photoDataUrl,
+        message: ticket.message,
         subject: ticket.subject,
         priority: ticket.status === "escalated" ? "High" : ticket.status === "open" ? "Medium" : "Low",
         status: ticket.status.replace(/\b\w/g, (c: string) => c.toUpperCase()),
@@ -91,16 +95,18 @@ export default function TicketsPage() {
                   <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-muted-foreground">
                     <th className="py-2 pr-4 font-medium">ID</th>
                     <th className="py-2 pr-4 font-medium">Subject</th>
+                    <th className="py-2 pr-4 font-medium">Contact</th>
                     <th className="py-2 pr-4 font-medium">Priority</th>
                     <th className="py-2 pr-4 font-medium">Status</th>
                     <th className="py-2 font-medium">Age</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tickets.length === 0 ? <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No support tickets found.</td></tr> : tickets.map((q) => (
+                  {tickets.length === 0 ? <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">No support tickets found.</td></tr> : tickets.map((q) => (
                     <tr key={q.id} className="border-b border-border/40 last:border-0">
                       <td className="py-3 pr-4 font-mono text-xs">#{q.id}</td>
-                      <td className="py-3 pr-4"><div className="font-medium">{q.subject}</div><div className="text-xs text-muted-foreground">{q.user}</div></td>
+                      <td className="py-3 pr-4"><div className="font-medium">{q.subject}</div><div className="max-w-xs text-xs text-muted-foreground">{q.message}</div>{q.photoDataUrl && <img src={q.photoDataUrl} alt="Support ticket attachment" className="mt-2 h-20 w-20 rounded-lg object-cover" />}</td>
+                      <td className="py-3 pr-4"><div className="font-medium">{q.user}</div><div className="text-xs text-muted-foreground">{q.email}</div><div className="text-xs text-muted-foreground">{q.phone || "No phone"}</div></td>
                       <td className="py-3 pr-4">{q.priority}</td>
                       <td className="py-3 pr-4">{q.status}</td>
                       <td className="py-3 text-xs text-muted-foreground">

@@ -78,7 +78,7 @@ export const api = {
  stats: { totalTickets: number; resolvedToday: number; openTickets: number; escalated: number };
  ticketTrend: { day: string; received: number; resolved: number }[];
  complaintMix: { name: string; value: number }[];
- recent: { id: number; name: string; email: string; subject: string; message: string; status: string; createdAt: string }[];
+ recent: { id: number; name: string; email: string; phone?: string; photoDataUrl?: string; subject: string; message: string; status: string; createdAt: string }[];
  }>("/support/overview"),
  supportTickets: (status = "all") => directFetch<any[]>(`/support/tickets?status=${encodeURIComponent(status)}`),
  updateTicketStatus: (id: number, status: string) => directFetch(`/support/tickets/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
