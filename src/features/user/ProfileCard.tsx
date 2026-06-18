@@ -299,17 +299,9 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
           className="relative aspect-[4/5] w-full cursor-grab overflow-hidden rounded-3xl bg-slate-900 shadow-2xl active:cursor-grabbing border border-white/5"
         >
           {currentDisplayPhoto ? (
-            <img src={currentDisplayPhoto} alt={profile.name} draggable={false} className={`h-full w-full select-none object-cover ${profile.photosVisibleToNonMatches === false ? 'blur-2xl scale-110 opacity-60' : ''}`} />
+            <img src={currentDisplayPhoto} alt={profile.name} draggable={false} className="h-full w-full select-none object-cover" />
           ) : (
             <div className="h-full w-full bg-slate-800" />
-          )}
-          {profile.photosVisibleToNonMatches === false && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 pointer-events-none z-10 opacity-80">
-              <div className="bg-black/50 p-3 rounded-full backdrop-blur-md">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              </div>
-              <span className="text-white text-sm font-medium bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">Photos hidden</span>
-            </div>
           )}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 

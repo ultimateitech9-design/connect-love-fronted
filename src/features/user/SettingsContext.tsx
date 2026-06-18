@@ -6,7 +6,6 @@ import { getToken } from "@/lib/auth";
 export interface UserSettings {
  showOnlineStatus: boolean;
  showDistance: boolean;
- photosVisibleToNonMatches: boolean;
  onlyShowVerifiedProfiles: boolean;
  notifyMessages: boolean;
  notifyMatches: boolean;
@@ -18,7 +17,6 @@ export interface UserSettings {
 const defaultSettings: UserSettings = {
  showOnlineStatus: true,
  showDistance: true,
- photosVisibleToNonMatches: true,
  onlyShowVerifiedProfiles: false,
  notifyMessages: true,
  notifyMatches: true,
@@ -64,7 +62,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
  setSettings({
  showOnlineStatus: data.showOnlineStatus ?? true,
  showDistance: data.showDistance ?? true,
- photosVisibleToNonMatches: data.photosVisibleToNonMatches ?? true,
  onlyShowVerifiedProfiles: data.onlyShowVerifiedProfiles ?? false,
  notifyMessages: data.notifyMessages ?? true,
  notifyMatches: data.notifyMatches ?? true,

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
- Eye, MapPin, Image, Bell, Heart, ShieldCheck,
+ Eye, MapPin, Bell, Heart, ShieldCheck,
  Lock, Trash2, UserX, Download, ChevronRight,
  Moon, Globe, Smartphone,
 } from "lucide-react";
@@ -20,7 +20,6 @@ interface Toggle {
 const privacyToggles: Toggle[] = [
  { id: "showOnlineStatus", label: "Show online status", desc: "Let matches see when you're active.", icon: Eye },
  { id: "showDistance", label: "Show distance", desc: "Display approximate distance on your profile.", icon: MapPin },
- { id: "photosVisibleToNonMatches", label: "Photos visible to non-matches", desc: "Otherwise blurred until you match.", icon: Image },
  { id: "onlyShowVerifiedProfiles", label: "Only show verified profiles", desc: "Hide unverified accounts from discovery.", icon: ShieldCheck },
 ];
 

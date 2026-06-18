@@ -7,6 +7,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5002';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
+const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
+const VIDEO_MESSAGE_PREFIX = "__video_message__:";
+
+function messagePreview(content: string) {
+ if (content.startsWith(VOICE_MESSAGE_PREFIX)) return "Voice message";
+ if (content.startsWith(PHOTO_MESSAGE_PREFIX)) return "Photo";
+ if (content.startsWith(VIDEO_MESSAGE_PREFIX)) return "Video";
+ return content;
+}
 
 export interface Message {
  id: string;
@@ -66,7 +75,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  if (match.id === message.conversationId) {
  return {
  ...match,
- lastMessage: message.content.startsWith(VOICE_MESSAGE_PREFIX) ? "Voice message" : message.content,
+ lastMessage: messagePreview(message.content),
  lastMessageTime: message.createdAt,
  // Only increment unread if we are not the sender and not actively viewing this conversation
  unreadCount: (String(message.senderId) === userId || activeConversationRef.current === message.conversationId) 

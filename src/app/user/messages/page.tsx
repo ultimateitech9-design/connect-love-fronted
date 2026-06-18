@@ -5,7 +5,7 @@ import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX } from "lucide-react";
+import { Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX, Paperclip, Image as ImageIcon, X, MapPin, Briefcase, Ruler, SmilePlus, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
  DropdownMenu,
@@ -25,7 +25,20 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
+const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
+const VIDEO_MESSAGE_PREFIX = "__video_message__:";
+const GIFT_MESSAGE_PREFIX = "__gift_message__:";
 const MAX_VOICE_SECONDS = 60;
+const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
+const FREE_DATING_EMOJIS = ["❤️", "😍", "😘", "🥰", "💕", "💖", "💘", "💌", "🌹", "🔥", "😉", "😏", "🤗", "✨", "💫", "💋", "🫶", "💞"];
+const PREMIUM_GIFTS = [
+ { emoji: "🌹", label: "Rose", price: 9 },
+ { emoji: "🍫", label: "Chocolate", price: 19 },
+ { emoji: "💐", label: "Bouquet", price: 49 },
+ { emoji: "💍", label: "Ring", price: 99 },
+ { emoji: "🧸", label: "Teddy", price: 149 },
+ { emoji: "👑", label: "Queen", price: 199 },
+];
 
 function isVoiceMessage(content?: string) {
  return !!content?.startsWith(VOICE_MESSAGE_PREFIX);
@@ -35,10 +48,87 @@ function voiceMessageSrc(content: string) {
  return content.slice(VOICE_MESSAGE_PREFIX.length);
 }
 
+function isPhotoMessage(content?: string) {
+ return !!content?.startsWith(PHOTO_MESSAGE_PREFIX);
+}
+
+function photoMessageSrc(content: string) {
+ return content.slice(PHOTO_MESSAGE_PREFIX.length);
+}
+
+function isVideoMessage(content?: string) {
+ return !!content?.startsWith(VIDEO_MESSAGE_PREFIX);
+}
+
+function videoMessageSrc(content: string) {
+ return content.slice(VIDEO_MESSAGE_PREFIX.length);
+}
+
+function isGiftMessage(content?: string) {
+ return !!content?.startsWith(GIFT_MESSAGE_PREFIX);
+}
+
+function giftPayload(content: string) {
+ const [emoji = "🎁", label = "Gift", price = "0"] = content.slice(GIFT_MESSAGE_PREFIX.length).split("|");
+ return { emoji, label, price };
+}
+
+function messagePreview(content?: string) {
+ if (isVoiceMessage(content)) return "Voice message";
+ if (isPhotoMessage(content)) return "Photo";
+ if (isVideoMessage(content)) return "Video";
+ if (isGiftMessage(content)) return "Premium gift";
+ return content || "No messages yet.";
+}
+
 function formatRecordingTime(seconds: number) {
  const mins = Math.floor(seconds / 60).toString().padStart(2, "0");
  const secs = (seconds % 60).toString().padStart(2, "0");
  return `${mins}:${secs}`;
+}
+
+function MessageContent({ content, isMe, onOpenPhoto }: { content: string; isMe: boolean; onOpenPhoto: (src: string) => void }) {
+ if (isVoiceMessage(content)) {
+   return <audio controls src={voiceMessageSrc(content)} className="h-9 w-60 max-w-full" />;
+ }
+
+ if (isPhotoMessage(content)) {
+   const src = photoMessageSrc(content);
+   return (
+     <button type="button" onClick={() => onOpenPhoto(src)} className="block w-full cursor-zoom-in">
+       <img
+         src={src}
+         alt="Shared photo"
+         className="max-h-80 w-full rounded-xl object-cover"
+       />
+     </button>
+   );
+ }
+
+ if (isVideoMessage(content)) {
+   return (
+     <video
+       controls
+       src={videoMessageSrc(content)}
+       className="max-h-80 w-full rounded-xl bg-black"
+     />
+   );
+ }
+
+ if (isGiftMessage(content)) {
+   const gift = giftPayload(content);
+   return (
+     <div className={cn("min-w-40 rounded-2xl border p-3 text-center shadow-sm", isMe ? "border-white/20 bg-white/10 text-white" : "border-rose-100 bg-rose-50 text-rose-700")}>
+       <div className="text-4xl leading-none">{gift.emoji}</div>
+       <div className="mt-2 text-sm font-bold">{gift.label}</div>
+       <div className={cn("mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold", isMe ? "bg-white/20 text-white" : "bg-white text-rose-600")}>
+         ₹{gift.price}
+       </div>
+     </div>
+   );
+ }
+
+ return <span className={cn("whitespace-pre-wrap break-words", isMe ? "text-white" : "text-foreground")}>{content}</span>;
 }
 
 type ActiveCall = {
@@ -47,6 +137,7 @@ type ActiveCall = {
  otherUserId: string;
  direction: "incoming" | "outgoing";
  status: "ringing" | "active";
+ callType: "audio" | "video";
 };
 
 export default function Messages() {
@@ -55,12 +146,18 @@ export default function Messages() {
  const [draft, setDraft] = useState("");
  const [incomingCall, setIncomingCall] = useState<any | null>(null);
  const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
+ const [profileModal, setProfileModal] = useState<any | null>(null);
+ const [profileLoading, setProfileLoading] = useState(false);
+ const [photoViewerSrc, setPhotoViewerSrc] = useState<string | null>(null);
  const [isMicOn, setIsMicOn] = useState(true);
  const [isCameraOn, setIsCameraOn] = useState(true);
  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
  const [recordingSeconds, setRecordingSeconds] = useState(0);
+ const [selectedMedia, setSelectedMedia] = useState<{ file: File; url: string; type: "photo" | "video" } | null>(null);
+ const [showEmojiPicker, setShowEmojiPicker] = useState(false);
  const bottomRef = useRef<HTMLDivElement>(null);
+ const mediaInputRef = useRef<HTMLInputElement>(null);
  const localVideoRef = useRef<HTMLVideoElement>(null);
  const remoteVideoRef = useRef<HTMLVideoElement>(null);
  const localStreamRef = useRef<MediaStream | null>(null);
@@ -123,7 +220,7 @@ export default function Messages() {
         photo: profile.photo || "",
         online: profile.online || false,
         lastSeen: profile.lastSeen || null,
-        lastMessage: m.lastMessage || "No messages yet.",
+        lastMessage: messagePreview(m.lastMessage),
         lastMessageTime: m.lastMessageTime || m.createdAt,
         unread: m.unreadCount || 0,
       };
@@ -163,12 +260,13 @@ export default function Messages() {
    setIncomingCall(null);
  }, []);
 
- const ensureLocalMedia = useCallback(async () => {
+ const ensureLocalMedia = useCallback(async (callType: "audio" | "video") => {
    if (!localStreamRef.current) {
-     localStreamRef.current = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+     localStreamRef.current = await navigator.mediaDevices.getUserMedia({ video: callType === "video", audio: true });
    }
    localStreamRef.current.getAudioTracks().forEach((track) => { track.enabled = isMicOn; });
-   localStreamRef.current.getVideoTracks().forEach((track) => { track.enabled = isCameraOn; });
+   localStreamRef.current.getVideoTracks().forEach((track) => { track.enabled = callType === "video" && isCameraOn; });
+   setIsCameraOn(callType === "video");
    attachVideoStreams();
    return localStreamRef.current;
  }, [attachVideoStreams, isCameraOn, isMicOn]);
@@ -229,20 +327,21 @@ export default function Messages() {
    return peer;
  }, [attachVideoStreams, socket]);
 
- const startVideoCall = useCallback(async () => {
+ const startCall = useCallback(async (callType: "audio" | "video") => {
    if (!socket || !active) return;
    try {
-     await ensureLocalMedia();
-     socket.emit("startVideoCall", { conversationId: active.id, receiverId: active.userId });
+     await ensureLocalMedia(callType);
+     socket.emit("startVideoCall", { conversationId: active.id, receiverId: active.userId, callType });
    } catch {
-     alert("Camera or microphone permission is required for video calls.");
+     alert(callType === "video" ? "Camera or microphone permission is required for video calls." : "Microphone permission is required for audio calls.");
    }
  }, [active, ensureLocalMedia, socket]);
 
  const acceptIncomingCall = useCallback(async () => {
    if (!socket || !incomingCall) return;
+   const callType = incomingCall.callType === "audio" ? "audio" : "video";
    try {
-     await ensureLocalMedia();
+     await ensureLocalMedia(callType);
      socket.emit("acceptVideoCall", {
        callId: incomingCall.call.id,
        callerId: incomingCall.callerId,
@@ -253,10 +352,11 @@ export default function Messages() {
        otherUserId: incomingCall.callerId,
        direction: "incoming",
        status: "active",
+       callType,
      });
      setIncomingCall(null);
    } catch {
-     alert("Camera or microphone permission is required for video calls.");
+     alert(callType === "video" ? "Camera or microphone permission is required for video calls." : "Microphone permission is required for audio calls.");
    }
  }, [ensureLocalMedia, incomingCall, socket]);
 
@@ -287,6 +387,7 @@ export default function Messages() {
        otherUserId: payload.call.receiverId,
        direction: "outgoing",
        status: "ringing",
+       callType: payload.callType === "audio" ? "audio" : "video",
      });
    };
 
@@ -360,9 +461,65 @@ export default function Messages() {
 
  const handleSend = async (e?: React.FormEvent) => {
    if (e) e.preventDefault();
-   if (!draft.trim() || !activeId || !active) return;
+   if (!activeId || !active) return;
+
+   if (selectedMedia) {
+     const media = selectedMedia;
+     const reader = new FileReader();
+     reader.onloadend = () => {
+       const dataUrl = typeof reader.result === "string" ? reader.result : "";
+       if (dataUrl) {
+         const prefix = media.type === "photo" ? PHOTO_MESSAGE_PREFIX : VIDEO_MESSAGE_PREFIX;
+         sendMessage(active.userId, `${prefix}${dataUrl}`);
+       }
+     };
+     reader.readAsDataURL(media.file);
+     URL.revokeObjectURL(media.url);
+     setSelectedMedia(null);
+     setDraft("");
+     return;
+   }
+
+   if (!draft.trim()) return;
    sendMessage(active.userId, draft.trim());
    setDraft("");
+ };
+
+ const handleMediaSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+   const file = event.target.files?.[0];
+   event.target.value = "";
+   if (!file) return;
+
+   const type = file.type.startsWith("image/") ? "photo" : file.type.startsWith("video/") ? "video" : null;
+   if (!type) {
+     alert("Please select a photo or video file.");
+     return;
+   }
+   if (file.size > MAX_MEDIA_BYTES) {
+     alert("Please select a photo or video under 8 MB.");
+     return;
+   }
+
+   if (selectedMedia) URL.revokeObjectURL(selectedMedia.url);
+   setSelectedMedia({ file, type, url: URL.createObjectURL(file) });
+ };
+
+ const clearSelectedMedia = () => {
+   if (selectedMedia) URL.revokeObjectURL(selectedMedia.url);
+   setSelectedMedia(null);
+ };
+
+ const addEmojiToDraft = (emoji: string) => {
+   setDraft((value) => `${value}${emoji}`);
+   setShowEmojiPicker(false);
+ };
+
+ const sendPremiumGift = (gift: { emoji: string; label: string; price: number }) => {
+   if (!active) return;
+   const ok = confirm(`Send ${gift.label} for ₹${gift.price}?`);
+   if (!ok) return;
+   sendMessage(active.userId, `${GIFT_MESSAGE_PREFIX}${gift.emoji}|${gift.label}|${gift.price}`);
+   setShowEmojiPicker(false);
  };
 
  const sendVoiceBlob = useCallback((blob: Blob) => {
@@ -443,8 +600,9 @@ export default function Messages() {
    return () => {
      if (voiceRecorderRef.current?.state === "recording") voiceRecorderRef.current.stop();
      voiceStreamRef.current?.getTracks().forEach((track) => track.stop());
+     if (selectedMedia) URL.revokeObjectURL(selectedMedia.url);
    };
- }, []);
+ }, [selectedMedia]);
 
  const handleUnsend = async (msgId: string) => {
    if (!activeId) return;
@@ -463,6 +621,40 @@ export default function Messages() {
  const handleSelectMatch = (id: string) => {
    setActiveId(id);
    queryClient.invalidateQueries({ queryKey: ['messages', id] });
+ };
+
+ const handleViewProfile = async () => {
+   if (!active) return;
+   setProfileLoading(true);
+   setProfileModal({ name: active.name, age: active.age, photos: active.photo ? [active.photo] : [] });
+   try {
+     const res = await fetch(`${API_URL}/users/${active.userId}/details`, {
+       headers: { Authorization: `Bearer ${token}` },
+     });
+     if (res.ok) setProfileModal(await res.json());
+   } catch (err) {
+     console.error("Failed to load profile", err);
+   } finally {
+     setProfileLoading(false);
+   }
+ };
+
+ const handleBlockUser = async () => {
+   if (!active) return;
+   if (!confirm(`Block ${active.name}? You will no longer see this user in messages.`)) return;
+   try {
+     const res = await fetch(`${API_URL}/matches/block/${active.id}`, {
+       method: "PATCH",
+       headers: { Authorization: `Bearer ${token}` },
+     });
+     if (!res.ok) throw new Error("Block failed");
+     queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
+     queryClient.invalidateQueries({ queryKey: ['matches', 'blocked'] });
+     setActiveId(null);
+   } catch (err) {
+     console.error("Failed to block user", err);
+     alert("Could not block this user. Please try again.");
+   }
  };
 
  return (
@@ -509,7 +701,7 @@ export default function Messages() {
  )}
  </div>
  <p className="truncate text-xs text-muted-foreground">
- {isVoiceMessage(m.lastMessage) ? "Voice message" : m.lastMessage}
+ {messagePreview(m.lastMessage)}
  </p>
  </div>
  </button>
@@ -533,17 +725,17 @@ export default function Messages() {
  </div>
  </div>
  <div className="flex items-center gap-1 text-muted-foreground">
- <Button variant="ghost" size="icon" onClick={startVideoCall} disabled={!socket}><Phone className="h-[1.111vw] w-[1.111vw]" /></Button>
- <Button variant="ghost" size="icon" onClick={startVideoCall} disabled={!socket}><Video className="h-[1.111vw] w-[1.111vw]" /></Button>
+ <Button variant="ghost" size="icon" onClick={() => startCall("audio")} disabled={!socket}><Phone className="h-[1.111vw] w-[1.111vw]" /></Button>
+ <Button variant="ghost" size="icon" onClick={() => startCall("video")} disabled={!socket}><Video className="h-[1.111vw] w-[1.111vw]" /></Button>
  
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <Button variant="ghost" size="icon"><MoreVertical className="h-[1.111vw] w-[1.111vw]" /></Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end">
- <DropdownMenuItem>View Profile</DropdownMenuItem>
+ <DropdownMenuItem onClick={handleViewProfile}>View Profile</DropdownMenuItem>
  <DropdownMenuItem>Mute Notifications</DropdownMenuItem>
- <DropdownMenuItem className="text-red-500">Block User</DropdownMenuItem>
+ <DropdownMenuItem className="text-red-500" onClick={handleBlockUser}>Block User</DropdownMenuItem>
  </DropdownMenuContent>
  </DropdownMenu>
  </div>
@@ -558,11 +750,7 @@ export default function Messages() {
  <ContextMenu>
  <ContextMenuTrigger asChild>
  <div className="max-w-[70%] rounded-2xl px-4 py-2 text-sm relative bg-[color:var(--brand)] text-white rounded-br-sm cursor-context-menu select-none">
- {isVoiceMessage(m.content) ? (
- <audio controls src={voiceMessageSrc(m.content)} className="h-9 w-60 max-w-full" />
- ) : (
- m.content
- )}
+ <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />
  <div className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-90">
  {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
  {m.isRead ? <CheckCheck className="h-[1.1vw] w-[1.1vw] text-white" /> : <Check className="h-[1.1vw] w-[1.1vw]" />}
@@ -577,11 +765,7 @@ export default function Messages() {
  </ContextMenu>
  ) : (
  <div className="max-w-[70%] rounded-2xl px-4 py-2 text-sm relative bg-muted text-foreground rounded-bl-sm">
- {isVoiceMessage(m.content) ? (
- <audio controls src={voiceMessageSrc(m.content)} className="h-9 w-60 max-w-full" />
- ) : (
- m.content
- )}
+ <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />
  <div className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-70">
  {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
  </div>
@@ -592,15 +776,104 @@ export default function Messages() {
  <div ref={bottomRef} />
  </div>
 
- <form
- onSubmit={handleSend}
- className="flex items-center gap-2 border-t border-border p-3"
+ <form onSubmit={handleSend} className="border-t border-border p-3">
+ {selectedMedia && (
+ <div className="mb-3 flex items-center gap-3 rounded-2xl border border-border bg-muted/40 p-2">
+ <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-900">
+ {selectedMedia.type === "photo" ? (
+ <img src={selectedMedia.url} alt="Selected media preview" className="h-full w-full object-cover" />
+ ) : (
+ <video src={selectedMedia.url} className="h-full w-full object-cover" muted />
+ )}
+ </div>
+ <div className="min-w-0 flex-1">
+ <p className="truncate text-sm font-semibold text-foreground">{selectedMedia.file.name}</p>
+ <p className="text-xs text-muted-foreground">{selectedMedia.type === "photo" ? "Photo" : "Video"} ready to send</p>
+ </div>
+ <Button type="button" variant="ghost" size="icon" onClick={clearSelectedMedia} className="rounded-full">
+ <X className="h-4 w-4" />
+ </Button>
+ </div>
+ )}
+ <div className="relative flex items-center gap-2">
+ <input
+ ref={mediaInputRef}
+ type="file"
+ accept="image/*,video/*"
+ className="hidden"
+ onChange={handleMediaSelect}
+ />
+ <Button
+ type="button"
+ size="icon"
+ variant="ghost"
+ onClick={() => mediaInputRef.current?.click()}
+ disabled={isRecordingVoice}
+ className="h-[2.778vw] w-[2.778vw] shrink-0 rounded-full"
+ title="Send photo or video"
  >
+ <Paperclip className="h-[1.111vw] w-[1.111vw]" />
+ </Button>
+ <Button
+ type="button"
+ size="icon"
+ variant="ghost"
+ onClick={() => setShowEmojiPicker((value) => !value)}
+ disabled={isRecordingVoice}
+ className="h-[2.778vw] w-[2.778vw] shrink-0 rounded-full"
+ title="Send dating emoji"
+ >
+ <SmilePlus className="h-[1.111vw] w-[1.111vw]" />
+ </Button>
+ {showEmojiPicker && (
+ <div className="absolute bottom-14 left-0 z-30 w-80 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+ <div className="border-b border-border p-3">
+ <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+ <SmilePlus className="h-4 w-4 text-rose-500" />
+ Dating emojis
+ </div>
+ <div className="mt-3 grid grid-cols-6 gap-2">
+ {FREE_DATING_EMOJIS.map((emoji) => (
+ <button
+ key={emoji}
+ type="button"
+ onClick={() => addEmojiToDraft(emoji)}
+ className="grid h-10 w-10 place-items-center rounded-xl bg-muted text-xl transition hover:bg-rose-50 hover:scale-105"
+ >
+ {emoji}
+ </button>
+ ))}
+ </div>
+ </div>
+ <div className="p-3">
+ <div className="mb-2 flex items-center gap-2 text-sm font-bold text-foreground">
+ <Gift className="h-4 w-4 text-rose-500" />
+ Premium gifts
+ </div>
+ <div className="grid grid-cols-2 gap-2">
+ {PREMIUM_GIFTS.map((gift) => (
+ <button
+ key={gift.label}
+ type="button"
+ onClick={() => sendPremiumGift(gift)}
+ className="flex items-center gap-2 rounded-xl border border-rose-100 bg-rose-50 px-3 py-2 text-left transition hover:border-rose-300 hover:bg-rose-100"
+ >
+ <span className="text-2xl">{gift.emoji}</span>
+ <span className="min-w-0 flex-1">
+ <span className="block truncate text-xs font-bold text-rose-700">{gift.label}</span>
+ <span className="text-[10px] font-semibold text-rose-500">₹{gift.price}</span>
+ </span>
+ </button>
+ ))}
+ </div>
+ </div>
+ </div>
+ )}
  <Input 
  value={draft} 
  onChange={(e) => setDraft(e.target.value)} 
  placeholder={isRecordingVoice ? `Recording voice ${formatRecordingTime(recordingSeconds)}` : "Type a message..."} 
- disabled={isRecordingVoice}
+ disabled={isRecordingVoice || !!selectedMedia}
  className="h-[2.778vw] rounded-full px-4 border-none bg-muted/50" 
  />
  <Button
@@ -615,9 +888,10 @@ export default function Messages() {
  >
  {isRecordingVoice ? <MicOff className="h-[1.111vw] w-[1.111vw]" /> : <Mic className="h-[1.111vw] w-[1.111vw]" />}
  </Button>
- <Button type="submit" size="icon" className="h-[2.778vw] w-[2.778vw] shrink-0 rounded-full bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90 text-white">
- <Send className="h-[1.111vw] w-[1.111vw]" />
+ <Button type="submit" size="icon" disabled={!draft.trim() && !selectedMedia} className="h-[2.778vw] w-[2.778vw] shrink-0 rounded-full bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90 text-white disabled:opacity-50">
+ {selectedMedia ? <ImageIcon className="h-[1.111vw] w-[1.111vw]" /> : <Send className="h-[1.111vw] w-[1.111vw]" />}
  </Button>
+ </div>
  </form>
  </section>
  ) : (
@@ -634,17 +908,17 @@ export default function Messages() {
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
  <div className="w-full max-w-sm rounded-2xl bg-card p-6 text-center shadow-2xl">
  <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-rose-100 text-rose-600">
- <Video className="h-7 w-7" />
+ {incomingCall.callType === "audio" ? <Phone className="h-7 w-7" /> : <Video className="h-7 w-7" />}
  </div>
- <h3 className="text-lg font-semibold text-foreground">Incoming video call</h3>
- <p className="mt-1 text-sm text-muted-foreground">A matched user wants to start a video call.</p>
+ <h3 className="text-lg font-semibold text-foreground">Incoming {incomingCall.callType === "audio" ? "audio" : "video"} call</h3>
+ <p className="mt-1 text-sm text-muted-foreground">A matched user wants to start a {incomingCall.callType === "audio" ? "audio" : "video"} call.</p>
  <div className="mt-6 flex justify-center gap-3">
  <Button variant="outline" className="rounded-full" onClick={() => endVideoCall("rejected")}>
  <PhoneOff className="mr-2 h-4 w-4" />
  Decline
  </Button>
  <Button className="rounded-full bg-emerald-600 text-white hover:bg-emerald-700" onClick={acceptIncomingCall}>
- <Video className="mr-2 h-4 w-4" />
+ {incomingCall.callType === "audio" ? <Phone className="mr-2 h-4 w-4" /> : <Video className="mr-2 h-4 w-4" />}
  Accept
  </Button>
  </div>
@@ -653,7 +927,20 @@ export default function Messages() {
  )}
  {activeCall && (
  <div className="fixed inset-0 z-50 bg-slate-950 text-white">
- <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full bg-black object-cover" />
+ <video ref={remoteVideoRef} autoPlay playsInline className={activeCall.callType === "video" ? "h-full w-full bg-black object-cover" : "hidden"} />
+ {activeCall.callType === "audio" && (
+ <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-slate-950">
+ <Avatar className="h-28 w-28 border border-white/20">
+ <AvatarImage src={active?.photo} />
+ <AvatarFallback>{active?.name?.[0] || "U"}</AvatarFallback>
+ </Avatar>
+ <div className="text-center">
+ <p className="text-xl font-semibold">{active?.name || "Audio call"}</p>
+ <p className="mt-1 text-sm text-white/60">{activeCall.status === "ringing" ? "Ringing..." : "Audio call active"}</p>
+ </div>
+ </div>
+ )}
+ {activeCall.callType === "video" && (
  <div className="absolute right-5 top-5 h-36 w-24 overflow-hidden rounded-2xl border border-white/20 bg-black shadow-2xl md:h-48 md:w-32">
  {isCameraOn ? (
  <video ref={localVideoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
@@ -663,9 +950,10 @@ export default function Messages() {
  </div>
  )}
  </div>
+ )}
  <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 bg-gradient-to-t from-black/80 to-transparent px-4 py-8">
  <div className="rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur">
- {activeCall.status === "ringing" ? "Ringing..." : "Video call active"}
+ {activeCall.status === "ringing" ? "Ringing..." : `${activeCall.callType === "audio" ? "Audio" : "Video"} call active`}
  </div>
  <div className="flex items-center gap-3 rounded-full bg-black/30 p-2 backdrop-blur">
  <Button
@@ -679,7 +967,7 @@ export default function Messages() {
  >
  {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
  </Button>
- <Button
+ {activeCall.callType === "video" && <Button
  type="button"
  onClick={toggleCamera}
  className={cn(
@@ -689,7 +977,7 @@ export default function Messages() {
  title={isCameraOn ? "Turn camera off" : "Turn camera on"}
  >
  {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
- </Button>
+ </Button>}
  <Button
  type="button"
  onClick={toggleSpeaker}
@@ -706,6 +994,57 @@ export default function Messages() {
  </Button>
  </div>
  </div>
+ </div>
+ )}
+ {profileModal && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+ <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-card p-5 shadow-2xl">
+ <button type="button" onClick={() => setProfileModal(null)} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-muted">
+ <X className="h-4 w-4" />
+ </button>
+ <div className="pr-10">
+ <h3 className="text-xl font-bold text-foreground">{profileModal.name || active?.name}{profileModal.age ? `, ${profileModal.age}` : ""}</h3>
+ <p className="mt-1 text-sm text-muted-foreground">{profileLoading ? "Loading profile..." : profileModal.bio || "Profile details"}</p>
+ </div>
+ <div className="mt-4 grid grid-cols-2 gap-2">
+ {(profileModal.photos?.length ? profileModal.photos : active?.photo ? [active.photo] : []).slice(0, 4).map((photo: string, index: number) => (
+ <img key={`${photo}-${index}`} src={photo} alt={`${profileModal.name || "Profile"} photo ${index + 1}`} className="aspect-[3/4] w-full rounded-xl object-cover" />
+ ))}
+ </div>
+ <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+ {profileModal.profession && <p className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> {profileModal.profession}</p>}
+ {profileModal.city && <p className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {profileModal.city}</p>}
+ {profileModal.height && <p className="flex items-center gap-2"><Ruler className="h-4 w-4" /> {profileModal.height}</p>}
+ </div>
+ {profileModal.interests?.length > 0 && (
+ <div className="mt-4 flex flex-wrap gap-2">
+ {profileModal.interests.map((interest: string) => (
+ <span key={interest} className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600">{interest}</span>
+ ))}
+ </div>
+ )}
+ </div>
+ </div>
+ )}
+ {photoViewerSrc && (
+ <div
+ className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4"
+ onClick={() => setPhotoViewerSrc(null)}
+ >
+ <button
+ type="button"
+ onClick={() => setPhotoViewerSrc(null)}
+ className="absolute right-5 top-5 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
+ aria-label="Close photo"
+ >
+ <X className="h-5 w-5" />
+ </button>
+ <img
+ src={photoViewerSrc}
+ alt="Shared photo enlarged"
+ onClick={(event) => event.stopPropagation()}
+ className="max-h-[92vh] max-w-[96vw] rounded-2xl object-contain shadow-2xl"
+ />
  </div>
  )}
  </>
