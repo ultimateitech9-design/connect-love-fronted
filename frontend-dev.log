@@ -1,0 +1,27 @@
+
+> dev
+> set NODE_OPTIONS=--max-old-space-size=2048 && next dev --port 3002
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://10.184.202.9:3002
+- Environments: .env.local
+✓ Ready in 1539ms
+Creating turbopack project {
+  dir: 'C:\\Users\\User\\Desktop\\Dating App\\connect-love-fronted',
+  testMode: true
+}
+
+○ Compiling /user/onboarding ...
+ GET /user/onboarding 200 in 6.9s (next.js: 6.1s, proxy.ts: 122ms, application-code: 624ms)
+ GET /user/onboarding 200 in 98ms (next.js: 13ms, proxy.ts: 11ms, application-code: 74ms)
+ GET /user/onboarding 200 in 190ms (next.js: 14ms, proxy.ts: 17ms, application-code: 159ms)
+ GET /user/profile 200 in 1955ms (next.js: 1862ms, proxy.ts: 14ms, application-code: 79ms)
+ GET /user/profile 200 in 98ms (next.js: 18ms, proxy.ts: 13ms, application-code: 68ms)
+ GET /user/settings 200 in 1123ms (next.js: 1033ms, proxy.ts: 18ms, application-code: 72ms)
+ GET / 200 in 2.5s (next.js: 1881ms, application-code: 602ms)
+ GET /login 200 in 1384ms (next.js: 988ms, application-code: 397ms)
+ GET /login 200 in 1412ms (next.js: 1053ms, application-code: 360ms)
+ GET /register 200 in 701ms (next.js: 642ms, application-code: 59ms)
+ GET /user/onboarding 200 in 174ms (next.js: 18ms, proxy.ts: 8ms, application-code: 149ms)
+ GET /user/profile 200 in 105ms (next.js: 18ms, proxy.ts: 14ms, application-code: 73ms)

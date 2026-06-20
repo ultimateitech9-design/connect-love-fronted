@@ -1,16 +1,33 @@
 /* eslint-disable */
 "use client";
 
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Heart, Instagram, Twitter, Facebook, Youtube, ArrowRight } from "lucide-react";
+import { footerLinkGroups } from "./marketingPages";
 
-const footerLinks = {
- Product: ["Discover", "Stories", "Features", "Safety", "Premium"],
- Company: ["About Us", "Blog", "Careers", "Press", "Ethics Statement"],
- Support: ["Help Center", "Contact Us", "Privacy Policy", "Terms of Service", "Cookie Policy"],
-};
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export function Footer() {
+ const [email, setEmail] = useState("");
+ const [subscribed, setSubscribed] = useState(false);
+
+ const handleSubscribe = async (event: FormEvent<HTMLFormElement>) => {
+ event.preventDefault();
+ if (!email.trim()) return;
+ try {
+ await fetch(`${API_BASE}/support/newsletter`, {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify({ email }),
+ });
+ } catch {
+ // Keep the public form usable if the local backend is not running.
+ }
+ setSubscribed(true);
+ setEmail("");
+ };
+
  return (
  <footer
  style={{ background: "linear-gradient(150deg, #0D0B2B 0%, #1F0B35 100%)" }}
@@ -68,21 +85,15 @@ export function Footer() {
  </div>
 
  {/* Link columns */}
- {Object.entries(footerLinks).map(([category, links]) => (
+ {footerLinkGroups.map(({ category, links }) => (
  <div key={category}>
  <h4 className="text-xs font-bold text-white/50 uppercase tracking-widest mb-4">{category}</h4>
  <ul className="space-y-3">
  {links.map((link) => (
- <li key={link}>
- {link === "Contact Us" ? (
- <Link href="/contact-us" className="text-sm text-white/40 hover:text-white transition-colors">
- {link}
+ <li key={link.href}>
+ <Link href={link.href} className="text-sm text-white/40 hover:text-white transition-colors">
+ {link.label}
  </Link>
- ) : (
- <a href="#" className="text-sm text-white/40 hover:text-white transition-colors">
- {link}
- </a>
- )}
  </li>
  ))}
  </ul>
@@ -96,16 +107,22 @@ export function Footer() {
  <p className="text-sm font-semibold text-white/80">Stay in the loop</p>
  <p className="text-xs text-white/40 mt-0.5">Dating tips, success stories, and new features.</p>
  </div>
- <div className="flex gap-2 w-full md:w-auto">
+ <form onSubmit={handleSubscribe} className="flex gap-2 w-full md:w-auto">
  <input
  type="email"
+ value={email}
+ onChange={(event) => {
+ setEmail(event.target.value);
+ setSubscribed(false);
+ }}
  placeholder="Enter your email"
+ required
  className="flex-1 md:w-[17.778vw] rounded-full border border-white/15 bg-white/8 px-5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-rose-400 transition-colors"
  />
- <button className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white text-sm font-semibold hover:from-rose-400 hover:to-pink-500 transition-all shrink-0">
- Subscribe <ArrowRight className="h-[0.972vw] w-[0.972vw]" />
+ <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white text-sm font-semibold hover:from-rose-400 hover:to-pink-500 transition-all shrink-0">
+ {subscribed ? "Subscribed" : "Subscribe"} <ArrowRight className="h-[0.972vw] w-[0.972vw]" />
  </button>
- </div>
+ </form>
  </div>
 
  {/* Bottom bar */}

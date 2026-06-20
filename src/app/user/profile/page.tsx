@@ -18,7 +18,7 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 // Fields that count toward profile completion (in order of weight)
 const COMPLETION_FIELDS = [
- "name", "dob", "gender", "profession", "height", "city", "bio", "interests", "personality", "hobbies",
+ "name", "dob", "gender", "profession", "height", "city", "bio", "interests", "personality", "hobbies", "photos",
 ] as const;
 
 type ProfileField = typeof COMPLETION_FIELDS[number];
@@ -37,6 +37,7 @@ interface UserProfile {
  personality: string; // comma-separated
  hobbies: string; // comma-separated
  photos: string[];
+ kycMatched: boolean;
  plan: string;
  isVerified: boolean;
  onboardingCompleted: boolean;
@@ -207,7 +208,12 @@ export default function ProfilePage() {
         if (res.ok) {
           const updated = await res.json();
           if (updated.photos) {
-            setProfile((p) => ({ ...p, photos: updated.photos }));
+            setProfile((p) => ({
+              ...p,
+              photos: updated.photos,
+              isVerified: updated.isVerified ?? p.isVerified,
+              kycMatched: updated.kycMatched ?? p.kycMatched,
+            }));
             if (updated.photos[0]) {
               localStorage.setItem(AVATAR_KEY, updated.photos[0]);
             }

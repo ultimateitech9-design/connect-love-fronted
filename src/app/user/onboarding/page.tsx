@@ -10,6 +10,7 @@ import { StepProfession } from "@/features/onboarding/StepProfession";
 import { StepCity } from "@/features/onboarding/StepCity";
 import { StepBio } from "@/features/onboarding/StepBio";
 import { StepTags } from "@/features/onboarding/StepTags";
+import { StepProfilePhotos, StepVideoKyc } from "@/features/onboarding/StepPhotosKyc";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
@@ -21,6 +22,8 @@ const STEPS = [
  { id: "personality", title: "Your personality" },
  { id: "interests", title: "Your interests" },
  { id: "hobbies", title: "Your hobbies" },
+ { id: "photos", title: "Add profile photos" },
+ { id: "video-kyc", title: "Video KYC verification" },
 ];
 
 export default function OnboardingPage() {
@@ -178,7 +181,19 @@ export default function OnboardingPage() {
  <StepTags
  type="hobbies"
  profile={profile}
- onNext={(val) => handleNext({ hobbies: val }, true)}
+ onNext={(val) => handleNext({ hobbies: val })}
+ />
+ )}
+ {currentStepIndex === 7 && (
+ <StepProfilePhotos
+ profile={profile}
+ onNext={(val) => handleNext(val)}
+ />
+ )}
+ {currentStepIndex === 8 && (
+ <StepVideoKyc
+ profile={profile}
+ onNext={(val) => handleNext(val, true)}
  />
  )}
  </motion.div>

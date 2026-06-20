@@ -6,18 +6,12 @@ import Link from "next/link";
 import { Heart, Menu, X, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAuthenticated } from "@/lib/auth";
+import { navLinks } from "./marketingPages";
 
 interface NavbarProps {
  onLoginClick: () => void;
  onSignupClick: () => void;
 }
-
-const navLinks = [
- { href: "#about", label: "About" },
- { href: "#features", label: "Features" },
- { href: "#safety", label: "Safety" },
- { href: "#support", label: "Support" },
-];
 
 export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  const [scrolled, setScrolled] = useState(false);
@@ -56,6 +50,10 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
 
  event.preventDefault();
 
+ if (!href.startsWith("#")) {
+ return;
+ }
+
  if (href === "#hero") {
  window.history.pushState(null, "", "/");
  window.scrollTo({ top: 0, behavior: "smooth" });
@@ -90,7 +88,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  <nav className="hidden md:flex items-center gap-8">
  {navLinks.map((link) => (
  <Link
- href={`/${link.href}`}
+ href={link.href}
  key={link.href}
  onClick={(event) => handleNavClick(event, link.href)}
  className="text-sm font-medium text-slate-600 transition-colors relative group hover:text-rose-500"
@@ -154,7 +152,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  >
  {navLinks.map((link) => (
  <Link
- href={`/${link.href}`}
+ href={link.href}
  key={link.href}
  onClick={(event) => handleNavClick(event, link.href)}
  className="block w-full text-left text-white/80 hover:text-white py-2 text-sm font-medium"
