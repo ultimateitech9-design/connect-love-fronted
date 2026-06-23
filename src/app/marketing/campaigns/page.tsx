@@ -29,7 +29,7 @@ export default function CampaignsPage() {
  <div className="flex items-center justify-between flex-wrap gap-4 pb-2">
  <div><h1 className="text-3xl font-bold tracking-tight">Campaign Management</h1><p className="text-muted-foreground mt-1 text-sm">Live marketing campaigns from notification records</p></div>
  <button className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-pink-500/25 transition-all">
- <Plus className="h-[1.111vw] w-[1.111vw]" /> New Campaign
+ <Plus className="h-[16px] w-[16px]" /> New Campaign
  </button>
  </div>
  {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
@@ -57,7 +57,7 @@ export default function CampaignsPage() {
  <td className="px-6 py-4">{c.audience}</td>
  <td className="px-6 py-4">${c.spend.toLocaleString()}</td>
  <td className="px-6 py-4">{c.roi.toFixed(1)}</td>
- <td className="px-6 py-4 text-right"><button onClick={() => deleteCampaign(c.id)} className="text-muted-foreground hover:text-red-500"><Trash2 className="h-[1.111vw] w-[1.111vw]" /></button></td>
+ <td className="px-6 py-4 text-right"><button onClick={() => deleteCampaign(c.id)} className="text-muted-foreground hover:text-red-500"><Trash2 className="h-[16px] w-[16px]" /></button></td>
  </tr>
  ))}
  </tbody>
@@ -69,5 +69,5 @@ export default function CampaignsPage() {
 }
 
 function Kpi({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
- return <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm"><div className="flex justify-between items-start"><div><p className="text-xs font-medium text-muted-foreground mb-1">{label}</p><h3 className="text-2xl font-bold">{value}</h3></div><div className="bg-pink-500/10 p-2.5 rounded-xl"><Icon className="h-[1.389vw] w-[1.389vw] text-pink-500" /></div></div></div>;
+ return <div className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm"><div className="flex justify-between items-start"><div><p className="text-xs font-medium text-muted-foreground mb-1">{label}</p><h3 className="text-2xl font-bold">{value}</h3></div><div className="bg-pink-500/10 p-2.5 rounded-xl"><Icon className="h-[20px] w-[20px] text-pink-500" /></div></div></div>;
 }

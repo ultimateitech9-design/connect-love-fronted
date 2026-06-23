@@ -83,7 +83,7 @@ export default function SettingsPage() {
  <div>
  <PageHeader title="Settings" description="Platform controls and configuration.">
  <div className="flex items-center gap-2">
- 
+
  <button
  onClick={handleSave}
  disabled={saving || loading}
@@ -118,7 +118,7 @@ export default function SettingsPage() {
  >
  <Icon className={`h-5 w-5 ${t.on ? "text-white" : "text-muted-foreground"}`} />
  </div>
- <div className="flex-1 min-w-[0vw]">
+ <div className="flex-1 min-w-[0px]">
  <p className="font-semibold text-foreground">{t.label}</p>
  <p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p>
  {t.key === "maintenanceMode" && t.on && (

@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const nav = [
   { href: "/sales", label: "Overview", icon: LayoutDashboard },
@@ -36,7 +37,7 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 hidden h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar p-6 text-sidebar-foreground lg:flex">
       <Link href="/sales" className="mb-6 flex items-center gap-2 border-b border-sidebar-border pb-6">
-        <Heart className="h-6 w-6 fill-pink-500 text-pink-500" />
+        <BrandLogo className="h-10 w-10" />
         <div>
           <div className="font-display text-lg font-bold leading-none">
             <span className="text-white">Connect</span><span className="text-red-500">Love</span>

@@ -12,7 +12,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
   return (
     <section
       id="hero"
-      className="relative min-h-screen overflow-hidden pt-16"
+      className="relative min-h-[100dvh] overflow-hidden pt-20"
       style={{
         background:
           "linear-gradient(135deg, #0D0B2B 0%, #1A0933 40%, #2D0B3F 70%, #0D1A3A 100%)",
@@ -24,8 +24,8 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
         <div className="absolute left-1/2 top-1/2 h-64 w-64 rounded-full bg-pink-500/10 blur-[80px]" />
       </div>
 
-      <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-6 py-8 sm:py-10 lg:min-h-[calc(100vh-4rem)] lg:grid-cols-2 lg:px-8">
-        <div>
+      <div className="relative z-10 mx-auto grid w-full max-w-[100vw] items-center gap-10 overflow-hidden px-4 py-10 sm:px-6 sm:py-12 lg:min-h-[calc(100dvh-5rem)] lg:max-w-7xl lg:grid-cols-2 lg:px-8">
+        <div className="min-w-0">
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 backdrop-blur-sm">
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => (
@@ -35,7 +35,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
             <span className="text-xs font-medium text-white/80">Trusted by 500K+ singles</span>
           </div>
 
-          <h1 className="text-5xl font-bold leading-[1.08] tracking-tight text-white md:text-6xl lg:text-7xl">
+          <h1 className="text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
             Find the{" "}
             <span className="bg-gradient-to-r from-rose-400 to-pink-300 bg-clip-text text-transparent">
               spark
@@ -51,15 +51,15 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
             and safety over superficial swiping.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center gap-4">
+          <div className="mt-8 flex flex-col items-stretch gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
             <button
               id="hero-getstarted-btn"
               onClick={onSignupClick}
-              className="rounded-full bg-gradient-to-r from-rose-500 to-pink-600 px-8 py-4 text-sm font-semibold text-white shadow-xl shadow-rose-500/40 transition-all hover:scale-105 hover:from-rose-400 hover:to-pink-500 hover:shadow-rose-500/60 active:scale-95"
+              className="min-h-12 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 px-8 py-3 text-sm font-semibold text-white shadow-xl shadow-rose-500/40 transition-all hover:scale-105 hover:from-rose-400 hover:to-pink-500 hover:shadow-rose-500/60 active:scale-95 sm:py-4"
             >
               Start Your Journey
             </button>
-            <button className="group flex items-center gap-2.5 px-6 py-4 text-sm font-medium text-white/80 transition-colors hover:text-white">
+            <button className="group flex min-h-12 items-center justify-center gap-2.5 px-6 py-3 text-sm font-medium text-white/80 transition-colors hover:text-white sm:justify-start sm:py-4">
               <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10 transition-colors group-hover:bg-white/15">
                 <Play className="ml-0.5 h-4 w-4 fill-white text-white" />
               </span>
@@ -68,8 +68,8 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
           </div>
         </div>
 
-        <div className="relative flex justify-center lg:justify-end">
-          <div className="relative h-[460px] w-full max-w-[360px] sm:h-[520px] lg:h-[540px]">
+        <div className="relative flex min-w-0 justify-center lg:justify-end">
+          <div className="relative h-[min(125vw,460px)] w-full max-w-[min(360px,100%)] sm:h-[520px] lg:h-[540px]">
             <div className="absolute inset-0 scale-110 rounded-3xl bg-gradient-to-br from-rose-500/30 to-purple-600/30 blur-2xl" />
 
             <div className="relative h-full w-full overflow-hidden rounded-3xl border border-white/15 shadow-2xl">
@@ -103,10 +103,10 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
               </div>
             </div>
 
-            <div className="absolute -top-4 right-2 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 shadow-xl backdrop-blur-xl sm:-right-6">
+            <div className="absolute -top-4 right-2 max-w-[calc(100%-1rem)] rounded-2xl border border-white/20 bg-white/10 px-3 py-3 shadow-xl backdrop-blur-xl sm:-right-6 sm:px-4">
               <div className="flex items-center gap-2">
                 <div className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                <span className="text-xs font-semibold text-white">12,438 online now</span>
+                <span className="truncate text-xs font-semibold text-white">12,438 online now</span>
               </div>
             </div>
           </div>

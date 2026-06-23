@@ -13,7 +13,7 @@ export function StatCard({ label, value, delta, icon: Icon, tone = "default" }: 
  <div className="rounded-3xl bg-white/60 backdrop-blur-md p-6 shadow-xl shadow-rose-500/5 ring-1 ring-white/50">
  <div className="flex items-center justify-between">
  <p className="text-sm font-bold text-slate-500">{label}</p>
- {Icon && <Icon className="h-[1.389vw] w-[1.389vw] text-slate-400" />}
+ {Icon && <Icon className="h-[20px] w-[20px] text-slate-400" />}
  </div>
  <p className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">{value}</p>
  {delta && (

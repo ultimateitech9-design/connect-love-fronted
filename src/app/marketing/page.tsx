@@ -36,8 +36,8 @@ export default function MarketingDashboard() {
  <Card key={k.label} className="border-border/60">
  <CardContent className="pt-6">
  <div className="flex items-center justify-between mb-3">
- <div className="h-[2.5vw] w-[2.5vw] rounded-lg bg-primary/10 flex items-center justify-center">
- <k.icon className="h-[1.111vw] w-[1.111vw] text-primary" />
+ <div className="h-[36px] w-[36px] rounded-lg bg-primary/10 flex items-center justify-center">
+ <k.icon className="h-[16px] w-[16px] text-primary" />
  </div>
  <span className="text-xs font-medium text-primary">{k.delta}</span>
  </div>

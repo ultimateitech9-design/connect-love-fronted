@@ -24,7 +24,7 @@ export default function ReportsPage() {
  const res = await fetch(`${API}/admin/contacts`, {
  headers: { Authorization: `Bearer ${token}` }
  });
- 
+
  if (res.ok) {
  const data = await res.json();
  if (data && data.length > 0) {
@@ -36,7 +36,7 @@ export default function ReportsPage() {
  createdAt: new Date(c.createdAt).toISOString().split('T')[0],
  status: c.status,
  }));
- 
+
  setList(mappedReports);
  }
  }
@@ -81,8 +81,8 @@ export default function ReportsPage() {
  r.status === "reviewing" && "bg-amber-100 text-amber-700",
  r.status === "closed" && "bg-emerald-100 text-emerald-700",
  )}>{r.status}</span>
- <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, "reviewing")} className="h-[2.5vw] rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm font-semibold">Review</Button>
- <Button size="sm" onClick={() => updateStatus(r.id, "closed")} className="h-[2.5vw] rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-lg shadow-rose-500/30 font-semibold">Resolve</Button>
+ <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, "reviewing")} className="h-[36px] rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm font-semibold">Review</Button>
+ <Button size="sm" onClick={() => updateStatus(r.id, "closed")} className="h-[36px] rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-lg shadow-rose-500/30 font-semibold">Resolve</Button>
  </div>
  </div>
  ))}

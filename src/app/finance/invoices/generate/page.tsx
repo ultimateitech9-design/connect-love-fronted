@@ -128,7 +128,7 @@ export default function InvoicesModule() {
  <h2 className="text-sm font-semibold">Line items</h2>
  <button
  onClick={() => setLines((ls) => [...ls, { desc: "", qty: 1, price: 0 }])}
- className="inline-flex items-center gap-1 text-xs font-medium px-3 h-[2.222vw] rounded-md bg-primary/10 text-primary hover:bg-primary/20"
+ className="inline-flex items-center gap-1 text-xs font-medium px-3 h-[32px] rounded-md bg-primary/10 text-primary hover:bg-primary/20"
  >
  <Plus className="size-3.5" /> Add item
  </button>
@@ -181,10 +181,10 @@ export default function InvoicesModule() {
  <span className="font-semibold text-lg">${total.toFixed(2)}</span>
  </div>
  </div>
- <button onClick={generateInvoice} className="w-full mt-5 inline-flex items-center justify-center gap-2 h-[3.056vw] rounded-lg text-primary-foreground font-medium shadow-[var(--shadow-rose)]" style={{ background: "var(--gradient-rose)" }}>
+ <button onClick={generateInvoice} className="w-full mt-5 inline-flex items-center justify-center gap-2 h-[44px] rounded-lg text-primary-foreground font-medium shadow-[var(--shadow-rose)]" style={{ background: "var(--gradient-rose)" }}>
  <Send className="size-4" /> Generate & Send
  </button>
- <button className="w-full mt-2 h-[2.778vw] rounded-lg bg-muted text-sm font-medium hover:bg-secondary">
+ <button className="w-full mt-2 h-[40px] rounded-lg bg-muted text-sm font-medium hover:bg-secondary">
  Save as draft
  </button>
  </div>
@@ -204,7 +204,7 @@ export default function InvoicesModule() {
  <button
  key={t}
  onClick={() => setTab(t)}
- className={`px-4 h-[2.5vw] rounded-lg text-sm font-medium transition-colors ${
+ className={`px-4 h-[36px] rounded-lg text-sm font-medium transition-colors ${
  tab === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-secondary"
  }`}
  >
@@ -218,7 +218,7 @@ export default function InvoicesModule() {
  value={q}
  onChange={(e) => setQ(e.target.value)}
  placeholder="Search invoice or user..."
- className="w-full h-[2.5vw] pl-9 pr-3 rounded-lg bg-card border border-border text-sm outline-none focus:border-primary transition-colors"
+ className="w-full h-[36px] pl-9 pr-3 rounded-lg bg-card border border-border text-sm outline-none focus:border-primary transition-colors"
  />
  </div>
  </div>
@@ -269,7 +269,7 @@ export default function InvoicesModule() {
  );
 }
 
-const inputCls = "h-[2.778vw] px-3 rounded-lg bg-muted text-sm outline-none focus:ring-2 focus:ring-ring w-full";
+const inputCls = "h-[40px] px-3 rounded-lg bg-muted text-sm outline-none focus:ring-2 focus:ring-ring w-full";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
  return (

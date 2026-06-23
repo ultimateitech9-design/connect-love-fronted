@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Eye, EyeOff, Heart, Loader2, ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -41,9 +42,7 @@ function LoveScene() {
                 <Heart className="h-5 w-5 fill-rose-400 text-rose-400" strokeWidth={0} />
               </div>
             ))}
-            <div className="absolute left-1/2 top-1/2 grid h-20 w-20 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 shadow-2xl shadow-rose-500/50">
-              <Heart className="h-10 w-10 fill-white text-white" strokeWidth={0} />
-            </div>
+            <BrandLogo className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 shadow-2xl shadow-rose-500/50" />
           </div>
         </div>
 
@@ -133,9 +132,7 @@ export default function LoginPage() {
           </Link>
 
           <div className="mb-8 flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/30">
-              <Heart className="h-6 w-6 fill-white text-white" strokeWidth={0} />
-            </div>
+            <BrandLogo className="h-12 w-12 shadow-lg shadow-rose-500/30" priority />
             <div>
               <p className="text-lg font-black text-slate-900">Connect Love</p>
               <p className="text-xs font-medium text-slate-400">Welcome back</p>

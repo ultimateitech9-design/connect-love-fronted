@@ -43,7 +43,7 @@ export default function Refunds() {
  <button
  key={t}
  onClick={() => setTab(t)}
- className={`px-4 h-[2.5vw] rounded-lg text-sm font-medium transition-colors ${
+ className={`px-4 h-[36px] rounded-lg text-sm font-medium transition-colors ${
  tab === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-secondary"
  }`}
  >

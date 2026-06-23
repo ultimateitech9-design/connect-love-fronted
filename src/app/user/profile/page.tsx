@@ -88,8 +88,8 @@ export default function ProfilePage() {
  })
  .then((data) => {
  if (data) {
-        const merged = { 
-          ...data, 
+        const merged = {
+          ...data,
           photos: data.photos || (data.avatarUrl ? [data.avatarUrl] : []),
           dob: data.birthDate || data.dob,
           personality: data.personalityWords ? data.personalityWords.join(", ") : (data.personality || ""),
@@ -160,8 +160,8 @@ export default function ProfilePage() {
  const updated = await res.json();
 
       // Preserve the current photos
-      const merged = { 
-        ...updated, 
+      const merged = {
+        ...updated,
         photos: profile.photos || [],
         dob: updated.birthDate || updated.dob,
         personality: updated.personalityWords ? updated.personalityWords.join(", ") : (updated.personality || ""),
@@ -234,7 +234,7 @@ export default function ProfilePage() {
  if (loading) {
  return (
  <div className="flex h-[17.778vw] items-center justify-center">
- <Loader2 className="h-[2.222vw] w-[2.222vw] animate-spin text-rose-500" />
+ <Loader2 className="h-[32px] w-[32px] animate-spin text-rose-500" />
  </div>
  );
  }
@@ -258,15 +258,15 @@ export default function ProfilePage() {
         </p>
       </div>
     </div>
-    
+
     {/* Photo Grid Section */}
     <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
       <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
         Profile Photos
         {photoSaving && <Loader2 className="h-4 w-4 animate-spin text-rose-500" />}
       </h2>
-      <PhotoGrid 
-        photos={profile.photos || []} 
+      <PhotoGrid
+        photos={profile.photos || []}
         onPhotosChange={handlePhotosChange}
         disabled={photoSaving}
       />
@@ -281,8 +281,8 @@ export default function ProfilePage() {
  : "bg-rose-500/10 border-rose-500/30 text-rose-400"
  }`}>
  {saveMsg.ok
- ? <CheckCircle2 className="h-[1.111vw] w-[1.111vw] shrink-0" />
- : <AlertCircle className="h-[1.111vw] w-[1.111vw] shrink-0" />}
+ ? <CheckCircle2 className="h-[16px] w-[16px] shrink-0" />
+ : <AlertCircle className="h-[16px] w-[16px] shrink-0" />}
  {saveMsg.text}
  </div>
  )}
@@ -355,7 +355,7 @@ export default function ProfilePage() {
  onChange={(e) => set("bio", e.target.value)}
  maxLength={250}
  placeholder="Tell potential matches about yourself…"
- className={`min-h-[6.944vw] bg-white text-slate-800 placeholder:text-slate-400 border transition-all ${
+ className={`min-h-[100px] bg-white text-slate-800 placeholder:text-slate-400 border transition-all ${
  isEmpty("bio") ? "border-rose-400 focus:ring-rose-300" : "border-slate-200 focus:ring-rose-200"
  }`}
  />
@@ -394,7 +394,7 @@ export default function ProfilePage() {
  className="gap-2 text-foreground border-border bg-card hover:bg-muted transition-colors"
  onClick={() => logout("/")}
  >
- <LogOut className="h-[1.111vw] w-[1.111vw]" />
+ <LogOut className="h-[16px] w-[16px]" />
  Log Out
  </Button>
  </div>
@@ -403,7 +403,7 @@ export default function ProfilePage() {
  onClick={handleSave}
  disabled={saving}
  >
- {saving && <Loader2 className="h-[1.111vw] w-[1.111vw] animate-spin" />}
+ {saving && <Loader2 className="h-[16px] w-[16px] animate-spin" />}
  {saving ? "Saving…" : "Save changes"}
  </Button>
  </div>
@@ -414,7 +414,7 @@ export default function ProfilePage() {
  {/* Profile completion meter */}
  <div className="rounded-2xl bg-card p-5 shadow-lg border border-border">
  <div className="flex items-center gap-3">
- <Avatar className="h-[3.333vw] w-[3.333vw] border border-border">
+ <Avatar className="h-[48px] w-[48px] border border-border">
  <AvatarImage src={profile.photos?.[0] || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop"} />
  <AvatarFallback className="bg-muted text-foreground">{profile.name?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
  </Avatar>
@@ -425,7 +425,7 @@ export default function ProfilePage() {
  </p>
  </div>
  </div>
- <div className="mt-4 h-[0.556vw] w-full overflow-hidden rounded-full bg-muted">
+ <div className="mt-4 h-[8px] w-full overflow-hidden rounded-full bg-muted">
  <div
  className={`h-full rounded-full transition-all duration-700 ${
  savedCompletion >= 80
@@ -447,7 +447,7 @@ export default function ProfilePage() {
  <ul className="mt-4 space-y-2">
  {COMPLETION_FIELDS.filter((f) => isEmpty(f)).map((f) => (
  <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
- <span className="h-[0.417vw] w-[0.417vw] rounded-full bg-rose-500 shrink-0 shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
+ <span className="h-[6px] w-[6px] rounded-full bg-rose-500 shrink-0 shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
  <span className="capitalize">{f === "dob" ? "Date of birth" : f === "bio" ? "Bio" : f}</span>
  <span className="text-rose-500 font-medium ml-auto">missing</span>
  </li>
@@ -469,13 +469,13 @@ export default function ProfilePage() {
  {/* Premium tip */}
  <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg, #fff0f3, #fce7f3)", border: "1px solid rgba(236,72,153,0.25)" }}>
  <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
- <Sparkles className="h-[1.111vw] w-[1.111vw] text-rose-400" /> Premium tip
+ <Sparkles className="h-[16px] w-[16px] text-rose-400" /> Premium tip
  </p>
  <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
  Add a short video to your profile — premium users with video get 3.2× more matches.
  </p>
  <Link href="/user/premium">
- <Button className="mt-4 w-full text-white rounded-lg h-[2.5vw] text-xs" style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}>
+ <Button className="mt-4 w-full text-white rounded-lg h-[36px] text-xs" style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}>
  Upgrade to Premium
  </Button>
  </Link>
@@ -561,8 +561,8 @@ function TagField({
           {tags.map((t) => (
             <span key={t} className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${colorClass}`}>
               {t}
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => removeTag(t)}
                 className="hover:text-foreground transition-colors"
               >
@@ -595,7 +595,7 @@ function Stat({
  return (
  <div className="flex items-center justify-between">
  <span className="flex items-center gap-2 text-sm text-muted-foreground">
- <Icon className="h-[1.111vw] w-[1.111vw] text-muted-foreground" /> {label}
+ <Icon className="h-[16px] w-[16px] text-muted-foreground" /> {label}
  </span>
  <span className="text-sm font-semibold text-foreground">{value}</span>
  </div>

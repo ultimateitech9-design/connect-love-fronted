@@ -3,7 +3,8 @@
 
 import { useState, useEffect, type MouseEvent } from "react";
 import Link from "next/link";
-import { Heart, Menu, X, User } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import { isAuthenticated } from "@/lib/auth";
 import { navLinks } from "./marketingPages";
@@ -73,12 +74,10 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  scrolled ? "" : ""
  }`}
  >
- <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-6 lg:px-8">
+ <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
  {/* Logo */}
  <Link href="/" onClick={(event) => handleNavClick(event, "#hero")} className="flex items-center gap-2.5 group">
- <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/30 group-hover:shadow-rose-500/50 transition-shadow">
- <Heart className="h-5 w-5 text-white fill-white" strokeWidth={0} />
- </div>
+ <BrandLogo className="h-11 w-11 shadow-lg shadow-rose-500/30 transition-shadow group-hover:shadow-rose-500/50" priority />
  <span className="text-xl font-bold tracking-tight text-slate-900">
  Connect<span className="text-rose-500">Love</span>
  </span>
@@ -133,7 +132,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  {/* Mobile menu button */}
  <button
  type="button"
- className="p-1 text-slate-900 md:hidden"
+ className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl text-slate-900 hover:bg-slate-100 md:hidden sm:right-6"
  onClick={() => setMobileOpen(!mobileOpen)}
  aria-label="Toggle menu"
  >
@@ -148,19 +147,19 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  initial={{ opacity: 0, height: 0 }}
  animate={{ opacity: 1, height: "auto" }}
  exit={{ opacity: 0, height: 0 }}
- className="md:hidden bg-[#0D0B2B]/95 backdrop-blur-xl border-t border-white/10 px-6 pb-6 pt-4 space-y-4"
+ className="max-h-[calc(100dvh-5rem)] space-y-3 overflow-y-auto border-t border-slate-200 bg-white/95 px-4 pb-6 pt-4 shadow-xl backdrop-blur-xl md:hidden sm:px-6"
  >
  {navLinks.map((link) => (
  <Link
  href={link.href}
  key={link.href}
  onClick={(event) => handleNavClick(event, link.href)}
- className="block w-full text-left text-white/80 hover:text-white py-2 text-sm font-medium"
+ className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-rose-50 hover:text-rose-600"
  >
  {link.label}
  </Link>
  ))}
- <div className="flex flex-col gap-3 pt-2 border-t border-white/10">
+ <div className="flex flex-col gap-3 border-t border-slate-200 pt-4">
  {loggedIn ? (
  <Link
  href="/user"
@@ -172,7 +171,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  </Link>
  ) : (
  <>
- <Link href="/login" onClick={goToLogin} className="w-full py-2.5 text-center text-sm font-medium text-white border border-white/20 rounded-full hover:bg-white/10 transition-colors">Sign In</Link>
+ <Link href="/login" onClick={goToLogin} className="w-full rounded-full border border-slate-300 py-3 text-center text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">Sign In</Link>
  <Link href="/register" onClick={goToSignup} className="w-full py-2.5 text-center text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600">Get Started</Link>
  </>
  )}

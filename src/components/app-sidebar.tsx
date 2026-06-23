@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart, LayoutDashboard, Megaphone, Users, Bell, FileBarChart, User, LogOut, ChevronUp } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import {
  Sidebar,
  SidebarContent,
@@ -36,7 +37,7 @@ export function AppSidebar() {
  <Sidebar collapsible="icon" className="border-r-sidebar-border/50">
  <SidebarHeader className="border-b border-sidebar-border pb-4 pt-4">
  <div className="flex items-center gap-3 px-2">
- <Heart className="h-[1.389vw] w-[1.389vw] fill-current text-pink-500" />
+ <BrandLogo className="h-8 w-8" />
  <div className="flex flex-col">
  <span className="text-lg font-bold tracking-tight">
  <span className="text-white">Connect</span><span className="text-red-500">Love</span>
@@ -53,43 +54,43 @@ export function AppSidebar() {
  const isActive = currentPath === item.url || (currentPath.startsWith(item.url) && item.url !== "/marketing");
  return (
  <SidebarMenuItem key={item.title}>
- <SidebarMenuButton 
- asChild 
+ <SidebarMenuButton
+ asChild
  isActive={isActive}
- className={`h-[3.056vw] rounded-xl transition-all ${isActive ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary hover:bg-primary/20 hover:text-primary before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[2.222vw] before:w-[0.278vw] before:rounded-r-full before:bg-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent/50'}`}
+ className={`h-[44px] rounded-xl transition-all ${isActive ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary hover:bg-primary/20 hover:text-primary before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent/50'}`}
  >
  <Link href={item.url} className="flex items-center gap-3 px-2">
- <item.icon className="h-[1.389vw] w-[1.389vw]" />
+ <item.icon className="h-[20px] w-[20px]" />
  <span className="text-sm font-medium">{item.title}</span>
  </Link>
  </SidebarMenuButton>
  </SidebarMenuItem>
  );
  })}
- 
+
  {/* My Profile Dropdown Item */}
  <SidebarMenuItem>
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
- <SidebarMenuButton 
- className={`h-[3.056vw] rounded-xl transition-all w-full flex justify-between items-center px-2 cursor-pointer ${currentPath === '/marketing/profile' ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[2.222vw] before:w-[0.278vw] before:rounded-r-full before:bg-primary' : 'text-pink-400 hover:bg-pink-500/10 hover:text-pink-300'}`}
+ <SidebarMenuButton
+ className={`h-[44px] rounded-xl transition-all w-full flex justify-between items-center px-2 cursor-pointer ${currentPath === '/marketing/profile' ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-primary' : 'text-pink-400 hover:bg-pink-500/10 hover:text-pink-300'}`}
  >
  <div className="flex items-center gap-3">
- <User className="h-[1.389vw] w-[1.389vw]" />
+ <User className="h-[20px] w-[20px]" />
  <span className="text-sm font-medium">My Profile</span>
  </div>
- <ChevronUp className="h-[1.111vw] w-[1.111vw] opacity-50" />
+ <ChevronUp className="h-[16px] w-[16px] opacity-50" />
  </SidebarMenuButton>
  </DropdownMenuTrigger>
  <DropdownMenuContent side="bottom" align="start" className="w-[13.333vw] bg-card border-border/50">
  <DropdownMenuItem asChild className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
  <Link href="/marketing/profile">
- <User className="h-[1.111vw] w-[1.111vw]" />
+ <User className="h-[16px] w-[16px]" />
  View Profile
  </Link>
  </DropdownMenuItem>
  <DropdownMenuItem className="cursor-pointer gap-2 text-red-500 focus:bg-red-500/10 focus:text-red-500">
- <LogOut className="h-[1.111vw] w-[1.111vw]" />
+ <LogOut className="h-[16px] w-[16px]" />
  Logout
  </DropdownMenuItem>
  </DropdownMenuContent>

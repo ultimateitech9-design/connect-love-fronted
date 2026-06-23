@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Eye, EyeOff, Loader2, Heart, Check } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -125,11 +126,11 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  <div className="bg-gradient-to-br from-violet-600 to-purple-700 px-8 py-7 text-white shrink-0">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2.5">
- <Heart className="h-[1.389vw] w-[1.389vw] fill-white text-white" strokeWidth={0} />
+ <BrandLogo className="h-8 w-8" />
  <span className="font-bold text-lg">Connect Love</span>
  </div>
  <button onClick={handleClose} className="rounded-full p-1.5 hover:bg-white/20 transition-colors">
- <X className="h-[1.111vw] w-[1.111vw]" />
+ <X className="h-[16px] w-[16px]" />
  </button>
  </div>
  <h2 className="mt-4 text-2xl font-bold">Create your account ✨</h2>
@@ -140,8 +141,8 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  <div className="px-8 py-6 overflow-y-auto">
  {done ? (
  <div className="py-8 text-center">
- <div className="mx-auto flex h-[4.444vw] w-[4.444vw] items-center justify-center rounded-full bg-emerald-100">
- <Check className="h-[2.222vw] w-[2.222vw] text-emerald-600" />
+ <div className="mx-auto flex h-[64px] w-[64px] items-center justify-center rounded-full bg-emerald-100">
+ <Check className="h-[32px] w-[32px] text-emerald-600" />
  </div>
  <h3 className="mt-4 text-xl font-bold text-slate-800">You&apos;re in! 🎉</h3>
  <p className="mt-2 text-sm text-slate-500">Account created successfully. You can now sign in and start discovering.</p>
@@ -235,7 +236,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
  />
  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
- {showPass ? <EyeOff className="h-[1.111vw] w-[1.111vw]" /> : <Eye className="h-[1.111vw] w-[1.111vw]" />}
+ {showPass ? <EyeOff className="h-[16px] w-[16px]" /> : <Eye className="h-[16px] w-[16px]" />}
  </button>
  </div>
  {/* Strength hints */}
@@ -243,7 +244,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  <div className="mt-2 flex gap-3 flex-wrap">
  {strengthChecks.map((c) => (
  <span key={c.label} className={`flex items-center gap-1 text-xs ${c.ok ? "text-emerald-600" : "text-slate-400"}`}>
- <Check className={`h-[0.833vw] w-[0.833vw] ${c.ok ? "text-emerald-500" : "text-slate-300"}`} />
+ <Check className={`h-[12px] w-[12px] ${c.ok ? "text-emerald-500" : "text-slate-300"}`} />
  {c.label}
  </span>
  ))}
@@ -275,7 +276,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  ref={register("agreeTerms").ref}
  id="signup-agree-terms"
  type="checkbox"
- className="mt-0.5 h-[1.111vw] w-[1.111vw] rounded border-slate-300 text-violet-600 focus:ring-violet-400"
+ className="mt-0.5 h-[16px] w-[16px] rounded border-slate-300 text-violet-600 focus:ring-violet-400"
  />
  <label htmlFor="signup-agree-terms" className="text-xs text-slate-500 leading-relaxed">
  I agree to the{" "}
@@ -292,7 +293,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  disabled={isSubmitting}
  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-gradient-to-r from-violet-600 to-purple-700 text-white font-semibold text-sm shadow-lg shadow-violet-500/30 hover:from-violet-500 hover:to-purple-600 transition-all hover:scale-105 active:scale-95 disabled:opacity-70"
  >
- {isSubmitting && <Loader2 className="h-[1.111vw] w-[1.111vw] animate-spin" />}
+ {isSubmitting && <Loader2 className="h-[16px] w-[16px] animate-spin" />}
  {isSubmitting ? "Creating account…" : "Create My Account"}
  </button>
  </form>

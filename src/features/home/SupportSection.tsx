@@ -103,8 +103,8 @@ export function SupportSection() {
  { icon: MessageSquare, label: "Live Chat", detail: "Response in ~5 minutes" },
  ].map((c) => (
  <div key={c.label} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3 shadow-sm">
- <div className="flex h-[2.5vw] w-[2.5vw] items-center justify-center rounded-xl bg-gradient-to-br from-rose-50 to-pink-100">
- <c.icon className="h-[1.25vw] w-[1.25vw] text-rose-500" />
+ <div className="flex h-[36px] w-[36px] items-center justify-center rounded-xl bg-gradient-to-br from-rose-50 to-pink-100">
+ <c.icon className="h-[18px] w-[18px] text-rose-500" />
  </div>
  <div>
  <p className="text-sm font-semibold text-slate-800">{c.label}</p>
@@ -189,7 +189,7 @@ export function SupportSection() {
  disabled={isSubmitting}
  className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white text-sm font-semibold hover:from-rose-400 hover:to-pink-500 shadow-lg shadow-rose-500/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-70"
  >
- {isSubmitting ? <Loader2 className="h-[1.111vw] w-[1.111vw] animate-spin" /> : <Send className="h-[1.111vw] w-[1.111vw]" />}
+ {isSubmitting ? <Loader2 className="h-[16px] w-[16px] animate-spin" /> : <Send className="h-[16px] w-[16px]" />}
  {isSubmitting ? "Sending…" : "Send Message"}
  </button>
  </form>
@@ -212,7 +212,7 @@ export function SupportSection() {
  >
  {faq.q}
  <ChevronDown
- className={`h-[1.111vw] w-[1.111vw] text-slate-400 shrink-0 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
+ className={`h-[16px] w-[16px] text-slate-400 shrink-0 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
  />
  </button>
  <AnimatePresence>

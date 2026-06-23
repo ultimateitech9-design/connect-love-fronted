@@ -262,7 +262,7 @@ export default function RolesPage() {
  )}
  <PageHeader title="Roles & Permissions" description="Manage team access levels.">
  <div className="flex items-center gap-2">
- 
+
  <button
  className="h-10 px-4 rounded-lg text-primary-foreground font-medium text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
  style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-brand)" }}
@@ -395,7 +395,7 @@ export default function RolesPage() {
  <div className={`h-10 w-10 rounded-full ${req.color} text-white flex items-center justify-center text-sm font-semibold shrink-0`}>
  {req.initials}
  </div>
- <div className="min-w-[0vw]">
+ <div className="min-w-[0px]">
  <p className="font-semibold text-foreground text-sm">{req.user}</p>
  <p className="text-xs text-muted-foreground">{req.role}</p>
  <p className="text-[10px] text-muted-foreground mt-0.5">{req.time}</p>

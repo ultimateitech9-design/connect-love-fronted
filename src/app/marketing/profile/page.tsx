@@ -27,7 +27,7 @@ export default function ProfilePage() {
  <div className=" bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
  <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
  <div className="flex items-center gap-4 mb-8">
- <div className="h-[5.556vw] w-[5.556vw] rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-2xl border-2 border-primary/30">
+ <div className="h-[80px] w-[80px] rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-2xl border-2 border-primary/30">
  M
  </div>
  <div>
@@ -39,7 +39,7 @@ export default function ProfilePage() {
  <div className="grid gap-4">
  <div className="grid gap-2">
  <label className="text-sm font-medium text-white flex items-center gap-2">
- <User className="h-[1.111vw] w-[1.111vw] text-muted-foreground" /> Full Name
+ <User className="h-[16px] w-[16px] text-muted-foreground" /> Full Name
  </label>
  <input
  type="text"
@@ -53,7 +53,7 @@ export default function ProfilePage() {
 
  <div className="grid gap-2">
  <label className="text-sm font-medium text-white flex items-center gap-2">
- <Mail className="h-[1.111vw] w-[1.111vw] text-muted-foreground" /> Email Address
+ <Mail className="h-[16px] w-[16px] text-muted-foreground" /> Email Address
  </label>
  <input
  type="email"
@@ -67,7 +67,7 @@ export default function ProfilePage() {
 
  <div className="grid gap-2">
  <label className="text-sm font-medium text-white flex items-center gap-2">
- <Lock className="h-[1.111vw] w-[1.111vw] text-muted-foreground" /> Password
+ <Lock className="h-[16px] w-[16px] text-muted-foreground" /> Password
  </label>
  <input
  type="password"
@@ -81,7 +81,7 @@ export default function ProfilePage() {
 
  <div className="grid gap-2">
  <label className="text-sm font-medium text-white flex items-center gap-2">
- <Shield className="h-[1.111vw] w-[1.111vw] text-muted-foreground" /> Role
+ <Shield className="h-[16px] w-[16px] text-muted-foreground" /> Role
  </label>
  <select
  name="role"
@@ -98,7 +98,7 @@ export default function ProfilePage() {
 
  <div className="pt-4 flex justify-end">
  <button className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-pink-500/25 transition-all">
- <Save className="h-[1.111vw] w-[1.111vw]" /> Save Changes
+ <Save className="h-[16px] w-[16px]" /> Save Changes
  </button>
  </div>
  </form>

@@ -60,8 +60,8 @@ export function AboutSection() {
  transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
  className="flex items-start gap-4"
  >
- <div className={`flex h-[3.056vw] w-[3.056vw] shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color}`}>
- <item.icon className={`h-[1.389vw] w-[1.389vw] ${item.iconColor}`} />
+ <div className={`flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color}`}>
+ <item.icon className={`h-[20px] w-[20px] ${item.iconColor}`} />
  </div>
  <div>
  <h3 className="font-semibold text-slate-800">{item.title}</h3>
@@ -103,7 +103,7 @@ export function AboutSection() {
  "We joined a 500,000-strong community. No stress, no shouting — just two people seeing each other."
  </p>
  <div className="mt-3 flex items-center gap-3">
- <div className="h-[2.222vw] w-[2.222vw] rounded-full bg-white/25 flex items-center justify-center text-xs font-bold">T</div>
+ <div className="h-[32px] w-[32px] rounded-full bg-white/25 flex items-center justify-center text-xs font-bold">T</div>
  <div>
  <p className="text-xs font-semibold">Thomas &amp; Priya</p>
  <p className="text-xs opacity-70">Matched 8 months ago</p>
@@ -113,7 +113,7 @@ export function AboutSection() {
  </div>
 
  {/* Floating accent */}
- <div className="absolute -top-6 -right-6 h-[5.556vw] w-[5.556vw] rounded-full bg-gradient-to-br from-violet-400 to-purple-600 opacity-20 blur-xl" />
+ <div className="absolute -top-6 -right-6 h-[80px] w-[80px] rounded-full bg-gradient-to-br from-violet-400 to-purple-600 opacity-20 blur-xl" />
  </motion.div>
  </div>
  </section>

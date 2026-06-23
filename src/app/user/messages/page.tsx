@@ -5,7 +5,7 @@ import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX, Paperclip, Image as ImageIcon, X, MapPin, Briefcase, Ruler, SmilePlus, Gift } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX, Paperclip, Image as ImageIcon, X, MapPin, Briefcase, Ruler, SmilePlus, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
  DropdownMenu,
@@ -169,7 +169,7 @@ export default function Messages() {
  const queryClient = useQueryClient();
 
  const token = getToken() || "";
- 
+
  const [myId, setMyId] = useState<string | null>(null);
  useEffect(() => {
    if (token) {
@@ -607,7 +607,7 @@ export default function Messages() {
  const handleUnsend = async (msgId: string) => {
    if (!activeId) return;
    try {
-     await fetch(`${API_URL}/messages/${msgId}`, { 
+     await fetch(`${API_URL}/messages/${msgId}`, {
        method: 'DELETE',
        headers: { Authorization: `Bearer ${token}` }
      });
@@ -659,15 +659,15 @@ export default function Messages() {
 
  return (
  <>
- <div className="grid h-[calc(100vh-7rem)] gap-4 lg:grid-cols-[320px_1fr]">
- <aside className="flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm">
+ <div className="grid h-[calc(100dvh-10rem)] min-h-[420px] gap-4 md:h-[calc(100dvh-8rem)] lg:grid-cols-[320px_1fr]">
+ <aside className={cn("flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm", active && "hidden lg:flex")}>
  <div className="flex flex-col gap-3 border-b border-border p-4">
  <h2 className="text-lg font-semibold">Messages</h2>
  <div className="relative">
- <Search className="absolute left-2.5 top-2.5 h-[1.111vw] w-[1.111vw] text-muted-foreground" />
- <Input 
- placeholder="Search matches..." 
- className="pl-9 h-[2.5vw] bg-muted/50 border-none" 
+ <Search className="absolute left-2.5 top-2.5 h-[16px] w-[16px] text-muted-foreground" />
+ <Input
+ placeholder="Search matches..."
+ className="pl-9 h-[36px] bg-muted/50 border-none"
  value={searchQuery}
  onChange={e => setSearchQuery(e.target.value)}
  />
@@ -685,17 +685,17 @@ export default function Messages() {
  )}
  >
  <div className="relative">
- <Avatar className="h-[3.056vw] w-[3.056vw]">
+ <Avatar className="h-[44px] w-[44px]">
  <AvatarImage src={m.photo} />
  <AvatarFallback>{m.name[0]}</AvatarFallback>
  </Avatar>
- {m.online && <span className="absolute bottom-0 right-0 h-[0.833vw] w-[0.833vw] rounded-full border-2 border-card bg-emerald-500" />}
+ {m.online && <span className="absolute bottom-0 right-0 h-[12px] w-[12px] rounded-full border-2 border-card bg-emerald-500" />}
  </div>
- <div className="min-w-[0vw] flex-1">
+ <div className="min-w-[0px] flex-1">
  <div className="flex items-center justify-between">
  <p className="truncate text-sm font-semibold">{m.name}</p>
  {m.unread > 0 && activeId !== m.id && (
- <span className="grid h-[1.389vw] min-w-[1.389vw] place-items-center rounded-full bg-[color:var(--brand)] px-1.5 text-[10px] font-semibold text-white">
+ <span className="grid h-[20px] min-w-[20px] place-items-center rounded-full bg-[color:var(--brand)] px-1.5 text-[10px] font-semibold text-white">
  {m.unread}
  </span>
  )}
@@ -715,7 +715,8 @@ export default function Messages() {
  <section className="flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm">
  <header className="flex items-center justify-between border-b border-border px-5 py-3">
  <div className="flex items-center gap-3">
- <Avatar className="h-[2.778vw] w-[2.778vw]">
+ <Button variant="ghost" size="icon" onClick={() => setActiveId(null)} className="lg:hidden" aria-label="Back to conversations"><ArrowLeft className="h-5 w-5" /></Button>
+ <Avatar className="h-[40px] w-[40px]">
  <AvatarImage src={active.photo} />
  <AvatarFallback>{active.name[0]}</AvatarFallback>
  </Avatar>
@@ -725,12 +726,12 @@ export default function Messages() {
  </div>
  </div>
  <div className="flex items-center gap-1 text-muted-foreground">
- <Button variant="ghost" size="icon" onClick={() => startCall("audio")} disabled={!socket}><Phone className="h-[1.111vw] w-[1.111vw]" /></Button>
- <Button variant="ghost" size="icon" onClick={() => startCall("video")} disabled={!socket}><Video className="h-[1.111vw] w-[1.111vw]" /></Button>
- 
+ <Button variant="ghost" size="icon" onClick={() => startCall("audio")} disabled={!socket}><Phone className="h-[16px] w-[16px]" /></Button>
+ <Button variant="ghost" size="icon" onClick={() => startCall("video")} disabled={!socket}><Video className="h-[16px] w-[16px]" /></Button>
+
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
- <Button variant="ghost" size="icon"><MoreVertical className="h-[1.111vw] w-[1.111vw]" /></Button>
+ <Button variant="ghost" size="icon"><MoreVertical className="h-[16px] w-[16px]" /></Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end">
  <DropdownMenuItem onClick={handleViewProfile}>View Profile</DropdownMenuItem>
@@ -753,7 +754,7 @@ export default function Messages() {
  <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />
  <div className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-90">
  {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
- {m.isRead ? <CheckCheck className="h-[1.1vw] w-[1.1vw] text-white" /> : <Check className="h-[1.1vw] w-[1.1vw]" />}
+ {m.isRead ? <CheckCheck className="h-[16px] w-[16px] text-white" /> : <Check className="h-[16px] w-[16px]" />}
  </div>
  </div>
  </ContextMenuTrigger>
@@ -809,10 +810,10 @@ export default function Messages() {
  variant="ghost"
  onClick={() => mediaInputRef.current?.click()}
  disabled={isRecordingVoice}
- className="h-[2.778vw] w-[2.778vw] shrink-0 rounded-full"
+ className="h-[40px] w-[40px] shrink-0 rounded-full"
  title="Send photo or video"
  >
- <Paperclip className="h-[1.111vw] w-[1.111vw]" />
+ <Paperclip className="h-[16px] w-[16px]" />
  </Button>
  <Button
  type="button"
@@ -820,10 +821,10 @@ export default function Messages() {
  variant="ghost"
  onClick={() => setShowEmojiPicker((value) => !value)}
  disabled={isRecordingVoice}
- className="h-[2.778vw] w-[2.778vw] shrink-0 rounded-full"
+ className="h-[40px] w-[40px] shrink-0 rounded-full"
  title="Send dating emoji"
  >
- <SmilePlus className="h-[1.111vw] w-[1.111vw]" />
+ <SmilePlus className="h-[16px] w-[16px]" />
  </Button>
  {showEmojiPicker && (
  <div className="absolute bottom-14 left-0 z-30 w-80 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
@@ -869,35 +870,35 @@ export default function Messages() {
  </div>
  </div>
  )}
- <Input 
- value={draft} 
- onChange={(e) => setDraft(e.target.value)} 
- placeholder={isRecordingVoice ? `Recording voice ${formatRecordingTime(recordingSeconds)}` : "Type a message..."} 
+ <Input
+ value={draft}
+ onChange={(e) => setDraft(e.target.value)}
+ placeholder={isRecordingVoice ? `Recording voice ${formatRecordingTime(recordingSeconds)}` : "Type a message..."}
  disabled={isRecordingVoice || !!selectedMedia}
- className="h-[2.778vw] rounded-full px-4 border-none bg-muted/50" 
+ className="h-[40px] rounded-full px-4 border-none bg-muted/50"
  />
  <Button
  type="button"
  size="icon"
  onClick={toggleVoiceRecording}
  className={cn(
- "h-[2.778vw] w-[2.778vw] shrink-0 rounded-full text-white",
+ "h-[40px] w-[40px] shrink-0 rounded-full text-white",
  isRecordingVoice ? "bg-red-600 hover:bg-red-700 animate-pulse" : "bg-slate-700 hover:bg-slate-800"
  )}
  title={isRecordingVoice ? "Stop and send voice message" : "Record voice message"}
  >
- {isRecordingVoice ? <MicOff className="h-[1.111vw] w-[1.111vw]" /> : <Mic className="h-[1.111vw] w-[1.111vw]" />}
+ {isRecordingVoice ? <MicOff className="h-[16px] w-[16px]" /> : <Mic className="h-[16px] w-[16px]" />}
  </Button>
- <Button type="submit" size="icon" disabled={!draft.trim() && !selectedMedia} className="h-[2.778vw] w-[2.778vw] shrink-0 rounded-full bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90 text-white disabled:opacity-50">
- {selectedMedia ? <ImageIcon className="h-[1.111vw] w-[1.111vw]" /> : <Send className="h-[1.111vw] w-[1.111vw]" />}
+ <Button type="submit" size="icon" disabled={!draft.trim() && !selectedMedia} className="h-[40px] w-[40px] shrink-0 rounded-full bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90 text-white disabled:opacity-50">
+ {selectedMedia ? <ImageIcon className="h-[16px] w-[16px]" /> : <Send className="h-[16px] w-[16px]" />}
  </Button>
  </div>
  </form>
  </section>
  ) : (
  <section className="flex flex-col items-center justify-center overflow-hidden rounded-2xl bg-card shadow-sm text-muted-foreground p-8 text-center">
- <div className="h-[5.556vw] w-[5.556vw] rounded-full bg-muted flex items-center justify-center mb-4">
- <Search className="h-[2.222vw] w-[2.222vw] text-muted-foreground/50" />
+ <div className="h-[80px] w-[80px] rounded-full bg-muted flex items-center justify-center mb-4">
+ <Search className="h-[32px] w-[32px] text-muted-foreground/50" />
  </div>
  <h3 className="text-xl font-semibold text-foreground mb-2">Your Messages</h3>
  <p>Select a conversation from the sidebar to start chatting.</p>

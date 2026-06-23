@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Eye, EyeOff, Loader2, Heart } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -92,11 +93,11 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  <div className="bg-gradient-to-br from-rose-500 to-pink-600 px-8 py-7 text-white">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2.5">
- <Heart className="h-[1.389vw] w-[1.389vw] fill-white text-white" strokeWidth={0} />
+ <BrandLogo className="h-8 w-8" />
  <span className="font-bold text-lg">Connect Love</span>
  </div>
  <button onClick={handleClose} className="rounded-full p-1.5 hover:bg-white/20 transition-colors">
- <X className="h-[1.111vw] w-[1.111vw]" />
+ <X className="h-[16px] w-[16px]" />
  </button>
  </div>
  <h2 className="mt-4 text-2xl font-bold">Welcome back 👋</h2>
@@ -155,7 +156,7 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  onClick={() => setShowPass(!showPass)}
  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
  >
- {showPass ? <EyeOff className="h-[1.111vw] w-[1.111vw]" /> : <Eye className="h-[1.111vw] w-[1.111vw]" />}
+ {showPass ? <EyeOff className="h-[16px] w-[16px]" /> : <Eye className="h-[16px] w-[16px]" />}
  </button>
  </div>
  {errors.password && <p className="mt-1 text-xs text-rose-500">{errors.password.message}</p>}
@@ -167,7 +168,7 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  disabled={isSubmitting}
  className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold text-sm shadow-lg shadow-rose-500/30 hover:from-rose-400 hover:to-pink-500 transition-all hover:scale-105 active:scale-95 disabled:opacity-70"
  >
- {isSubmitting && <Loader2 className="h-[1.111vw] w-[1.111vw] animate-spin" />}
+ {isSubmitting && <Loader2 className="h-[16px] w-[16px] animate-spin" />}
  {isSubmitting ? "Signing in…" : "Sign In"}
  </button>
  </form>

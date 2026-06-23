@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Settings, Heart, LogOut, UserRound } from "lucide-react";
+import { Bell, Settings, LogOut, UserRound } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { logout, getToken } from "@/lib/auth";
@@ -100,6 +101,7 @@ export function TopNav() {
  const handleLogout = () => logout("/");
 
  return (
+  <>
   <header
     className="sticky top-0 z-30 border-b bg-white/85 dark:bg-black/85 backdrop-blur-md"
     style={{
@@ -107,13 +109,11 @@ export function TopNav() {
       boxShadow: "0 2px 20px rgba(236, 72, 153, 0.08)",
     }}
   >
- <div className="mx-auto flex h-[4.444vw] w-[90vw] items-center justify-between">
+ <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
  {/* Logo */}
  <Link href="/user/discover" className="flex items-center gap-2.5 group">
- <div className="relative flex h-[2.5vw] w-[2.5vw] items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/30 group-hover:shadow-rose-500/50 transition-shadow">
- <Heart className="h-[1.111vw] w-[1.111vw] text-white fill-white" strokeWidth={0} />
- </div>
-        <span className="text-xl font-bold tracking-tight text-foreground">
+ <BrandLogo className="h-9 w-9 shadow-lg shadow-rose-500/30" priority />
+        <span className="hidden text-xl font-bold tracking-tight text-foreground sm:inline">
           Connect<span className="text-rose-500">Love</span>
         </span>
       </Link>
@@ -124,7 +124,7 @@ export function TopNav() {
  const active = pathname.startsWith(i.to);
  const isMessages = i.label === "Messages";
  const isMatches = i.label === "Matches";
- 
+
  const hasIndicator = (isMessages && unreadMessagesCount > 0) || (isMatches && newMatchesCount > 0);
  const isBold = hasIndicator;
 
@@ -142,7 +142,7 @@ export function TopNav() {
  {i.label}
  {hasIndicator && <span className="h-2 w-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50 animate-pulse" />}
  {active && (
- <span className="absolute -bottom-[22px] left-0 right-0 h-[0.139vw] rounded-full bg-gradient-to-r from-rose-500 to-pink-500" />
+ <span className="absolute -bottom-[22px] left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-rose-500 to-pink-500" />
  )}
  </Link>
  );
@@ -156,12 +156,12 @@ export function TopNav() {
  <button
  id="notif-btn"
  onClick={() => setNotifOpen(!notifOpen)}
-            className="relative flex h-[2.5vw] w-[2.5vw] items-center justify-center rounded-full transition-all hover:bg-rose-50 dark:hover:bg-rose-950/30 text-muted-foreground hover:text-rose-500"
+            className="relative flex h-[36px] w-[36px] items-center justify-center rounded-full transition-all hover:bg-rose-50 dark:hover:bg-rose-950/30 text-muted-foreground hover:text-rose-500"
             aria-label="Notifications"
  >
- <Bell className="h-[1.389vw] w-[1.389vw]" />
+ <Bell className="h-[20px] w-[20px]" />
  {totalUnread > 0 && (
- <span className="absolute -top-0.5 -right-0.5 flex h-[1.111vw] w-[1.111vw] items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+ <span className="absolute -top-0.5 -right-0.5 flex h-[16px] w-[16px] items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
  {totalUnread > 9 ? "9+" : totalUnread}
  </span>
  )}
@@ -170,7 +170,7 @@ export function TopNav() {
  {/* Notification Panel */}
  {notifOpen && (
           <div
-            className="absolute right-0 top-12 w-[25vw] rounded-2xl border shadow-2xl overflow-hidden z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl"
+            className="fixed left-4 right-4 top-20 rounded-2xl border shadow-2xl overflow-hidden z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-90"
             style={{
               borderColor: "rgba(236, 72, 153, 0.2)",
               boxShadow: "0 20px 60px rgba(236, 72, 153, 0.15), 0 4px 20px rgba(0,0,0,0.08)",
@@ -182,7 +182,7 @@ export function TopNav() {
  style={{ borderColor: "rgba(236, 72, 153, 0.12)", background: "linear-gradient(135deg, #fff5f7, #fdf2f8)" }}
  >
  <div className="flex items-center gap-2">
- <Bell className="h-[1.111vw] w-[1.111vw] text-rose-500" />
+ <Bell className="h-[16px] w-[16px] text-rose-500" />
  <h3 className="font-semibold text-slate-800">Notifications</h3>
  {realNotifications.length > 0 && (
  <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-600">
@@ -193,11 +193,11 @@ export function TopNav() {
  </div>
 
  {/* Notification list */}
- <div className="max-h-[25vw] overflow-y-auto">
+ <div className="max-h-[min(60dvh,360px)] overflow-y-auto overscroll-contain">
  {realNotifications.length === 0 ? (
  <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
- <div className="mb-3 flex h-[3.333vw] w-[3.333vw] items-center justify-center rounded-full bg-rose-50">
- <Bell className="h-[1.389vw] w-[1.389vw] text-rose-300" />
+ <div className="mb-3 flex h-[48px] w-[48px] items-center justify-center rounded-full bg-rose-50">
+ <Bell className="h-[20px] w-[20px] text-rose-300" />
  </div>
  <p className="text-sm font-medium text-slate-600">All caught up!</p>
  <p className="text-xs text-slate-400 mt-1">No new matches or messages.</p>
@@ -210,13 +210,13 @@ export function TopNav() {
  className="flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-rose-50/50 bg-rose-50/30"
  >
  <Link href={n.link} className="flex flex-1 items-start gap-3" onClick={() => setNotifOpen(false)}>
- <div className={cn("mt-0.5 flex h-[2.5vw] w-[2.5vw] shrink-0 items-center justify-center rounded-full border text-base", notifColor[n.type as keyof typeof notifColor])}>
+ <div className={cn("mt-0.5 flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full border text-base", notifColor[n.type as keyof typeof notifColor])}>
  {notifIcon[n.type as keyof typeof notifIcon]}
  </div>
- <div className="min-w-[0vw] flex-1">
+ <div className="min-w-[0px] flex-1">
  <div className="flex items-start justify-between gap-2">
  <p className="text-sm font-semibold text-slate-800 leading-tight">{n.title}</p>
- <span className="mt-1 h-[0.556vw] w-[0.556vw] shrink-0 rounded-full bg-rose-500" />
+ <span className="mt-1 h-[8px] w-[8px] shrink-0 rounded-full bg-rose-500" />
  </div>
  <p className="mt-1 text-xs text-slate-600 leading-snug line-clamp-2">{n.body}</p>
  <p className="mt-1.5 text-[10px] font-medium text-slate-400">{n.time}</p>
@@ -232,33 +232,45 @@ export function TopNav() {
  </div>
 
  {/* Profile menu */}
- <div className="ml-2 pl-4 border-l border-border h-8 flex items-center">
+ <div className="ml-1 flex h-8 items-center border-l border-border pl-2 sm:ml-2 sm:pl-4">
  <Link
  href="/user/profile"
- className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 hover:bg-muted/60 transition-colors"
+ className="flex items-center gap-2 rounded-full py-1 pl-1 sm:pr-3 hover:bg-muted/60 transition-colors"
  >
- <Avatar className="h-[2.222vw] w-[2.222vw] ring-2 ring-white shadow-sm">
+ <Avatar className="h-[32px] w-[32px] ring-2 ring-white shadow-sm">
  {avatarUrl ? <AvatarImage src={avatarUrl} alt="User" className="object-cover" /> : <AvatarFallback className="bg-rose-100 text-rose-600"><UserRound className="h-4 w-4" /></AvatarFallback>}
  </Avatar>
- <span className="text-sm font-medium">{userName}</span>
+ <span className="hidden text-sm font-medium sm:inline">{userName}</span>
  </Link>
  <Link
  href="/user/settings"
  className="ml-1 p-2 text-muted-foreground hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors"
  title="Settings"
  >
- <Settings className="h-[1.25vw] w-[1.25vw]" />
+ <Settings className="h-[18px] w-[18px]" />
  </Link>
- <button 
+ <button
  onClick={handleLogout}
  className="ml-1 p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
  title="Logout"
  >
- <LogOut className="h-[1.25vw] w-[1.25vw]" />
+ <LogOut className="h-[18px] w-[18px]" />
  </button>
  </div>
  </div>
  </div>
  </header>
+ <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-rose-100 bg-white/95 px-2 pt-2 shadow-[0_-8px_24px_rgba(236,72,153,0.08)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95 md:hidden" aria-label="User navigation">
+ {navItems.map((item) => {
+ const active = pathname.startsWith(item.to);
+ return (
+ <Link key={item.to} href={item.to} className={cn("relative flex min-h-12 items-center justify-center rounded-xl px-1 text-xs font-semibold", active ? "bg-rose-50 text-rose-600 dark:bg-rose-950/40" : "text-muted-foreground")}>
+ {item.label}
+ {((item.label === "Messages" && unreadMessagesCount > 0) || (item.label === "Matches" && newMatchesCount > 0)) && <span className="absolute right-[18%] top-2 h-2 w-2 rounded-full bg-rose-500" />}
+ </Link>
+ );
+ })}
+ </nav>
+ </>
  );
 }

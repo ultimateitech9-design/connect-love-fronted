@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ChevronRight, Loader2 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { getToken, clearToken } from "@/lib/auth";
 import { StepHeight } from "@/features/onboarding/StepHeight";
 import { StepProfession } from "@/features/onboarding/StepProfession";
@@ -100,7 +101,7 @@ export default function OnboardingPage() {
  if (loading || !profile) {
  return (
  <div className="flex min-h-screen items-center justify-center bg-background">
- <Loader2 className="h-[2.222vw] w-[2.222vw] animate-spin text-rose-500" />
+ <Loader2 className="h-[32px] w-[32px] animate-spin text-rose-500" />
  </div>
  );
  }
@@ -118,9 +119,7 @@ export default function OnboardingPage() {
  <div className="z-10 w-full ">
  {/* Header */}
  <div className="mb-8 text-center">
- <div className="mx-auto mb-6 flex h-[3.889vw] w-[3.889vw] items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-xl shadow-rose-500/20">
- <Heart className="h-[1.944vw] w-[1.944vw] text-white fill-white" strokeWidth={0} />
- </div>
+ <BrandLogo className="mx-auto mb-6 h-14 w-14 shadow-xl shadow-rose-500/20" />
  <h1 className="text-3xl font-bold tracking-tight text-white">
  {step.title}
  </h1>
@@ -128,12 +127,12 @@ export default function OnboardingPage() {
  {STEPS.map((s, i) => (
  <div
  key={s.id}
- className={`h-[0.417vw] rounded-full transition-all duration-300 ${
+ className={`h-[6px] rounded-full transition-all duration-300 ${
  i === currentStepIndex
- ? "w-[2.222vw] bg-rose-500"
+ ? "w-[32px] bg-rose-500"
  : i < currentStepIndex
- ? "w-[1.111vw] bg-rose-500/50"
- : "w-[1.111vw] bg-slate-800"
+ ? "w-[16px] bg-rose-500/50"
+ : "w-[16px] bg-slate-800"
  }`}
  />
  ))}
@@ -212,7 +211,7 @@ export default function OnboardingPage() {
 
  {saving && (
  <div className="absolute bottom-6 left-6 flex items-center gap-2 text-sm text-slate-400">
- <Loader2 className="h-[1.111vw] w-[1.111vw] animate-spin text-rose-500" />
+ <Loader2 className="h-[16px] w-[16px] animate-spin text-rose-500" />
  Saving...
  </div>
  )}

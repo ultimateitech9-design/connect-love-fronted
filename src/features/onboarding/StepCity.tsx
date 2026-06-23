@@ -19,22 +19,22 @@ export function StepCity({ profile, onNext }: { profile: any; onNext: (val: stri
  </p>
  <div className="relative mx-auto">
  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-500">
- <MapPin className="h-[1.389vw] w-[1.389vw]" />
+ <MapPin className="h-[20px] w-[20px]" />
  </div>
  <Input
  autoFocus
  value={value}
  onChange={(e) => setValue(e.target.value)}
  placeholder="e.g. New York, NY"
- className="pl-10 h-[3.889vw] bg-black/50 border-white/10 text-white placeholder:text-slate-500 text-lg rounded-xl focus-visible:ring-rose-500"
+ className="pl-10 h-[56px] bg-black/50 border-white/10 text-white placeholder:text-slate-500 text-lg rounded-xl focus-visible:ring-rose-500"
  />
  </div>
  </div>
  <div className="mt-8 flex justify-end">
- <Button 
- type="submit" 
+ <Button
+ type="submit"
  disabled={!value.trim()}
- className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl h-[3.333vw] px-8 w-full sm:w-auto"
+ className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl h-[48px] px-8 w-full sm:w-auto"
  >
  Continue
  </Button>

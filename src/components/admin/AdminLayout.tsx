@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutManagement } from "@/app/actions/managementAuth";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const nav = [
   { to: "/super-admin", label: "Dashboard", icon: LayoutDashboard },
@@ -59,8 +60,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-background font-[Inter,ui-sans-serif,system-ui]">
       <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-sidebar border-r border-sidebar-border">
         <div className="px-5 pt-6 pb-5 flex items-center gap-3">
-          <Heart className="h-6 w-6 text-primary fill-current shrink-0" />
-          <div className="flex flex-col min-w-[0vw]">
+          <BrandLogo className="h-10 w-10" />
+          <div className="flex flex-col min-w-[0px]">
             <h1 className="font-extrabold text-xl leading-none tracking-tight truncate">
               <span className="text-white">Connect</span><span className="text-rose-500">Love</span>
             </h1>
@@ -120,14 +121,21 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-[0vw]">
-        <header className="h-16 border-b border-border bg-background flex items-center justify-end px-6 gap-6 sticky top-0 z-10">
+      <div className="flex-1 flex flex-col min-w-[0px]">
+        <nav className="flex gap-2 overflow-x-auto border-b border-sidebar-border bg-sidebar px-3 py-3 lg:hidden" aria-label="Admin navigation">
+          {nav.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.to;
+            return <button key={item.to} onClick={() => router.push(item.to)} className={cn("flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold", active ? "bg-primary/25 text-white" : "bg-white/5 text-sidebar-foreground")}><Icon className="h-4 w-4" />{item.label}</button>;
+          })}
+        </nav>
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-end gap-3 border-b border-border bg-background px-3 sm:h-16 sm:px-6 sm:gap-6">
           <div className="flex items-center gap-5 text-sm">
-            <button className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors">
+            <button className="hidden items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors sm:flex">
               <HelpCircle className="h-4 w-4" />
               Support
             </button>
-            <span className="flex items-center gap-1.5 text-foreground">
+            <span className="hidden items-center gap-1.5 text-foreground sm:flex">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               System Status
             </span>
@@ -137,7 +145,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </header>
-        <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-8 overflow-x-hidden">{children}</main>
+        <main className="mx-auto w-full max-w-7xl flex-1 overflow-x-hidden px-4 py-5 sm:px-6 sm:py-8">{children}</main>
       </div>
     </div>
   );

@@ -77,7 +77,7 @@ export function StepTags({
  onClick={() => removeTag(t)}
  className="text-rose-400 hover:text-white transition-colors"
  >
- <X className="h-[0.833vw] w-[0.833vw]" />
+ <X className="h-[12px] w-[12px]" />
  </button>
  </div>
  ))}
@@ -90,12 +90,12 @@ export function StepTags({
  onChange={(e) => setInputValue(e.target.value)}
  onKeyDown={handleKeyDown}
  placeholder={placeholders[type]}
- className="h-[3.333vw] bg-black/50 border-white/10 text-white placeholder:text-slate-500 rounded-xl focus-visible:ring-rose-500"
+ className="h-[48px] bg-black/50 border-white/10 text-white placeholder:text-slate-500 rounded-xl focus-visible:ring-rose-500"
  />
  <Button
  onClick={handleAdd}
  type="button"
- className="h-[3.333vw] bg-white/10 hover:bg-white/20 text-white rounded-xl px-6"
+ className="h-[48px] bg-white/10 hover:bg-white/20 text-white rounded-xl px-6"
  >
  Add
  </Button>
@@ -106,7 +106,7 @@ export function StepTags({
  <Button
  onClick={handleSubmit}
  disabled={tags.length === 0 && !inputValue.trim()}
- className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl h-[3.333vw] px-8 w-full sm:w-auto"
+ className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl h-[48px] px-8 w-full sm:w-auto"
  >
  {type === "hobbies" ? "Finish" : "Continue"}
  </Button>

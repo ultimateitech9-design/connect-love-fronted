@@ -65,7 +65,7 @@ export default function UsersPage() {
  const res = await fetch(`${API}/admin/users?limit=50`, {
  headers: { Authorization: `Bearer ${token}` }
  });
- 
+
  if (!res.ok) {
  const body = await res.json().catch(() => ({}));
  throw new Error(body.message || `Users load nahi hue (${res.status}).`);
@@ -137,15 +137,15 @@ export default function UsersPage() {
  const update = async (id: string, status: AdminUser["status"]) => {
  // Optimistic UI update
  setList((prev) => prev.map((u) => (u.id === id ? { ...u, status } : u)));
- 
+
  const token = getManagementToken();
  if (token) {
  try {
  const res = await fetch(`${API}/admin/users/${id}/status`, {
  method: 'PATCH',
- headers: { 
+ headers: {
  'Content-Type': 'application/json',
- Authorization: `Bearer ${token}` 
+ Authorization: `Bearer ${token}`
  },
  body: JSON.stringify({ status })
  });
@@ -167,16 +167,16 @@ export default function UsersPage() {
  <p className="text-sm font-medium text-slate-500 mt-1">View, suspend, ban, or delete platform users.</p>
  </div>
  <div className="flex items-center gap-3">
- <Button onClick={() => setShowCreateForm((open) => !open)} className="h-[3.056vw] min-h-10 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90">
+ <Button onClick={() => setShowCreateForm((open) => !open)} className="h-[44px] min-h-10 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90">
  {showCreateForm ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}{showCreateForm ? "Close" : "Create ID"}
  </Button>
  <div className="relative">
- <Search className="absolute left-3.5 top-1/2 h-[1.111vw] w-[1.111vw] -translate-y-1/2 text-slate-400" />
- <Input 
- value={q} 
- onChange={(e) => setQ(e.target.value)} 
- placeholder="Search users…" 
- className="w-[20vw] pl-10 h-[3.056vw] rounded-full border-slate-200 bg-white/60 backdrop-blur-sm shadow-sm focus-visible:ring-rose-500/30 transition-all" 
+ <Search className="absolute left-3.5 top-1/2 h-[16px] w-[16px] -translate-y-1/2 text-slate-400" />
+ <Input
+ value={q}
+ onChange={(e) => setQ(e.target.value)}
+ placeholder="Search users…"
+ className="w-[20vw] pl-10 h-[44px] rounded-full border-slate-200 bg-white/60 backdrop-blur-sm shadow-sm focus-visible:ring-rose-500/30 transition-all"
  />
  </div>
  </div>
@@ -247,7 +247,7 @@ export default function UsersPage() {
  <td className="px-6 py-4">
  <div className="flex items-center gap-2 font-bold text-slate-900">
  {u.name}
- {u.verified && <BadgeCheck className="h-[1.111vw] w-[1.111vw] text-rose-500" />}
+ {u.verified && <BadgeCheck className="h-[16px] w-[16px] text-rose-500" />}
  </div>
  <div className="text-xs font-medium text-slate-500 mt-0.5">{u.email}</div>
  </td>
@@ -269,13 +269,13 @@ export default function UsersPage() {
  <td className="px-6 py-4">
  <div className="flex justify-end gap-2 w-[12.5vw] ml-auto">
  {u.status !== "active" && (
- <Button size="sm" variant="outline" className="w-[5.556vw] h-[2.222vw] rounded-lg border-emerald-100 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 shadow-sm font-semibold" onClick={() => update(u.id, "active")}>Activate</Button>
+ <Button size="sm" variant="outline" className="w-[80px] h-[32px] rounded-lg border-emerald-100 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 shadow-sm font-semibold" onClick={() => update(u.id, "active")}>Activate</Button>
  )}
  {u.status !== "suspended" && (
- <Button size="sm" variant="outline" className="w-[5.556vw] h-[2.222vw] rounded-lg border-amber-100 text-amber-600 hover:bg-amber-50 hover:border-amber-200 shadow-sm font-semibold" onClick={() => update(u.id, "suspended")}>Suspend</Button>
+ <Button size="sm" variant="outline" className="w-[80px] h-[32px] rounded-lg border-amber-100 text-amber-600 hover:bg-amber-50 hover:border-amber-200 shadow-sm font-semibold" onClick={() => update(u.id, "suspended")}>Suspend</Button>
  )}
  {u.status !== "banned" && (
- <Button size="sm" variant="outline" className="w-[5.556vw] h-[2.222vw] rounded-lg border-rose-100 text-rose-600 hover:bg-rose-50 hover:border-rose-200 shadow-sm font-semibold" onClick={() => update(u.id, "banned")}>Ban</Button>
+ <Button size="sm" variant="outline" className="w-[80px] h-[32px] rounded-lg border-rose-100 text-rose-600 hover:bg-rose-50 hover:border-rose-200 shadow-sm font-semibold" onClick={() => update(u.id, "banned")}>Ban</Button>
  )}
  </div>
  </td>

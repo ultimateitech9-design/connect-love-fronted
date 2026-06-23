@@ -24,7 +24,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
  }}
  >
  {!isOnboarding && <TopNav />}
- <main className={isOnboarding ? "" : "mx-auto w-[90vw] py-[2vw]"}>
+ <main className={isOnboarding ? "" : "mx-auto w-full max-w-[1440px] px-4 py-5 pb-24 sm:px-6 sm:py-7 md:pb-7 lg:px-8"}>
  {children}
  </main>
  </div>

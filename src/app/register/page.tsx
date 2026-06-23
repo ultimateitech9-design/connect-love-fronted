@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Check, Eye, EyeOff, Heart, Loader2, MapPin, ShieldCheck, Sparkles, UserRoundPlus } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -160,9 +161,7 @@ export default function RegisterPage() {
               </Link>
 
               <div className="mb-7 flex items-center gap-3">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/25">
-                  <Heart className="h-6 w-6 fill-white text-white" strokeWidth={0} />
-                </div>
+                <BrandLogo className="h-12 w-12 shadow-lg shadow-rose-500/25" priority />
                 <div>
                   <p className="text-lg font-black text-slate-950">Connect Love</p>
                   <p className="text-xs font-semibold text-slate-400">New member account</p>

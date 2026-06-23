@@ -6,6 +6,7 @@ import {
  LayoutDashboard, Users, Flag, BarChart3, CreditCard,
  Receipt, LifeBuoy, ShieldCheck, Heart, LogOut,
 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -23,10 +24,8 @@ export function AdminSidebar() {
  const pathname = usePathname();
  return (
  <aside className="sticky top-0 flex h-screen w-[17.778vw] flex-col bg-white/40 backdrop-blur-xl z-10">
- <div className="flex h-[4.444vw] items-center gap-2 border-b border-slate-100 px-5">
- <div className="relative flex h-[2.222vw] w-[2.222vw] items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 shadow-md shadow-rose-500/20">
- <Heart className="h-[0.972vw] w-[0.972vw] text-white fill-white" strokeWidth={0} />
- </div>
+ <div className="flex h-[64px] items-center gap-2 border-b border-slate-100 px-5">
+ <BrandLogo className="h-8 w-8 shadow-md shadow-rose-500/20" />
  <div>
  <p className="text-sm font-bold leading-none text-slate-900">ConnectLove</p>
  <p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-rose-500">Admin</p>
@@ -47,7 +46,7 @@ export function AdminSidebar() {
  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900",
  )}
  >
- <Icon className={cn("h-[1.111vw] w-[1.111vw]", active ? "text-rose-600" : "text-slate-400")} />
+ <Icon className={cn("h-[16px] w-[16px]", active ? "text-rose-600" : "text-slate-400")} />
  {it.label}
  </Link>
  );
@@ -55,7 +54,7 @@ export function AdminSidebar() {
  </nav>
  <div className="border-t border-slate-100 p-3">
  <Link href="/" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-colors">
- <LogOut className="h-[1.111vw] w-[1.111vw]" /> Exit admin
+ <LogOut className="h-[16px] w-[16px]" /> Exit admin
  </Link>
  </div>
  </aside>

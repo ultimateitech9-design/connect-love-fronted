@@ -36,10 +36,10 @@ function AuthBanner() {
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
           className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex w-[calc(100vw-2rem)] max-w-xl items-center gap-3 rounded-2xl bg-slate-900 px-5 py-3.5 text-white shadow-2xl shadow-slate-900/40"
         >
-          <div className="flex h-[2.222vw] w-[2.222vw] shrink-0 items-center justify-center rounded-full bg-rose-500/20">
-            <ShieldX className="h-[1.111vw] w-[1.111vw] text-rose-400" />
+          <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-rose-500/20">
+            <ShieldX className="h-[16px] w-[16px] text-rose-400" />
           </div>
-          <div className="flex-1 min-w-[0vw]">
+          <div className="flex-1 min-w-[0px]">
             <p className="text-sm font-semibold">Not logged in</p>
             <p className="text-xs text-white/60">Please sign in to access your dashboard.</p>
           </div>
@@ -48,7 +48,7 @@ function AuthBanner() {
             className="shrink-0 rounded-full p-1 hover:bg-white/10 transition-colors"
             aria-label="Dismiss"
           >
-            <X className="h-[1.111vw] w-[1.111vw] text-white/60" />
+            <X className="h-[16px] w-[16px] text-white/60" />
           </button>
         </motion.div>
       )}

@@ -21,7 +21,7 @@ export function StepBio({ profile, onNext }: { profile: any; onNext: (val: strin
  value={value}
  onChange={(e) => setValue(e.target.value)}
  placeholder="I love spontaneous road trips, trying new coffee shops, and deep conversations..."
- className="w-full h-[8.889vw] p-4 bg-black/50 border border-white/10 text-white placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+ className="w-full h-[128px] p-4 bg-black/50 border border-white/10 text-white placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
  />
  <div className="text-right text-xs text-slate-500 mt-2">
  {value.length}/500
@@ -29,10 +29,10 @@ export function StepBio({ profile, onNext }: { profile: any; onNext: (val: strin
  </div>
  </div>
  <div className="mt-8 flex justify-end">
- <Button 
- type="submit" 
+ <Button
+ type="submit"
  disabled={!value.trim() || value.length > 500}
- className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl h-[3.333vw] px-8 w-full sm:w-auto"
+ className="bg-rose-500 hover:bg-rose-600 text-white rounded-xl h-[48px] px-8 w-full sm:w-auto"
  >
  Continue
  </Button>

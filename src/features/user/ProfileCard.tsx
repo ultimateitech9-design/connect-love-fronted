@@ -38,7 +38,7 @@ type Action = "pass" | "like" | "super";
 
 export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   const [idx, setIdx] = useState(0);
-  
+
   // Hold-to-view state
   const holdTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -75,8 +75,8 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   if (profiles.length === 0) {
     return (
       <div className="flex aspect-[4/5] w-full max-w-[31.944vw] flex-col items-center justify-center rounded-3xl bg-card p-8 text-center shadow-xl border border-border">
-        <div className="mb-4 grid h-[4.444vw] w-[4.444vw] place-items-center rounded-full bg-rose-50 dark:bg-rose-950/30">
-          <X className="h-[2.222vw] w-[2.222vw] text-rose-300 dark:text-rose-500" />
+        <div className="mb-4 grid h-[64px] w-[64px] place-items-center rounded-full bg-rose-50 dark:bg-rose-950/30">
+          <X className="h-[32px] w-[32px] text-rose-300 dark:text-rose-500" />
         </div>
         <h3 className="text-xl font-semibold text-foreground">No matches found</h3>
         <p className="mt-2 text-sm text-muted-foreground">Try adjusting your filters to see more people.</p>
@@ -86,7 +86,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
 
   const profile = profiles[idx % profiles.length];
   const next = profiles[(idx + 1) % profiles.length];
-  
+
   const currentPhotos = profile.photos && profile.photos.length > 0 ? profile.photos : (profile.photo ? [profile.photo] : []);
   const currentDisplayPhoto = currentPhotos[photoIndex] || currentPhotos[0] || null;
   const nextPhotos = next.photos && next.photos.length > 0 ? next.photos : (next.photo ? [next.photo] : []);
@@ -130,7 +130,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
       const token = getToken();
       const headers: any = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      
+
       const res = await fetch(`${API}/users/${profile.id}/details`, { headers });
       if (res.ok) {
         const data = await res.json();
@@ -149,11 +149,11 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
     pointerDownTime.current = Date.now();
     pointerDownPos.current = { x: e.clientX, y: e.clientY };
     setInstructionVisible(false);
-    
+
     if (holdTimeoutRef.current) {
       clearTimeout(holdTimeoutRef.current);
     }
-    
+
     holdTimeoutRef.current = setTimeout(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) {
         navigator.vibrate(50);
@@ -168,17 +168,17 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
       clearTimeout(holdTimeoutRef.current);
       holdTimeoutRef.current = null;
     }
-    
+
     if (e && !showDetails && pointerDownTime.current > 0 && e.type !== 'pointerleave' && e.type !== 'pointercancel') {
       const timeElapsed = Date.now() - pointerDownTime.current;
       const dx = Math.abs(e.clientX - pointerDownPos.current.x);
       const dy = Math.abs(e.clientY - pointerDownPos.current.y);
-      
+
       // Tap threshold: < 200ms and minimal movement
       if (timeElapsed < 200 && dx < 10 && dy < 10) {
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
         const xPos = e.clientX - rect.left;
-        
+
         if (xPos > rect.width * 0.4) {
           // Tap right
           setPhotoIndex(prev => Math.min(prev + 1, currentPhotos.length - 1));
@@ -188,7 +188,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
         }
       }
     }
-    
+
     pointerDownTime.current = 0;
     if (showDetails && e && e.type === 'pointerup') {
       setShowDetails(false);
@@ -202,7 +202,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
 
   return (
     <div className="relative mx-auto w-full max-w-[460px]">
-      
+
       {/* Particle Explosion for Super Like */}
       <AnimatePresence>
         {isSuperLiking && (
@@ -232,10 +232,10 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
 
       <AnimatePresence>
         {showDetails && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md"
           />
         )}
@@ -258,9 +258,9 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
           drag={showDetails ? false : "x"}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.6}
-          style={{ 
-            x: showDetails || isSuperLiking ? 0 : x, 
-            rotate: showDetails || isSuperLiking ? 0 : rotate 
+          style={{
+            x: showDetails || isSuperLiking ? 0 : x,
+            rotate: showDetails || isSuperLiking ? 0 : rotate
           }}
           onDragEnd={onDragEnd}
           onDragStart={handleDragStart}
@@ -270,10 +270,10 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
           onPointerCancel={cancelHold}
           initial={{ scale: 0.96, opacity: 0 }}
           animate={
-            isSuperLiking 
-              ? { 
-                  scale: [1, 0.9, 1.1], 
-                  y: [0, 20, -800], 
+            isSuperLiking
+              ? {
+                  scale: [1, 0.9, 1.1],
+                  y: [0, 20, -800],
                   opacity: [1, 1, 0],
                   boxShadow: [
                     "0 0 0px 0px rgba(6, 182, 212, 0)",
@@ -282,17 +282,17 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                   ],
                   zIndex: 60
                 }
-              : { 
-                  scale: showDetails ? 1.05 : 1, 
-                  opacity: 1, 
+              : {
+                  scale: showDetails ? 1.05 : 1,
+                  opacity: 1,
                   y: 0,
                   boxShadow: "0 0 0px 0px rgba(6, 182, 212, 0)",
-                  zIndex: showDetails ? 50 : 10 
+                  zIndex: showDetails ? 50 : 10
                 }
           }
           exit={{ opacity: 0 }}
           transition={
-            isSuperLiking 
+            isSuperLiking
               ? { duration: 1, times: [0, 0.3, 1], ease: "easeInOut" }
               : { type: "spring", stiffness: 300, damping: 28 }
           }
@@ -309,8 +309,8 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
           {!showDetails && currentPhotos.length > 1 && (
             <div className="absolute top-2 left-2 right-2 flex gap-1 z-20 pointer-events-none">
               {currentPhotos.map((_, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className={`h-1 flex-1 rounded-full ${i === photoIndex ? 'bg-pink-500 shadow-sm' : 'bg-white/30'}`}
                 />
               ))}
@@ -319,7 +319,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
 
           <AnimatePresence>
             {instructionVisible && !showDetails && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -347,8 +347,8 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
             </>
           )}
 
-          <motion.div 
-            animate={{ opacity: showDetails ? 0 : 1 }} 
+          <motion.div
+            animate={{ opacity: showDetails ? 0 : 1 }}
             className="absolute inset-x-0 bottom-0 p-6 text-white pointer-events-none"
           >
             <div className="flex items-center gap-2">
@@ -359,7 +359,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
               {profile.showDistance !== false && typeof profile.distanceMi === "number" && (
                 <>
                   <MapPin className="h-4 w-4" />
-                  {profile.distanceMi} mi away · 
+                  {profile.distanceMi} mi away ·
                 </>
               )}
               {profile.profession}
@@ -378,26 +378,26 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
 
           <AnimatePresence>
             {showDetails && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 100 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 100 }}
                 transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 className="absolute inset-x-0 bottom-0 h-[75%] rounded-t-3xl bg-card/95 backdrop-blur-xl p-6 shadow-2xl flex flex-col text-foreground"
           >
-            <div className="mx-auto mb-4 h-[0.417vw] w-[3.333vw] rounded-full bg-slate-300 dark:bg-slate-700" />
-            
+            <div className="mx-auto mb-4 h-[6px] w-[48px] rounded-full bg-slate-300 dark:bg-slate-700" />
+
             <div className="flex-1 overflow-y-auto pr-2 pb-10">
               {loadingDetails && !detailedProfile ? (
                 <div className="flex h-full items-center justify-center">
-                  <Loader2 className="h-[2.222vw] w-[2.222vw] animate-spin text-rose-500" />
+                  <Loader2 className="h-[32px] w-[32px] animate-spin text-rose-500" />
                 </div>
               ) : detailedProfile ? (
                 <div className="space-y-6">
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="text-2xl font-bold text-foreground">{detailedProfile.name}{detailedProfile.age ? `, ${detailedProfile.age}` : ""}</h2>
-                      {detailedProfile.isVerified && <BadgeCheck className="h-[1.667vw] w-[1.667vw] text-emerald-500" fill="currentColor" />}
+                      {detailedProfile.isVerified && <BadgeCheck className="h-[24px] w-[24px] text-emerald-500" fill="currentColor" />}
                     </div>
                     <p className="mt-1 text-sm font-medium text-muted-foreground">
                       {detailedProfile.profession}
@@ -461,14 +461,14 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
       <div className="mt-6 flex items-center justify-center gap-5 relative z-10">
         <button
           onClick={() => triggerSwipe("pass")}
-          className="grid h-[3.889vw] w-[3.889vw] place-items-center rounded-full border-2 border-border bg-card text-muted-foreground shadow-md transition hover:scale-105 hover:border-rose-300 hover:text-rose-400"
+          className="grid h-[56px] w-[56px] place-items-center rounded-full border-2 border-border bg-card text-muted-foreground shadow-md transition hover:scale-105 hover:border-rose-300 hover:text-rose-400"
           aria-label="Pass"
         >
           <X className="h-6 w-6" strokeWidth={2.5} />
         </button>
         <button
           onClick={() => triggerSwipe("super")}
-          className="grid h-[3.333vw] w-[3.333vw] place-items-center rounded-full border-2 border-border bg-card text-blue-400 shadow-md transition hover:scale-105 hover:border-blue-300"
+          className="grid h-[48px] w-[48px] place-items-center rounded-full border-2 border-border bg-card text-blue-400 shadow-md transition hover:scale-105 hover:border-blue-300"
           aria-label="Super like"
         >
           <Star className="h-5 w-5" strokeWidth={2.5} />

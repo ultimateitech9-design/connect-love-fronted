@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ShieldAlert, ShieldCheck, Heart, Megaphone, CreditCard, TrendingUp, Headphones } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
@@ -12,9 +13,7 @@ function ManagementNavbar() {
       <div className="mx-auto flex h-16 items-center px-6 py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/30 group-hover:shadow-rose-500/50 transition-shadow">
-            <Heart className="h-5 w-5 text-white fill-white" strokeWidth={0} />
-          </div>
+          <BrandLogo className="h-10 w-10 shadow-lg shadow-rose-500/30" priority />
           <span className="text-xl font-bold tracking-tight text-slate-900">
             Connect<span className="text-rose-500">Love</span>
           </span>

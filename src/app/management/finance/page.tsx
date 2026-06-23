@@ -225,7 +225,7 @@ export default function FinanceLoginPage() {
  {/* Footer Branding */}
  <div className="absolute bottom-6 flex items-center justify-center w-full z-10 pointer-events-none">
  <span className="flex items-center gap-1.5 text-slate-600 text-sm font-medium bg-white/80 px-4 py-1.5 rounded-full backdrop-blur-md border border-slate-200 shadow-sm">
- <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-500" /> ConnectLove Secure Admin
+ <img src="/connect-love-logo.png" alt="" className="h-4 w-4 rounded" /> ConnectLove Secure Admin
  </span>
  </div>
  </div>

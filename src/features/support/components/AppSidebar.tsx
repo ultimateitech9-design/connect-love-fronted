@@ -16,6 +16,7 @@ import {
   User,
   LogOut
 } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import {
   Sidebar,
   SidebarContent,
@@ -49,7 +50,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <Link href="/support" className="flex items-center gap-2 px-2 py-3">
-          <Heart className="h-5 w-5 text-pink-500" fill="currentColor" />
+          <BrandLogo className="h-9 w-9" />
           {!collapsed && (
             <div className="flex flex-col leading-tight">
               <span className="text-base font-bold">

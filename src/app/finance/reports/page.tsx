@@ -36,7 +36,7 @@ export default function Reports() {
  <button
  key={r}
  onClick={() => setRange(r)}
- className={`px-4 h-[2.5vw] rounded-lg text-sm font-medium transition-colors ${
+ className={`px-4 h-[36px] rounded-lg text-sm font-medium transition-colors ${
  range === r ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-secondary"
  }`}
  >
@@ -45,9 +45,9 @@ export default function Reports() {
  ))}
  </div>
  <div className="flex items-center gap-2">
- <button className="inline-flex items-center gap-2 h-[2.5vw] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileText className="size-4" /> PDF</button>
- <button className="inline-flex items-center gap-2 h-[2.5vw] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileSpreadsheet className="size-4" /> Excel</button>
- <button className="inline-flex items-center gap-2 h-[2.5vw] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileDown className="size-4" /> CSV</button>
+ <button className="inline-flex items-center gap-2 h-[36px] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileText className="size-4" /> PDF</button>
+ <button className="inline-flex items-center gap-2 h-[36px] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileSpreadsheet className="size-4" /> Excel</button>
+ <button className="inline-flex items-center gap-2 h-[36px] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileDown className="size-4" /> CSV</button>
  </div>
  </div>
 
@@ -55,19 +55,19 @@ export default function Reports() {
  <div className="mb-6 p-5 rounded-2xl bg-card border border-border flex flex-wrap items-end gap-4">
  <div>
  <label className="text-xs text-muted-foreground">From</label>
- <div className="mt-1 flex items-center gap-2 h-[2.778vw] px-3 rounded-lg bg-muted">
+ <div className="mt-1 flex items-center gap-2 h-[40px] px-3 rounded-lg bg-muted">
  <Calendar className="size-4 text-muted-foreground" />
  <input type="date" className="bg-transparent outline-none text-sm" />
  </div>
  </div>
  <div>
  <label className="text-xs text-muted-foreground">To</label>
- <div className="mt-1 flex items-center gap-2 h-[2.778vw] px-3 rounded-lg bg-muted">
+ <div className="mt-1 flex items-center gap-2 h-[40px] px-3 rounded-lg bg-muted">
  <Calendar className="size-4 text-muted-foreground" />
  <input type="date" className="bg-transparent outline-none text-sm" />
  </div>
  </div>
- <button className="h-[2.778vw] px-5 rounded-lg text-primary-foreground text-sm font-medium" style={{ background: "var(--gradient-rose)" }}>
+ <button className="h-[40px] px-5 rounded-lg text-primary-foreground text-sm font-medium" style={{ background: "var(--gradient-rose)" }}>
  Generate Report
  </button>
  </div>

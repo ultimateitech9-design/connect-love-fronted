@@ -191,7 +191,7 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
       <Button
         onClick={() => onChange(defaultFilters)}
         variant="outline"
-        className="mt-4 h-[3.056vw] w-full bg-card border border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 font-medium"
+        className="mt-4 h-[44px] w-full bg-card border border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 font-medium"
       >
         Reset Filters
       </Button>

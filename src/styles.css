@@ -131,12 +131,31 @@
 
 @layer base {
   * { border-color: var(--color-border); }
-  html, body { font-family: var(--font-sans); scroll-behavior: smooth; overflow-x: hidden; }
+  html, body { width: 100%; min-width: 0; font-family: var(--font-sans); scroll-behavior: smooth; overflow-x: clip; }
   body {
+    min-height: 100dvh;
     background-color: var(--color-background);
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
   }
+  img, video, canvas, svg { max-width: 100%; }
+  button, [role="button"], a, input, select, textarea { touch-action: manipulation; }
+  input, select, textarea { font-size: 16px; }
+  table { max-width: 100%; }
+}
+
+/* Shared responsive guardrails for every dashboard and public page. */
+@media (max-width: 767px) {
+  h1 { overflow-wrap: anywhere; }
+  [data-slot="dialog-content"] { width: calc(100vw - 1.5rem); max-height: calc(100dvh - 1.5rem); overflow-y: auto; }
+  [data-slot="dropdown-menu-content"],
+  [data-slot="select-content"] { max-width: calc(100vw - 1rem); }
+}
+
+@supports (padding: max(0px)) {
+  .safe-bottom { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
 }
 
 @theme {

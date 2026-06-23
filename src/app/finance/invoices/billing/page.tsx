@@ -53,7 +53,7 @@ export default function BillingRecords() {
  <button
  key={g}
  onClick={() => setGw(g)}
- className={`px-3 h-[2.222vw] rounded-md text-xs font-medium transition-colors ${
+ className={`px-3 h-[32px] rounded-md text-xs font-medium transition-colors ${
  gw === g ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-secondary"
  }`}
  >
@@ -61,7 +61,7 @@ export default function BillingRecords() {
  </button>
  ))}
  </div>
- <button className="inline-flex items-center gap-2 px-4 h-[2.5vw] rounded-lg bg-muted text-sm font-medium hover:bg-secondary">
+ <button className="inline-flex items-center gap-2 px-4 h-[36px] rounded-lg bg-muted text-sm font-medium hover:bg-secondary">
  <Download className="size-4" /> Export CSV
  </button>
  </div>

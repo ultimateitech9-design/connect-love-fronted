@@ -3,10 +3,18 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Heart, Instagram, Twitter, Facebook, Youtube, ArrowRight } from "lucide-react";
+import { Instagram, Facebook, Linkedin, HeartHandshake, ArrowRight } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
 import { footerLinkGroups } from "./marketingPages";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+
+const socialLinks = [
+ { label: "Instagram", href: "https://www.instagram.com/connectloveofficial/", icon: Instagram },
+ { label: "Facebook", href: "https://www.facebook.com/connectloveofficial/", icon: Facebook },
+ { label: "LinkedIn", href: "https://www.linkedin.com/company/connect-love-official/", icon: Linkedin },
+ { label: "Join ConnectLove", href: "/register", icon: HeartHandshake },
+];
 
 export function Footer() {
  const [email, setEmail] = useState("");
@@ -61,11 +69,9 @@ export function Footer() {
  {/* Brand column */}
  <div className="lg:col-span-2">
  <Link href="/" className="flex items-center gap-2.5">
- <div className="flex h-[2.5vw] w-[2.5vw] items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg">
- <Heart className="h-[1.25vw] w-[1.25vw] text-white fill-white" strokeWidth={0} />
- </div>
+ <BrandLogo className="h-9 w-9 shadow-lg" />
  <span className="text-xl font-bold text-white">
- Soul<span className="text-rose-400">Match</span>
+ Connect<span className="text-rose-400">Love</span>
  </span>
  </Link>
  <p className="mt-4 text-sm text-white/45 leading-relaxed ">
@@ -73,13 +79,17 @@ export function Footer() {
  </p>
  {/* Social links */}
  <div className="mt-6 flex items-center gap-3">
- {[Instagram, Twitter, Facebook, Youtube].map((Icon, i) => (
- <button
- key={i}
- className="flex h-[2.5vw] w-[2.5vw] items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all"
+ {socialLinks.map(({ label, href, icon: Icon }) => (
+ <Link
+ key={href}
+ href={href}
+ target={href.startsWith("http") ? "_blank" : undefined}
+ rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+ aria-label={label}
+ className="flex h-[36px] w-[36px] items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all"
  >
- <Icon className="h-[1.111vw] w-[1.111vw]" />
- </button>
+ <Icon className="h-[16px] w-[16px]" />
+ </Link>
  ))}
  </div>
  </div>
@@ -120,7 +130,7 @@ export function Footer() {
  className="flex-1 md:w-[17.778vw] rounded-full border border-white/15 bg-white/8 px-5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-rose-400 transition-colors"
  />
  <button type="submit" className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white text-sm font-semibold hover:from-rose-400 hover:to-pink-500 transition-all shrink-0">
- {subscribed ? "Subscribed" : "Subscribe"} <ArrowRight className="h-[0.972vw] w-[0.972vw]" />
+ {subscribed ? "Subscribed" : "Subscribe"} <ArrowRight className="h-[14px] w-[14px]" />
  </button>
  </form>
  </div>

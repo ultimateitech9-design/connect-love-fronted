@@ -35,7 +35,7 @@ export default function Subscriptions() {
 
  <div className="flex items-center justify-between mb-4">
  <h3 className="font-semibold">All Subscription Plans</h3>
- <button className="inline-flex items-center gap-2 h-[2.778vw] px-4 rounded-lg text-primary-foreground text-sm font-medium" style={{ background: "var(--gradient-rose)" }}>
+ <button className="inline-flex items-center gap-2 h-[40px] px-4 rounded-lg text-primary-foreground text-sm font-medium" style={{ background: "var(--gradient-rose)" }}>
  <Plus className="size-4" /> Create Plan
  </button>
  </div>

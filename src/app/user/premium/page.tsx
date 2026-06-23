@@ -20,7 +20,7 @@ interface Plan {
 const plans: Plan[] = [
  {
  id: "basic",
- icon: <Send className="h-[1.667vw] w-[1.667vw] text-slate-500" />,
+ icon: <Send className="h-[24px] w-[24px] text-slate-500" />,
  name: "Basic Plan",
  tagline: "For getting started",
  price: 0,
@@ -41,7 +41,7 @@ const plans: Plan[] = [
  },
  {
  id: "premium",
- icon: <Diamond className="h-[1.667vw] w-[1.667vw] text-blue-500" />,
+ icon: <Diamond className="h-[24px] w-[24px] text-blue-500" />,
  name: "Premium Plan",
  tagline: "Most loved features",
  price: 199,
@@ -61,7 +61,7 @@ const plans: Plan[] = [
  },
  {
  id: "elite",
- icon: <Crown className="h-[1.667vw] w-[1.667vw] text-purple-500" />,
+ icon: <Crown className="h-[24px] w-[24px] text-purple-500" />,
  name: "Elite Plan",
  tagline: "For serious connections",
  price: 399,
@@ -167,7 +167,7 @@ export default function PremiumPage() {
 
  <div className="flex flex-col flex-1 p-7">
  {/* Icon */}
- <div className={`mb-4 flex h-[3.889vw] w-[3.889vw] items-center justify-center rounded-2xl ${iconBg[plan.id]}`}>
+ <div className={`mb-4 flex h-[56px] w-[56px] items-center justify-center rounded-2xl ${iconBg[plan.id]}`}>
  {plan.icon}
  </div>
 
@@ -187,12 +187,12 @@ export default function PremiumPage() {
  {plan.features.map((f) => (
  <li key={f.label} className="flex items-center gap-2.5 text-sm">
  {f.included ? (
- <span className="flex h-[1.389vw] w-[1.389vw] shrink-0 items-center justify-center rounded-full bg-emerald-100">
- <Check className="h-[0.833vw] w-[0.833vw] text-emerald-600" strokeWidth={3} />
+ <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-emerald-100">
+ <Check className="h-[12px] w-[12px] text-emerald-600" strokeWidth={3} />
  </span>
  ) : (
- <span className="flex h-[1.389vw] w-[1.389vw] shrink-0 items-center justify-center rounded-full bg-slate-100">
- <X className="h-[0.833vw] w-[0.833vw] text-slate-400" strokeWidth={2.5} />
+ <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-slate-100">
+ <X className="h-[12px] w-[12px] text-slate-400" strokeWidth={2.5} />
  </span>
  )}
  <span className={f.included ? "text-slate-700" : "text-slate-400"}>
@@ -218,11 +218,11 @@ export default function PremiumPage() {
  {/* ── Footer trust badges ──────────────────────────────────────────────── */}
  <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400">
  <span className="flex items-center gap-1.5">
- <Lock className="h-[1.111vw] w-[1.111vw] text-slate-400" /> Secure Payment
+ <Lock className="h-[16px] w-[16px] text-slate-400" /> Secure Payment
  </span>
  <span className="text-slate-200">•</span>
  <span className="flex items-center gap-1.5">
- <Shield className="h-[1.111vw] w-[1.111vw] text-slate-400" /> Cancel Anytime
+ <Shield className="h-[16px] w-[16px] text-slate-400" /> Cancel Anytime
  </span>
  <span className="text-slate-200">•</span>
  <span>100% Safe &amp; Private</span>

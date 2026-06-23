@@ -89,7 +89,7 @@ export default function HomePage() {
  return (
  <div>
  <PageHeader title="Dashboard Overview" description="Welcome back to ConnectLove Super Admin">
- 
+
  </PageHeader>
 
  {error && (
@@ -199,7 +199,7 @@ export default function HomePage() {
  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
  <Shield className="h-4.5 w-4.5 text-primary" />
  </div>
- <div className="flex-1 min-w-[0vw]">
+ <div className="flex-1 min-w-[0px]">
  <p className="text-sm font-medium text-foreground truncate">{entry.action}</p>
  <p className="text-xs text-muted-foreground">{entry.time}</p>
  </div>

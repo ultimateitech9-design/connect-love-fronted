@@ -36,15 +36,15 @@ export default function ReportsPage() {
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <Button className="gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white font-medium shadow-lg shadow-pink-500/25 transition-all">
- <Download className="h-[1.111vw] w-[1.111vw]" /> Export All <ChevronDown className="h-[1.111vw] w-[1.111vw] opacity-70" />
+ <Download className="h-[16px] w-[16px]" /> Export All <ChevronDown className="h-[16px] w-[16px] opacity-70" />
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end" className="w-[13.333vw] bg-card border-border/50">
  <DropdownMenuItem className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
- <FileText className="h-[1.111vw] w-[1.111vw] text-rose-500" /> Export as PDF
+ <FileText className="h-[16px] w-[16px] text-rose-500" /> Export as PDF
  </DropdownMenuItem>
  <DropdownMenuItem className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
- <FileSpreadsheet className="h-[1.111vw] w-[1.111vw] text-emerald-500" /> Export as CSV
+ <FileSpreadsheet className="h-[16px] w-[16px] text-emerald-500" /> Export as CSV
  </DropdownMenuItem>
  </DropdownMenuContent>
  </DropdownMenu>
@@ -61,8 +61,8 @@ export default function ReportsPage() {
  <Card key={r.title} className="group hover:border-primary/40 transition-colors">
  <CardHeader className="flex flex-row items-start justify-between space-y-0">
  <div className="flex items-center gap-3">
- <div className="h-[3.056vw] w-[3.056vw] rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
- <Icon className="h-[1.389vw] w-[1.389vw] text-primary" />
+ <div className="h-[44px] w-[44px] rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+ <Icon className="h-[20px] w-[20px] text-primary" />
  </div>
  <div>
  <CardTitle className="text-base">{r.title}</CardTitle>
@@ -75,15 +75,15 @@ export default function ReportsPage() {
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <Button variant="outline" size="sm" className="gap-2 shrink-0">
- <Download className="h-[1.111vw] w-[1.111vw]" /> Download
+ <Download className="h-[16px] w-[16px]" /> Download
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end" className="w-[11.111vw] bg-card border-border/50">
  <DropdownMenuItem className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
- <FileText className="h-[1.111vw] w-[1.111vw] text-rose-500" /> PDF
+ <FileText className="h-[16px] w-[16px] text-rose-500" /> PDF
  </DropdownMenuItem>
  <DropdownMenuItem className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
- <FileSpreadsheet className="h-[1.111vw] w-[1.111vw] text-emerald-500" /> CSV
+ <FileSpreadsheet className="h-[16px] w-[16px] text-emerald-500" /> CSV
  </DropdownMenuItem>
  </DropdownMenuContent>
  </DropdownMenu>

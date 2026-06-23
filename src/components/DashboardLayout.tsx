@@ -25,6 +25,7 @@ import {
  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { ReactNode } from "react";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const nav = [
  { to: "/finance", label: "Overview", icon: LayoutDashboard },
@@ -41,12 +42,10 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  const router = useRouter();
 
  return (
- <div className="min-h-screen flex bg-background">
- <aside className="w-[17.778vw] shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
- <div className="px-6 py-6 flex items-center gap-2">
- <div className="size-9 rounded-xl grid place-items-center text-primary-foreground" style={{ background: "var(--gradient-rose)" }}>
- <Heart className="size-5 fill-current" />
- </div>
+ <div className="flex min-h-screen flex-col bg-background lg:flex-row">
+ <aside className="flex w-full shrink-0 flex-col border-b border-sidebar-border bg-sidebar lg:w-64 lg:border-b-0 lg:border-r">
+ <div className="flex items-center gap-2 px-4 py-4 lg:px-6 lg:py-6">
+ <BrandLogo className="size-9" />
  <div>
  <div className="font-semibold leading-tight">
  <span className="text-foreground">Connect</span>
@@ -55,7 +54,7 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  <div className="text-xs text-muted-foreground">Finance</div>
  </div>
  </div>
- <nav className="flex-1 px-3 space-y-1">
+ <nav className="flex flex-1 gap-1 overflow-x-auto px-3 pb-3 lg:block lg:space-y-1 lg:overflow-visible lg:pb-0">
  {nav.map((item) => {
  const Icon = item.icon;
  const active = pathname === item.to;
@@ -63,9 +62,9 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  <button
  key={item.to}
  onClick={() => router.push(item.to)}
- className={`relative flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+ className={`relative flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-all lg:w-full lg:gap-3 ${
  active
- ? "bg-gradient-to-r from-primary/20 to-primary/5 text-white font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[2.222vw] before:w-[0.278vw] before:rounded-r-full before:bg-primary"
+ ? "bg-gradient-to-r from-primary/20 to-primary/5 text-white font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-primary"
  : "text-sidebar-foreground hover:bg-white/5 hover:text-white"
  }`}
  >
@@ -77,9 +76,9 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <button
- className={`relative flex w-full items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all mt-1 ${
+ className={`relative mt-1 flex w-full shrink-0 items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm transition-all ${
  pathname === "/finance/profile"
- ? "bg-gradient-to-r from-pink-400/20 to-pink-400/5 text-white font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[2.222vw] before:w-[0.278vw] before:rounded-r-full before:bg-pink-400"
+ ? "bg-gradient-to-r from-pink-400/20 to-pink-400/5 text-white font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-pink-400"
  : "text-pink-300 hover:bg-pink-400/10 hover:text-pink-200"
  }`}
  >
@@ -104,13 +103,13 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  </nav>
  </aside>
 
- <main className="flex-1 min-w-[0vw]">
- <header className="h-[4.444vw] border-b border-border bg-card/60 backdrop-blur px-8 flex items-center justify-between">
- <div className="relative w-[22.222vw] ">
+ <main className="min-w-0 flex-1">
+ <header className="flex min-h-16 items-center justify-between gap-3 border-b border-border bg-card/60 px-4 py-2 backdrop-blur sm:px-6 lg:px-8">
+ <div className="relative w-full max-w-80">
  <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
  <input
  placeholder="Search transactions, users…"
- className="w-full h-[2.778vw] pl-9 pr-3 rounded-lg bg-muted text-sm outline-none focus:ring-2 focus:ring-ring"
+ className="w-full h-[40px] pl-9 pr-3 rounded-lg bg-muted text-sm outline-none focus:ring-2 focus:ring-ring"
  />
  </div>
  <div className="flex items-center gap-3">
@@ -123,9 +122,9 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  </div>
  </header>
 
- <div className="px-8 py-8">
+ <div className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
  <div className="mb-8">
- <h1 className="text-3xl font-semibold tracking-tight" style={{ fontFamily: "var(--font-display)" }}>{title}</h1>
+ <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>{title}</h1>
  {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}
  </div>
  {children}

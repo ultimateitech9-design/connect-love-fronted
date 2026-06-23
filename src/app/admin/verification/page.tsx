@@ -49,14 +49,14 @@ export default function VerificationPage() {
  <p className="font-medium">{u.user?.name || "Unknown user"}</p>
  <p className="text-xs text-muted-foreground">{u.user?.email || u.idType}</p>
  </div>
- <ShieldAlert className="h-[1.389vw] w-[1.389vw] text-amber-500" />
+ <ShieldAlert className="h-[20px] w-[20px] text-amber-500" />
  </div>
  <div className="mt-4 grid grid-cols-2 gap-2">
  <div className="aspect-[3/2] rounded-lg bg-muted" />
  <div className="aspect-[3/2] rounded-lg bg-muted" />
  </div>
  <div className="mt-4 flex gap-2">
- <Button className="flex-1 bg-primary" onClick={() => updateVerification(u.id, "approved")}><BadgeCheck className="mr-2 h-[1.111vw] w-[1.111vw]" />Approve</Button>
+ <Button className="flex-1 bg-primary" onClick={() => updateVerification(u.id, "approved")}><BadgeCheck className="mr-2 h-[16px] w-[16px]" />Approve</Button>
  <Button className="flex-1" variant="outline" onClick={() => updateVerification(u.id, "rejected")}>Reject</Button>
  </div>
  </div>

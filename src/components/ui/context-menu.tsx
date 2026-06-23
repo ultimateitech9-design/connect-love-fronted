@@ -32,7 +32,7 @@ const ContextMenuSubTrigger = React.forwardRef<
  {...props}
  >
  {children}
- <ChevronRight className="ml-auto h-[1.111vw] w-[1.111vw]" />
+ <ChevronRight className="ml-auto h-[16px] w-[16px]" />
  </ContextMenuPrimitive.SubTrigger>
 ));
 ContextMenuSubTrigger.displayName = ContextMenuPrimitive.SubTrigger.displayName;
@@ -44,7 +44,7 @@ const ContextMenuSubContent = React.forwardRef<
  <ContextMenuPrimitive.SubContent
  ref={ref}
  className={cn(
- "z-50 min-w-[8.889vw] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--radix-context-menu-content-transform-origin)",
+ "z-50 min-w-[128px] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--radix-context-menu-content-transform-origin)",
  className,
  )}
  {...props}
@@ -60,7 +60,7 @@ const ContextMenuContent = React.forwardRef<
  <ContextMenuPrimitive.Content
  ref={ref}
  className={cn(
- "z-50 max-h-(--radix-context-menu-content-available-height) min-w-[8.889vw] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--radix-context-menu-content-transform-origin)",
+ "z-50 max-h-(--radix-context-menu-content-available-height) min-w-[128px] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--radix-context-menu-content-transform-origin)",
  className,
  )}
  {...props}
@@ -100,9 +100,9 @@ const ContextMenuCheckboxItem = React.forwardRef<
  checked={checked}
  {...props}
  >
- <span className="absolute left-2 flex h-[0.972vw] w-[0.972vw] items-center justify-center">
+ <span className="absolute left-2 flex h-[14px] w-[14px] items-center justify-center">
  <ContextMenuPrimitive.ItemIndicator>
- <Check className="h-[1.111vw] w-[1.111vw]" />
+ <Check className="h-[16px] w-[16px]" />
  </ContextMenuPrimitive.ItemIndicator>
  </span>
  {children}
@@ -122,9 +122,9 @@ const ContextMenuRadioItem = React.forwardRef<
  )}
  {...props}
  >
- <span className="absolute left-2 flex h-[0.972vw] w-[0.972vw] items-center justify-center">
+ <span className="absolute left-2 flex h-[14px] w-[14px] items-center justify-center">
  <ContextMenuPrimitive.ItemIndicator>
- <Circle className="h-[1.111vw] w-[1.111vw] fill-current" />
+ <Circle className="h-[16px] w-[16px] fill-current" />
  </ContextMenuPrimitive.ItemIndicator>
  </span>
  {children}

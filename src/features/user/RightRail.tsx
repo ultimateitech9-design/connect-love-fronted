@@ -30,7 +30,7 @@ export function RightRail() {
 
  useEffect(() => {
  const token = getToken();
- 
+
  // Fetch User Profile
  if (token) {
  fetch(`${API}/users/me`, {
@@ -96,7 +96,7 @@ export function RightRail() {
  className="rounded-2xl bg-card p-5 shadow-lg border-border border"
  >
  <Link href="/user/profile" className="flex items-center gap-3 group">
- <Avatar className="h-[3.333vw] w-[3.333vw] group-hover:ring-2 ring-rose-500 transition-all" style={{ border: "2px solid rgba(236,72,153,0.3)" }}>
+ <Avatar className="h-[48px] w-[48px] group-hover:ring-2 ring-rose-500 transition-all" style={{ border: "2px solid rgba(236,72,153,0.3)" }}>
  <AvatarImage src={avatarUrl} />
  <AvatarFallback
  className="text-white text-xs font-bold"
@@ -110,7 +110,7 @@ export function RightRail() {
  <p className="text-sm font-medium text-rose-500">{completion}% Complete</p>
  </div>
  </Link>
- <Progress value={completion} className="mt-4 h-[0.556vw]" />
+ <Progress value={completion} className="mt-4 h-[8px]" />
  </div>
 
  {/* Recent Matches */}
@@ -130,7 +130,7 @@ export function RightRail() {
  {recentMatches.length > 0 ? recentMatches.map((m) => (
  <li key={m.id} className="flex items-center gap-3">
  <div className="relative">
- <Avatar className="h-[3.056vw] w-[3.056vw]" style={{ border: "2px solid rgba(236,72,153,0.2)" }}>
+ <Avatar className="h-[44px] w-[44px]" style={{ border: "2px solid rgba(236,72,153,0.2)" }}>
  <AvatarImage src={m.photo} />
  <AvatarFallback
  className="text-white text-xs font-bold"
@@ -140,7 +140,7 @@ export function RightRail() {
  </AvatarFallback>
  </Avatar>
  </div>
- <div className="min-w-[0vw] flex-1">
+ <div className="min-w-[0px] flex-1">
  <p className="truncate text-sm font-semibold text-foreground">
  {m.name}
  </p>
@@ -162,14 +162,14 @@ export function RightRail() {
  border: "1px solid rgba(236,72,153,0.25)",
  }}
  >
- <Sparkles className="h-[1.667vw] w-[1.667vw] text-rose-400 mx-auto mb-2" />
+ <Sparkles className="h-[24px] w-[24px] text-rose-400 mx-auto mb-2" />
  <h4 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-1">Stand out with Premium</h4>
  <p className="mt-1 text-xs text-rose-500/80 dark:text-rose-400/80 mb-3">
  See who liked you and get more matches.
  </p>
  <Link href="/user/premium" className="block">
  <Button
- className="w-full text-white h-[2.5vw] text-xs rounded-lg"
+ className="w-full text-white h-[36px] text-xs rounded-lg"
  style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}
  >
  Upgrade Now

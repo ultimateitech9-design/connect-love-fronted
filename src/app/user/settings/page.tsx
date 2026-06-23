@@ -39,14 +39,14 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () =>
  role="switch"
  aria-checked={checked}
  onClick={onChange}
- className={`relative inline-flex h-[1.667vw] w-[3.056vw] shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${
+ className={`relative inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${
  checked
  ? "bg-gradient-to-r from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30"
  : "bg-slate-200"
  }`}
  >
  <span
- className={`inline-block h-[1.111vw] w-[1.111vw] transform rounded-full bg-white shadow-md transition-transform ${
+ className={`inline-block h-[16px] w-[16px] transform rounded-full bg-white shadow-md transition-transform ${
  checked ? "translate-x-6" : "translate-x-1"
  }`}
  />
@@ -59,12 +59,12 @@ function ToggleRow({ toggle, checked, onChange }: { toggle: Toggle, checked: boo
  return (
  <div className="flex items-center justify-between rounded-2xl bg-card px-5 py-4 shadow-sm border border-border transition-all hover:border-primary/50 group">
  <div className="flex items-center gap-4">
- <div className={`flex h-[2.778vw] w-[2.778vw] shrink-0 items-center justify-center rounded-xl transition-colors ${
+ <div className={`flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-xl transition-colors ${
  checked
  ? "bg-primary text-primary-foreground"
  : "bg-muted text-muted-foreground"
  }`}>
- <Icon className="h-[1.25vw] w-[1.25vw]" />
+ <Icon className="h-[18px] w-[18px]" />
  </div>
  <div>
  <p className="text-sm font-semibold text-foreground">{toggle.label}</p>
@@ -99,10 +99,10 @@ function DangerRow({ label, desc, icon: Icon, danger = false, onClick }: { label
  }`}
  >
  <div className="flex items-center gap-3">
- <div className={`flex h-[2.222vw] w-[2.222vw] items-center justify-center rounded-lg ${
+ <div className={`flex h-[32px] w-[32px] items-center justify-center rounded-lg ${
  danger ? "bg-rose-100 dark:bg-rose-900/50" : "bg-muted"
  }`}>
- <Icon className={`h-[1.111vw] w-[1.111vw] ${danger ? "text-rose-500" : "text-muted-foreground"}`} />
+ <Icon className={`h-[16px] w-[16px] ${danger ? "text-rose-500" : "text-muted-foreground"}`} />
  </div>
  <div>
  <p className={`text-sm font-semibold ${danger ? "text-rose-600 dark:text-rose-400" : "text-foreground"}`}>
@@ -111,7 +111,7 @@ function DangerRow({ label, desc, icon: Icon, danger = false, onClick }: { label
  <p className={`text-xs ${danger ? "text-rose-500/80 dark:text-rose-400/80" : "text-muted-foreground"}`}>{desc}</p>
  </div>
  </div>
- <ChevronRight className={`h-[1.111vw] w-[1.111vw] ${danger ? "text-rose-300 dark:text-rose-700" : "text-muted-foreground"}`} />
+ <ChevronRight className={`h-[16px] w-[16px] ${danger ? "text-rose-300 dark:text-rose-700" : "text-muted-foreground"}`} />
  </button>
  );
 }
@@ -145,13 +145,13 @@ export default function SettingsPage() {
  className="rounded-3xl p-7 relative overflow-hidden bg-card border-border border"
  >
  {/* decorative circles */}
- <div className="absolute -right-6 -top-6 h-[8.889vw] w-[8.889vw] rounded-full bg-rose-500/10 pointer-events-none" />
- <div className="absolute right-16 -bottom-4 h-[5.556vw] w-[5.556vw] rounded-full bg-pink-400/10 pointer-events-none" />
+ <div className="absolute -right-6 -top-6 h-[128px] w-[128px] rounded-full bg-rose-500/10 pointer-events-none" />
+ <div className="absolute right-16 -bottom-4 h-[80px] w-[80px] rounded-full bg-pink-400/10 pointer-events-none" />
 
  <div className="relative">
  <div className="flex items-center gap-3 mb-2">
- <div className="flex h-[2.778vw] w-[2.778vw] items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30">
- <Lock className="h-[1.111vw] w-[1.111vw] text-white" />
+ <div className="flex h-[40px] w-[40px] items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg shadow-rose-500/30">
+ <Lock className="h-[16px] w-[16px] text-white" />
  </div>
  <div>
  <h1 className="text-2xl font-bold text-foreground">Settings &amp; Privacy</h1>
