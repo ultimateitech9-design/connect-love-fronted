@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/admin/PageHeader";
 type NotifStatus = "All" | "Active" | "Scheduled" | "Paused";
 
 interface Campaign {
- name: string; type: string; audience: string; status: string; created: string;
+ id: string; name: string; type: string; audience: string; status: string; created: string;
 }
 
 const statusStyles: Record<string, string> = {
@@ -18,7 +18,7 @@ const statusStyles: Record<string, string> = {
  Paused: "text-amber-500",
 };
 
-function ActionMenu() {
+function ActionMenu({ id, onDeleted }: { id: string; onDeleted: (id: string) => void }) {
  const [isOpen, setIsOpen] = useState(false);
  const menuRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +44,7 @@ function ActionMenu() {
  </button>
  {isOpen && (
  <div className="absolute left-0 top-full mt-1 w-32 bg-card rounded-xl shadow-lg border border-border z-50 py-1.5 overflow-hidden">
- <button className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-rose-500/10 hover:text-rose-400 text-rose-500 transition-colors">
+ <button onClick={async () => { await api.deleteNotification(id); onDeleted(id); setIsOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-rose-500/10 hover:text-rose-400 text-rose-500 transition-colors">
  <Trash2 className="h-4 w-4" /> Delete
  </button>
  </div>
@@ -65,6 +65,7 @@ export default function NotificationsPage() {
  try {
  const res = await api.notifications();
  setAllCampaigns(res.notifications.map((n) => ({
+ id: n.id || n.campaign,
  name: n.campaign,
  type: n.type,
  audience: n.audience,
@@ -80,6 +81,18 @@ export default function NotificationsPage() {
 
  useEffect(() => { fetchCampaigns(); }, []);
 
+ const createCampaign = async () => {
+ const campaign = window.prompt("Campaign name");
+ if (!campaign?.trim()) return;
+ const audience = window.prompt("Audience", "All users") || "All users";
+ try {
+ await api.createNotification({ campaign: campaign.trim(), type: "Push", audience, status: "active" });
+ await fetchCampaigns();
+ } catch {
+ setError("Could not create the campaign.");
+ }
+ };
+
  const filtered = filter === "All" ? allCampaigns : allCampaigns.filter((c) => c.status === filter);
 
  return (
@@ -90,7 +103,7 @@ export default function NotificationsPage() {
  <button
  className="h-10 px-4 rounded-lg text-primary-foreground font-medium text-sm flex items-center gap-2"
  style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-brand)" }}
- onClick={() => {}}
+ onClick={createCampaign}
  >
  <Plus className="h-4 w-4" /> New Campaign
  </button>
@@ -170,7 +183,7 @@ export default function NotificationsPage() {
  </td>
  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{row.created}</td>
  <td className="px-4 py-3 whitespace-nowrap">
- <ActionMenu />
+ <ActionMenu id={row.id} onDeleted={(id) => setAllCampaigns((rows) => rows.filter((item) => item.id !== id))} />
  </td>
  </tr>
  ))}

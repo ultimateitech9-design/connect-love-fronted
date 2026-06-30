@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { api } from "@/lib/api";
 import { FileText, FileSpreadsheet, FileDown, Calendar } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { downloadTable, printCurrentPage } from "@/lib/download";
 const ranges = ["Daily", "Weekly", "Monthly", "Yearly", "Custom"] as const;
 
 export default function Reports() {
@@ -45,9 +46,9 @@ export default function Reports() {
  ))}
  </div>
  <div className="flex items-center gap-2">
- <button className="inline-flex items-center gap-2 h-[36px] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileText className="size-4" /> PDF</button>
- <button className="inline-flex items-center gap-2 h-[36px] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileSpreadsheet className="size-4" /> Excel</button>
- <button className="inline-flex items-center gap-2 h-[36px] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileDown className="size-4" /> CSV</button>
+ <button onClick={printCurrentPage} className="inline-flex items-center gap-2 h-[36px] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileText className="size-4" /> PDF</button>
+ <button onClick={() => downloadTable("finance-report.xls", reportRows, "\t")} className="inline-flex items-center gap-2 h-[36px] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileSpreadsheet className="size-4" /> Excel</button>
+ <button onClick={() => downloadTable("finance-report.csv", reportRows)} className="inline-flex items-center gap-2 h-[36px] px-3 rounded-lg bg-muted text-sm hover:bg-secondary"><FileDown className="size-4" /> CSV</button>
  </div>
  </div>
 
@@ -67,7 +68,7 @@ export default function Reports() {
  <input type="date" className="bg-transparent outline-none text-sm" />
  </div>
  </div>
- <button className="h-[40px] px-5 rounded-lg text-primary-foreground text-sm font-medium" style={{ background: "var(--gradient-rose)" }}>
+ <button onClick={() => downloadTable("custom-finance-report.csv", reportRows)} className="h-[40px] px-5 rounded-lg text-primary-foreground text-sm font-medium" style={{ background: "var(--gradient-rose)" }}>
  Generate Report
  </button>
  </div>

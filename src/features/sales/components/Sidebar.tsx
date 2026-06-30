@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BrandLogo } from "@/components/BrandLogo";
+import { logoutManagement } from "@/app/actions/managementAuth";
 
 const nav = [
   { href: "/sales", label: "Overview", icon: LayoutDashboard },
@@ -76,7 +77,7 @@ export function Sidebar() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="top" align="start" className="w-56">
-            <DropdownMenuItem className="text-red-500 cursor-pointer focus:text-red-500">
+            <DropdownMenuItem onClick={async () => { await logoutManagement(); window.location.href = "/management"; }} className="text-red-500 cursor-pointer focus:text-red-500">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>

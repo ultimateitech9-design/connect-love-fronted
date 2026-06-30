@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useMemo, useState } from "react";
-import { Calendar, MapPin, Heart, Target, BadgeCheck } from "lucide-react";
+import { Calendar, MapPin, Heart, Target, BadgeCheck, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export interface DiscoverFilters {
+  search: string;
   ageMin: number;
   ageMax: number;
   maxDistance: number;
@@ -17,6 +18,7 @@ export interface DiscoverFilters {
 }
 
 export const defaultFilters: DiscoverFilters = {
+  search: "",
   ageMin: 18,
   ageMax: 60,
   maxDistance: 20,
@@ -64,6 +66,28 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
       <div className="border-b pb-4" style={{ borderColor: "rgba(236,72,153,0.15)" }}>
         <h2 className="text-xl font-bold text-foreground">Filters</h2>
         <p className="mt-1 text-xs text-muted-foreground">Refine your matches</p>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mt-4 relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <input
+          type="text"
+          value={filters.search}
+          onChange={(e) => update("search", e.target.value)}
+          placeholder="Search by name..."
+          className="w-full pl-9 pr-8 py-2 text-sm rounded-xl border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus:border-rose-400 transition-colors text-foreground"
+        />
+        {filters.search && (
+          <button
+            onClick={() => update("search", "")}
+            className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <nav className="mt-4 space-y-1">

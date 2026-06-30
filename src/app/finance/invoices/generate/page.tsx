@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { FileText, Send, Plus, Trash2, Download, Eye, Search } from "lucide-react";
 import { StatusBadge } from "@/components/finance/StatCard";
+import { downloadTable } from "@/lib/download";
 
 type Line = { desc: string; qty: number; price: number };
 
@@ -13,16 +14,16 @@ const historyTabs = ["All", "Paid", "Unpaid", "Overdue"] as const;
 export default function InvoicesModule() {
  const [activeView, setActiveView] = useState<"generate" | "history">("generate");
  const [invoices, setInvoices] = useState<any[]>([]);
- const [planOptions, setPlanOptions] = useState<string[]>(["Premium Match"]);
+ const [planOptions, setPlanOptions] = useState<string[]>(["Premium Plan"]);
 
  // Generate State
  const [customer, setCustomer] = useState("");
  const [email, setEmail] = useState("");
- const [plan, setPlan] = useState<string>("Premium Match");
+ const [plan, setPlan] = useState<string>("Premium Plan");
  const [due, setDue] = useState("2026-06-15");
  const [notes, setNotes] = useState("");
  const [lines, setLines] = useState<Line[]>([
- { desc: "Premium Match - Monthly subscription", qty: 1, price: 9.99 },
+ { desc: "Premium Plan - Monthly subscription", qty: 1, price: 199 },
  ]);
 
  useEffect(() => {
@@ -30,8 +31,8 @@ export default function InvoicesModule() {
  .then((data) => {
  const [payments, invoiceData] = data;
  const plans = payments.plans.map((p) => p.name);
- setPlanOptions(plans.length ? plans : ["Premium Match"]);
- setPlan(plans[0] || "Premium Match");
+ setPlanOptions(plans.length ? plans : ["Premium Plan"]);
+ setPlan(plans[0] || "Premium Plan");
  setInvoices(invoiceData.invoices.map((tx) => ({
  id: tx.id,
  user: tx.customer,
@@ -64,16 +65,17 @@ export default function InvoicesModule() {
 
  const totalPaid = invoices.filter((i) => i.status === "Paid").reduce((s, i) => s + i.amount, 0);
  const totalUnpaid = invoices.filter((i) => i.status !== "Paid").reduce((s, i) => s + i.amount, 0);
- const generateInvoice = async () => {
+ const saveInvoice = async (draft = false) => {
+ if (!customer.trim() || !email.trim()) return;
  const created: any = await api.createInvoice({ customer, email, plan, due, notes, amount: total });
  setInvoices((rows) => [{
  id: created.id,
- user: created.customer,
- plan: created.plan,
- amount: created.amount,
- status: created.status,
+ user: customer,
+ plan,
+ amount: total,
+ status: "Unpaid",
  issued: new Date().toISOString().slice(0, 10),
- due: created.due,
+ due,
  }, ...rows]);
  setActiveView("history");
  };
@@ -181,10 +183,10 @@ export default function InvoicesModule() {
  <span className="font-semibold text-lg">${total.toFixed(2)}</span>
  </div>
  </div>
- <button onClick={generateInvoice} className="w-full mt-5 inline-flex items-center justify-center gap-2 h-[44px] rounded-lg text-primary-foreground font-medium shadow-[var(--shadow-rose)]" style={{ background: "var(--gradient-rose)" }}>
+ <button onClick={() => saveInvoice(false)} className="w-full mt-5 inline-flex items-center justify-center gap-2 h-[44px] rounded-lg text-primary-foreground font-medium shadow-[var(--shadow-rose)]" style={{ background: "var(--gradient-rose)" }}>
  <Send className="size-4" /> Generate & Send
  </button>
- <button className="w-full mt-2 h-[40px] rounded-lg bg-muted text-sm font-medium hover:bg-secondary">
+ <button onClick={() => saveInvoice(true)} className="w-full mt-2 h-[40px] rounded-lg bg-muted text-sm font-medium hover:bg-secondary">
  Save as draft
  </button>
  </div>
@@ -243,10 +245,10 @@ export default function InvoicesModule() {
  <td className="px-5 py-4"><StatusBadge status={i.status} /></td>
  <td className="px-5 py-4 text-right">
  <div className="flex items-center justify-end gap-2">
- <button className="size-8 rounded-lg grid place-items-center text-muted-foreground hover:bg-muted transition-colors">
+ <button onClick={() => window.alert(`${i.id}\n${i.user}\n${i.plan}\n$${i.amount.toFixed(2)}\n${i.status}`)} className="size-8 rounded-lg grid place-items-center text-muted-foreground hover:bg-muted transition-colors">
  <Eye className="size-4" />
  </button>
- <button className="size-8 rounded-lg grid place-items-center text-muted-foreground hover:bg-muted transition-colors">
+ <button onClick={() => downloadTable(`${i.id}.csv`, [i])} className="size-8 rounded-lg grid place-items-center text-muted-foreground hover:bg-muted transition-colors">
  <Download className="size-4" />
  </button>
  </div>

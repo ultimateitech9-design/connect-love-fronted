@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import {
   LayoutDashboard,
   Ticket,
@@ -28,6 +27,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/features/support/components/ui/sidebar";
+import { logoutManagement } from "@/app/actions/managementAuth";
 
 const items = [
   { title: "Overview", url: "/support", icon: LayoutDashboard },
@@ -44,7 +44,6 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = usePathname() || "";
-  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
     <Sidebar collapsible="icon">
@@ -93,16 +92,16 @@ export function AppSidebar() {
               
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  onClick={() => setProfileOpen(!profileOpen)} 
+                  onClick={() => { window.location.href = "/support/profile"; }}
                   className="flex items-center gap-2 text-pink-300 hover:text-pink-200"
                 >
                   <User className="h-4 w-4" />
                   {!collapsed && <span>My Profile</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {profileOpen && !collapsed && (
+              {!collapsed && (
                 <div className="pl-9 pt-1 pb-2 flex flex-col items-start gap-1">
-                  <button className="text-sm text-muted-foreground hover:text-white flex items-center gap-2 transition-colors">
+                  <button onClick={async () => { await logoutManagement(); window.location.href = "/management"; }} className="text-sm text-muted-foreground hover:text-white flex items-center gap-2 transition-colors">
                     <LogOut className="h-3.5 w-3.5" /> Logout
                   </button>
                 </div>

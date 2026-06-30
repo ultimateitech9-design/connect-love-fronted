@@ -14,9 +14,9 @@ export default function PremiumPage() {
     cta: { label: "Subscribe Now", href: "/user/premium" },
     secondaryCta: { label: "Create Free Account", href: "/register" },
     highlights: [
-      "Free includes profile creation, limited discovery, basic messages, and safety tools.",
-      "Gold unlocks unlimited matches, priority visibility, video dates, read receipts, and filters.",
-      "Platinum adds global search, verified badge support, daily boosts, and dedicated support.",
+      "Basic includes profile creation, 20 likes per day, basic matching, chat after match, and profile viewing.",
+      "Premium unlocks unlimited likes, see who liked you, super likes, boosts, no ads, and priority matching.",
+      "Elite adds unlimited super likes, unlimited boosts, advanced filters, top search ranking, and premium badge.",
     ],
     metrics: [
       { value: "3", label: "plan levels" },
@@ -25,23 +25,23 @@ export default function PremiumPage() {
     ],
     sections: [
       {
-        title: "Free plan",
-        body: "Free users can understand the product before paying. They can create a profile, browse limited discovery, message within limits, and use safety tools.",
-        points: ["Profile and onboarding access.", "Basic discovery and matching.", "Report and block actions remain available."],
+        title: "Basic Plan",
+        body: "Basic users can understand the product before paying. They get limited daily likes, matching, chat after match, and basic profile viewing.",
+        points: ["₹0/month.", "20 likes per day.", "Basic matching and chat after match."],
       },
       {
-        title: "Gold plan",
-        body: "Gold is the main upgrade path for users who want more reach and smoother conversations.",
-        points: ["Unlimited matches.", "Priority visibility and advanced filters.", "Video dates and AI icebreakers."],
+        title: "Premium Plan",
+        body: "Premium is the main upgrade path for users who want more reach and smoother conversations.",
+        points: ["₹199/month.", "Unlimited likes and see who liked you.", "5 super likes per day and weekly profile boost."],
       },
       {
-        title: "Backend billing flow",
-        body: "Premium actions connect to user premium pages and backend billing-related dashboards for subscriptions, transactions, refunds, and invoices.",
-        points: ["Finance reviews payments and refunds.", "Sales tracks conversions and retention.", "Support handles billing questions."],
+        title: "Elite Plan",
+        body: "Elite is for serious connections with every premium visibility and filtering tool enabled.",
+        points: ["₹399/month.", "Unlimited super likes and boosts.", "Advanced filters, top search ranking, and premium badge."],
       },
     ],
     actions: [
-      { title: "Choose plan", body: "User compares Free, Gold, and Platinum benefits." },
+      { title: "Choose plan", body: "User compares Basic, Premium, and Elite benefits." },
       { title: "Subscribe", body: "Paid CTA routes to the protected user premium page." },
       { title: "Manage billing", body: "Billing questions route to support and finance workflows." },
     ],

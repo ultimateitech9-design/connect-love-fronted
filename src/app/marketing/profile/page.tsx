@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User, Mail, Lock, Shield, Save } from "lucide-react";
+import { getManagementToken } from "@/lib/auth";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export default function ProfilePage() {
  const [formData, setFormData] = useState({
@@ -10,6 +13,25 @@ export default function ProfilePage() {
  password: "••••••••",
  role: "Marketing Manager",
  });
+ const [message, setMessage] = useState("");
+
+ useEffect(() => {
+ const token = getManagementToken();
+ if (!token) return;
+ fetch(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
+ .then((res) => res.ok ? res.json() : null)
+ .then((user) => user && setFormData({ name: user.name || "", email: user.email || "", password: "", role: user.role || "marketing" }));
+ }, []);
+
+ const saveProfile = async (event: React.FormEvent) => {
+ event.preventDefault();
+ const response = await fetch(`${API}/users/me`, {
+ method: "PATCH",
+ headers: { Authorization: `Bearer ${getManagementToken()}`, "Content-Type": "application/json" },
+ body: JSON.stringify({ name: formData.name }),
+ });
+ setMessage(response.ok ? "Profile saved." : "Could not save profile.");
+ };
 
  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
  setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -25,7 +47,7 @@ export default function ProfilePage() {
  </div>
 
  <div className=" bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
- <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+ <form className="space-y-6" onSubmit={saveProfile}>
  <div className="flex items-center gap-4 mb-8">
  <div className="h-[80px] w-[80px] rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-2xl border-2 border-primary/30">
  M
@@ -59,7 +81,7 @@ export default function ProfilePage() {
  type="email"
  name="email"
  value={formData.email}
- onChange={handleChange}
+ readOnly
  className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
  placeholder="Enter your email"
  />
@@ -73,7 +95,7 @@ export default function ProfilePage() {
  type="password"
  name="password"
  value={formData.password}
- onChange={handleChange}
+ readOnly
  className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
  placeholder="Enter new password"
  />
@@ -86,7 +108,7 @@ export default function ProfilePage() {
  <select
  name="role"
  value={formData.role}
- onChange={handleChange}
+ disabled
  className="w-full bg-background/50 border border-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none"
  >
  <option value="Admin">Admin</option>
@@ -97,10 +119,11 @@ export default function ProfilePage() {
  </div>
 
  <div className="pt-4 flex justify-end">
- <button className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-pink-500/25 transition-all">
+ <button type="submit" className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-pink-500/25 transition-all">
  <Save className="h-[16px] w-[16px]" /> Save Changes
  </button>
  </div>
+ {message && <p className="text-sm text-primary">{message}</p>}
  </form>
  </div>
  </div>

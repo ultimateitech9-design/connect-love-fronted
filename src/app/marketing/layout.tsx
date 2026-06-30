@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./marketing.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
  title: "Super Admin Dashboard",
@@ -17,7 +14,7 @@ export default function RootLayout({
  children: React.ReactNode;
 }>) {
  return (
- <div className={`${inter.className} theme-marketing dark`}>
+ <div className="theme-marketing dark">
  <SidebarProvider>
  <div className="min-h-screen flex w-full bg-background">
  <AppSidebar />

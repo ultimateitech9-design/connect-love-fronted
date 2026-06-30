@@ -8,11 +8,32 @@ import { Plus, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 export default function Subscriptions() {
  const [plans, setPlans] = useState<any[]>([]);
- useEffect(() => {
+ const loadPlans = () => {
  api.payments()
  .then((data) => setPlans(data.plans || []))
  .catch(() => setPlans([]));
+ };
+ useEffect(() => {
+ loadPlans();
  }, []);
+
+ const createPlan = async () => {
+ const displayName = window.prompt("Plan name");
+ if (!displayName?.trim()) return;
+ const price = Number(window.prompt("Monthly price", "0"));
+ if (!Number.isFinite(price)) return;
+ await api.createPlan({ displayName: displayName.trim(), price, features: [] });
+ loadPlans();
+ };
+
+ const editPlan = async (plan: any) => {
+ const displayName = window.prompt("Plan name", plan.name);
+ if (!displayName?.trim()) return;
+ const price = Number(window.prompt("Monthly price", String(plan.rawPrice ?? String(plan.price).replace(/[^0-9.]/g, ""))));
+ if (!Number.isFinite(price)) return;
+ await api.updatePlan(plan.id, { displayName: displayName.trim(), price, features: plan.features || [], status: plan.status });
+ loadPlans();
+ };
  const totalSubs = plans.reduce((s, p) => s + p.subscribers, 0);
  const expiring = plans.filter((p) => p.status === "inactive").reduce((s, p) => s + p.subscribers, 0);
 
@@ -35,7 +56,7 @@ export default function Subscriptions() {
 
  <div className="flex items-center justify-between mb-4">
  <h3 className="font-semibold">All Subscription Plans</h3>
- <button className="inline-flex items-center gap-2 h-[40px] px-4 rounded-lg text-primary-foreground text-sm font-medium" style={{ background: "var(--gradient-rose)" }}>
+ <button onClick={createPlan} className="inline-flex items-center gap-2 h-[40px] px-4 rounded-lg text-primary-foreground text-sm font-medium" style={{ background: "var(--gradient-rose)" }}>
  <Plus className="size-4" /> Create Plan
  </button>
  </div>
@@ -59,7 +80,7 @@ export default function Subscriptions() {
  </ul>
  <div className="mt-5 flex items-center justify-between text-sm">
  <span className="text-muted-foreground">{p.subscribers.toLocaleString()} subscribers</span>
- <button className="inline-flex items-center gap-1.5 text-primary hover:underline">
+ <button onClick={() => editPlan(p)} className="inline-flex items-center gap-1.5 text-primary hover:underline">
  <Pencil className="size-3.5" /> Edit
  </button>
  </div>

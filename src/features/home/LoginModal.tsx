@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Eye, EyeOff, Loader2, Heart } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -138,7 +139,7 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  <div>
  <div className="flex items-center justify-between mb-1.5">
  <label className="text-sm font-medium text-slate-700">Password</label>
- <button type="button" className="text-xs text-rose-500 hover:text-rose-600">Forgot password?</button>
+ <Link href="/forgot-password" onClick={handleClose} className="text-xs text-rose-500 hover:text-rose-600">Forgot password?</Link>
  </div>
  <div className="relative">
  <input

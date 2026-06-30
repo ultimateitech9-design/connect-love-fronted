@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Eye, EyeOff, Loader2, Heart, Check } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -280,9 +281,9 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  />
  <label htmlFor="signup-agree-terms" className="text-xs text-slate-500 leading-relaxed">
  I agree to the{" "}
- <a href="#" className="text-violet-600 hover:underline font-medium">Terms of Service</a>{" "}
+ <Link href="/terms-of-service" className="text-violet-600 hover:underline font-medium">Terms of Service</Link>{" "}
  and{" "}
- <a href="#" className="text-violet-600 hover:underline font-medium">Privacy Policy</a>. I confirm I am 18+.
+ <Link href="/privacy-policy" className="text-violet-600 hover:underline font-medium">Privacy Policy</Link>. I confirm I am 18+.
  </label>
  </div>
  {errors.agreeTerms && <p className="text-xs text-rose-500">{errors.agreeTerms.message}</p>}

@@ -1,14 +1,18 @@
 /* eslint-disable */
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { Play, Star } from "lucide-react";
+import Link from "next/link";
+import { Play, Star, X } from "lucide-react";
 
 interface HeroSectionProps {
   onSignupClick: () => void;
 }
 
 export function HeroSection({ onSignupClick }: HeroSectionProps) {
+  const [showVideo, setShowVideo] = useState(false);
+
   return (
     <section
       id="hero"
@@ -59,7 +63,10 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
             >
               Start Your Journey
             </button>
-            <button className="group flex min-h-12 items-center justify-center gap-2.5 px-6 py-3 text-sm font-medium text-white/80 transition-colors hover:text-white sm:justify-start sm:py-4">
+            <button
+              onClick={() => setShowVideo(true)}
+              className="group flex min-h-12 items-center justify-center gap-2.5 px-6 py-3 text-sm font-medium text-white/80 transition-colors hover:text-white sm:justify-start sm:py-4"
+            >
               <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10 transition-colors group-hover:bg-white/15">
                 <Play className="ml-0.5 h-4 w-4 fill-white text-white" />
               </span>
@@ -114,6 +121,37 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
       </div>
 
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
+
+      {showVideo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300"
+          onClick={() => setShowVideo(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-slate-900/90 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute right-4 top-4 z-10">
+              <button
+                onClick={() => setShowVideo(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950/60 text-white/80 hover:bg-slate-950/90 hover:text-white transition-colors backdrop-blur-sm"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="aspect-video w-full bg-black">
+              <iframe
+                src="https://www.youtube.com/embed/4K4wElOJjVI?autoplay=1"
+                title="Connect Love Story"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="h-full w-full border-0"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

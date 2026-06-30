@@ -118,6 +118,45 @@ function DangerRow({ label, desc, icon: Icon, danger = false, onClick }: { label
 
 export default function SettingsPage() {
  const { settings, updateSetting } = useSettings();
+ const [accountMessage, setAccountMessage] = useState("");
+
+ const downloadMyData = async () => {
+   setAccountMessage("");
+   try {
+     const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+     const res = await fetch(`${API}/users/me/export`, {
+       headers: { Authorization: `Bearer ${getToken()}` },
+     });
+     if (!res.ok) throw new Error("Export failed");
+     const data = await res.json();
+     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+     const url = URL.createObjectURL(blob);
+     const link = document.createElement("a");
+     link.href = url;
+     link.download = `connectlove-data-${new Date().toISOString().slice(0, 10)}.json`;
+     link.click();
+     URL.revokeObjectURL(url);
+     setAccountMessage("Your data file has been downloaded.");
+   } catch {
+     setAccountMessage("Could not download your data. Please try again.");
+   }
+ };
+
+ const deactivateAccount = async () => {
+   if (!confirm("Deactivate your account? Your profile will stop appearing in discovery.")) return;
+   const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+   try {
+     const res = await fetch(`${API}/users/me/deactivate`, {
+       method: "PATCH",
+       headers: { Authorization: `Bearer ${getToken()}` },
+     });
+     if (!res.ok) throw new Error("Deactivate failed");
+     clearToken();
+     window.location.href = "/?account=deactivated";
+   } catch {
+     setAccountMessage("Could not deactivate your account. Please try again.");
+   }
+ };
 
  const handleDeleteAccount = async () => {
    if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
@@ -182,13 +221,13 @@ export default function SettingsPage() {
  label="Download my data"
  desc="Get a copy of your ConnectLove data."
  icon={Download}
- onClick={() => alert("Data archive will be sent to your email.")}
+ onClick={downloadMyData}
  />
  <DangerRow
  label="Deactivate account"
  desc="Temporarily pause your profile from discovery."
  icon={UserX}
- onClick={() => alert("Account deactivated.")}
+ onClick={deactivateAccount}
  />
  <DangerRow
  label="Delete account"
@@ -198,6 +237,8 @@ export default function SettingsPage() {
  onClick={handleDeleteAccount}
  />
  </SectionCard>
+
+ {accountMessage && <p className="rounded-xl bg-muted px-4 py-3 text-center text-sm text-foreground">{accountMessage}</p>}
 
  {/* Footer note */}
  <p className="text-center text-xs text-muted-foreground pb-2">

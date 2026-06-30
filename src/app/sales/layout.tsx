@@ -1,19 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { Sidebar } from "@/features/sales/components/Sidebar";
 import { NotificationMenu } from "@/features/sales/components/NotificationMenu";
 import { Search, User } from "lucide-react";
 import Link from "next/link";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Sales Dashboard",
@@ -26,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark theme-sales bg-background text-foreground`}>
+    <div className="h-full antialiased dark theme-sales bg-background text-foreground">
         <div className="min-h-screen bg-background">
           <Sidebar />
           <div className="lg:pl-64">

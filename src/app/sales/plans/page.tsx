@@ -6,7 +6,61 @@ import { Panel, PageHeader } from "@/features/sales/components/dashboard/Panel";
 import { Crown, Gem, Sparkles, Trophy } from "lucide-react";
 import { api } from "@/lib/api";
 
-type Plan = { id: string; name: string; price: number; subscribers: number; status: string; features: string[] };
+type Plan = { id: string; key?: string; name: string; price: number; currency?: string; subscribers: number; status: string; features: string[] };
+
+const currencySymbols: Record<string, string> = {
+  INR: "₹",
+  USD: "$",
+};
+
+const canonicalPlans: Record<string, Pick<Plan, "name" | "price" | "currency" | "features">> = {
+  free: {
+    name: "Basic Plan",
+    price: 0,
+    currency: "INR",
+    features: ["20 Likes per day", "Basic Matching", "Chat after Match", "View Basic Profile"],
+  },
+  "basic access": {
+    name: "Basic Plan",
+    price: 0,
+    currency: "INR",
+    features: ["20 Likes per day", "Basic Matching", "Chat after Match", "View Basic Profile"],
+  },
+  gold: {
+    name: "Premium Plan",
+    price: 199,
+    currency: "INR",
+    features: ["Unlimited Likes", "See Who Liked You", "5 Super Likes per day", "Profile Boost (1 per week)", "No Ads", "Priority Matching"],
+  },
+  "premium match": {
+    name: "Premium Plan",
+    price: 199,
+    currency: "INR",
+    features: ["Unlimited Likes", "See Who Liked You", "5 Super Likes per day", "Profile Boost (1 per week)", "No Ads", "Priority Matching"],
+  },
+  platinum: {
+    name: "Elite Plan",
+    price: 399,
+    currency: "INR",
+    features: ["Unlimited Likes", "See Who Liked You", "Unlimited Super Likes", "Unlimited Profile Boost", "Priority Matching", "Advanced Filters", "Top Search Ranking", "Premium Badge", "No Ads"],
+  },
+  ultimate: {
+    name: "Elite Plan",
+    price: 399,
+    currency: "INR",
+    features: ["Unlimited Likes", "See Who Liked You", "Unlimited Super Likes", "Unlimited Profile Boost", "Priority Matching", "Advanced Filters", "Top Search Ranking", "Premium Badge", "No Ads"],
+  },
+};
+
+function formatPrice(price: number, currency = "INR") {
+  const symbol = currencySymbols[currency.toUpperCase()] || currency;
+  return `${symbol}${price.toLocaleString("en-IN", { maximumFractionDigits: price % 1 === 0 ? 0 : 2 })}`;
+}
+
+function normalizePlan(plan: Plan): Plan {
+  const canonical = canonicalPlans[(plan.key || "").toLowerCase()] || canonicalPlans[plan.name.toLowerCase()];
+  return canonical ? { ...plan, ...canonical } : plan;
+}
 
 export default function Plans() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -14,7 +68,7 @@ export default function Plans() {
 
   useEffect(() => {
     api.salesPlans()
-      .then((res) => setPlans(res.plans))
+      .then((res) => setPlans(res.plans.map(normalizePlan)))
       .catch(() => setError("Failed to load plans from backend."));
   }, []);
 
@@ -39,7 +93,7 @@ export default function Plans() {
             <div className="inline-block rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: "var(--gradient-love)" }}>
               {p.name}
             </div>
-            <div className="mt-4 font-display text-4xl font-bold">${p.price}<span className="text-base font-normal text-muted-foreground">/mo</span></div>
+            <div className="mt-4 font-display text-4xl font-bold">{formatPrice(p.price, p.currency)}<span className="text-base font-normal text-muted-foreground">/mo</span></div>
             <div className="mt-2 text-sm text-muted-foreground">{p.subscribers} subscribers</div>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
               {(p.features || []).map((perk) => <li key={perk}>- {perk}</li>)}

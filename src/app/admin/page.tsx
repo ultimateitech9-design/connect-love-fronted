@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { StatCard } from "@/features/admin/StatCard";
 import { Users, DollarSign, Crown, Flag } from "lucide-react";
-import { getToken } from "@/lib/auth";
+import { getManagementToken } from "@/lib/auth";
 
 // Dynamically import chart to improve performance and prevent hydration errors
 const RevenueChart = dynamic(() => import("@/features/admin/AdminRevenueChart"), { 
@@ -28,7 +28,7 @@ export default function AdminOverview() {
 
  useEffect(() => {
  const fetchAdminData = async () => {
- const token = getToken();
+ const token = getManagementToken();
  if (!token) return;
 
  const headers = { Authorization: `Bearer ${token}` };

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { logoutManagement } from "@/app/actions/managementAuth";
 
 const nav = [
  { to: "/finance", label: "Overview", icon: LayoutDashboard },
@@ -94,7 +95,7 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  <User className="mr-2 size-4" />
  <span>View Profile</span>
  </DropdownMenuItem>
- <DropdownMenuItem onClick={() => alert("Logged out!")} className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
+ <DropdownMenuItem onClick={async () => { await logoutManagement(); window.location.href = "/management"; }} className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive">
  <LogOut className="mr-2 size-4" />
  <span>Logout</span>
  </DropdownMenuItem>

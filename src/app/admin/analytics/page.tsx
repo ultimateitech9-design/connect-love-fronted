@@ -5,7 +5,7 @@ import {
  ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend,
  BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
-import { getToken } from "@/lib/auth";
+import { getManagementToken } from "@/lib/auth";
 
 const COLORS = ["var(--brand)", "#60a5fa", "#34d399"];
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
@@ -15,7 +15,7 @@ export default function AnalyticsPage() {
  const [loading, setLoading] = useState(true);
 
  useEffect(() => {
- const token = getToken();
+ const token = getManagementToken();
  if (!token) {
  setLoading(false);
  return;

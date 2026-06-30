@@ -29,6 +29,11 @@ export default function Refunds() {
  setRefunds((rows) => rows.map((row) => row.id === id ? { ...row, status: "Approved" } : row));
  };
 
+ const rejectRefund = async (id: string) => {
+ await api.rejectRefund(id);
+ setRefunds((rows) => rows.map((row) => row.id === id ? { ...row, status: "Rejected" } : row));
+ };
+
  const filtered = refunds.filter((r) => {
  if (tab === "Requests") return r.status === "Pending";
  if (tab === "Approved") return r.status === "Approved";
@@ -76,7 +81,7 @@ export default function Refunds() {
  <button onClick={() => approveRefund(r.id)} className="size-8 rounded-lg grid place-items-center text-success bg-success/15 hover:bg-success/25 transition-colors">
  <Check className="size-4" />
  </button>
- <button className="size-8 rounded-lg grid place-items-center text-destructive bg-destructive/15 hover:bg-destructive/25 transition-colors">
+ <button onClick={() => rejectRefund(r.id)} className="size-8 rounded-lg grid place-items-center text-destructive bg-destructive/15 hover:bg-destructive/25 transition-colors">
  <X className="size-4" />
  </button>
  </div>

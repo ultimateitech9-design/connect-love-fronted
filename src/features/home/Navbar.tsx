@@ -49,11 +49,11 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  return;
  }
 
- event.preventDefault();
-
  if (!href.startsWith("#")) {
  return;
  }
+
+ event.preventDefault();
 
  if (href === "#hero") {
  window.history.pushState(null, "", "/");

@@ -2,13 +2,37 @@
 
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { LogOut, Save, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getManagementToken } from "@/lib/auth";
+import { logoutManagement } from "@/app/actions/managementAuth";
+
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export default function ProfilePage() {
  const [name, setName] = useState("");
  const [email, setEmail] = useState("admin@connectlove.com");
  const [password, setPassword] = useState("");
  const [role, setRole] = useState("Finance Manager");
+ const [message, setMessage] = useState("");
+
+ useEffect(() => {
+ const token = getManagementToken();
+ if (!token) return;
+ fetch(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
+ .then((res) => res.ok ? res.json() : null)
+ .then((user) => { if (user) { setName(user.name || ""); setEmail(user.email || ""); setRole(user.role || "finance"); } });
+ }, []);
+
+ const saveProfile = async (event: React.FormEvent) => {
+ event.preventDefault();
+ setMessage("");
+ const res = await fetch(`${API}/users/me`, {
+ method: "PATCH",
+ headers: { Authorization: `Bearer ${getManagementToken()}`, "Content-Type": "application/json" },
+ body: JSON.stringify({ name }),
+ });
+ setMessage(res.ok ? "Profile saved." : "Could not save profile.");
+ };
 
  return (
  <DashboardLayout title="My Profile" subtitle="Manage your ConnectLove Finance administrator account.">
@@ -23,7 +47,7 @@ export default function ProfilePage() {
  </div>
  </div>
 
- <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+ <form className="space-y-5" onSubmit={saveProfile}>
  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
  <label className="block">
  <span className="text-xs font-medium text-muted-foreground mb-1.5 block">Full Name</span>
@@ -40,7 +64,7 @@ export default function ProfilePage() {
  <input
  type="email"
  value={email}
- onChange={(e) => setEmail(e.target.value)}
+ readOnly
  className="h-[44px] px-4 rounded-lg bg-muted text-sm outline-none focus:ring-2 focus:ring-ring w-full transition-shadow"
  />
  </label>
@@ -50,7 +74,7 @@ export default function ProfilePage() {
  <input
  type="password"
  value={password}
- onChange={(e) => setPassword(e.target.value)}
+ readOnly
  className="h-[44px] px-4 rounded-lg bg-muted text-sm outline-none focus:ring-2 focus:ring-ring w-full transition-shadow"
  placeholder="••••••••"
  />
@@ -61,7 +85,7 @@ export default function ProfilePage() {
  <input
  type="text"
  value={role}
- onChange={(e) => setRole(e.target.value)}
+ readOnly
  className="h-[44px] px-4 rounded-lg bg-muted text-sm outline-none focus:ring-2 focus:ring-ring w-full transition-shadow"
  />
  </label>
@@ -71,7 +95,7 @@ export default function ProfilePage() {
  <button
  type="button"
  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-[44px] px-6 rounded-lg text-destructive font-medium bg-destructive/10 hover:bg-destructive/20 transition-colors"
- onClick={() => alert("Logged out!")}
+ onClick={async () => { await logoutManagement(); window.location.href = "/management"; }}
  >
  <LogOut className="size-4" />
  Logout Account
@@ -86,6 +110,7 @@ export default function ProfilePage() {
  Save Changes
  </button>
  </div>
+ {message && <p className="text-sm text-primary">{message}</p>}
  </form>
  </div>
  </div>

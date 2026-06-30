@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getToken } from "@/lib/auth";
+import { getManagementToken } from "@/lib/auth";
 import { api } from "@/lib/api";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
@@ -13,7 +13,7 @@ export default function TicketsPage() {
  const [loading, setLoading] = useState(true);
 
  useEffect(() => {
- const token = getToken();
+ const token = getManagementToken();
  if (!token) {
  setLoading(false);
  return;

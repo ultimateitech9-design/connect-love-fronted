@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, CalendarDays, CalendarRange, Megaphone, Download, FileText, FileSpreadsheet, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { api } from "@/lib/api";
+import { downloadTable, printCurrentPage } from "@/lib/download";
 
 const iconMap: Record<string, React.ElementType> = {
  daily: Calendar,
@@ -40,10 +41,10 @@ export default function ReportsPage() {
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end" className="w-[13.333vw] bg-card border-border/50">
- <DropdownMenuItem className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
+ <DropdownMenuItem onClick={printCurrentPage} className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
  <FileText className="h-[16px] w-[16px] text-rose-500" /> Export as PDF
  </DropdownMenuItem>
- <DropdownMenuItem className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
+ <DropdownMenuItem onClick={() => downloadTable("marketing-reports.csv", reports)} className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
  <FileSpreadsheet className="h-[16px] w-[16px] text-emerald-500" /> Export as CSV
  </DropdownMenuItem>
  </DropdownMenuContent>
@@ -79,10 +80,10 @@ export default function ReportsPage() {
  </Button>
  </DropdownMenuTrigger>
  <DropdownMenuContent align="end" className="w-[11.111vw] bg-card border-border/50">
- <DropdownMenuItem className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
+ <DropdownMenuItem onClick={printCurrentPage} className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
  <FileText className="h-[16px] w-[16px] text-rose-500" /> PDF
  </DropdownMenuItem>
- <DropdownMenuItem className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
+ <DropdownMenuItem onClick={() => downloadTable(`${r.type}-report.csv`, [r])} className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
  <FileSpreadsheet className="h-[16px] w-[16px] text-emerald-500" /> CSV
  </DropdownMenuItem>
  </DropdownMenuContent>

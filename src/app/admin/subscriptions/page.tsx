@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { StatCard } from "@/features/admin/StatCard";
 import { Crown, Users, TrendingUp } from "lucide-react";
-import { getToken } from "@/lib/auth";
+import { getManagementToken } from "@/lib/auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
@@ -13,7 +13,7 @@ export default function SubscriptionsPage() {
  const [loading, setLoading] = useState(true);
 
  useEffect(() => {
- const token = getToken();
+ const token = getManagementToken();
  if (!token) {
  setLoading(false);
  return;

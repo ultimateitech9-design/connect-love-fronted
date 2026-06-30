@@ -34,7 +34,7 @@ export const api = {
  users: () => apiFetch<{ users: { id: string; name: string; email: string; mobile?: string; role: string; plan: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string }[] }>("/users"),
  verification: () => apiFetch<{ queue: { id: string; name: string; email?: string; idType: string; priority: string; status: string }[] }>("/verification"),
  payments: () => apiFetch<{
- plans: { id?: string; key?: string; name: string; price: string; rawPrice?: number; period?: string; features?: string[]; subscribers?: number; status: string }[];
+ plans: { id?: string; key?: string; name: string; price: string; rawPrice?: number; currency?: string; period?: string; features?: string[]; subscribers?: number; status: string }[];
  transactions?: { id: string; user: string; plan: string; amount: number; status: string; date: string }[];
  }>("/payments"),
  reports: () => apiFetch<{ reports: { type: string; count: number }[] }>("/reports"),
@@ -73,7 +73,7 @@ export const api = {
  monthly: { m: string; sales: number; growth: number }[];
  weekly: { w: string; sales: number }[];
  }>("/sales/trends"),
- salesPlans: () => apiFetch<{ plans: { id: string; name: string; price: number; subscribers: number; status: string; features: string[] }[]; topMarkets: { city: string; value: number }[] }>("/sales/plans"),
+ salesPlans: () => apiFetch<{ plans: { id: string; key?: string; name: string; price: number; currency?: string; subscribers: number; status: string; features: string[] }[]; topMarkets: { city: string; value: number }[] }>("/sales/plans"),
  supportOverview: () => directFetch<{
  stats: { totalTickets: number; resolvedToday: number; openTickets: number; escalated: number };
  ticketTrend: { day: string; received: number; resolved: number }[];
@@ -85,8 +85,11 @@ export const api = {
  financeRefunds: () => apiFetch<{ refunds: { id: string; user: string; plan: string; amount: number; status: string; date: string }[] }>("/finance/refunds"),
  financeNotifications: () => apiFetch<{ notifications: { id: string; title: string; message: string; time: string; type: "success" | "error" | "info" }[] }>("/finance/notifications"),
  refundPayment: (id: string) => apiFetch(`/finance/payments/${id}/refund`, { method: "PATCH" }),
+ rejectRefund: (id: string) => apiFetch(`/finance/payments/${id}/reject-refund`, { method: "PATCH" }),
  invoices: () => apiFetch<{ invoices: { id: string; customer: string; email: string; plan: string; amount: number; status: string; due: string; paymentId: string }[] }>("/finance/invoices"),
  createInvoice: (body: unknown) => apiFetch("/finance/invoices", { method: "POST", body: JSON.stringify(body) }),
+ createPlan: (body: { displayName: string; price: number; features?: string[]; status?: string }) => apiFetch("/plans", { method: "POST", body: JSON.stringify(body) }),
+ updatePlan: (id: string, body: { displayName: string; price: number; features?: string[]; status?: string }) => apiFetch(`/plans/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
  updateSettings: (settings: Record<string, boolean>) => apiFetch<{ settings: Record<string, boolean> }>("/settings", { method: "PATCH", body: JSON.stringify(settings) }),
  createRole: (body: { role: string; permissions?: number; status?: string }) => apiFetch("/roles", { method: "POST", body: JSON.stringify(body) }),
  createUser: (body: { name: string; email: string; password: string; role: string }) => apiFetch<{ user: unknown; message?: string }>("/users", { method: "POST", body: JSON.stringify(body) }),

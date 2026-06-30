@@ -3,7 +3,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Instagram, Facebook, Linkedin, HeartHandshake, ArrowRight } from "lucide-react";
+import { Instagram, Facebook, Linkedin, Youtube, ArrowRight } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { footerLinkGroups } from "./marketingPages";
 
@@ -13,7 +13,7 @@ const socialLinks = [
  { label: "Instagram", href: "https://www.instagram.com/connectloveofficial/", icon: Instagram },
  { label: "Facebook", href: "https://www.facebook.com/connectloveofficial/", icon: Facebook },
  { label: "LinkedIn", href: "https://www.linkedin.com/company/connect-love-official/", icon: Linkedin },
- { label: "Join ConnectLove", href: "/register", icon: HeartHandshake },
+ { label: "YouTube", href: "https://www.youtube.com/@ConnectLove-Official", icon: Youtube },
 ];
 
 export function Footer() {

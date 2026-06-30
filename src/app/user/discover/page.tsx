@@ -10,20 +10,26 @@ import { useSettings } from "@/features/user/SettingsContext";
 import type { Profile } from "@/features/user/ProfileCard";
 
 function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifiedProfiles = false): any[] {
- return profiles.filter((p) => {
- if ((p.age ?? 0) < filters.ageMin || (p.age ?? 0) > filters.ageMax) return false;
- if ((p.distanceMi ?? 0) > filters.maxDistance) return false;
- if ((filters.verifiedOnly || onlyShowVerifiedProfiles) && !p.isVerified && !p.verified) return false;
- if (filters.interests.length > 0 && !filters.interests.some((i) => (p.interests || []).includes(i))) return false;
- if (filters.goals.length > 0 && !filters.goals.includes(p.goals)) return false;
- return true;
- });
+  return profiles.filter((p) => {
+    if (filters.search && filters.search.trim()) {
+      const query = filters.search.toLowerCase().trim();
+      const nameMatch = p.name && p.name.toLowerCase().includes(query);
+      const usernameMatch = p.username && p.username.toLowerCase().includes(query);
+      return !!(nameMatch || usernameMatch);
+    }
+    if ((p.age ?? 0) < filters.ageMin || (p.age ?? 0) > filters.ageMax) return false;
+    if ((p.distanceMi ?? 0) > filters.maxDistance) return false;
+    if ((filters.verifiedOnly || onlyShowVerifiedProfiles) && !p.isVerified && !p.verified) return false;
+    if (filters.interests.length > 0 && !filters.interests.some((i) => (p.interests || []).includes(i))) return false;
+    if (filters.goals.length > 0 && !filters.goals.includes(p.goals)) return false;
+    return true;
+  });
 }
 
  export default function Discover() {
   const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
   const token = getToken() || "";
-  const { profiles, loading, error, swipeLeft, swipeRight, swipeSuper } = useDiscovery(token);
+  const { profiles, loading, error, swipeLeft, swipeRight, swipeSuper } = useDiscovery(token, filters.search);
   const { settings } = useSettings();
   
   const filtered = useMemo(() => applyFilters(profiles, filters, settings.onlyShowVerifiedProfiles), [profiles, filters, settings.onlyShowVerifiedProfiles]);

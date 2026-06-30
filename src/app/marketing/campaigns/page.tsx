@@ -20,15 +20,32 @@ export default function CampaignsPage() {
  const avgRoi = campaigns.length ? (campaigns.reduce((sum, c) => sum + c.roi, 0) / campaigns.length).toFixed(1) : "0.0";
 
  const deleteCampaign = async (id: string) => {
- try { await api.deleteNotification(id); } catch {}
+ try {
+ await api.deleteNotification(id);
  setCampaigns((rows) => rows.filter((row) => row.id !== id));
+ } catch {
+ setError("Could not delete this campaign.");
+ }
+ };
+
+ const createCampaign = async () => {
+ const name = window.prompt("Campaign name");
+ if (!name?.trim()) return;
+ const audience = window.prompt("Audience", "All users") || "All users";
+ try {
+ await api.createNotification({ campaign: name.trim(), type: "Push", audience, status: "active" });
+ const data = await api.marketingCampaigns();
+ setCampaigns(data.campaigns);
+ } catch {
+ setError("Could not create the campaign.");
+ }
  };
 
  return (
  <div className="min-h-screen bg-background text-foreground space-y-6">
  <div className="flex items-center justify-between flex-wrap gap-4 pb-2">
  <div><h1 className="text-3xl font-bold tracking-tight">Campaign Management</h1><p className="text-muted-foreground mt-1 text-sm">Live marketing campaigns from notification records</p></div>
- <button className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-pink-500/25 transition-all">
+ <button onClick={createCampaign} className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-pink-500/25 transition-all">
  <Plus className="h-[16px] w-[16px]" /> New Campaign
  </button>
  </div>

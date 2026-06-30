@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { StatCard } from "@/components/admin/StatCard";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { api } from "@/lib/api";
+import { downloadTable } from "@/lib/download";
 
 const COLORS = [
  "oklch(0.65 0.22 12)",
@@ -124,6 +125,7 @@ export default function ReportsPage() {
  </div>
  {!loading && data.length > 0 && (
  <button
+ onClick={() => downloadTable("moderation-report.csv", data)}
  className="mt-4 w-full h-10 rounded-lg border border-border text-sm font-medium hover:bg-accent transition-colors"
  >
  Export Report

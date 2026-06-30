@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   BadgeCheck, Camera, Eye, Heart as HeartIcon, LogOut, Sparkles, Loader2, CheckCircle2, AlertCircle, X,
+  Lock, Unlock,
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
 
@@ -55,6 +56,7 @@ export default function ProfilePage() {
  const [profile, setProfile] = useState<Partial<UserProfile>>({});
  const [loading, setLoading] = useState(true);
  const [saving, setSaving] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
  const [photoSaving, setPhotoSaving] = useState(false);
  const [saveMsg, setSaveMsg] = useState<{ ok: boolean; text: string } | null>(null);
  const [savedCompletion, setSavedCompletion] = useState(0);
@@ -244,7 +246,7 @@ export default function ProfilePage() {
  {/* ── Main profile card ───────────────────────────────────────────── */}
  <section className="space-y-6 rounded-2xl bg-white p-6 shadow-lg" style={{ border: "1px solid rgba(236,72,153,0.15)" }}>
   <header className="flex flex-col gap-6 mb-8">
-    <div className="flex items-center gap-4">
+    <div className="flex items-center justify-between gap-4">
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">
@@ -257,6 +259,26 @@ export default function ProfilePage() {
           {profile.isVerified ? "Verified · " : ""}{profile.plan ?? "free"} member
         </p>
       </div>
+      <button
+        onClick={() => setIsLocked(!isLocked)}
+        className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border transition-all active:scale-95 ${
+          isLocked
+            ? "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+            : "bg-rose-50 border-rose-200 text-rose-500 hover:bg-rose-100/70"
+        }`}
+      >
+        {isLocked ? (
+          <>
+            <Lock className="h-4 w-4" />
+            <span>Profile Locked</span>
+          </>
+        ) : (
+          <>
+            <Unlock className="h-4 w-4" />
+            <span>Editing Mode</span>
+          </>
+        )}
+      </button>
     </div>
 
     {/* Photo Grid Section */}
@@ -268,7 +290,7 @@ export default function ProfilePage() {
       <PhotoGrid
         photos={profile.photos || []}
         onPhotosChange={handlePhotosChange}
-        disabled={photoSaving}
+        disabled={photoSaving || isLocked}
       />
     </div>
   </header>
@@ -291,12 +313,14 @@ export default function ProfilePage() {
  <div className="grid gap-4 sm:grid-cols-2">
  <RequiredField
  label="Display name"
+  disabled={isLocked}
  value={profile.name ?? ""}
  required={isEmpty("name")}
  onChange={(v) => set("name", v)}
  />
  <RequiredField
  label="Date of birth"
+  disabled={isLocked}
  type="date"
  value={profile.dob ?? ""}
  required={isEmpty("dob")}
@@ -307,6 +331,7 @@ export default function ProfilePage() {
  Gender {isEmpty("gender") && <span className="text-xs font-normal text-rose-400">(required)</span>}
  </Label>
  <select
+  disabled={isLocked}
  value={profile.gender ?? ""}
  onChange={(e) => set("gender", e.target.value)}
  className={`w-full rounded-xl border px-3 py-2.5 text-sm bg-white text-slate-800 outline-none transition-all focus:ring-2 ${
@@ -324,6 +349,7 @@ export default function ProfilePage() {
  </div>
  <RequiredField
  label="Profession"
+  disabled={isLocked}
  placeholder="e.g. Software Engineer"
  value={profile.profession ?? ""}
  required={isEmpty("profession")}
@@ -331,6 +357,7 @@ export default function ProfilePage() {
  />
  <RequiredField
  label="Height"
+  disabled={isLocked}
  placeholder={`e.g. 5'10"`}
  value={profile.height ?? ""}
  required={isEmpty("height")}
@@ -338,6 +365,7 @@ export default function ProfilePage() {
  />
  <RequiredField
  label="Current city"
+  disabled={isLocked}
  placeholder="e.g. Brooklyn, NY"
  value={profile.city ?? ""}
  required={isEmpty("city")}
@@ -351,12 +379,13 @@ export default function ProfilePage() {
  Bio (max 250 chars) {isEmpty("bio") && <span className="text-xs font-normal text-rose-400">(required)</span>}
  </Label>
  <Textarea
+  disabled={isLocked}
  value={profile.bio ?? ""}
  onChange={(e) => set("bio", e.target.value)}
  maxLength={250}
  placeholder="Tell potential matches about yourself…"
  className={`min-h-[100px] bg-white text-slate-800 placeholder:text-slate-400 border transition-all ${
- isEmpty("bio") ? "border-rose-400 focus:ring-rose-300" : "border-slate-200 focus:ring-rose-200"
+ isEmpty("bio") && !isLocked ? "border-rose-400 focus:ring-rose-300" : "border-slate-200 focus:ring-rose-200"
  }`}
  />
  <p className="text-right text-xs text-slate-500">{(profile.bio ?? "").length}/250</p>
@@ -365,6 +394,7 @@ export default function ProfilePage() {
  {/* Personality tags */}
  <TagField
  label="Personality"
+  disabled={isLocked}
  hint="(single words, comma-separated)"
  value={profile.personality ?? ""}
  required={isEmpty("personality")}
@@ -373,14 +403,24 @@ export default function ProfilePage() {
  />
 
  {/* Interests */}
- <TagField
- label="Interests & hobbies"
- hint="(comma-separated)"
- value={profile.interests ?? ""}
- required={isEmpty("interests")}
- color="blue"
- onChange={(v) => set("interests", v)}
- />
+  <TagField
+    label="Interests"
+    hint="(comma-separated)"
+    value={profile.interests ?? ""}
+    required={isEmpty("interests")}
+    disabled={isLocked}
+    color="blue"
+    onChange={(v) => set("interests", v)}
+  />
+  <TagField
+    label="Hobbies"
+    hint="(comma-separated)"
+    value={profile.hobbies ?? ""}
+    required={isEmpty("hobbies")}
+    disabled={isLocked}
+    color="blue"
+    onChange={(v) => set("hobbies", v)}
+  />
 
  {/* Actions */}
  <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4 border-border">
@@ -488,7 +528,7 @@ export default function ProfilePage() {
 // ── Helper components ────────────────────────────────────────────────────────
 
 function RequiredField({
- label, value, required, onChange, type = "text", placeholder,
+ label, value, required, onChange, type = "text", placeholder, disabled,
 }: {
  label: string;
  value: string;
@@ -496,10 +536,11 @@ function RequiredField({
  onChange: (v: string) => void;
  type?: string;
  placeholder?: string;
+ disabled?: boolean;
 }) {
  return (
  <div className="space-y-2">
- <Label className={required ? "text-rose-500" : "text-foreground"}>
+ <Label className={required && !disabled ? "text-rose-500" : "text-foreground"}>
  {label}{" "}
  {required && <span className="text-xs font-normal text-rose-400">(required)</span>}
  </Label>
@@ -517,7 +558,7 @@ function RequiredField({
 }
 
 function TagField({
-  label, hint, value, required, color, onChange,
+  label, hint, value, required, color, onChange, disabled,
 }: {
   label: string;
   hint: string;
@@ -525,6 +566,7 @@ function TagField({
   required: boolean;
   color: "brand" | "blue";
   onChange: (v: string) => void;
+  disabled?: boolean;
 }) {
   const [inputValue, setInputValue] = useState("");
   const strValue = Array.isArray(value) ? value.join(", ") : (value ?? "");
@@ -552,7 +594,7 @@ function TagField({
 
   return (
     <div className="space-y-2">
-      <Label className={required ? "text-rose-500" : "text-foreground"}>
+      <Label className={required && !disabled ? "text-rose-500" : "text-foreground"}>
         {label} <span className="text-xs font-normal text-muted-foreground">{hint}</span>
         {required && <span className="ml-1 text-xs font-normal text-rose-400">(required)</span>}
       </Label>
@@ -561,6 +603,7 @@ function TagField({
           {tags.map((t) => (
             <span key={t} className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${colorClass}`}>
               {t}
+              {!disabled && (
               <button
                 type="button"
                 onClick={() => removeTag(t)}
@@ -568,17 +611,19 @@ function TagField({
               >
                 <X className="h-3 w-3" />
               </button>
+              )}
             </span>
           ))}
         </div>
       )}
       <Input
         value={inputValue}
-        placeholder={`e.g. ${label === "Personality" ? "Curious, Calm, Witty (Press Enter)" : "Coffee, Hiking, Design (Press Enter)"}`}
+        placeholder={disabled ? "Profile is locked" : `e.g. ${label === "Personality" ? "Curious, Calm, Witty (Press Enter)" : "Coffee, Hiking, Design (Press Enter)"}`}
+        disabled={disabled}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         className={`bg-card text-foreground placeholder:text-muted-foreground transition-all ${
-          required ? "border-rose-400 focus:ring-rose-300" : "border-border focus:ring-rose-200"
+          required && !disabled ? "border-rose-400 focus:ring-rose-300" : "border-border focus:ring-rose-200"
         }`}
       />
     </div>

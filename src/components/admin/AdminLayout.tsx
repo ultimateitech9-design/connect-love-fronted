@@ -131,7 +131,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </nav>
         <header className="sticky top-0 z-10 flex h-14 items-center justify-end gap-3 border-b border-border bg-background px-3 sm:h-16 sm:px-6 sm:gap-6">
           <div className="flex items-center gap-5 text-sm">
-            <button className="hidden items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors sm:flex">
+            <button onClick={() => router.push("/support")} className="hidden items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors sm:flex">
               <HelpCircle className="h-4 w-4" />
               Support
             </button>

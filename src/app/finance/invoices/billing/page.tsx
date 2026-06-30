@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { api } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { Download, Filter } from "lucide-react";
+import { downloadTable } from "@/lib/download";
 const gateways = ["All", "Stripe", "Razorpay"] as const;
 
 export default function BillingRecords() {
@@ -61,7 +62,7 @@ export default function BillingRecords() {
  </button>
  ))}
  </div>
- <button className="inline-flex items-center gap-2 px-4 h-[36px] rounded-lg bg-muted text-sm font-medium hover:bg-secondary">
+ <button onClick={() => downloadTable("billing-records.csv", filtered)} className="inline-flex items-center gap-2 px-4 h-[36px] rounded-lg bg-muted text-sm font-medium hover:bg-secondary">
  <Download className="size-4" /> Export CSV
  </button>
  </div>

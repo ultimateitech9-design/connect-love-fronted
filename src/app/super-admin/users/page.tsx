@@ -86,6 +86,7 @@ const monoLabel = "font-mono text-[10px] font-semibold uppercase tracking-[0.12e
 
 export default function UsersPage() {
  const [perPage, setPerPage] = useState(10);
+ const [page, setPage] = useState(1);
  const [status, setStatus] = useState<StatusFilter>("All");
  const [roleFilter, setRoleFilter] = useState<RoleFilter>("All");
  const [query, setQuery] = useState("");
@@ -206,6 +207,11 @@ export default function UsersPage() {
  return matchesStatus && matchesRole && matchesQuery;
  });
  }, [query, status, roleFilter, rows]);
+
+ const pageCount = Math.max(1, Math.ceil(filteredRows.length / perPage));
+ const pageRows = filteredRows.slice((page - 1) * perPage, page * perPage);
+ useEffect(() => { setPage(1); }, [query, status, roleFilter, perPage]);
+ useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
 
  return (
  <div className="w-full relative pb-20">
@@ -346,10 +352,10 @@ export default function UsersPage() {
  <div className="flex items-center gap-3 text-xs text-muted-foreground">
  <span>Showing {filteredRows.length} of {rows.length}</span>
  <div className="flex items-center gap-1">
- <button className="h-8 w-8 rounded-md border border-border flex items-center justify-center hover:bg-card">
+ <button onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page === 1} className="h-8 w-8 rounded-md border border-border flex items-center justify-center hover:bg-card disabled:opacity-40">
  <ChevronLeft className="h-4 w-4" />
  </button>
- <button className="h-8 w-8 rounded-md border border-border flex items-center justify-center hover:bg-card">
+ <button onClick={() => setPage((value) => Math.min(pageCount, value + 1))} disabled={page === pageCount} className="h-8 w-8 rounded-md border border-border flex items-center justify-center hover:bg-card disabled:opacity-40">
  <ChevronRight className="h-4 w-4" />
  </button>
  </div>
@@ -379,7 +385,7 @@ export default function UsersPage() {
  ))}
  </tr>
  ))
- ) : filteredRows.map((row) => (
+ ) : pageRows.map((row) => (
  <tr key={row.id} className={"border-b border-border last:border-0 hover:bg-muted/30 transition-colors " + (row.muted ? "opacity-60" : "")}>
  <td className="py-4 pl-6">
  <div className="flex items-center gap-3">
@@ -470,29 +476,29 @@ export default function UsersPage() {
  </select>
  </div>
  <div className="flex items-center gap-1">
- <button className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
+ <button onClick={() => setPage(1)} disabled={page === 1} className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted disabled:opacity-40">
  <ChevronsLeft className="h-4 w-4" />
  </button>
- <button className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
+ <button onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page === 1} className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted disabled:opacity-40">
  <ChevronLeft className="h-4 w-4" />
  </button>
- {[1, 2, 3].map((page) => (
+ {Array.from({ length: Math.min(pageCount, 5) }, (_, index) => index + 1).map((pageNumber) => (
  <button
- key={page}
+ key={pageNumber}
+ onClick={() => setPage(pageNumber)}
  className={
  "h-8 w-8 rounded-md text-sm font-medium flex items-center justify-center " +
- (page === 1 ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted")
+ (pageNumber === page ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted")
  }
  >
- {page}
+ {pageNumber}
  </button>
  ))}
- <span className="px-2 text-muted-foreground">...</span>
- <button className="h-8 w-8 rounded-md text-sm font-medium text-foreground hover:bg-muted">128</button>
- <button className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
+ {pageCount > 5 && <span className="px-2 text-muted-foreground">...</span>}
+ <button onClick={() => setPage((value) => Math.min(pageCount, value + 1))} disabled={page === pageCount} className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted disabled:opacity-40">
  <ChevronRight className="h-4 w-4" />
  </button>
- <button className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted">
+ <button onClick={() => setPage(pageCount)} disabled={page === pageCount} className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted disabled:opacity-40">
  <ChevronsRight className="h-4 w-4" />
  </button>
  </div>
