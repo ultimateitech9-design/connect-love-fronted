@@ -8,7 +8,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { setToken } from "@/lib/auth";
+import { requireOnboarding, setToken } from "@/lib/auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
@@ -32,12 +32,14 @@ export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [locationStatus, setLocationStatus] = useState("");
+  const [detectingLocation, setDetectingLocation] = useState(false);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<SignupData>({ resolver: zodResolver(signupSchema) });
 
@@ -54,17 +56,42 @@ export default function RegisterPage() {
       return;
     }
 
+    setDetectingLocation(true);
     setLocationStatus("Detecting your location...");
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const nextCoords = {
           latitude: Number(position.coords.latitude.toFixed(7)),
           longitude: Number(position.coords.longitude.toFixed(7)),
         };
         setCoords(nextCoords);
-        setLocationStatus("Location saved with this signup.");
+
+        try {
+          const res = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${nextCoords.latitude}&longitude=${nextCoords.longitude}&localityLanguage=en`,
+          );
+          const place = await res.json();
+          const locationParts = [
+            place.locality,
+            place.city,
+            place.principalSubdivision,
+          ].filter((part, index, parts) => part && parts.indexOf(part) === index);
+          const locationName = locationParts.join(", ") || place.countryName;
+
+          if (locationName) {
+            setValue("city", locationName, { shouldDirty: true, shouldValidate: true });
+            setLocationStatus("Location saved with this signup.");
+          } else {
+            setLocationStatus("Location saved. Please enter your city.");
+          }
+        } catch {
+          setLocationStatus("Location saved. Please enter your city.");
+        } finally {
+          setDetectingLocation(false);
+        }
       },
       () => {
+        setDetectingLocation(false);
         setLocationStatus("Location permission was not allowed. You can still enter your city.");
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
@@ -104,6 +131,7 @@ export default function RegisterPage() {
       if (loginRes.ok) {
         const { access_token } = await loginRes.json();
         setToken(access_token);
+        requireOnboarding();
         window.location.href = "/user/onboarding";
         return;
       }
@@ -203,10 +231,11 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={detectLocation}
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 text-sm font-black text-rose-600 transition hover:border-rose-300 hover:bg-rose-100"
+                      disabled={detectingLocation}
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 text-sm font-black text-rose-600 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      <MapPin className="h-4 w-4" />
-                      Use GPS
+                      {detectingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                      {detectingLocation ? "Finding..." : "Use GPS"}
                     </button>
                   </div>
                   {locationStatus && <p className="mt-1.5 text-xs text-slate-500">{locationStatus}</p>}

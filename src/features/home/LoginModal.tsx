@@ -9,7 +9,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { setToken } from "@/lib/auth";
+import { clearOnboardingRequired, setToken } from "@/lib/auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
@@ -55,6 +55,7 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  }
  const { access_token } = await res.json();
  setToken(access_token);
+ clearOnboardingRequired();
  reset();
  onClose();
  window.location.href = "/user/discover";

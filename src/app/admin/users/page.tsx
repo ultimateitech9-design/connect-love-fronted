@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { getManagementToken } from "@/lib/auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const USERS_PER_PAGE = 10;
 
 type AdminUser = {
  id: string;
@@ -49,6 +50,7 @@ export default function UsersPage() {
  const [error, setError] = useState("");
  const [showCreateForm, setShowCreateForm] = useState(false);
  const [creating, setCreating] = useState(false);
+ const [page, setPage] = useState(1);
  const [newId, setNewId] = useState({ name: "", email: "", password: "", confirmPassword: "", role: "marketing" as CreatableRole });
 
  const fetchUsers = async (showLoader = false) => {
@@ -100,8 +102,19 @@ export default function UsersPage() {
  const filtered = list.filter(
  (u) => u.name.toLowerCase().includes(q.toLowerCase()) || u.email.toLowerCase().includes(q.toLowerCase()) || u.role.toLowerCase().includes(q.toLowerCase()),
  );
+ const pageCount = Math.max(1, Math.ceil(filtered.length / USERS_PER_PAGE));
+ const startIndex = (page - 1) * USERS_PER_PAGE;
+ const paginatedUsers = filtered.slice(startIndex, startIndex + USERS_PER_PAGE);
 
  const managementIds = list.filter((user) => user.role !== "user");
+
+ useEffect(() => {
+ setPage(1);
+ }, [q]);
+
+ useEffect(() => {
+ setPage((current) => Math.min(current, pageCount));
+ }, [pageCount]);
 
  const createManagementId = async (event: React.FormEvent) => {
  event.preventDefault();
@@ -242,7 +255,7 @@ export default function UsersPage() {
  ) : filtered.length === 0 ? (
  <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500 font-medium">{error ? "Users could not be loaded." : "No users found."}</td></tr>
  ) : (
- filtered.map((u) => (
+ paginatedUsers.map((u) => (
  <tr key={u.id} className="hover:bg-white/80 transition-colors">
  <td className="px-6 py-4">
  <div className="flex items-center gap-2 font-bold text-slate-900">
@@ -284,6 +297,36 @@ export default function UsersPage() {
  )}
  </tbody>
  </table>
+ <div className="flex flex-col gap-3 border-t border-slate-100 bg-white/70 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+ <p className="text-xs font-semibold text-slate-500">
+ Showing {filtered.length === 0 ? 0 : startIndex + 1}-{Math.min(startIndex + USERS_PER_PAGE, filtered.length)} of {filtered.length} users
+ </p>
+ <div className="flex items-center gap-2">
+ <Button
+ type="button"
+ size="sm"
+ variant="outline"
+ disabled={page === 1}
+ onClick={() => setPage((value) => Math.max(1, value - 1))}
+ className="rounded-lg border-slate-200 bg-white text-slate-600"
+ >
+ Previous
+ </Button>
+ <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600">
+ Page {page} of {pageCount}
+ </span>
+ <Button
+ type="button"
+ size="sm"
+ variant="outline"
+ disabled={page === pageCount}
+ onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
+ className="rounded-lg border-slate-200 bg-white text-slate-600"
+ >
+ Next
+ </Button>
+ </div>
+ </div>
  </div>
  </div>
  );

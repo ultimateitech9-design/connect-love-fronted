@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ChevronRight, Loader2 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
-import { getToken, clearToken } from "@/lib/auth";
+import { clearOnboardingRequired, getToken, clearToken } from "@/lib/auth";
 import { StepHeight } from "@/features/onboarding/StepHeight";
 import { StepProfession } from "@/features/onboarding/StepProfession";
 import { StepCity } from "@/features/onboarding/StepCity";
@@ -82,6 +82,7 @@ export default function OnboardingPage() {
  setProfile((prev: any) => ({ ...prev, ...payload }));
 
  if (isFinal) {
+ clearOnboardingRequired();
  router.push("/user/profile");
  } else {
  setCurrentStepIndex((prev) => prev + 1);
@@ -140,7 +141,7 @@ export default function OnboardingPage() {
  </div>
 
  {/* Wizard Card */}
- <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl">
+ <div className={`relative overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl ${currentStepIndex > 0 ? "pt-16" : ""}`}>
  <AnimatePresence mode="wait">
  <motion.div
  key={currentStepIndex}

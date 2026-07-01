@@ -110,12 +110,18 @@ export default function ProfilePage() {
 
 
  const set = (key: keyof UserProfile, val: string) => {
+ if (isLocked) return;
  setProfile((p) => ({ ...p, [key]: val }));
  setSaveMsg(null);
  };
 
 
   const handleSave = async () => {
+    if (isLocked) {
+      setSaveMsg({ ok: false, text: "Unlock profile before editing." });
+      return;
+    }
+
     // Missing fields validation
     const requiredFields = [
       "name", "dob", "gender", "profession", "height", "city", "bio", "interests", "personality", "hobbies"
@@ -184,6 +190,8 @@ export default function ProfilePage() {
  };
 
   const handlePhotosChange = async (newPhotos: string[]) => {
+    if (isLocked) return;
+
     // 1. Update UI immediately
     setProfile((p) => ({ ...p, photos: newPhotos }));
 
@@ -327,7 +335,7 @@ export default function ProfilePage() {
  onChange={(v) => set("dob", v)}
  />
  <div className="space-y-2">
- <Label className={isEmpty("gender") ? "text-rose-500" : "text-slate-600"}>
+ <Label className={isEmpty("gender") && !isLocked ? "text-rose-500" : "text-slate-600"}>
  Gender {isEmpty("gender") && <span className="text-xs font-normal text-rose-400">(required)</span>}
  </Label>
  <select
@@ -335,7 +343,7 @@ export default function ProfilePage() {
  value={profile.gender ?? ""}
  onChange={(e) => set("gender", e.target.value)}
  className={`w-full rounded-xl border px-3 py-2.5 text-sm bg-white text-slate-800 outline-none transition-all focus:ring-2 ${
- isEmpty("gender")
+ isEmpty("gender") && !isLocked
  ? "border-rose-400 focus:ring-rose-300 focus:border-rose-500"
  : "border-slate-200 focus:ring-rose-200 focus:border-rose-300"
  }`}
@@ -441,7 +449,7 @@ export default function ProfilePage() {
  <Button
  className="bg-gradient-to-r from-rose-500 to-pink-600 text-white gap-2 border-0"
  onClick={handleSave}
- disabled={saving}
+ disabled={saving || isLocked}
  >
  {saving && <Loader2 className="h-[16px] w-[16px] animate-spin" />}
  {saving ? "Saving…" : "Save changes"}
@@ -548,9 +556,10 @@ function RequiredField({
  type={type}
  value={value}
  placeholder={placeholder}
+ disabled={disabled}
  onChange={(e) => onChange(e.target.value)}
  className={`bg-card text-foreground placeholder:text-muted-foreground transition-all ${
- required ? "border-rose-400 focus:ring-rose-300" : "border-border focus:ring-rose-200"
+ required && !disabled ? "border-rose-400 focus:ring-rose-300" : "border-border focus:ring-rose-200"
  }`}
  />
  </div>

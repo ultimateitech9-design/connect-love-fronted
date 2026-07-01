@@ -32,7 +32,7 @@ export async function directFetch<T>(path: string, init: RequestInit = {}): Prom
 export const api = {
  dashboard: () => apiFetch<{ stats: { label: string; value: string; delta: string }[]; growth?: { m: string; users: number; matches: number }[] }>("/dashboard"),
  users: () => apiFetch<{ users: { id: string; name: string; email: string; mobile?: string; role: string; plan: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string }[] }>("/users"),
- verification: () => apiFetch<{ queue: { id: string; name: string; email?: string; idType: string; priority: string; status: string }[] }>("/verification"),
+ verification: () => apiFetch<{ queue: { id: string; name: string; email?: string; idType: string; priority: string; status: string; date?: string; documents?: string[]; photo?: string | null; birthDate?: string | null; matchScore?: number }[] }>("/verification"),
  payments: () => apiFetch<{
  plans: { id?: string; key?: string; name: string; price: string; rawPrice?: number; currency?: string; period?: string; features?: string[]; subscribers?: number; status: string }[];
  transactions?: { id: string; user: string; plan: string; amount: number; status: string; date: string }[];

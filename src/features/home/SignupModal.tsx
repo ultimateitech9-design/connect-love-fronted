@@ -9,7 +9,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { setToken } from "@/lib/auth";
+import { requireOnboarding, setToken } from "@/lib/auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
@@ -83,6 +83,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  if (loginRes.ok) {
  const { access_token } = await loginRes.json();
  setToken(access_token);
+ requireOnboarding();
  reset();
  onClose();
  // New users should complete onboarding before accessing the app shell.

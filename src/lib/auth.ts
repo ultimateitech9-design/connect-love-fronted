@@ -1,4 +1,5 @@
 const TOKEN_KEY = "sm_token";
+const ONBOARDING_REQUIRED_KEY = "cl_onboarding_required";
 // Short-lived cookie used by Edge Middleware to protect /user/* routes.
 // Value is just "1" — actual JWT validation is done server-side.
 const COOKIE_NAME = "sm_auth";
@@ -48,12 +49,25 @@ export function setToken(token: string): void {
  setCookie(COOKIE_NAME, "1", 30); // 30-day hint cookie
 }
 
+export function requireOnboarding(): void {
+ storage()?.setItem(ONBOARDING_REQUIRED_KEY, "1");
+}
+
+export function clearOnboardingRequired(): void {
+ storage()?.removeItem(ONBOARDING_REQUIRED_KEY);
+}
+
+export function isOnboardingRequired(): boolean {
+ return storage()?.getItem(ONBOARDING_REQUIRED_KEY) === "1";
+}
+
 /**
  * Remove the JWT token from storage and clear the auth cookie.
  * Called on logout or when a 401 is received.
  */
 export function clearToken(): void {
  storage()?.removeItem(TOKEN_KEY);
+ clearOnboardingRequired();
  deleteCookie(COOKIE_NAME);
 }
 
