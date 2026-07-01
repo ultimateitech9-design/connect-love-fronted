@@ -34,6 +34,7 @@ const toneMap: Record<string, "pink" | "blue" | "violet" | "amber"> = {
  "Pending Reports": "amber",
  "Premium Users": "blue",
 };
+const ACTIVITY_PER_PAGE = 5;
 
 export default function HomePage() {
  const router = useRouter();
@@ -43,6 +44,7 @@ export default function HomePage() {
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState("");
  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+ const [activityPage, setActivityPage] = useState(1);
 
  const handleCardClick = (label: string) => {
    switch (label) {
@@ -85,6 +87,14 @@ export default function HomePage() {
  };
 
  useEffect(() => { fetchStats(); }, []);
+
+ const activityPageCount = Math.max(1, Math.ceil(activityLog.length / ACTIVITY_PER_PAGE));
+ const activityStartIndex = (activityPage - 1) * ACTIVITY_PER_PAGE;
+ const visibleActivity = activityLog.slice(activityStartIndex, activityStartIndex + ACTIVITY_PER_PAGE);
+
+ useEffect(() => {
+ if (activityPage > activityPageCount) setActivityPage(activityPageCount);
+ }, [activityPage, activityPageCount]);
 
  return (
  <div>
@@ -191,11 +201,11 @@ export default function HomePage() {
  <Activity className="h-4.5 w-4.5 text-primary" />
  <h2 className="font-semibold text-foreground">Recent Activity</h2>
  </div>
- <div className="divide-y divide-border overflow-y-auto flex-1">
- {activityLog.map((entry, i) => {
+ <div className="divide-y divide-border flex-1">
+ {visibleActivity.map((entry, i) => {
  const tagColor = activityModuleColor[entry.module] ?? "text-muted-foreground bg-muted";
  return (
- <div key={i} className="px-6 py-3.5 flex items-center gap-3 hover:bg-muted/20 transition-colors">
+ <div key={`${entry.time}-${entry.action}-${activityStartIndex + i}`} className="px-6 py-3.5 flex items-center gap-3 hover:bg-muted/20 transition-colors">
  <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
  <Shield className="h-4.5 w-4.5 text-primary" />
  </div>
@@ -209,6 +219,30 @@ export default function HomePage() {
  </div>
  );
  })}
+ </div>
+ <div className="flex items-center justify-between border-t border-border px-6 py-3 text-xs text-muted-foreground">
+ <span>
+ {activityLog.length === 0 ? "No activity" : `${activityStartIndex + 1}-${Math.min(activityStartIndex + ACTIVITY_PER_PAGE, activityLog.length)} of ${activityLog.length}`}
+ </span>
+ <div className="flex items-center gap-2">
+ <button
+ type="button"
+ onClick={() => setActivityPage((value) => Math.max(1, value - 1))}
+ disabled={activityPage === 1}
+ className="rounded-md border border-border px-2.5 py-1 font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+ >
+ Prev
+ </button>
+ <span className="font-semibold text-foreground">{activityPage}/{activityPageCount}</span>
+ <button
+ type="button"
+ onClick={() => setActivityPage((value) => Math.min(activityPageCount, value + 1))}
+ disabled={activityPage === activityPageCount}
+ className="rounded-md border border-border px-2.5 py-1 font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+ >
+ Next
+ </button>
+ </div>
  </div>
  </div>
  </div>

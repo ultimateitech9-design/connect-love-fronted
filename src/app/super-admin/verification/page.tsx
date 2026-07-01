@@ -14,6 +14,7 @@ interface QueueRow {
  date: string;
  idType: string;
  priority: "High" | "Normal" | "Low";
+ status: string;
  initials: string;
  color: string;
  photo?: string | null;
@@ -53,6 +54,7 @@ export default function VerificationPage() {
  date: formatDate((item as any).date),
  idType: item.idType,
  priority: item.priority as QueueRow["priority"],
+ status: item.status,
  initials: initials(item.name),
  color: colors[i % colors.length],
  photo: (item as any).photo || null,
@@ -77,7 +79,7 @@ export default function VerificationPage() {
  const rejectionRate = queue.length ? Math.round((rejected.length / queue.length) * 100) : 0;
 
  const moveNext = (current: QueueRow) => {
- const next = queue.find((r) => r.id !== current.id && !approved.includes(r.name) && !rejected.includes(r.name));
+ const next = queue.find((r) => r.id !== current.id);
  setActiveUser(next || null);
  };
 
@@ -85,13 +87,15 @@ export default function VerificationPage() {
  if (!activeUser) return;
  await api.updateVerification(activeUser.id, "approved");
  setApproved((prev) => [...prev, activeUser.name]);
+ setQueue((rows) => rows.filter((row) => row.id !== activeUser.id));
  moveNext(activeUser);
  };
 
  const handleReject = async () => {
- if (!activeUser || !reason) return;
+ if (!activeUser) return;
  await api.updateVerification(activeUser.id, "rejected");
  setRejected((prev) => [...prev, activeUser.name]);
+ setQueue((rows) => rows.filter((row) => row.id !== activeUser.id));
  setReason("");
  moveNext(activeUser);
  };
@@ -130,10 +134,8 @@ export default function VerificationPage() {
  {activeUser?.photo ? <img src={activeUser.photo} alt={activeUser.name} className="h-full w-full object-cover rounded-lg" /> : <EmptyPreview />}
  </Preview>
  <Preview title={`ID Document${activeUser?.idType ? ` (${activeUser.idType})` : ""}`}>
- {activeUser?.documents?.length ? (
- <div className="space-y-2 text-sm">
- {activeUser.documents.map((doc) => <div key={doc} className="rounded-md border border-border bg-muted px-3 py-2 truncate">{doc}</div>)}
- </div>
+ {activeUser?.documents?.[0] ? (
+ <img src={activeUser.documents[0]} alt={`${activeUser.name} KYC frame`} className="h-full w-full object-cover rounded-lg" />
  ) : <EmptyPreview icon />}
  </Preview>
  </div>
@@ -164,7 +166,7 @@ export default function VerificationPage() {
  <option>Name mismatch</option>
  <option>Expired ID</option>
  </select>
- <button onClick={handleReject} disabled={!activeUser || !reason} className="w-full h-10 rounded-lg bg-slate-700 text-white font-semibold mt-3 hover:bg-slate-800 transition-colors disabled:opacity-50">
+ <button onClick={handleReject} disabled={!activeUser} className="w-full h-10 rounded-lg bg-slate-700 text-white font-semibold mt-3 hover:bg-slate-800 transition-colors disabled:opacity-50">
  Reject User
  </button>
  </div>

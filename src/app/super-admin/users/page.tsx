@@ -363,17 +363,17 @@ export default function UsersPage() {
  </div>
 
  <div className="rounded-xl bg-card border border-border overflow-hidden">
- <table className="w-full">
+ <table className="w-full table-fixed">
  <thead>
  <tr className={`border-b border-border ${monoLabel}`}>
- <th className="text-left py-3 pl-6 font-mono">Name / Avatar</th>
- <th className="text-left py-3 font-mono">Role & Account</th>
- <th className="text-left py-3 font-mono">Verification</th>
- <th className="text-left py-3 font-mono">City</th>
- <th className="text-left py-3 font-mono">Join Date</th>
- <th className="text-left py-3 font-mono">Last Active</th>
- <th className="text-left py-3 font-mono">Status</th>
- <th className="text-right py-3 pr-6 font-mono">Actions</th>
+ <th className="w-[29%] text-left py-2.5 pl-4 font-mono">Name / Avatar</th>
+ <th className="w-[12%] text-left py-2.5 font-mono">Role</th>
+ <th className="w-[12%] text-left py-2.5 font-mono">Verify</th>
+ <th className="w-[13%] text-left py-2.5 font-mono">City</th>
+ <th className="w-[10%] text-left py-2.5 font-mono">Joined</th>
+ <th className="w-[10%] text-left py-2.5 font-mono">Active</th>
+ <th className="w-[8%] text-left py-2.5 font-mono">Status</th>
+ <th className="w-[6%] text-right py-2.5 pr-4 font-mono">Act</th>
  </tr>
  </thead>
  <tbody>
@@ -387,50 +387,50 @@ export default function UsersPage() {
  ))
  ) : pageRows.map((row) => (
  <tr key={row.id} className={"border-b border-border last:border-0 hover:bg-muted/30 transition-colors " + (row.muted ? "opacity-60" : "")}>
- <td className="py-4 pl-6">
- <div className="flex items-center gap-3">
- <div className={`h-10 w-10 rounded-full ${row.color} text-white flex items-center justify-center text-sm font-semibold`}>
+ <td className="py-2.5 pl-4 pr-2">
+ <div className="flex min-w-0 items-center gap-2.5">
+ <div className={`h-8 w-8 shrink-0 rounded-full ${row.color} text-white flex items-center justify-center text-xs font-semibold`}>
  {row.initials}
  </div>
- <div>
- <p className={"font-semibold text-foreground " + (row.muted ? "line-through" : "")}>{row.name}</p>
- <p className="text-xs text-muted-foreground">{row.email}</p>
+ <div className="min-w-0">
+ <p className={"truncate text-sm font-semibold text-foreground " + (row.muted ? "line-through" : "")}>{row.name}</p>
+ <p className="truncate text-[11px] text-muted-foreground">{row.email}</p>
  </div>
  </div>
  </td>
- <td className="py-4">
+ <td className="py-2.5 pr-2">
  <div className="flex flex-col">
- <span className="text-sm font-semibold text-foreground">{row.role}</span>
+ <span className="truncate text-xs font-semibold text-foreground">{row.role}</span>
  {row.account === "Free Tier" ? (
- <span className="text-xs text-muted-foreground">Free Tier</span>
+ <span className="text-[11px] text-muted-foreground">Free Tier</span>
  ) : (
- <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
- <Star className="h-3.5 w-3.5 fill-primary" /> {row.account}
+ <span className="inline-flex items-center gap-1 truncate text-[11px] font-medium text-primary">
+ <Star className="h-3 w-3 shrink-0 fill-primary" /> {row.account}
  </span>
  )}
  </div>
  </td>
- <td className="py-4">
+ <td className="py-2.5 pr-2">
  <VerificationPill value={row.verification} />
  </td>
- <td className="py-4 text-sm text-foreground">{row.city}</td>
- <td className="py-4 text-sm text-foreground">{row.joinDate}</td>
- <td className="py-4 text-sm">
+ <td className="py-2.5 pr-2 text-xs font-medium leading-4 text-foreground break-words">{row.city}</td>
+ <td className="py-2.5 pr-2 text-xs leading-4 text-foreground break-words">{row.joinDate}</td>
+ <td className="py-2.5 pr-2 text-xs leading-4">
  <span className={row.status === "Under Review" ? "text-amber-600 font-medium" : "text-foreground"}>
  {row.lastActive}
  </span>
  </td>
- <td className="py-4">
+ <td className="py-2.5 pr-2">
  <StatusDot status={row.status} />
  </td>
-  <td className="py-4 pr-6 text-right">
-    <div className="inline-flex items-center gap-3 justify-end text-muted-foreground">
+  <td className="py-2.5 pr-4 text-right">
+    <div className="inline-flex items-center justify-end gap-1.5 text-muted-foreground">
       <button 
         onClick={() => handleViewDetails(row)} 
         title="View Details"
         className="hover:text-secondary p-1 hover:bg-muted/80 rounded transition-colors cursor-pointer"
       >
-        <Eye className="h-4 w-4" />
+        <Eye className="h-3.5 w-3.5" />
       </button>
       <button 
         onClick={() => handleToggleBan(row)} 
@@ -438,7 +438,7 @@ export default function UsersPage() {
         title={row.status === "Banned" ? "Unban User" : "Ban User"}
         className={`p-1 hover:bg-muted/80 rounded transition-colors cursor-pointer ${row.status === "Banned" ? "text-amber-500 hover:text-amber-600 animate-pulse" : "hover:text-primary"}`}
       >
-        <Ban className="h-4 w-4" />
+        <Ban className="h-3.5 w-3.5" />
       </button>
       <button 
         onClick={() => setDeleteConfirmUser(row)}
@@ -446,7 +446,7 @@ export default function UsersPage() {
         title="Delete User"
         className="hover:text-rose-500 p-1 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="h-3.5 w-3.5" />
       </button>
     </div>
   </td>
@@ -536,8 +536,8 @@ function VerificationPill({ value }: { value: Verification }) {
  } as const;
 
  return (
- <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${map[value]}`}>
- <span className="h-1.5 w-1.5 rounded-full bg-current" /> {value}
+ <span className={`inline-flex max-w-full items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-normal ${map[value]}`}>
+ <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" /> <span className="truncate">{value}</span>
  </span>
  );
 }
@@ -552,8 +552,8 @@ function StatusDot({ status }: { status: Status }) {
  const style = map[status];
 
  return (
- <span className={`inline-flex items-center gap-2 text-sm font-medium ${style.text}`}>
- <span className={`h-2 w-2 rounded-full ${style.dot}`} /> {status}
+ <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${style.text}`}>
+ <span className={`h-2 w-2 shrink-0 rounded-full ${style.dot}`} /> <span className="truncate">{status}</span>
  </span>
  );
 }
