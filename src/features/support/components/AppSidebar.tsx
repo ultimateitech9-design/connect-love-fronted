@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Heart,
   User,
+  UserRoundSearch,
   LogOut
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -32,6 +33,7 @@ import { logoutManagement } from "@/app/actions/managementAuth";
 const items = [
   { title: "Overview", url: "/support", icon: LayoutDashboard },
   { title: "Ticket Management", url: "/support/tickets", icon: Ticket },
+  { title: "User 360", url: "/support/user-360", icon: UserRoundSearch },
   { title: "Support Analytics", url: "/support/analytics", icon: BarChart3 },
   { title: "Reports & Complaints", url: "/support/reports", icon: Flag },
   { title: "Customer Support", url: "/support/customer-support", icon: Headphones },

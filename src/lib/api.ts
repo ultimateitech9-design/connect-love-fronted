@@ -97,6 +97,7 @@ export const api = {
  banUser: (id: string, banned: boolean) => apiFetch<{ success: boolean }>(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: banned ? "banned" : "active" }) }),
  deleteUser: (id: string) => apiFetch<{ success: boolean }>(`/users/${id}`, { method: "DELETE" }),
  userDetails: (id: string) => apiFetch<{ user: any }>(`/users/${id}`),
+ updateUser: (id: string, body: Record<string, unknown>) => apiFetch<{ success: boolean; user: any; message?: string }>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
  updateVerification: (id: string, status: "approved" | "rejected" | "under_review" | "pending") => apiFetch(`/verification/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
  createNotification: (body: { campaign: string; type: string; audience: string; status?: string }) => apiFetch("/notifications", { method: "POST", body: JSON.stringify(body) }),
  updateNotificationStatus: (id: string, status: string) => apiFetch(`/notifications/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),

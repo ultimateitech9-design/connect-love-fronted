@@ -15,6 +15,7 @@ import {
  Bell,
  Search,
  User,
+ UserRoundSearch,
  LogOut,
  ChevronDown
 } from "lucide-react";
@@ -31,6 +32,7 @@ import { logoutManagement } from "@/app/actions/managementAuth";
 const nav = [
  { to: "/finance", label: "Overview", icon: LayoutDashboard },
  { to: "/finance/subscriptions", label: "Subscriptions", icon: CreditCard },
+ { to: "/finance/user-360", label: "User 360", icon: UserRoundSearch },
  { to: "/finance/transactions", label: "Transactions", icon: Receipt },
  { to: "/finance/refunds", label: "Refunds", icon: Undo2 },
  { to: "/finance/invoices/generate", label: "Generate Invoices", icon: FileText },

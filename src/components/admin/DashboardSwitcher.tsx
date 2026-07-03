@@ -68,11 +68,11 @@ export function DashboardSwitcher() {
     <div ref={dropdownRef} className="fixed bottom-6 right-6 z-[9999] font-[Inter,sans-serif]">
       {/* Expanded Menu */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-80 rounded-2xl border border-border bg-slate-950 text-white shadow-2xl backdrop-blur-xl overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="absolute bottom-16 right-0 w-80 rounded-2xl border border-border bg-card text-foreground shadow-2xl backdrop-blur-xl overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
           <div className="px-5 py-4 border-b border-white/10 bg-white/5 flex items-center gap-2">
             <FolderSync className="h-5 w-5 text-rose-500 animate-spin" />
             <div>
-              <p className="text-sm font-extrabold tracking-tight text-white">Super Admin Switcher</p>
+              <p className="text-sm font-extrabold tracking-tight text-foreground">Super Admin Switcher</p>
               <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">Access all dashboards</p>
             </div>
           </div>
@@ -89,15 +89,15 @@ export function DashboardSwitcher() {
                   }}
                   className={`w-full flex items-center gap-3 rounded-xl p-3 text-left transition-all duration-300 group cursor-pointer ${
                     active 
-                      ? "bg-white/10 border border-white/10 font-bold" 
-                      : "hover:bg-white/5 border border-transparent hover:translate-x-1"
+                      ? "bg-rose-50 border border-rose-100 font-bold" 
+                      : "hover:bg-rose-50/70 border border-transparent hover:translate-x-1"
                   }`}
                 >
                   <div className={`h-9 w-9 rounded-lg flex items-center justify-center bg-gradient-to-tr ${dash.color.split(" ")[0]} ${dash.color.split(" ")[1]} text-white shadow-md`}>
                     <IconComp className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
                       {dash.name}
                       {active && (
                         <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />

@@ -14,12 +14,12 @@ export default function RootLayout({
  children: React.ReactNode;
 }>) {
  return (
- <div className="theme-marketing dark">
+ <div className="theme-marketing">
  <SidebarProvider>
  <div className="min-h-screen flex w-full overflow-x-hidden bg-background">
  <AppSidebar />
  <div className="min-w-0 flex-1 flex flex-col">
- <header className="min-h-14 flex items-center gap-3 border-b border-border bg-card/50 backdrop-blur px-3 sm:px-4 sticky top-0 z-10">
+ <header className="min-h-14 flex items-center gap-3 border-b border-border bg-white/85 backdrop-blur px-3 shadow-sm sm:px-4 sticky top-0 z-10">
  <SidebarTrigger />
  <div className="flex-1" />
  <div className="flex items-center gap-4 text-sm text-muted-foreground">

@@ -170,7 +170,7 @@ export default function VerificationPage() {
  <option>Name mismatch</option>
  <option>Expired ID</option>
  </select>
- <button onClick={handleReject} disabled={!activeUser} className="w-full h-10 rounded-lg bg-slate-700 text-white font-semibold mt-3 hover:bg-slate-800 transition-colors disabled:opacity-50">
+ <button onClick={handleReject} disabled={!activeUser} className="w-full h-10 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 font-semibold mt-3 hover:bg-rose-100 transition-colors disabled:opacity-50">
  Reject User
  </button>
  </div>

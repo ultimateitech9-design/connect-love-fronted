@@ -241,12 +241,20 @@ export default function UsersPage() {
 
  <div className="overflow-hidden rounded-3xl bg-white/60 backdrop-blur-md shadow-xl shadow-rose-500/5 ring-1 ring-white/50">
  <div className="border-b border-slate-100 px-6 py-4"><h2 className="font-bold text-slate-900">All Platform Accounts</h2><p className="text-xs text-slate-500">Dating users and management IDs.</p></div>
- <table className="w-full text-sm text-slate-600">
- <thead className="text-left text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-200/50">
+ <table className="w-full table-fixed text-sm text-slate-600">
+ <colgroup>
+ <col className="w-[31%]" />
+ <col className="w-[11%]" />
+ <col className="w-[9%]" />
+ <col className="w-[12%]" />
+ <col className="w-[10%]" />
+ <col className="w-[27%]" />
+ </colgroup>
+ <thead className="border-b border-slate-200/50 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400">
  <tr>
- <th className="px-6 py-4">User</th><th className="px-6 py-4">Role</th><th className="px-6 py-4">Plan</th>
- <th className="px-6 py-4">Joined</th><th className="px-6 py-4">Status</th>
- <th className="px-6 py-4 text-right">Actions</th>
+ <th className="px-6 py-3">User</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Plan</th>
+ <th className="px-4 py-3">Joined</th><th className="px-4 py-3">Status</th>
+ <th className="px-6 py-3 text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-slate-100/50 bg-white/50">
@@ -257,38 +265,40 @@ export default function UsersPage() {
  ) : (
  paginatedUsers.map((u) => (
  <tr key={u.id} className="hover:bg-white/80 transition-colors">
- <td className="px-6 py-4">
- <div className="flex items-center gap-2 font-bold text-slate-900">
+ <td className="px-6 py-2.5">
+ <div className="flex min-w-0 items-center gap-2 text-[13px] font-bold text-slate-900">
+ <span className="truncate">
  {u.name}
+ </span>
  {u.verified && <BadgeCheck className="h-[16px] w-[16px] text-rose-500" />}
  </div>
- <div className="text-xs font-medium text-slate-500 mt-0.5">{u.email}</div>
+ <div className="mt-0.5 truncate text-[11px] font-medium text-slate-500">{u.email}</div>
  </td>
- <td className="px-6 py-4 text-xs font-bold capitalize text-slate-600">{u.role.replace("_", " ")}</td>
- <td className="px-6 py-4">
- <span className={`px-3 py-1.5 rounded-xl text-xs font-bold ${u.plan === 'Premium' ? 'bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-md shadow-rose-500/20' : 'bg-slate-100 text-slate-600'}`}>
+ <td className="whitespace-nowrap px-4 py-2.5 align-middle text-[11px] font-bold capitalize text-slate-600">{u.role.replace("_", " ")}</td>
+ <td className="px-4 py-2.5 align-middle">
+ <span className={`inline-flex h-6 min-w-[58px] items-center justify-center whitespace-nowrap rounded-full px-2 text-[10px] font-bold ${u.plan === 'Premium' ? 'bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-sm shadow-rose-500/20' : 'bg-slate-100 text-slate-600'}`}>
  {u.plan}
  </span>
  </td>
- <td className="px-6 py-4 font-medium text-slate-500">{u.joined}</td>
- <td className="px-6 py-4">
+ <td className="whitespace-nowrap px-4 py-2.5 align-middle text-[13px] font-medium text-slate-500">{u.joined}</td>
+ <td className="px-4 py-2.5 align-middle">
  <span className={cn(
- "rounded-xl px-3 py-1.5 text-xs font-bold capitalize inline-block",
+ "inline-flex h-6 min-w-[58px] items-center justify-center rounded-full px-2 text-[10px] font-bold capitalize",
  u.status === "active" && "bg-emerald-100 text-emerald-700",
  u.status === "suspended" && "bg-amber-100 text-amber-700",
  u.status === "banned" && "bg-rose-100 text-rose-700",
  )}>{u.status}</span>
  </td>
- <td className="px-6 py-4">
- <div className="flex justify-end gap-2 w-[12.5vw] ml-auto">
+ <td className="px-4 py-2.5 align-middle">
+ <div className="ml-auto flex flex-nowrap justify-end gap-1.5">
  {u.status !== "active" && (
- <Button size="sm" variant="outline" className="w-[80px] h-[32px] rounded-lg border-emerald-100 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200 shadow-sm font-semibold" onClick={() => update(u.id, "active")}>Activate</Button>
+ <Button size="sm" variant="outline" className="h-[26px] min-w-[60px] rounded-full border-emerald-200 bg-emerald-50/60 px-2.5 text-[10px] font-bold text-emerald-700 shadow-none hover:border-emerald-300 hover:bg-emerald-100" onClick={() => update(u.id, "active")}>Activate</Button>
  )}
  {u.status !== "suspended" && (
- <Button size="sm" variant="outline" className="w-[80px] h-[32px] rounded-lg border-amber-100 text-amber-600 hover:bg-amber-50 hover:border-amber-200 shadow-sm font-semibold" onClick={() => update(u.id, "suspended")}>Suspend</Button>
+ <Button size="sm" variant="outline" className="h-[26px] min-w-[60px] rounded-full border-amber-200 bg-amber-50/60 px-2.5 text-[10px] font-bold text-amber-700 shadow-none hover:border-amber-300 hover:bg-amber-100" onClick={() => update(u.id, "suspended")}>Suspend</Button>
  )}
  {u.status !== "banned" && (
- <Button size="sm" variant="outline" className="w-[80px] h-[32px] rounded-lg border-rose-100 text-rose-600 hover:bg-rose-50 hover:border-rose-200 shadow-sm font-semibold" onClick={() => update(u.id, "banned")}>Ban</Button>
+ <Button size="sm" variant="outline" className="h-[26px] min-w-[44px] rounded-full border-rose-200 bg-rose-50/70 px-2.5 text-[10px] font-bold text-rose-700 shadow-none hover:border-rose-300 hover:bg-rose-100" onClick={() => update(u.id, "banned")}>Ban</Button>
  )}
  </div>
  </td>

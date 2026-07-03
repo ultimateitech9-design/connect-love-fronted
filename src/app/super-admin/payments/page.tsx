@@ -227,10 +227,10 @@ export default function PaymentsPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="h-10 w-full rounded-full border border-border bg-card px-4 pr-10 text-sm text-foreground outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
             >
-              <option value="All" className="bg-slate-900 text-slate-100">All Statuses</option>
-              <option value="successful" className="bg-slate-900 text-slate-100">Successful</option>
-              <option value="refunded" className="bg-slate-900 text-slate-100">Refunded</option>
-              <option value="failed" className="bg-slate-900 text-slate-100">Failed</option>
+              <option value="All">All Statuses</option>
+              <option value="successful">Successful</option>
+              <option value="refunded">Refunded</option>
+              <option value="failed">Failed</option>
             </select>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
               <Filter className="h-4 w-4" />
@@ -312,7 +312,7 @@ export default function PaymentsPage() {
                       <button
                         onClick={() => handleRefund(tx.id)}
                         disabled={actionLoading === tx.id}
-                        className="px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50/10 hover:bg-rose-500 hover:text-white text-rose-500 text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                        className="px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
                       >
                         {actionLoading === tx.id ? "Refunding..." : "Refund"}
                       </button>

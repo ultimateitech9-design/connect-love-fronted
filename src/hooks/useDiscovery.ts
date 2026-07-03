@@ -5,14 +5,23 @@ import { toast } from 'sonner';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
 
-export function useDiscovery(token: string, search?: string) {
+type DiscoveryRequestFilters = {
+  search?: string;
+  ageMin?: number;
+  ageMax?: number;
+};
+
+export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
   const queryClient = useQueryClient();
 
   const fetchSuggestions = async () => {
     if (!token) return [];
-    const url = search?.trim()
-      ? `${API_URL}/discovery?search=${encodeURIComponent(search.trim())}`
-      : `${API_URL}/discovery`;
+    const params = new URLSearchParams();
+    if (filters.search?.trim()) params.set('search', filters.search.trim());
+    if (typeof filters.ageMin === 'number') params.set('ageMin', String(filters.ageMin));
+    if (typeof filters.ageMax === 'number') params.set('ageMax', String(filters.ageMax));
+    const query = params.toString();
+    const url = query ? `${API_URL}/discovery?${query}` : `${API_URL}/discovery`;
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -21,7 +30,7 @@ export function useDiscovery(token: string, search?: string) {
   };
 
   const { data: profiles = [], isLoading, isError } = useQuery({
-    queryKey: ['discovery', search],
+    queryKey: ['discovery', filters.search, filters.ageMin, filters.ageMax],
     queryFn: fetchSuggestions,
     enabled: !!token,
   });

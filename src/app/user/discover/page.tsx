@@ -21,7 +21,7 @@ function matchesNonDistanceFilters(p: any, filters: DiscoverFilters, onlyShowVer
     const query = filters.search.toLowerCase().trim();
     const nameMatch = p.name && p.name.toLowerCase().includes(query);
     const usernameMatch = p.username && p.username.toLowerCase().includes(query);
-    return !!(nameMatch || usernameMatch);
+    if (!nameMatch && !usernameMatch) return false;
   }
   if ((p.age ?? 0) < filters.ageMin || (p.age ?? 0) > filters.ageMax) return false;
   if ((filters.verifiedOnly || onlyShowVerifiedProfiles) && !p.isVerified && !p.verified) return false;
@@ -62,7 +62,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  export default function Discover() {
   const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
   const token = getToken() || "";
-  const { profiles, loading, error, swipeLeft, swipeRight, swipeSuper } = useDiscovery(token, filters.search);
+  const { profiles, loading, error, swipeLeft, swipeRight, swipeSuper } = useDiscovery(token, filters);
   const { settings } = useSettings();
   
   const effectiveMaxDistance = useMemo(

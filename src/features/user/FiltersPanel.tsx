@@ -20,7 +20,7 @@ export interface DiscoverFilters {
 export const defaultFilters: DiscoverFilters = {
   search: "",
   ageMin: 18,
-  ageMax: 60,
+  ageMax: 90,
   maxDistance: 100,
   interests: [],
   goals: [],
@@ -131,7 +131,7 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
               value={[filters.ageMax]}
               onValueChange={(v: number[]) => update("ageMax", v[0])}
               min={18}
-              max={60}
+              max={90}
               step={1}
             />
             <p className="text-[10px] text-muted-foreground">Showing ages {filters.ageMin}–{filters.ageMax}</p>

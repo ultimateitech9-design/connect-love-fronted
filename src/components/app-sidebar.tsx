@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Heart, LayoutDashboard, Megaphone, Users, Bell, FileBarChart, User, LogOut, ChevronUp } from "lucide-react";
+import { LayoutDashboard, Megaphone, Users, Bell, FileBarChart, User, LogOut, ChevronUp, UserRoundSearch, Target, CalendarDays, FlaskConical, ListChecks } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import {
  Sidebar,
@@ -26,6 +26,11 @@ const items = [
  { title: "Dashboard", url: "/marketing", icon: LayoutDashboard },
  { title: "Campaign Management", url: "/marketing/campaigns", icon: Megaphone },
  { title: "User Acquisition", url: "/marketing/acquisition", icon: Users },
+ { title: "Audience Segments", url: "/marketing/segments", icon: Target },
+ { title: "Funnel", url: "/marketing/funnel", icon: ListChecks },
+ { title: "Content Calendar", url: "/marketing/calendar", icon: CalendarDays },
+ { title: "Experiments", url: "/marketing/experiments", icon: FlaskConical },
+ { title: "User 360", url: "/marketing/user-360", icon: UserRoundSearch },
  { title: "Notifications", url: "/marketing/notifications", icon: Bell },
  { title: "Reports", url: "/marketing/reports", icon: FileBarChart },
 ];
@@ -40,7 +45,7 @@ export function AppSidebar() {
  <BrandLogo className="h-8 w-8" />
  <div className="flex min-w-0 flex-col">
  <span className="truncate text-lg font-bold tracking-tight">
- <span className="text-white">Connect</span><span className="text-red-500">Love</span>
+ <span className="text-slate-950">Connect</span><span className="text-red-500">Love</span>
  </span>
  <span className="truncate text-[11px] uppercase tracking-wider text-muted-foreground">Marketing Dashboard</span>
  </div>
@@ -57,7 +62,7 @@ export function AppSidebar() {
  <SidebarMenuButton
  asChild
  isActive={isActive}
- className={`h-[44px] rounded-xl transition-all ${isActive ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary hover:bg-primary/20 hover:text-primary before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent/50'}`}
+ className={`h-[44px] rounded-xl transition-all ${isActive ? 'bg-gradient-to-r from-primary/15 to-primary/5 text-primary hover:bg-primary/15 hover:text-primary before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-primary'}`}
  >
  <Link href={item.url} className="flex min-w-0 items-center gap-3 px-2">
  <item.icon className="h-[20px] w-[20px]" />
@@ -73,7 +78,7 @@ export function AppSidebar() {
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <SidebarMenuButton
- className={`h-[44px] rounded-xl transition-all w-full flex justify-between items-center px-2 cursor-pointer ${currentPath === '/marketing/profile' ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-primary' : 'text-pink-400 hover:bg-pink-500/10 hover:text-pink-300'}`}
+ className={`h-[44px] rounded-xl transition-all w-full flex justify-between items-center px-2 cursor-pointer ${currentPath === '/marketing/profile' ? 'bg-gradient-to-r from-primary/15 to-primary/5 text-primary before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-primary' : 'text-primary hover:bg-primary/10 hover:text-primary'}`}
  >
  <div className="flex items-center gap-3">
  <User className="h-[20px] w-[20px]" />

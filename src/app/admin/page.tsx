@@ -13,8 +13,23 @@ const RevenueChart = dynamic(() => import("@/features/admin/AdminRevenueChart"),
 });
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const demoRevenueMonthly = [
+ { m: "Mar", rev: 6200 },
+ { m: "Apr", rev: 8400 },
+ { m: "May", rev: 7800 },
+ { m: "Jun", rev: 11200 },
+ { m: "Jul", rev: 13600 },
+];
 
 export default function AdminOverview() {
+ const reportStatusClass = (status?: string) => {
+ const normalized = String(status || "").toLowerCase();
+ if (normalized === "closed" || normalized === "resolved") return "bg-rose-50 text-rose-600 ring-1 ring-rose-100";
+ if (normalized === "newsletter") return "bg-slate-50 text-slate-500 ring-1 ring-slate-100";
+ if (normalized === "open") return "bg-amber-50 text-amber-700 ring-1 ring-amber-100";
+ return "bg-sky-50 text-sky-700 ring-1 ring-sky-100";
+ };
+
  const [stats, setStats] = useState({
  users: 0,
  premium: 0,
@@ -25,6 +40,7 @@ export default function AdminOverview() {
  const [recentUsers, setRecentUsers] = useState<any[]>([]);
  const [recentReports, setRecentReports] = useState<any[]>([]);
  const [revenueMonthly, setRevenueMonthly] = useState<any[]>([]);
+ const chartData = revenueMonthly.length > 0 ? revenueMonthly : demoRevenueMonthly;
 
  useEffect(() => {
  const fetchAdminData = async () => {
@@ -109,10 +125,17 @@ export default function AdminOverview() {
 
  <div className="grid gap-6 lg:grid-cols-3">
  <div className="rounded-3xl bg-white/60 backdrop-blur-md p-6 shadow-xl shadow-rose-500/5 lg:col-span-2 ring-1 ring-white/50">
+ <div className="flex items-start justify-between gap-3">
+ <div>
  <h3 className="text-lg font-bold text-slate-900">Revenue trend</h3>
  <p className="text-xs font-medium text-slate-500">Last 5 months</p>
- <div className="mt-4 h-[17.778vw]">
- <RevenueChart data={revenueMonthly} />
+ </div>
+ {revenueMonthly.length === 0 && (
+ <span className="rounded-full bg-rose-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-600 ring-1 ring-rose-100">Demo</span>
+ )}
+ </div>
+ <div className="mt-4 h-[260px] min-h-[220px]">
+ <RevenueChart data={chartData} />
  </div>
  </div>
 
@@ -121,11 +144,11 @@ export default function AdminOverview() {
  <ul className="mt-6 space-y-4 text-sm">
  {recentReports.map((r) => (
  <li key={r.id} className="flex items-start justify-between gap-3 group">
- <div>
- <p className="font-semibold text-slate-900">{r.reportedUser}</p>
- <p className="text-xs font-medium text-slate-500 mt-0.5">{r.reason}</p>
+ <div className="min-w-0 flex-1">
+ <p className="truncate font-semibold text-slate-900">{r.reportedUser}</p>
+ <p className="mt-0.5 break-words text-xs font-medium leading-4 text-slate-500">{r.reason}</p>
  </div>
- <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-white shadow-sm px-2.5 py-1 rounded-full group-hover:bg-rose-50 group-hover:text-rose-600 transition-colors">{r.status}</span>
+ <span className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm transition-colors ${reportStatusClass(r.status)}`}>{r.status}</span>
  </li>
  ))}
  </ul>

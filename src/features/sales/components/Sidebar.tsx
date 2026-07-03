@@ -10,8 +10,8 @@ import {
   Megaphone,
   LineChart,
   Repeat,
-  Heart,
   User,
+  UserRoundSearch,
   LogOut,
 } from "lucide-react";
 import {
@@ -26,6 +26,7 @@ import { logoutManagement } from "@/app/actions/managementAuth";
 const nav = [
   { href: "/sales", label: "Overview", icon: LayoutDashboard },
   { href: "/sales/plans", label: "Plans", icon: Crown },
+  { href: "/sales/user-360", label: "User 360", icon: UserRoundSearch },
   { href: "/sales/conversions", label: "Conversions", icon: TrendingUp },
   { href: "/sales/campaigns", label: "Campaigns", icon: Megaphone },
   { href: "/sales/trends", label: "Trends", icon: LineChart },

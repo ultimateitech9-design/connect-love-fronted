@@ -27,6 +27,7 @@ import { useMatches } from "@/hooks/useMatches";
 import { useChatWebSocket } from "@/hooks/useChatWebSocket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
@@ -138,6 +139,10 @@ const PREMIUM_GIFTS = [
   { emoji: "🥂", label: "Champagne Bottle", price: 149 },
   { emoji: "💍", label: "Diamond Ring", price: 249 },
   { emoji: "🎈", label: "Heart Balloon", price: 29 },
+  { emoji: "❤️", label: "True Love Heart", price: 29 },
+  { emoji: "💔", label: "Broken Heart", price: 19 },
+  { emoji: "💖", label: "Sparkling Heart", price: 39 },
+  { emoji: "💛", label: "Gold Heart", price: 99 },
 ];
 
 type GiftVisualConfig = {
@@ -173,6 +178,10 @@ const giftVisuals: Record<string, GiftVisualConfig> = {
   "Champagne Bottle": { emoji: "🥂", bg: "from-amber-100 via-yellow-50 to-white", glow: "shadow-yellow-200/80", meaning: "Let's celebrate us", imageSrc: "/images/gifts/champagne_bottle.png" },
   "Diamond Ring": { emoji: "💍", bg: "from-blue-50 via-indigo-100 to-white", glow: "shadow-blue-200/80", meaning: "A promise of commitment", imageSrc: "/images/gifts/diamond_ring.png" },
   "Heart Balloon": { emoji: "🎈", bg: "from-red-50 via-rose-100 to-white", glow: "shadow-red-200/80", meaning: "Floating on cloud nine" },
+  "True Love Heart": { emoji: "❤️", bg: "from-red-50 via-rose-100 to-white", glow: "shadow-red-200/80", meaning: "Deep, sincere & pure love", imageSrc: "/images/gifts/red_heart.png" },
+  "Broken Heart": { emoji: "💔", bg: "from-slate-100 via-neutral-200 to-slate-50", glow: "shadow-slate-300/80", meaning: "Healing a wounded connection", imageSrc: "/images/gifts/broken_heart.png" },
+  "Sparkling Heart": { emoji: "💖", bg: "from-pink-50 via-pink-100 to-white", glow: "shadow-pink-200/80", meaning: "Exciting, vibrant affection", imageSrc: "/images/gifts/sparkling_heart.png" },
+  "Gold Heart": { emoji: "💛", bg: "from-amber-50 via-yellow-100 to-white", glow: "shadow-yellow-200/80", meaning: "Luxurious, precious and pure bond", imageSrc: "/images/gifts/gold_heart.png" },
 };
 
 function isVoiceMessage(content?: string) {
@@ -324,6 +333,140 @@ function GiftVisual({ label, emoji, size = "sm", bare = false }: { label: string
       )}
       {!bare && <span className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-white/45 via-transparent to-black/10" />}
     </span>
+  );
+}
+
+interface GiftAnimationOverlayProps {
+  gift: {
+    emoji: string;
+    label: string;
+    imageSrc?: string;
+    bg?: string;
+    glow?: string;
+    meaning?: string;
+  } | null;
+}
+
+function GiftAnimationOverlay({ gift }: GiftAnimationOverlayProps) {
+  const [particles, setParticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!gift) {
+      setParticles([]);
+      return;
+    }
+
+    const newParticles = Array.from({ length: 28 }).map((_, i) => {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * 180 + 60;
+      return {
+        id: i,
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance,
+        rotate: Math.random() * 360,
+        scale: Math.random() * 0.5 + 0.5,
+        delay: Math.random() * 0.35,
+      };
+    });
+    setParticles(newParticles);
+  }, [gift]);
+
+  return (
+    <AnimatePresence>
+      {gift && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden pointer-events-none select-none">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.45, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.6 }}
+            className={`absolute inset-0 bg-gradient-to-br ${gift.bg || 'from-pink-100 to-rose-200'} opacity-25 mix-blend-screen`}
+          />
+
+          <div className="absolute inset-0 flex items-center justify-center">
+            {particles.map((p) => (
+              <motion.div
+                key={p.id}
+                initial={{ x: 0, y: 0, opacity: 1, scale: 0, rotate: 0 }}
+                animate={{
+                  x: p.x,
+                  y: [p.y, p.y - 120],
+                  opacity: [0, 1, 1, 0],
+                  scale: [0, p.scale, p.scale * 0.8, 0],
+                  rotate: p.rotate + 180,
+                }}
+                transition={{
+                  duration: 2.8,
+                  ease: "easeOut",
+                  delay: p.delay,
+                }}
+                className="absolute flex items-center justify-center"
+              >
+                {gift.imageSrc ? (
+                  <img
+                    src={gift.imageSrc}
+                    alt=""
+                    className="h-10 w-10 object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.15)]"
+                  />
+                ) : (
+                  <span className="text-3xl drop-shadow-[0_4px_6px_rgba(0,0,0,0.15)]">
+                    {gift.emoji}
+                  </span>
+                )}
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ scale: 0, y: 80, rotate: -30, opacity: 0 }}
+            animate={{
+              scale: 1,
+              y: 0,
+              rotate: [0, -10, 8, -5, 5, 0],
+              opacity: 1,
+            }}
+            exit={{
+              scale: 0.4,
+              y: -180,
+              opacity: 0,
+              transition: { duration: 0.65, ease: "easeIn" },
+            }}
+            transition={{
+              scale: { type: "spring", stiffness: 280, damping: 18 },
+              y: { type: "spring", stiffness: 280, damping: 18 },
+              opacity: { duration: 0.3 },
+              rotate: { type: "tween", ease: "easeInOut", duration: 1.2 },
+            }}
+            className="relative flex flex-col items-center justify-center p-6 rounded-3xl bg-white/20 dark:bg-black/20 border border-white/30 dark:border-white/10 shadow-2xl backdrop-blur-xl max-w-[240px] text-center"
+          >
+            <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${gift.bg || 'from-pink-400 to-rose-600'} opacity-25 blur-xl pointer-events-none`} />
+
+            <div className="relative w-28 h-28 flex items-center justify-center mb-3">
+              {gift.imageSrc ? (
+                <img
+                  src={gift.imageSrc}
+                  alt={gift.label}
+                  className="relative z-10 w-24 h-24 object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.25)] animate-bounce [animation-duration:3s]"
+                />
+              ) : (
+                <span className="relative z-10 text-6xl filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.25)] animate-bounce [animation-duration:3s]">
+                  {gift.emoji}
+                </span>
+              )}
+            </div>
+
+            <h3 className="relative z-10 text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider drop-shadow-sm">
+              {gift.label} Sent
+            </h3>
+            {gift.meaning && (
+              <p className="relative z-10 text-[10px] font-bold text-rose-500 dark:text-rose-300 italic mt-1 leading-tight px-1">
+                "{gift.meaning}"
+              </p>
+            )}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -504,8 +647,19 @@ export default function Messages() {
   const [selectedThemeId, setSelectedThemeId] = useState(FREE_CHAT_THEMES[0].id);
   const [disappearingMode, setDisappearingMode] = useState<'after-view' | '24h' | '7d' | 'off'>("off");
   const [activePickerTab, setActivePickerTab] = useState<"emoji" | "gift">("emoji");
- const [activeEmojiCategory, setActiveEmojiCategory] = useState(FREE_EMOJI_CATEGORIES[0].id);
- const bottomRef = useRef<HTMLDivElement>(null);
+  const [activeEmojiCategory, setActiveEmojiCategory] = useState(FREE_EMOJI_CATEGORIES[0].id);
+  const [activeGiftAnim, setActiveGiftAnim] = useState<{
+    emoji: string;
+    label: string;
+    imageSrc?: string;
+    bg?: string;
+    glow?: string;
+    meaning?: string;
+  } | null>(null);
+  const lastGiftMsgIdRef = useRef<string | null>(null);
+  const initialMessageIdsRef = useRef<Set<string>>(new Set());
+  const hasLoadedHistoryRef = useRef<boolean>(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
  const mediaInputRef = useRef<HTMLInputElement>(null);
  const localVideoRef = useRef<HTMLVideoElement>(null);
  const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -610,7 +764,60 @@ export default function Messages() {
        window.localStorage.setItem("disappearing:" + activeId, mode);
      }
    }
- }, [messages, activeId]);
+  }, [messages, activeId]);
+
+  // Reset history tracking when active chat conversation changes
+  useEffect(() => {
+    initialMessageIdsRef.current = new Set();
+    hasLoadedHistoryRef.current = false;
+  }, [activeId]);
+
+  // Capture initial history message IDs
+  useEffect(() => {
+    if (!messages.length) return;
+    if (!hasLoadedHistoryRef.current) {
+      initialMessageIdsRef.current = new Set(messages.map((m: any) => m.id));
+      hasLoadedHistoryRef.current = true;
+    }
+  }, [messages]);
+
+  // Listen for new gift messages to trigger overlay animation in chat
+  useEffect(() => {
+    if (!messages.length || !activeId) return;
+    const lastMsg = messages[messages.length - 1];
+
+    // Check if this message was received live (not loaded from initial history)
+    if (hasLoadedHistoryRef.current && !initialMessageIdsRef.current.has(lastMsg.id)) {
+      // Prevent duplicate triggers
+      initialMessageIdsRef.current.add(lastMsg.id);
+
+      if (lastMsg.id !== lastGiftMsgIdRef.current) {
+        lastGiftMsgIdRef.current = lastMsg.id;
+
+        if (isGiftMessage(lastMsg.content)) {
+          const gift = giftPayload(lastMsg.content);
+          const visual = giftVisuals[gift.label] || { emoji: gift.emoji || "🎁", bg: "from-pink-50 to-white", glow: "shadow-rose-200/80" };
+          setActiveGiftAnim({
+            emoji: gift.emoji,
+            label: gift.label,
+            imageSrc: visual.imageSrc,
+            bg: visual.bg,
+            glow: visual.glow,
+            meaning: visual.meaning
+          });
+        }
+      }
+    }
+  }, [messages, activeId]);
+
+  // Clear active gift animation overlay after 3.5 seconds
+  useEffect(() => {
+    if (!activeGiftAnim) return;
+    const timer = setTimeout(() => {
+      setActiveGiftAnim(null);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [activeGiftAnim]);
 
  // Background cleanup loop for expired / viewed messages
  useEffect(() => {
@@ -1201,6 +1408,7 @@ export default function Messages() {
     {selectedTheme.is3d && (
       <ChatThemeParticles themeId={selectedTheme.id} />
     )}
+    <GiftAnimationOverlay gift={activeGiftAnim} />
   <header className="flex items-center justify-between border-b border-border px-5 py-3 relative z-10">
  <div className="flex items-center gap-3">
  <Button variant="ghost" size="icon" onClick={() => setActiveId(null)} className="lg:hidden" aria-label="Back to conversations"><ArrowLeft className="h-5 w-5" /></Button>

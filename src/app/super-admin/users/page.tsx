@@ -261,7 +261,7 @@ export default function UsersPage() {
 
  {showModal && (
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.68)", backdropFilter: "blur(7px)" }} onClick={(event) => { if (event.target === event.currentTarget && !creatingId) setShowModal(false); }}>
- <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+ <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl animate-in fade-in zoom-in-95 duration-200">
  <div className="flex items-center justify-between border-b border-border px-6 py-5">
  <div><h2 className="text-xl font-bold text-foreground">Create New Dashboard ID</h2><p className="mt-1 text-sm text-muted-foreground">Create secure login credentials for a management dashboard.</p></div>
  <button type="button" disabled={creatingId} onClick={() => setShowModal(false)} className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><X className="h-5 w-5" /></button>
@@ -269,13 +269,13 @@ export default function UsersPage() {
  <form onSubmit={handleCreateUser} className="p-6">
  {error && <div className="mb-5 flex items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm text-rose-500"><AlertCircle className="h-4 w-4 shrink-0" />{error}</div>}
  <div className="grid gap-5 sm:grid-cols-2">
- <div className="space-y-1.5"><label className={monoLabel}>Full Name</label><input required minLength={2} value={newName} onChange={(e) => setNewName(e.target.value)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white caret-pink-400 outline-none placeholder:text-slate-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Full name" /></div>
- <div className="space-y-1.5"><label className={monoLabel}>Login Email</label><input required type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white caret-pink-400 outline-none placeholder:text-slate-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="name@company.com" /></div>
- <div className="space-y-1.5"><label className={monoLabel}>Password</label><input required minLength={8} type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white caret-pink-400 outline-none placeholder:text-slate-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Minimum 8 characters" /></div>
- <div className="space-y-1.5"><label className={monoLabel}>Confirm Password</label><input required minLength={8} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white caret-pink-400 outline-none placeholder:text-slate-500 focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Repeat password" /></div>
- <div className="space-y-1.5 sm:col-span-2"><label className={monoLabel}>Dashboard Role</label><select value={newRole} onChange={(e) => setNewRole(e.target.value as CreatableRole)} className="h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 text-sm text-white outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"><option value="Admin">Admin</option><option value="Marketing">Marketing</option><option value="Finance">Finance</option><option value="Sales">Sales</option><option value="Support">Support</option></select><p className="text-xs text-slate-400">Admin IDs can only be created from the Super Admin panel.</p></div>
+ <div className="space-y-1.5"><label className={monoLabel}>Full Name</label><input required minLength={2} value={newName} onChange={(e) => setNewName(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Full name" /></div>
+ <div className="space-y-1.5"><label className={monoLabel}>Login Email</label><input required type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="name@company.com" /></div>
+ <div className="space-y-1.5"><label className={monoLabel}>Password</label><input required minLength={8} type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Minimum 8 characters" /></div>
+ <div className="space-y-1.5"><label className={monoLabel}>Confirm Password</label><input required minLength={8} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Repeat password" /></div>
+ <div className="space-y-1.5 sm:col-span-2"><label className={monoLabel}>Dashboard Role</label><select value={newRole} onChange={(e) => setNewRole(e.target.value as CreatableRole)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"><option value="Admin">Admin</option><option value="Marketing">Marketing</option><option value="Finance">Finance</option><option value="Sales">Sales</option><option value="Support">Support</option></select><p className="text-xs text-muted-foreground">Admin IDs can only be created from the Super Admin panel.</p></div>
  </div>
- <div className="mt-6 flex justify-end gap-3 border-t border-slate-700 pt-5"><button type="button" disabled={creatingId} onClick={() => setShowModal(false)} className="h-10 rounded-lg border border-slate-600 bg-slate-800 px-5 text-sm font-semibold text-slate-200 hover:bg-slate-700 disabled:opacity-50">Cancel</button><button type="submit" disabled={creatingId} className="h-10 min-w-32 rounded-lg px-5 text-sm font-semibold text-white shadow-md disabled:opacity-50" style={{ background: "var(--gradient-brand)" }}>{creatingId ? "Creating..." : "Create ID"}</button></div>
+ <div className="mt-6 flex justify-end gap-3 border-t border-border pt-5"><button type="button" disabled={creatingId} onClick={() => setShowModal(false)} className="h-10 rounded-lg border border-border bg-card px-5 text-sm font-semibold text-foreground hover:bg-muted disabled:opacity-50">Cancel</button><button type="submit" disabled={creatingId} className="h-10 min-w-32 rounded-lg px-5 text-sm font-semibold text-white shadow-md disabled:opacity-50" style={{ background: "var(--gradient-brand)" }}>{creatingId ? "Creating..." : "Create ID"}</button></div>
  </form>
  </div>
  </div>
@@ -307,11 +307,11 @@ export default function UsersPage() {
           onChange={(e) => setStatus(e.target.value as StatusFilter)}
           className="h-10 w-full rounded-full border border-border bg-card px-4 pr-10 text-sm text-foreground outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
         >
-          <option value="All" className="bg-slate-900 text-slate-100">All Statuses</option>
-          <option value="Active" className="bg-slate-900 text-slate-100">Active</option>
-          <option value="Pending" className="bg-slate-900 text-slate-100">Pending</option>
-          <option value="Under Review" className="bg-slate-900 text-slate-100">Under Review</option>
-          <option value="Banned" className="bg-slate-900 text-slate-100">Banned</option>
+          <option value="All">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Pending">Pending</option>
+          <option value="Under Review">Under Review</option>
+          <option value="Banned">Banned</option>
         </select>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
           <Filter className="h-4 w-4" />
@@ -325,14 +325,14 @@ export default function UsersPage() {
           onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
           className="h-10 w-full rounded-full border border-border bg-card px-4 pr-10 text-sm text-foreground outline-none focus:border-primary transition-colors appearance-none cursor-pointer"
         >
-          <option value="All" className="bg-slate-900 text-slate-100">All Roles</option>
-          <option value="Super Admin" className="bg-slate-900 text-slate-100">Super Admin</option>
-          <option value="Admin" className="bg-slate-900 text-slate-100">Admin</option>
-          <option value="Finance" className="bg-slate-900 text-slate-100">Finance</option>
-          <option value="Sales" className="bg-slate-900 text-slate-100">Sales</option>
-          <option value="Support" className="bg-slate-900 text-slate-100">Support</option>
-          <option value="Marketing" className="bg-slate-900 text-slate-100">Marketing</option>
-          <option value="User" className="bg-slate-900 text-slate-100">User</option>
+          <option value="All">All Roles</option>
+          <option value="Super Admin">Super Admin</option>
+          <option value="Admin">Admin</option>
+          <option value="Finance">Finance</option>
+          <option value="Sales">Sales</option>
+          <option value="Support">Support</option>
+          <option value="Marketing">Marketing</option>
+          <option value="User">User</option>
         </select>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
           <ShieldCheck className="h-4 w-4" />
