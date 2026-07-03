@@ -21,11 +21,17 @@ export const defaultFilters: DiscoverFilters = {
   search: "",
   ageMin: 18,
   ageMax: 60,
-  maxDistance: 20,
+  maxDistance: 100,
   interests: [],
   goals: [],
   verifiedOnly: false,
 };
+
+const ANYWHERE_DISTANCE_KM = 10000;
+
+function formatDistanceLabel(distance: number) {
+  return distance >= ANYWHERE_DISTANCE_KM ? "Anywhere" : `${distance} km`;
+}
 
 const filtersMeta = [
   { id: "age", label: "Age Range", icon: Calendar },
@@ -40,9 +46,10 @@ interface FiltersPanelProps {
   onChange: (next: DiscoverFilters) => void;
   availableInterests?: string[];
   availableGoals?: string[];
+  effectiveMaxDistance?: number;
 }
 
-export function FiltersPanel({ filters, onChange, availableInterests = [], availableGoals = [] }: FiltersPanelProps) {
+export function FiltersPanel({ filters, onChange, availableInterests = [], availableGoals = [], effectiveMaxDistance = filters.maxDistance }: FiltersPanelProps) {
   const [active, setActive] = useState("age");
 
   const allInterests = useMemo(
@@ -135,17 +142,22 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
           <div className="space-y-4">
             <p className="text-sm font-semibold text-foreground">Max Distance</p>
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>1 mi</span>
-              <span className="font-semibold text-rose-500">{filters.maxDistance} mi</span>
-              <span>20 mi</span>
+              <span>1 km</span>
+              <span className="font-semibold text-rose-500">{formatDistanceLabel(filters.maxDistance)}</span>
+              <span>Anywhere</span>
             </div>
             <Slider
               value={[filters.maxDistance]}
               onValueChange={(v: number[]) => update("maxDistance", v[0])}
               min={1}
-              max={20}
+              max={ANYWHERE_DISTANCE_KM}
               step={1}
             />
+            <p className="text-[10px] text-muted-foreground">
+              {effectiveMaxDistance > filters.maxDistance
+                ? `No one found nearby, auto-expanded to ${formatDistanceLabel(effectiveMaxDistance)}.`
+                : `Showing profiles within ${formatDistanceLabel(filters.maxDistance)}.`}
+            </p>
           </div>
         )}
 

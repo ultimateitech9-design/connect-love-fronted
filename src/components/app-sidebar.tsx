@@ -38,11 +38,11 @@ export function AppSidebar() {
  <SidebarHeader className="border-b border-sidebar-border pb-4 pt-4">
  <div className="flex items-center gap-3 px-2">
  <BrandLogo className="h-8 w-8" />
- <div className="flex flex-col">
- <span className="text-lg font-bold tracking-tight">
+ <div className="flex min-w-0 flex-col">
+ <span className="truncate text-lg font-bold tracking-tight">
  <span className="text-white">Connect</span><span className="text-red-500">Love</span>
  </span>
- <span className="text-[11px] text-muted-foreground uppercase tracking-wider">Marketing Dashboard</span>
+ <span className="truncate text-[11px] uppercase tracking-wider text-muted-foreground">Marketing Dashboard</span>
  </div>
  </div>
  </SidebarHeader>
@@ -59,9 +59,9 @@ export function AppSidebar() {
  isActive={isActive}
  className={`h-[44px] rounded-xl transition-all ${isActive ? 'bg-gradient-to-r from-primary/20 to-primary/5 text-primary hover:bg-primary/20 hover:text-primary before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-primary' : 'text-sidebar-foreground hover:bg-sidebar-accent/50'}`}
  >
- <Link href={item.url} className="flex items-center gap-3 px-2">
+ <Link href={item.url} className="flex min-w-0 items-center gap-3 px-2">
  <item.icon className="h-[20px] w-[20px]" />
- <span className="text-sm font-medium">{item.title}</span>
+ <span className="truncate text-sm font-medium">{item.title}</span>
  </Link>
  </SidebarMenuButton>
  </SidebarMenuItem>
@@ -82,7 +82,7 @@ export function AppSidebar() {
  <ChevronUp className="h-[16px] w-[16px] opacity-50" />
  </SidebarMenuButton>
  </DropdownMenuTrigger>
- <DropdownMenuContent side="bottom" align="start" className="w-[13.333vw] bg-card border-border/50">
+ <DropdownMenuContent side="bottom" align="start" className="w-56 bg-card border-border/50">
  <DropdownMenuItem asChild className="cursor-pointer gap-2 focus:bg-primary/10 focus:text-primary">
  <Link href="/marketing/profile">
  <User className="h-[16px] w-[16px]" />

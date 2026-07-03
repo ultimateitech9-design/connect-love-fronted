@@ -99,10 +99,10 @@ const itemVariants: Variants = {
 
 export default function ManagementPage() {
   return (
-    <div className="min-h-screen lg:h-screen flex flex-col bg-slate-50/50 text-slate-900 antialiased selection:bg-rose-100 selection:text-rose-900 lg:overflow-hidden">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-50/50 text-slate-900 antialiased selection:bg-rose-100 selection:text-rose-900">
       <ManagementNavbar />
 
-      <main className="flex-1 flex flex-col items-center justify-center relative overflow-hidden py-6 lg:py-8 px-4 sm:px-6">
+      <main className="relative flex flex-1 flex-col items-center justify-center overflow-x-hidden px-4 py-6 sm:px-6 lg:py-8">
         {/* Modern radial glow and grid pattern background */}
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-100/30 via-slate-50 to-white" />
         <div 
@@ -115,7 +115,7 @@ export default function ManagementPage() {
           }}
         />
         
-        <div className="max-w-6xl w-full flex flex-col items-center">
+        <div className="flex w-full max-w-[calc(100vw-2rem)] flex-col items-center sm:max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -130,16 +130,17 @@ export default function ManagementPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl text-slate-900 mb-3 text-center"
+            className="mb-3 max-w-full text-center text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl"
           >
-            App Background <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-600">Management</span>
+            <span className="block sm:inline">App Background</span>{" "}
+            <span className="block bg-gradient-to-r from-rose-500 to-pink-600 bg-clip-text text-transparent sm:inline">Management</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="text-xs sm:text-sm text-slate-500 max-w-xl mb-6 text-center leading-relaxed"
+            className="mb-6 max-w-[calc(100vw-2rem)] text-center text-xs leading-relaxed text-slate-500 sm:max-w-xl sm:text-sm"
           >
             Select your role to access the management dashboard and control application settings, users, and matches.
           </motion.p>
@@ -148,7 +149,7 @@ export default function ManagementPage() {
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5 w-full"
+            className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5"
           >
             {ROLES.map((role) => {
               const Icon = role.icon;
@@ -156,7 +157,7 @@ export default function ManagementPage() {
                  <motion.div
                   key={role.title}
                   variants={itemVariants}
-                  className="group relative bg-white border border-slate-100 rounded-xl p-4 flex flex-col items-start transition-all duration-300 hover:border-slate-200/80 hover:shadow-[0_20px_50px_rgba(244,63,94,0.04)] hover:-translate-y-1 w-full"
+                  className="group relative flex w-full flex-col items-start overflow-hidden rounded-xl border border-slate-100 bg-white p-4 transition-all duration-300 hover:-translate-y-1 hover:border-slate-200/80 hover:shadow-[0_20px_50px_rgba(244,63,94,0.04)]"
                 >
                   {/* Subtle Top-Right Accent for Super Admin */}
                   {role.isPrimary && (

@@ -16,7 +16,7 @@ export default function RootLayout({
  return (
  <div className="theme-marketing dark">
  <SidebarProvider>
- <div className="min-h-screen flex w-full bg-background">
+ <div className="min-h-screen flex w-full overflow-x-hidden bg-background">
  <AppSidebar />
  <div className="min-w-0 flex-1 flex flex-col">
  <header className="min-h-14 flex items-center gap-3 border-b border-border bg-card/50 backdrop-blur px-3 sm:px-4 sticky top-0 z-10">
@@ -34,7 +34,7 @@ export default function RootLayout({
  </div>
  </div>
  </header>
- <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
+ <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">{children}</main>
  </div>
  </div>
  </SidebarProvider>

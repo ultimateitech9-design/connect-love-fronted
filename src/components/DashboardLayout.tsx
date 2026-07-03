@@ -63,7 +63,7 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  <button
  key={item.to}
  onClick={() => router.push(item.to)}
- className={`relative flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-all lg:w-full lg:gap-3 ${
+ className={`relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm transition-all lg:w-full lg:whitespace-normal lg:gap-3 ${
  active
  ? "bg-gradient-to-r from-primary/20 to-primary/5 text-white font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[32px] before:w-[4px] before:rounded-r-full before:bg-primary"
  : "text-sidebar-foreground hover:bg-white/5 hover:text-white"
@@ -90,7 +90,7 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  <ChevronDown className="size-4 opacity-50" />
  </button>
  </DropdownMenuTrigger>
- <DropdownMenuContent className="w-[13.333vw] ml-2" align="start" side="bottom">
+ <DropdownMenuContent className="ml-2 w-56" align="start" side="bottom">
  <DropdownMenuItem onClick={() => router.push("/finance/profile")} className="cursor-pointer">
  <User className="mr-2 size-4" />
  <span>View Profile</span>
@@ -105,8 +105,8 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  </aside>
 
  <main className="min-w-0 flex-1">
- <header className="flex min-h-16 items-center justify-between gap-3 border-b border-border bg-card/60 px-4 py-2 backdrop-blur sm:px-6 lg:px-8">
- <div className="relative w-full max-w-80">
+ <header className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-border bg-card/60 px-4 py-2 backdrop-blur sm:px-6 lg:flex-nowrap lg:px-8">
+ <div className="relative min-w-[12rem] flex-1 lg:max-w-80">
  <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
  <input
  placeholder="Search transactions, users…"
@@ -123,7 +123,7 @@ export function DashboardLayout({ title, subtitle, children }: { title: string; 
  </div>
  </header>
 
- <div className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+ <div className="px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
  <div className="mb-8">
  <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl" style={{ fontFamily: "var(--font-display)" }}>{title}</h1>
  {subtitle && <p className="text-muted-foreground mt-1">{subtitle}</p>}

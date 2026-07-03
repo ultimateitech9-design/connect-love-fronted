@@ -1,5 +1,1 @@
-import { redirect } from "next/navigation";
-
-export default function UserIndex() {
- redirect("/user/discover");
-}
+export { default } from "./discover/page";

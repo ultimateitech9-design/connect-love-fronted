@@ -183,7 +183,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
         onChange={handleFileChange}
       />
 
-      <div className="grid grid-cols-3 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-5">
         <Reorder.Group
           axis="x"
           values={uniquePhotos}
@@ -278,10 +278,10 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
       )}
 
       {editor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="grid h-[92vh] w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="flex min-h-0 items-center justify-center bg-slate-950 p-6">
-              <div className="aspect-[3/4] h-full max-h-[70vh] overflow-hidden rounded-2xl bg-slate-900 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-4">
+          <div className="grid max-h-[calc(100dvh-1.5rem)] w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="flex min-h-0 items-center justify-center bg-slate-950 p-4 sm:p-6">
+              <div className="aspect-[3/4] h-full max-h-[42dvh] overflow-hidden rounded-2xl bg-slate-900 shadow-xl sm:max-h-[56dvh] lg:max-h-[70vh]">
                 <img
                   src={editor.source}
                   alt="Photo preview"
@@ -300,7 +300,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
               </div>
             </div>
 
-            <div className="flex min-h-0 flex-col p-5">
+            <div className="flex min-h-0 flex-col p-4 sm:p-5">
               <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <h3 className="text-lg font-bold text-slate-900">Edit photo</h3>
@@ -329,7 +329,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
                 </div>
               </div>
 
-              <div className="sticky bottom-0 flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-white pt-4">
+              <div className="sticky bottom-0 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-white pt-4">
                 <button
                   type="button"
                   onClick={resetEditorTools}

@@ -2,28 +2,4 @@
 > dev
 > set NODE_OPTIONS=--max-old-space-size=2048 && next dev --port 3002
 
-▲ Next.js 16.2.6 (Turbopack)
-- Local:         http://localhost:3002
-- Network:       http://10.108.97.9:3002
-- Environments: .env.local
-✓ Ready in 1731ms
-Creating turbopack project {
-  dir: 'C:\\Users\\User\\Desktop\\Dating App\\connect-love-fronted',
-  testMode: true
-}
-
-  We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
-  The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
-
-  	- include was updated to add '.next/dev/types/**/*.ts'
-
-
-○ Compiling /finance/reports ...
- GET /finance/reports 200 in 5.9s (next.js: 5.0s, proxy.ts: 317ms, application-code: 547ms)
- GET /finance/invoices/billing 200 in 1450ms (next.js: 916ms, proxy.ts: 13ms, application-code: 521ms)
- GET /finance/invoices/generate 200 in 1432ms (next.js: 1183ms, proxy.ts: 9ms, application-code: 241ms)
- GET /finance/invoices/billing 200 in 218ms (next.js: 42ms, proxy.ts: 10ms, application-code: 166ms)
- GET /finance 200 in 751ms (next.js: 701ms, proxy.ts: 13ms, application-code: 37ms)
- GET /finance/subscriptions 200 in 874ms (next.js: 810ms, proxy.ts: 18ms, application-code: 47ms)
- GET /finance/transactions 200 in 859ms (next.js: 796ms, proxy.ts: 6ms, application-code: 57ms)
- GET /finance/invoices/billing 200 in 167ms (next.js: 11ms, proxy.ts: 8ms, application-code: 148ms)
+[?25h

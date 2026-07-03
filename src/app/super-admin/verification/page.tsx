@@ -78,26 +78,30 @@ export default function VerificationPage() {
  );
  const rejectionRate = queue.length ? Math.round((rejected.length / queue.length) * 100) : 0;
 
- const moveNext = (current: QueueRow) => {
- const next = queue.find((r) => r.id !== current.id);
+ const moveNext = (current: QueueRow, approvedIds = approved, rejectedIds = rejected) => {
+ const next = queue.find((r) => r.id !== current.id && !approvedIds.includes(r.id) && !rejectedIds.includes(r.id))
+   || queue.find((r) => r.id !== current.id)
+   || null;
  setActiveUser(next || null);
  };
 
  const handleApprove = async () => {
  if (!activeUser) return;
  await api.updateVerification(activeUser.id, "approved");
- setApproved((prev) => [...prev, activeUser.name]);
- setQueue((rows) => rows.filter((row) => row.id !== activeUser.id));
- moveNext(activeUser);
+ const nextApproved = Array.from(new Set([...approved, activeUser.id]));
+ setApproved(nextApproved);
+ setQueue((rows) => rows.map((row) => row.id === activeUser.id ? { ...row, status: "Approved" } : row));
+ moveNext(activeUser, nextApproved, rejected);
  };
 
  const handleReject = async () => {
  if (!activeUser) return;
  await api.updateVerification(activeUser.id, "rejected");
- setRejected((prev) => [...prev, activeUser.name]);
- setQueue((rows) => rows.filter((row) => row.id !== activeUser.id));
+ const nextRejected = Array.from(new Set([...rejected, activeUser.id]));
+ setRejected(nextRejected);
+ setQueue((rows) => rows.map((row) => row.id === activeUser.id ? { ...row, status: "Rejected" } : row));
  setReason("");
- moveNext(activeUser);
+ moveNext(activeUser, approved, nextRejected);
  };
 
  return (
@@ -198,11 +202,15 @@ export default function VerificationPage() {
  ) : filteredQueue.length === 0 ? (
  <tr><td colSpan={5} className="py-10 text-center text-muted-foreground text-sm">No verification requests found.</td></tr>
  ) : filteredQueue.map((r) => {
- const isApproved = approved.includes(r.name);
- const isRejected = rejected.includes(r.name);
+ const isApproved = approved.includes(r.id) || r.status.toLowerCase() === "approved";
+ const isRejected = rejected.includes(r.id) || r.status.toLowerCase() === "rejected";
  const isActive = activeUser?.id === r.id;
  return (
- <tr key={r.id} className={`border-b border-border last:border-0 transition-colors ${isActive ? "bg-primary/5 border-l-4 border-l-primary" : "hover:bg-muted/30"}`}>
+ <tr
+ key={r.id}
+ onClick={() => setActiveUser(r)}
+ className={`cursor-pointer border-b border-border last:border-0 transition-colors ${isActive ? "bg-primary/5 border-l-4 border-l-primary" : "hover:bg-muted/30"}`}
+ >
  <td className="py-4 pl-5">
  <div className="flex items-center gap-3">
  <div className={`h-10 w-10 rounded-full ${r.color} text-white flex items-center justify-center text-xs font-semibold`}>{r.initials}</div>
@@ -213,7 +221,15 @@ export default function VerificationPage() {
  <td className="py-4"><span className="inline-flex px-2.5 py-1 rounded-md bg-secondary/10 text-secondary text-[10px] font-bold uppercase tracking-wider">{r.idType}</span></td>
  <td className="py-4"><span className={`text-sm font-medium ${r.priority === "High" ? "text-primary" : "text-muted-foreground"}`}>{r.priority}</span></td>
  <td className="py-4 pr-5 text-right text-sm font-semibold">
- {isApproved ? <span className="text-emerald-600">Approved</span> : isRejected ? <span className="text-rose-600">Rejected</span> : isActive ? <span className="text-primary">Reviewing Now</span> : <button onClick={() => setActiveUser(r)} className="text-secondary hover:underline hover:text-primary transition-colors">Review</button>}
+ {isActive ? (
+ <span className="text-primary">Reviewing Now</span>
+ ) : isApproved ? (
+ <button onClick={(e) => { e.stopPropagation(); setActiveUser(r); }} className="text-emerald-600 hover:underline">Approved · Select</button>
+ ) : isRejected ? (
+ <button onClick={(e) => { e.stopPropagation(); setActiveUser(r); }} className="text-rose-600 hover:underline">Rejected · Select</button>
+ ) : (
+ <button onClick={(e) => { e.stopPropagation(); setActiveUser(r); }} className="text-secondary hover:underline hover:text-primary transition-colors">Review</button>
+ )}
  </td>
  </tr>
  );

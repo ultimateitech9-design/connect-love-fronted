@@ -73,7 +73,7 @@ export default function SalesLoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 overflow-hidden relative selection:bg-amber-500/30">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-slate-50 px-4 py-6 selection:bg-amber-500/30">
       
       {/* Background glowing orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-600/20 blur-[120px] pointer-events-none" />
@@ -84,7 +84,8 @@ export default function SalesLoginPage() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-md p-8 rounded-3xl bg-white/90 border border-slate-200 backdrop-blur-2xl shadow-xl relative z-10"
+        style={{ width: "min(22rem, calc(100vw - 4rem))" }}
+        className="relative z-10 w-[calc(100vw-2rem)] overflow-hidden rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-xl backdrop-blur-2xl sm:w-full sm:max-w-md sm:p-8"
       >
         <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-slate-100 pointer-events-none" />
         
@@ -133,7 +134,7 @@ export default function SalesLoginPage() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <Label className="text-slate-700 font-semibold">Password</Label>
                   <button type="button" onClick={() => setView("forgot")} className="text-xs font-medium text-amber-600 hover:text-amber-700 transition-colors">
                     Forgot password?
@@ -223,7 +224,7 @@ export default function SalesLoginPage() {
       </motion.div>
       
       {/* Footer Branding */}
-      <div className="absolute bottom-6 flex items-center justify-center w-full z-10 pointer-events-none">
+      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 hidden w-full items-center justify-center sm:flex">
         <span className="flex items-center gap-1.5 text-slate-600 text-sm font-medium bg-white/80 px-4 py-1.5 rounded-full backdrop-blur-md border border-slate-200 shadow-sm">
           <img src="/connect-love-logo.png" alt="" className="h-4 w-4 rounded" /> ConnectLove Secure Sales
         </span>

@@ -9,8 +9,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
 const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
 const VIDEO_MESSAGE_PREFIX = "__video_message__:";
+const CHAT_THEME_MESSAGE_PREFIX = "__chat_theme__:";
 
 function messagePreview(content: string) {
+ if (content.startsWith(CHAT_THEME_MESSAGE_PREFIX)) return "Chat theme changed";
  if (content.startsWith(VOICE_MESSAGE_PREFIX)) return "Voice message";
  if (content.startsWith(PHOTO_MESSAGE_PREFIX)) return "Photo";
  if (content.startsWith(VIDEO_MESSAGE_PREFIX)) return "Video";

@@ -143,10 +143,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_12%_10%,rgba(244,63,94,0.13),transparent_30%),radial-gradient(circle_at_88%_88%,rgba(168,85,247,0.12),transparent_28%),linear-gradient(135deg,#fff7fa_0%,#fff0f6_48%,#f7fbff_100%)] px-4 py-6 sm:px-6 lg:p-6">
-      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl items-center">
-        <div className="grid overflow-hidden rounded-[2rem] border border-white/75 bg-white shadow-2xl shadow-rose-200/45 lg:grid-cols-[0.82fr_1.18fr]">
-          <aside className="relative hidden min-h-[620px] overflow-hidden bg-gradient-to-br from-[#160827] via-[#401055] to-[#101d3c] p-8 text-white lg:flex lg:flex-col lg:justify-between">
+    <main className="min-h-dvh overflow-x-hidden bg-[radial-gradient(circle_at_12%_10%,rgba(244,63,94,0.13),transparent_30%),radial-gradient(circle_at_88%_88%,rgba(168,85,247,0.12),transparent_28%),linear-gradient(135deg,#fff7fa_0%,#fff0f6_48%,#f7fbff_100%)] px-3 py-2 sm:px-5 lg:p-3">
+      <div className="mx-auto grid min-h-[calc(100dvh-1rem)] max-w-5xl items-center md:min-h-[calc(100dvh-1.5rem)]">
+        <div className="grid overflow-hidden rounded-[1.5rem] border border-white/75 bg-white shadow-2xl shadow-rose-200/40 lg:grid-cols-[0.78fr_1.22fr]">
+          <aside className="relative hidden min-h-[560px] overflow-hidden bg-gradient-to-br from-[#160827] via-[#401055] to-[#101d3c] p-6 text-white lg:flex lg:flex-col lg:justify-between">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(244,63,94,0.32),transparent_26%),radial-gradient(circle_at_72%_70%,rgba(236,72,153,0.22),transparent_30%)]" />
             <div className="relative z-10">
               <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-white/75 transition hover:text-white">
@@ -156,24 +156,24 @@ export default function RegisterPage() {
             </div>
 
             <div className="relative z-10">
-              <div className="mb-8 grid h-20 w-20 place-items-center rounded-[1.6rem] bg-white/12 shadow-xl shadow-rose-500/20 backdrop-blur">
-                <UserRoundPlus className="h-10 w-10 text-rose-200" />
+              <div className="mb-6 grid h-16 w-16 place-items-center rounded-[1.25rem] bg-white/12 shadow-xl shadow-rose-500/20 backdrop-blur">
+                <UserRoundPlus className="h-8 w-8 text-rose-200" />
               </div>
-              <h1 className="max-w-sm text-4xl font-black leading-tight tracking-tight">
+              <h1 className="max-w-sm text-3xl font-black leading-tight tracking-tight">
                 Create a profile that feels like you.
               </h1>
-              <p className="mt-4 max-w-sm text-sm leading-6 text-white/65">
+              <p className="mt-3 max-w-sm text-xs leading-5 text-white/65">
                 Start with the basics. You will add photos, interests, and deeper profile details during onboarding.
               </p>
             </div>
 
-            <div className="relative z-10 grid gap-3">
+            <div className="relative z-10 grid gap-2">
               {[
                 ["Verified community", ShieldCheck],
                 ["Better matches", Sparkles],
                 ["Private messaging", Heart],
               ].map(([label, Icon]: any) => (
-                <div key={label} className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 text-sm text-white/82 backdrop-blur">
+                <div key={label} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-semibold text-white/82 backdrop-blur">
                   <Icon className="h-4 w-4 text-rose-200" />
                   {label}
                 </div>
@@ -181,28 +181,28 @@ export default function RegisterPage() {
             </div>
           </aside>
 
-          <section className="flex min-h-[620px] flex-col justify-center p-5 sm:p-8 lg:p-10">
-            <div className="mx-auto w-full max-w-2xl">
-              <Link href="/" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-rose-600 lg:hidden">
+          <section className="flex min-h-[520px] flex-col justify-center p-4 sm:p-5 lg:p-7">
+            <div className="mx-auto w-full max-w-xl">
+              <Link href="/" className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-rose-600 lg:hidden">
                 <ArrowLeft className="h-4 w-4" />
                 Back home
               </Link>
 
-              <div className="mb-7 flex items-center gap-3">
-                <BrandLogo className="h-12 w-12 shadow-lg shadow-rose-500/25" priority />
+              <div className="mb-4 flex items-center gap-3">
+                <BrandLogo className="h-9 w-9 shadow-lg shadow-rose-500/25" priority />
                 <div>
-                  <p className="text-lg font-black text-slate-950">Connect Love</p>
+                  <p className="text-base font-black text-slate-950">Connect Love</p>
                   <p className="text-xs font-semibold text-slate-400">New member account</p>
                 </div>
               </div>
 
-              <h2 className="text-3xl font-black tracking-tight text-slate-950">Create your account</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">A clean start for real matches. No clutter, no oversized modal.</p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">Create your account</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-500">A clean start for real matches. No clutter, no oversized modal.</p>
 
               {error && <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
-              <form onSubmit={handleSubmit(onSubmit)} className="mt-6 grid gap-4">
-                <div className="grid gap-4 sm:grid-cols-2">
+              <form onSubmit={handleSubmit(onSubmit)} className="mt-3 grid gap-2.5">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Full Name" error={errors.name?.message}>
                     <input {...register("name")} id="signup-name" placeholder="Jane Doe" className="field-input" />
                   </Field>
@@ -226,13 +226,13 @@ export default function RegisterPage() {
                 </Field>
 
                 <Field label="Location" error={errors.city?.message}>
-                  <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                  <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                     <input {...register("city")} id="signup-city" placeholder="Your city" className="field-input" />
                     <button
                       type="button"
                       onClick={detectLocation}
                       disabled={detectingLocation}
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 text-sm font-black text-rose-600 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70"
+                      className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 text-xs font-black text-rose-600 transition hover:border-rose-300 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
                     >
                       {detectingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
                       {detectingLocation ? "Finding..." : "Use GPS"}
@@ -241,7 +241,7 @@ export default function RegisterPage() {
                   {locationStatus && <p className="mt-1.5 text-xs text-slate-500">{locationStatus}</p>}
                 </Field>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Password" error={errors.password?.message}>
                     <div className="relative">
                       <input {...register("password")} id="signup-password" type={showPass ? "text" : "password"} placeholder="Strong password" className="field-input pr-12" />
@@ -258,7 +258,7 @@ export default function RegisterPage() {
                 {password && (
                   <div className="flex flex-wrap gap-2">
                     {checks.map((c) => (
-                      <span key={c.label} className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${c.ok ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-400"}`}>
+                      <span key={c.label} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${c.ok ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-400"}`}>
                         <Check className="h-3.5 w-3.5" />
                         {c.label}
                       </span>
@@ -267,20 +267,20 @@ export default function RegisterPage() {
                 )}
 
                 <div>
-                  <label className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 text-xs leading-5 text-slate-500">
+                  <label className="flex items-start gap-3 rounded-xl bg-slate-50 px-3 py-2.5 text-[11px] leading-5 text-slate-500">
                     <input {...register("agreeTerms")} id="signup-agree-terms" type="checkbox" className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-rose-600 focus:ring-rose-400" />
-                    <span>I agree to the Terms of Service and Privacy Policy. I confirm I am 18+.</span>
+                    <span className="min-w-0">I agree to the Terms of Service and Privacy Policy. I confirm I am 18+.</span>
                   </label>
                   {errors.agreeTerms && <p className="mt-1.5 text-xs text-rose-500">{errors.agreeTerms.message}</p>}
                 </div>
 
-                <button id="signup-submit-btn" type="submit" disabled={isSubmitting} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-black text-white shadow-lg shadow-rose-500/25 transition hover:scale-[1.01] hover:from-rose-400 hover:to-pink-500 active:scale-[0.99] disabled:opacity-70">
+                <button id="signup-submit-btn" type="submit" disabled={isSubmitting} className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-xs font-black text-white shadow-lg shadow-rose-500/25 transition hover:scale-[1.01] hover:from-rose-400 hover:to-pink-500 active:scale-[0.99] disabled:opacity-70">
                   {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                   {isSubmitting ? "Creating account..." : "Create My Account"}
                 </button>
               </form>
 
-              <p className="mt-5 text-center text-sm text-slate-500">
+              <p className="mt-2 text-center text-xs text-slate-500">
                 Already have an account? <Link href="/login" className="font-black text-rose-500 hover:text-rose-600">Sign In</Link>
               </p>
             </div>
@@ -290,13 +290,13 @@ export default function RegisterPage() {
 
       <style jsx global>{`
         .field-input {
-          height: 3rem;
+          height: 2.5rem;
           width: 100%;
-          border-radius: 1rem;
+          border-radius: 0.75rem;
           border: 1px solid rgb(226 232 240);
           background: rgb(248 250 252);
           padding: 0 1rem;
-          font-size: 0.875rem;
+          font-size: 0.8125rem;
           color: rgb(15 23 42);
           outline: none;
           transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
@@ -314,7 +314,7 @@ export default function RegisterPage() {
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-bold text-slate-700">{label}</label>
+      <label className="mb-1.5 block text-xs font-bold text-slate-700">{label}</label>
       {children}
       {error && <p className="mt-1.5 text-xs text-rose-500">{error}</p>}
     </div>

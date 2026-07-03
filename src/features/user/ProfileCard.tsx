@@ -13,6 +13,7 @@ export interface Profile {
   images?: string[];
   avatarUrl?: string;
   profession: string;
+  distanceKm?: number | null;
   distanceMi?: number | null;
   goals?: string | null;
   bio?: string;
@@ -74,7 +75,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
 
   if (profiles.length === 0) {
     return (
-      <div className="flex aspect-[4/5] w-full max-w-[31.944vw] flex-col items-center justify-center rounded-3xl bg-card p-8 text-center shadow-xl border border-border">
+      <div className="flex aspect-[4/5] w-full max-w-[min(92vw,460px)] flex-col items-center justify-center rounded-3xl bg-card p-6 text-center shadow-xl border border-border sm:p-8">
         <div className="mb-4 grid h-[64px] w-[64px] place-items-center rounded-full bg-rose-50 dark:bg-rose-950/30">
           <X className="h-[32px] w-[32px] text-rose-300 dark:text-rose-500" />
         </div>
@@ -91,6 +92,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   const currentDisplayPhoto = currentPhotos[photoIndex] || currentPhotos[0] || null;
   const nextPhotos = next.photos && next.photos.length > 0 ? next.photos : (next.photo ? [next.photo] : []);
   const nextDisplayPhoto = nextPhotos[0] || null;
+  const profileDistanceKm = profile.distanceKm ?? profile.distanceMi ?? null;
 
 
 
@@ -201,7 +203,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-[460px]">
+    <div className="relative mx-auto w-full max-w-[min(92vw,460px)]">
 
       {/* Particle Explosion for Super Like */}
       <AnimatePresence>
@@ -323,7 +325,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute top-6 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-1.5 text-xs font-medium text-white backdrop-blur-md"
+            className="absolute left-1/2 top-4 max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-center text-xs font-medium text-white backdrop-blur-md sm:top-6 sm:px-4"
               >
                 Hold to view full bio
               </motion.div>
@@ -349,17 +351,26 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
 
           <motion.div
             animate={{ opacity: showDetails ? 0 : 1 }}
-            className="absolute inset-x-0 bottom-0 p-6 text-white pointer-events-none"
+            className="absolute inset-x-0 bottom-0 p-4 text-white pointer-events-none sm:p-6"
           >
-            <div className="flex items-center gap-2">
-              <h3 className="text-3xl font-semibold tracking-tight">{profile.name}{profile.age ? `, ${profile.age}` : ""}</h3>
-              {profile.verified && <BadgeCheck className="h-6 w-6 text-emerald-400" fill="currentColor" />}
+            <div className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1">
+              <h3 className="min-w-0 max-w-full text-2xl font-semibold leading-tight tracking-tight drop-shadow-sm sm:text-3xl">
+                {profile.name}{profile.age ? `, ${profile.age}` : ""}
+              </h3>
+              {(profile.verified || profile.isVerified) && (
+                <BadgeCheck className="h-5 w-5 shrink-0 text-emerald-400 drop-shadow-sm sm:h-[22px] sm:w-[22px]" strokeWidth={2.6} />
+              )}
             </div>
+            {(profile.verified || profile.isVerified) && (
+              <div className="mt-0.5 text-sm font-medium text-white/90">
+                Verified &middot; Free Member
+              </div>
+            )}
             <div className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
-              {profile.showDistance !== false && typeof profile.distanceMi === "number" && (
+              {profile.showDistance !== false && typeof profileDistanceKm === "number" && (
                 <>
                   <MapPin className="h-4 w-4" />
-                  {profile.distanceMi} mi away ·
+                  {profileDistanceKm} km away ·
                 </>
               )}
               {profile.profession}
@@ -383,7 +394,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 100 }}
                 transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                className="absolute inset-x-0 bottom-0 h-[75%] rounded-t-3xl bg-card/95 backdrop-blur-xl p-6 shadow-2xl flex flex-col text-foreground"
+                className="absolute inset-x-0 bottom-0 flex h-[78%] flex-col rounded-t-3xl bg-card/95 p-4 text-foreground shadow-2xl backdrop-blur-xl sm:h-[75%] sm:p-6"
           >
             <div className="mx-auto mb-4 h-[6px] w-[48px] rounded-full bg-slate-300 dark:bg-slate-700" />
 
@@ -393,12 +404,21 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                   <Loader2 className="h-[32px] w-[32px] animate-spin text-rose-500" />
                 </div>
               ) : detailedProfile ? (
-                <div className="space-y-6">
+                <div className="space-y-5 sm:space-y-6">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-2xl font-bold text-foreground">{detailedProfile.name}{detailedProfile.age ? `, ${detailedProfile.age}` : ""}</h2>
-                      {detailedProfile.isVerified && <BadgeCheck className="h-[24px] w-[24px] text-emerald-500" fill="currentColor" />}
+                    <div className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1">
+                      <h2 className="min-w-0 max-w-full text-2xl font-bold leading-tight text-foreground">
+                        {detailedProfile.name}{detailedProfile.age ? `, ${detailedProfile.age}` : ""}
+                      </h2>
+                      {(detailedProfile.isVerified || detailedProfile.verified) && (
+                        <BadgeCheck className="h-5 w-5 shrink-0 text-emerald-400 sm:h-[22px] sm:w-[22px]" strokeWidth={2.6} />
+                      )}
                     </div>
+                    {(detailedProfile.isVerified || detailedProfile.verified) && (
+                      <div className="mt-1 text-sm font-medium text-blue-900/80 dark:text-white/70">
+                        Verified &middot; Free Member
+                      </div>
+                    )}
                     <p className="mt-1 text-sm font-medium text-muted-foreground">
                       {detailedProfile.profession}
                     </p>
@@ -458,24 +478,24 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-6 flex items-center justify-center gap-5 relative z-10">
+      <div className="relative z-10 mt-5 flex items-center justify-center gap-4 sm:mt-6 sm:gap-5">
         <button
           onClick={() => triggerSwipe("pass")}
-          className="grid h-[56px] w-[56px] place-items-center rounded-full border-2 border-border bg-card text-muted-foreground shadow-md transition hover:scale-105 hover:border-rose-300 hover:text-rose-400"
+          className="grid h-12 w-12 place-items-center rounded-full border-2 border-border bg-card text-muted-foreground shadow-md transition hover:scale-105 hover:border-rose-300 hover:text-rose-400 sm:h-[56px] sm:w-[56px]"
           aria-label="Pass"
         >
           <X className="h-6 w-6" strokeWidth={2.5} />
         </button>
         <button
           onClick={() => triggerSwipe("super")}
-          className="grid h-[48px] w-[48px] place-items-center rounded-full border-2 border-border bg-card text-blue-400 shadow-md transition hover:scale-105 hover:border-blue-300"
+          className="grid h-11 w-11 place-items-center rounded-full border-2 border-border bg-card text-blue-400 shadow-md transition hover:scale-105 hover:border-blue-300 sm:h-[48px] sm:w-[48px]"
           aria-label="Super like"
         >
           <Star className="h-5 w-5" strokeWidth={2.5} />
         </button>
         <button
           onClick={() => triggerSwipe("like")}
-          className="grid h-14 w-14 place-items-center rounded-full text-white shadow-lg shadow-rose-500/20 transition hover:scale-105 bg-gradient-to-br from-rose-500 to-pink-600"
+          className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20 transition hover:scale-105 sm:h-14 sm:w-14"
           aria-label="Like"
         >
           <Heart className="h-6 w-6" strokeWidth={2.5} fill="currentColor" />

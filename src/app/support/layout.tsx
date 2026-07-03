@@ -21,7 +21,7 @@ export default function RootLayout({
     <div className="dark theme-support min-h-full flex flex-col antialiased">
         <Providers>
           <SidebarProvider>
-            <div className="flex min-h-screen w-full">
+            <div className="flex min-h-screen w-full overflow-x-hidden">
               <AppSidebar />
               <div className="flex min-w-0 flex-1 flex-col">
                 <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/60 bg-background/70 px-4 backdrop-blur">
@@ -30,7 +30,7 @@ export default function RootLayout({
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search tickets, users, reports…"
-                      className="h-9 w-80 pl-8 bg-muted/40 border-border/60"
+                      className="h-9 w-[min(20rem,42vw)] pl-8 bg-muted/40 border-border/60"
                     />
                   </div>
                   <div className="ml-auto flex items-center gap-3">
@@ -40,7 +40,7 @@ export default function RootLayout({
                     </Link>
                   </div>
                 </header>
-                <main className="flex-1 p-4 sm:p-6">
+                <main className="min-w-0 flex-1 p-4 sm:p-6">
                   {children}
                 </main>
               </div>

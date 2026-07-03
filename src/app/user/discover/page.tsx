@@ -9,19 +9,52 @@ import { getToken } from "@/lib/auth";
 import { useSettings } from "@/features/user/SettingsContext";
 import type { Profile } from "@/features/user/ProfileCard";
 
-function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifiedProfiles = false): any[] {
+const DISTANCE_STEP_KM = 100;
+
+function getProfileDistanceKm(profile: any): number | null {
+  const distance = profile.distanceKm ?? profile.distanceMi ?? profile.distance;
+  return typeof distance === "number" && Number.isFinite(distance) ? distance : null;
+}
+
+function matchesNonDistanceFilters(p: any, filters: DiscoverFilters, onlyShowVerifiedProfiles = false): boolean {
+  if (filters.search && filters.search.trim()) {
+    const query = filters.search.toLowerCase().trim();
+    const nameMatch = p.name && p.name.toLowerCase().includes(query);
+    const usernameMatch = p.username && p.username.toLowerCase().includes(query);
+    return !!(nameMatch || usernameMatch);
+  }
+  if ((p.age ?? 0) < filters.ageMin || (p.age ?? 0) > filters.ageMax) return false;
+  if ((filters.verifiedOnly || onlyShowVerifiedProfiles) && !p.isVerified && !p.verified) return false;
+  if (filters.interests.length > 0 && !filters.interests.some((i) => (p.interests || []).includes(i))) return false;
+  if (filters.goals.length > 0 && !filters.goals.includes(p.goals)) return false;
+  return true;
+}
+
+function getEffectiveMaxDistance(profiles: any[], filters: DiscoverFilters, onlyShowVerifiedProfiles = false): number {
+  const baseMatches = profiles.filter((p) => matchesNonDistanceFilters(p, filters, onlyShowVerifiedProfiles));
+  if (baseMatches.length === 0) return filters.maxDistance;
+
+  const hasMatchInSelectedRange = baseMatches.some((p) => {
+    const distance = getProfileDistanceKm(p);
+    return distance === null || distance <= filters.maxDistance;
+  });
+  if (hasMatchInSelectedRange) return filters.maxDistance;
+
+  const nextDistance = baseMatches
+    .map(getProfileDistanceKm)
+    .filter((distance): distance is number => distance !== null && distance > filters.maxDistance)
+    .sort((a, b) => a - b)[0];
+
+  if (!nextDistance) return filters.maxDistance;
+  if (nextDistance <= DISTANCE_STEP_KM) return Math.ceil(nextDistance);
+  return Math.ceil(nextDistance / DISTANCE_STEP_KM) * DISTANCE_STEP_KM;
+}
+
+function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifiedProfiles = false, maxDistance = filters.maxDistance): any[] {
   return profiles.filter((p) => {
-    if (filters.search && filters.search.trim()) {
-      const query = filters.search.toLowerCase().trim();
-      const nameMatch = p.name && p.name.toLowerCase().includes(query);
-      const usernameMatch = p.username && p.username.toLowerCase().includes(query);
-      return !!(nameMatch || usernameMatch);
-    }
-    if ((p.age ?? 0) < filters.ageMin || (p.age ?? 0) > filters.ageMax) return false;
-    if ((p.distanceMi ?? 0) > filters.maxDistance) return false;
-    if ((filters.verifiedOnly || onlyShowVerifiedProfiles) && !p.isVerified && !p.verified) return false;
-    if (filters.interests.length > 0 && !filters.interests.some((i) => (p.interests || []).includes(i))) return false;
-    if (filters.goals.length > 0 && !filters.goals.includes(p.goals)) return false;
+    if (!matchesNonDistanceFilters(p, filters, onlyShowVerifiedProfiles)) return false;
+    const distance = getProfileDistanceKm(p);
+    if (distance !== null && distance > maxDistance) return false;
     return true;
   });
 }
@@ -32,7 +65,14 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
   const { profiles, loading, error, swipeLeft, swipeRight, swipeSuper } = useDiscovery(token, filters.search);
   const { settings } = useSettings();
   
-  const filtered = useMemo(() => applyFilters(profiles, filters, settings.onlyShowVerifiedProfiles), [profiles, filters, settings.onlyShowVerifiedProfiles]);
+  const effectiveMaxDistance = useMemo(
+    () => getEffectiveMaxDistance(profiles, filters, settings.onlyShowVerifiedProfiles),
+    [profiles, filters, settings.onlyShowVerifiedProfiles],
+  );
+  const filtered = useMemo(
+    () => applyFilters(profiles, filters, settings.onlyShowVerifiedProfiles, effectiveMaxDistance),
+    [profiles, filters, settings.onlyShowVerifiedProfiles, effectiveMaxDistance],
+  );
  const availableInterests = useMemo(() => profiles.flatMap((p: any) => p.interests || []), [profiles]);
  const availableGoals = useMemo(() => profiles.map((p: any) => p.goals).filter(Boolean), [profiles]);
  
@@ -47,9 +87,9 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  };
 
  return (
- <div className="grid gap-6 lg:grid-cols-[260px_1fr_320px]">
- <FiltersPanel filters={filters} onChange={setFilters} availableInterests={availableInterests} availableGoals={availableGoals} />
- <div className="flex items-start justify-center pt-2">
+ <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(260px,320px)]">
+ <FiltersPanel filters={filters} onChange={setFilters} availableInterests={availableInterests} availableGoals={availableGoals} effectiveMaxDistance={effectiveMaxDistance} />
+ <div className="flex min-w-0 items-start justify-center pt-1 sm:pt-2">
  <ProfileCard profiles={filtered} onAction={handleSwipe} />
  </div>
  <RightRail />
