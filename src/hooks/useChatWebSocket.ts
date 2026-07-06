@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -10,12 +10,14 @@ const VOICE_MESSAGE_PREFIX = "__voice_message__:";
 const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
 const VIDEO_MESSAGE_PREFIX = "__video_message__:";
 const CHAT_THEME_MESSAGE_PREFIX = "__chat_theme__:";
+const GIF_MESSAGE_PREFIX = "__gif_message__:";
 
 function messagePreview(content: string) {
  if (content.startsWith(CHAT_THEME_MESSAGE_PREFIX)) return "Chat theme changed";
  if (content.startsWith(VOICE_MESSAGE_PREFIX)) return "Voice message";
  if (content.startsWith(PHOTO_MESSAGE_PREFIX)) return "Photo";
  if (content.startsWith(VIDEO_MESSAGE_PREFIX)) return "Video";
+ if (content.startsWith(GIF_MESSAGE_PREFIX)) return "GIF";
  return content;
 }
 
@@ -25,14 +27,22 @@ export interface Message {
  senderId: string;
  receiverId: string;
  content: string;
+ reactions?: string;
  isRead: boolean;
  createdAt: string;
+ deliveryStatus?: 'sending' | 'sent' | 'delivered' | 'seen' | 'failed';
+ clientId?: string;
 }
 
 export function useChatWebSocket(token: string, conversationId: string | null) {
  const [socket, setSocket] = useState<Socket | null>(null);
+ const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
+ const [recordingUsers, setRecordingUsers] = useState<Record<string, boolean>>({});
  const queryClient = useQueryClient();
  const activeConversationRef = useRef(conversationId);
+ const currentUserIdRef = useRef('');
+ const typingTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+ const recordingTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
  useEffect(() => {
  activeConversationRef.current = conversationId;
@@ -45,6 +55,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  try {
  const payload = JSON.parse(atob(token.split('.')[1]));
  userId = String(payload.sub || payload.userId);
+ currentUserIdRef.current = userId;
  } catch (e) {
  console.error('Failed to parse token for websocket', e);
  }
@@ -64,10 +75,14 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  newSocket.on('receiveMessage', (message: Message) => {
  // Optimistically update query cache
  queryClient.setQueryData(['messages', message.conversationId], (old: Message[] | undefined) => {
- if (!old) return [message];
+ if (!old) return [{ ...message, deliveryStatus: message.deliveryStatus || (String(message.senderId) === userId ? 'sent' : undefined) }];
  // Prevent duplicates
  if (old.find(m => m.id === message.id)) return old;
- return [...old, message];
+ const withoutMatchingPending = old.filter((m) => {
+   if (m.deliveryStatus !== 'sending') return true;
+   return !(m.content === message.content && String(m.receiverId) === String(message.receiverId));
+ });
+ return [...withoutMatchingPending, { ...message, deliveryStatus: message.deliveryStatus || (String(message.senderId) === userId ? 'sent' : undefined) }];
  });
 
  // Update matches cache to bump it to the top
@@ -92,11 +107,42 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
 
  // If we are actively viewing this conversation, mark the message as read immediately
  if (activeConversationRef.current === message.conversationId && String(message.senderId) !== userId) {
+ newSocket.emit('markMessagesRead', { conversationId: message.conversationId });
  fetch(`${API_URL}/messages/${message.conversationId}/read`, {
  method: 'PATCH',
  headers: { Authorization: `Bearer ${token}` }
  }).catch(() => {});
  }
+ });
+
+ newSocket.on('typingStatus', (payload: { conversationId?: string; userId: string; isTyping: boolean }) => {
+   if (!payload.conversationId || String(payload.userId) === userId) return;
+   setTypingUsers((current) => ({ ...current, [payload.conversationId!]: payload.isTyping }));
+   if (typingTimersRef.current[payload.conversationId]) clearTimeout(typingTimersRef.current[payload.conversationId]);
+   if (payload.isTyping) {
+     typingTimersRef.current[payload.conversationId] = setTimeout(() => {
+       setTypingUsers((current) => ({ ...current, [payload.conversationId!]: false }));
+     }, 2500);
+   }
+ });
+
+ newSocket.on('recordingStatus', (payload: { conversationId?: string; userId: string; isRecording: boolean }) => {
+   if (!payload.conversationId || String(payload.userId) === userId) return;
+   setRecordingUsers((current) => ({ ...current, [payload.conversationId!]: payload.isRecording }));
+   if (recordingTimersRef.current[payload.conversationId]) clearTimeout(recordingTimersRef.current[payload.conversationId]);
+   if (payload.isRecording) {
+     recordingTimersRef.current[payload.conversationId] = setTimeout(() => {
+       setRecordingUsers((current) => ({ ...current, [payload.conversationId!]: false }));
+     }, 3500);
+   }
+ });
+
+ newSocket.on('messagesRead', (payload: { conversationId: string; messageIds: string[] }) => {
+   queryClient.setQueryData(['messages', payload.conversationId], (old: Message[] | undefined) => {
+     if (!old) return old;
+     const readIds = new Set(payload.messageIds);
+     return old.map((message) => readIds.has(message.id) ? { ...message, isRead: true, deliveryStatus: 'seen' } : message);
+   });
  });
 
  newSocket.on('USER_STATUS_CHANGED', (payload: { userId: string, isOnline: boolean, lastSeen?: string }) => {
@@ -113,7 +159,21 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
    });
  });
 
+ newSocket.on('messageReactionChanged', (payload: { messageId: string; conversationId: string; reactions: Record<string, string[]> }) => {
+   queryClient.setQueryData(['messages', payload.conversationId], (old: Message[] | undefined) => {
+     if (!old) return old;
+     return old.map(m => {
+       if (m.id === payload.messageId) {
+         return { ...m, reactions: JSON.stringify(payload.reactions) };
+       }
+       return m;
+     });
+   });
+ });
+
  return () => {
+ Object.values(typingTimersRef.current).forEach(clearTimeout);
+ Object.values(recordingTimersRef.current).forEach(clearTimeout);
  newSocket.disconnect();
  };
  }, [token, queryClient]);
@@ -132,20 +192,78 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  enabled: !!conversationId && !!token,
  });
 
- const sendMessage = (receiverId: string, content: string) => {
+ const sendMessage = useCallback((receiverId: string, content: string) => {
  if (socket && conversationId) {
+ const clientId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+ const pendingMessage: Message = {
+   id: clientId,
+   clientId,
+   conversationId,
+   senderId: currentUserIdRef.current,
+   receiverId,
+   content,
+   reactions: undefined,
+   isRead: false,
+   createdAt: new Date().toISOString(),
+   deliveryStatus: 'sending',
+ };
+
+ queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) => [...(old || []), pendingMessage]);
+
  socket.emit('sendMessage', {
  conversationId,
  receiverId,
  content
+ }, (response: any) => {
+   if (response?.error) {
+     queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) => {
+       if (!old) return old;
+       return old.map((message) => message.id === clientId ? { ...message, deliveryStatus: 'failed' } : message);
+     });
+   }
  });
  }
- };
+ }, [conversationId, queryClient, socket]);
+
+ const sendTypingStatus = useCallback((receiverId: string, isTyping: boolean) => {
+   if (socket && conversationId) {
+     socket.emit('typing', { conversationId, receiverId, isTyping });
+   }
+ }, [conversationId, socket]);
+
+ const sendRecordingStatus = useCallback((receiverId: string, isRecording: boolean) => {
+   if (socket && conversationId) {
+     socket.emit('recording', { conversationId, receiverId, isRecording });
+   }
+ }, [conversationId, socket]);
+
+ const markMessagesRead = useCallback(() => {
+   if (socket && conversationId) {
+     socket.emit('markMessagesRead', { conversationId });
+   }
+ }, [conversationId, socket]);
+
+ const toggleReaction = useCallback((messageId: string, receiverId: string, emoji: string) => {
+   if (socket && conversationId) {
+     socket.emit('toggleReaction', {
+       messageId,
+       conversationId,
+       receiverId,
+       emoji
+     });
+   }
+ }, [conversationId, socket]);
 
  return {
  socket,
  messages,
  isLoading,
- sendMessage
+ sendMessage,
+ toggleReaction,
+ sendTypingStatus,
+ sendRecordingStatus,
+ markMessagesRead,
+ isTyping: conversationId ? !!typingUsers[conversationId] : false,
+ isRecording: conversationId ? !!recordingUsers[conversationId] : false
  };
 }

@@ -22,13 +22,14 @@ type AdminUser = {
  role: DashboardRole | "user";
 };
 
-type CreatableRole = "marketing" | "finance" | "sales" | "support";
-type DashboardRole = CreatableRole | "admin" | "super_admin";
+type CreatableRole = "data_entry" | "finance" | "sales" | "support";
+type DashboardRole = CreatableRole | "marketing" | "admin" | "super_admin";
 
 const roleLabels: Record<DashboardRole, string> = {
  admin: "Admin",
  super_admin: "Super Admin",
  marketing: "Marketing",
+ data_entry: "Data Entry",
  finance: "Finance",
  sales: "Sales",
  support: "Support",
@@ -38,6 +39,7 @@ const roleLoginPaths: Record<DashboardRole, string> = {
  admin: "/management/admin",
  super_admin: "/management/super-admin",
  marketing: "/management/marketing",
+ data_entry: "/management/data-entry",
  finance: "/management/finance",
  sales: "/management/sales",
  support: "/management/support",
@@ -51,7 +53,7 @@ export default function UsersPage() {
  const [showCreateForm, setShowCreateForm] = useState(false);
  const [creating, setCreating] = useState(false);
  const [page, setPage] = useState(1);
- const [newId, setNewId] = useState({ name: "", email: "", password: "", confirmPassword: "", role: "marketing" as CreatableRole });
+ const [newId, setNewId] = useState({ name: "", email: "", password: "", confirmPassword: "", role: "data_entry" as CreatableRole });
 
  const fetchUsers = async (showLoader = false) => {
  if (showLoader) setLoading(true);
@@ -137,7 +139,7 @@ export default function UsersPage() {
  const body = await res.json().catch(() => ({}));
  if (!res.ok) throw new Error(Array.isArray(body.message) ? body.message[0] : body.message || "ID create nahi hui.");
  await fetchUsers(false);
- setNewId({ name: "", email: "", password: "", confirmPassword: "", role: "marketing" });
+ setNewId({ name: "", email: "", password: "", confirmPassword: "", role: "data_entry" });
  setShowCreateForm(false);
  toast.success(`${roleLabels[newId.role]} ID created. Ab email/password se login ho sakta hai.`);
  } catch (err) {
@@ -206,7 +208,7 @@ export default function UsersPage() {
  <div><label className="mb-1.5 block text-xs font-bold uppercase text-slate-500">Login Email</label><Input required type="email" value={newId.email} onChange={(e) => setNewId({ ...newId, email: e.target.value })} placeholder="name@company.com" /></div>
  <div><label className="mb-1.5 block text-xs font-bold uppercase text-slate-500">Password</label><Input required minLength={8} type="password" value={newId.password} onChange={(e) => setNewId({ ...newId, password: e.target.value })} placeholder="Minimum 8 characters" /></div>
  <div><label className="mb-1.5 block text-xs font-bold uppercase text-slate-500">Confirm Password</label><Input required minLength={8} type="password" value={newId.confirmPassword} onChange={(e) => setNewId({ ...newId, confirmPassword: e.target.value })} placeholder="Repeat password" /></div>
- <div><label className="mb-1.5 block text-xs font-bold uppercase text-slate-500">Dashboard Role</label><select value={newId.role} onChange={(e) => setNewId({ ...newId, role: e.target.value as CreatableRole })} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="marketing">Marketing</option><option value="finance">Finance</option><option value="sales">Sales</option><option value="support">Support</option></select></div>
+ <div><label className="mb-1.5 block text-xs font-bold uppercase text-slate-500">Dashboard Role</label><select value={newId.role} onChange={(e) => setNewId({ ...newId, role: e.target.value as CreatableRole })} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="data_entry">Data Entry</option><option value="finance">Finance</option><option value="sales">Sales</option><option value="support">Support</option></select></div>
  </div>
  <div className="mt-5 flex justify-end"><Button disabled={creating} type="submit" className="min-w-36 bg-gradient-to-r from-rose-500 to-pink-600 text-white">{creating ? "Creating..." : "Create ID"}</Button></div>
  </form>

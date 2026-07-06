@@ -10,7 +10,7 @@ import {
   LayoutDashboard, 
   ShieldCheck, 
   CreditCard, 
-  Bell, 
+  Database,
   TrendingUp, 
   HelpCircle,
   FolderSync
@@ -46,7 +46,7 @@ export function DashboardSwitcher() {
   }, []);
 
   // Check if current path is a management path
-  const managementPaths = ["/super-admin", "/admin", "/marketing", "/finance", "/sales", "/support"];
+  const managementPaths = ["/super-admin", "/admin", "/marketing", "/data-entry", "/finance", "/sales", "/support"];
   const isManagementPath = managementPaths.some(
     (path) => pathname === path || pathname?.startsWith(`${path}/`)
   );
@@ -59,7 +59,7 @@ export function DashboardSwitcher() {
     { name: "Super Admin", path: "/super-admin", icon: LayoutDashboard, desc: "Global system control & settings", color: "from-rose-500 to-orange-500 text-rose-500" },
     { name: "General Admin", path: "/admin", icon: ShieldCheck, desc: "User moderation & verification", color: "from-violet-500 to-purple-500 text-violet-500" },
     { name: "Finance", path: "/finance", icon: CreditCard, desc: "Invoices, refunds & subscriptions", color: "from-indigo-500 to-blue-500 text-indigo-500" },
-    { name: "Marketing", path: "/marketing", icon: Bell, desc: "Campaigns & user notifications", color: "from-sky-500 to-cyan-500 text-sky-500" },
+    { name: "Data Entry", path: "/data-entry", icon: Database, desc: "Record review and entry workspace", color: "from-sky-500 to-cyan-500 text-sky-500" },
     { name: "Sales", path: "/sales", icon: TrendingUp, desc: "Revenue trends & product plans", color: "from-emerald-500 to-teal-500 text-emerald-500" },
     { name: "Customer Support", path: "/support", icon: HelpCircle, desc: "Service tickets & user complaints", color: "from-amber-500 to-yellow-500 text-amber-500" },
   ];

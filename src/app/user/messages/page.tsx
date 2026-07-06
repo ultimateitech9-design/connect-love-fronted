@@ -35,6 +35,7 @@ const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
 const VIDEO_MESSAGE_PREFIX = "__video_message__:";
 const GIFT_MESSAGE_PREFIX = "__gift_message__:";
 const CHAT_THEME_MESSAGE_PREFIX = "__chat_theme__:";
+const GIF_MESSAGE_PREFIX = "__gif_message__:";
 const MAX_VOICE_SECONDS = 60;
 const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 const CHAT_THEME_STORAGE_KEY = "connect-love-chat-theme";
@@ -68,16 +69,16 @@ const FREE_CHAT_THEMES: ChatTheme[] = [
 ];
 
 const PREMIUM_CHAT_THEMES: ChatTheme[] = [
-  { id: "3d-hearts", name: "Lovely Hearts", tier: "premium", price: 49, is3d: true, colors: { accent: "#ff2d75", outgoing: "linear-gradient(135deg,#ff2d75,#7c3aed)", incoming: "rgba(255,255,255,.78)", panel: "rgba(255,255,255,.76)", input: "rgba(255,255,255,.82)", background: "linear-gradient(135deg,#ffe4e6,#ffedf0)" } },
-  { id: "3d-roses", name: "Rose Garden", tier: "premium", price: 59, is3d: true, colors: { accent: "#be123c", outgoing: "linear-gradient(135deg,#be123c,#fda4af)", incoming: "rgba(255,255,255,.8)", panel: "rgba(255,255,255,.75)", input: "rgba(255,255,255,.85)", background: "linear-gradient(135deg,#fdf2f8,#ffe4e6)" } },
-  { id: "3d-stars", name: "Starry Night", tier: "premium", price: 79, is3d: true, colors: { accent: "#facc15", outgoing: "linear-gradient(135deg,#facc15,#d97706)", incoming: "rgba(30,41,59,.8)", panel: "rgba(15,23,42,.85)", input: "rgba(30,41,59,.85)", background: "linear-gradient(135deg,#020617,#1e1b4b)" } },
-  { id: "3d-clouds", name: "Dreamy Clouds", tier: "premium", price: 49, is3d: true, colors: { accent: "#38bdf8", outgoing: "linear-gradient(135deg,#38bdf8,#0284c7)", incoming: "rgba(255,255,255,.82)", panel: "rgba(255,255,255,.75)", input: "rgba(255,255,255,.85)", background: "linear-gradient(135deg,#e0f2fe,#bae6fd)" } },
-  { id: "3d-love-letter", name: "Love Notes", tier: "premium", price: 59, is3d: true, colors: { accent: "#ec4899", outgoing: "linear-gradient(135deg,#ec4899,#f472b6)", incoming: "rgba(255,255,255,.8)", panel: "rgba(255,255,255,.75)", input: "rgba(255,255,255,.82)", background: "linear-gradient(135deg,#fdf2f8,#faf5ff)" } },
-  { id: "3d-bubble", name: "Bubble Pop", tier: "premium", price: 49, is3d: true, colors: { accent: "#2dd4bf", outgoing: "linear-gradient(135deg,#2dd4bf,#0ea5e9)", incoming: "rgba(255,255,255,.8)", panel: "rgba(255,255,255,.75)", input: "rgba(255,255,255,.85)", background: "linear-gradient(135deg,#ccfbf1,#e0f2fe)" } },
-  { id: "3d-diamond", name: "Diamond Sparkle", tier: "premium", price: 99, is3d: true, colors: { accent: "#60a5fa", outgoing: "linear-gradient(135deg,#60a5fa,#3b82f6)", incoming: "rgba(255,255,255,.82)", panel: "rgba(255,255,255,.78)", input: "rgba(255,255,255,.88)", background: "linear-gradient(135deg,#eff6ff,#e0e7ff)" } },
-  { id: "3d-fire", name: "Warm Fire", tier: "premium", price: 69, is3d: true, colors: { accent: "#ea580c", outgoing: "linear-gradient(135deg,#ea580c,#9a3412)", incoming: "rgba(30,41,59,.8)", panel: "rgba(15,23,42,.85)", input: "rgba(30,41,59,.85)", background: "linear-gradient(135deg,#450a0a,#0f172a)" } },
-  { id: "3d-cupid", name: "Cupid Arrow", tier: "premium", price: 89, is3d: true, colors: { accent: "#db2777", outgoing: "linear-gradient(135deg,#db2777,#c084fc)", incoming: "rgba(255,255,255,.8)", panel: "rgba(255,255,255,.75)", input: "rgba(255,255,255,.82)", background: "linear-gradient(135deg,#ffe4e6,#fae8ff)" } },
-  { id: "3d-galaxy", name: "Cosmic Galaxy", tier: "premium", price: 99, is3d: true, colors: { accent: "#a78bfa", outgoing: "linear-gradient(135deg,#a78bfa,#4c1d95)", incoming: "rgba(30,41,59,.8)", panel: "rgba(15,23,42,.85)", input: "rgba(30,41,59,.85)", background: "linear-gradient(135deg,#030712,#120024)" } },
+  { id: "3d-hearts", name: "Lovely Hearts", tier: "premium", price: 49, is3d: true, colors: { accent: "#ff2d75", outgoing: "linear-gradient(135deg,#ff2d75,#7c3aed)", incoming: "rgba(255,255,255,.38)", panel: "rgba(255,255,255,.24)", input: "rgba(255,255,255,.45)", background: "linear-gradient(135deg,#ffe4e6,#ffedf0)" } },
+  { id: "3d-roses", name: "Rose Garden", tier: "premium", price: 59, is3d: true, colors: { accent: "#be123c", outgoing: "linear-gradient(135deg,#be123c,#fda4af)", incoming: "rgba(255,255,255,.38)", panel: "rgba(255,255,255,.24)", input: "rgba(255,255,255,.45)", background: "linear-gradient(135deg,#fdf2f8,#ffe4e6)" } },
+  { id: "3d-stars", name: "Starry Night", tier: "premium", price: 79, is3d: true, colors: { accent: "#facc15", outgoing: "linear-gradient(135deg,#facc15,#d97706)", incoming: "rgba(30,41,59,.45)", panel: "rgba(15,23,42,.32)", input: "rgba(30,41,59,.45)", background: "linear-gradient(135deg,#020617,#1e1b4b)" } },
+  { id: "3d-clouds", name: "Dreamy Clouds", tier: "premium", price: 49, is3d: true, colors: { accent: "#38bdf8", outgoing: "linear-gradient(135deg,#38bdf8,#0284c7)", incoming: "rgba(255,255,255,.4)", panel: "rgba(255,255,255,.24)", input: "rgba(255,255,255,.45)", background: "linear-gradient(135deg,#e0f2fe,#bae6fd)" } },
+  { id: "3d-love-letter", name: "Love Notes", tier: "premium", price: 59, is3d: true, colors: { accent: "#ec4899", outgoing: "linear-gradient(135deg,#ec4899,#f472b6)", incoming: "rgba(255,255,255,.38)", panel: "rgba(255,255,255,.24)", input: "rgba(255,255,255,.45)", background: "linear-gradient(135deg,#fdf2f8,#faf5ff)" } },
+  { id: "3d-bubble", name: "Bubble Pop", tier: "premium", price: 49, is3d: true, colors: { accent: "#2dd4bf", outgoing: "linear-gradient(135deg,#2dd4bf,#0ea5e9)", incoming: "rgba(255,255,255,.38)", panel: "rgba(255,255,255,.24)", input: "rgba(255,255,255,.45)", background: "linear-gradient(135deg,#ccfbf1,#e0f2fe)" } },
+  { id: "3d-diamond", name: "Diamond Sparkle", tier: "premium", price: 99, is3d: true, colors: { accent: "#60a5fa", outgoing: "linear-gradient(135deg,#60a5fa,#3b82f6)", incoming: "rgba(255,255,255,.4)", panel: "rgba(255,255,255,.24)", input: "rgba(255,255,255,.45)", background: "linear-gradient(135deg,#eff6ff,#e0e7ff)" } },
+  { id: "3d-fire", name: "Warm Fire", tier: "premium", price: 69, is3d: true, colors: { accent: "#ea580c", outgoing: "linear-gradient(135deg,#ea580c,#9a3412)", incoming: "rgba(30,41,59,.45)", panel: "rgba(15,23,42,.32)", input: "rgba(30,41,59,.45)", background: "linear-gradient(135deg,#450a0a,#0f172a)" } },
+  { id: "3d-cupid", name: "Cupid Arrow", tier: "premium", price: 89, is3d: true, colors: { accent: "#db2777", outgoing: "linear-gradient(135deg,#db2777,#c084fc)", incoming: "rgba(255,255,255,.38)", panel: "rgba(255,255,255,.24)", input: "rgba(255,255,255,.45)", background: "linear-gradient(135deg,#ffe4e6,#fae8ff)" } },
+  { id: "3d-galaxy", name: "Cosmic Galaxy", tier: "premium", price: 99, is3d: true, colors: { accent: "#a78bfa", outgoing: "linear-gradient(135deg,#a78bfa,#4c1d95)", incoming: "rgba(30,41,59,.45)", panel: "rgba(15,23,42,.32)", input: "rgba(30,41,59,.45)", background: "linear-gradient(135deg,#030712,#120024)" } },
 ];
 
 const CHAT_THEMES = [...FREE_CHAT_THEMES, ...PREMIUM_CHAT_THEMES];
@@ -144,6 +145,470 @@ const PREMIUM_GIFTS = [
   { emoji: "💖", label: "Sparkling Heart", price: 39 },
   { emoji: "💛", label: "Gold Heart", price: 99 },
 ];
+
+const CURATED_GIFS = [
+  { id: "g1", label: "Minion Dance", category: "funny", url: "https://i.giphy.com/media/chzz1FQgqhytWRWbp3/giphy.gif" },
+  { id: "g2", label: "Laughter Cat", category: "funny", url: "https://i.giphy.com/media/unflknv1Lp17m/giphy.gif" },
+  { id: "g3", label: "Happy Dance", category: "funny", url: "https://i.giphy.com/media/12PA1eI8FBqEUM/giphy.gif" },
+  { id: "g4", label: "Baby Laugh", category: "funny", url: "https://i.giphy.com/media/10yIEN8cMn4i9W/giphy.gif" },
+  { id: "g5", label: "Dog Smile", category: "funny", url: "https://i.giphy.com/media/3o7527pa7qs9kCG78A/giphy.gif" },
+  { id: "g6", label: "Hysterical Laughter", category: "funny", url: "https://i.giphy.com/media/c5FhSR2f2t5qo/giphy.gif" },
+  
+  { id: "l1", label: "Heart Explode", category: "love", url: "https://i.giphy.com/media/14EXol3a7wUppC/giphy.gif" },
+  { id: "l2", label: "Bear Hug", category: "love", url: "https://i.giphy.com/media/l3q2zVr6cu95nF6O4/giphy.gif" },
+  { id: "l3", label: "Blow Kiss", category: "love", url: "https://i.giphy.com/media/RuSS1msyKHfB6/giphy.gif" },
+  { id: "l4", label: "Cute Couple", category: "love", url: "https://i.giphy.com/media/3o7TKoWXgWsJHHyFFm/giphy.gif" },
+  { id: "l5", label: "Hearts Floating", category: "love", url: "https://i.giphy.com/media/l41Ywz7JSi2W36z0Y/giphy.gif" },
+  { id: "l6", label: "Love Letters", category: "love", url: "https://i.giphy.com/media/3o7TKoWXgWsJHHyFFm/giphy.gif" },
+
+  { id: "c1", label: "Cute Puppy", category: "cute", url: "https://i.giphy.com/media/3o7527pa7qs9kCG78A/giphy.gif" },
+  { id: "c2", label: "Kitten Wink", category: "cute", url: "https://i.giphy.com/media/yFQ0ywscgobJK/giphy.gif" },
+  { id: "c3", label: "Hello Wave Cat", category: "cute", url: "https://i.giphy.com/media/VxbvpfaTTo3le/giphy.gif" },
+  { id: "c4", label: "Panda Roll", category: "cute", url: "https://i.giphy.com/media/GeimqsH0TC304/giphy.gif" },
+  { id: "c5", label: "Hamster Munching", category: "cute", url: "https://i.giphy.com/media/13CoXDiaCcC2sw/giphy.gif" },
+
+  { id: "d1", label: "Sparkler Neon", category: "live", url: "https://i.giphy.com/media/26tOZ42cXxdb76B5m/giphy.gif" },
+  { id: "d2", label: "Neon Pulsing Heart", category: "live", url: "https://i.giphy.com/media/3NtY188QaxDdC/giphy.gif" },
+  { id: "d3", label: "Neon Cat", category: "live", url: "https://i.giphy.com/media/GeimqsH0TC304/giphy.gif" },
+  { id: "d4", label: "Retro Grid", category: "live", url: "https://i.giphy.com/media/3o7aD2saalFrAlzVNm/giphy.gif" },
+  { id: "d5", label: "Glowing Flowers", category: "live", url: "https://i.giphy.com/media/3o7qDQ4kcQA1Z91bkQ/giphy.gif" }
+];
+
+const generateTextSvgBase64 = (text: string, styleId: string) => {
+  const escapedText = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+
+  const lowercase = text.toLowerCase();
+  let keyword = 'none';
+  if (lowercase.match(/\b(house|home|gar|ghar|room|stay|flat|apart)\b/) || lowercase.includes("आओ कभी घर")) {
+    keyword = 'house';
+  } else if (lowercase.match(/\b(cafe|coffee|tea|chai|cup|drink|mug|boba|starbucks)\b/)) {
+    keyword = 'cafe';
+  } else if (lowercase.match(/\b(love|heart|dil|pyar|pyaar|ishq|mohabbat|gf|bf|kiss|muah|love-you)\b/)) {
+    keyword = 'love';
+  } else if (lowercase.match(/\b(fire|flame|hot|burn|jal|garam|tandoori)\b/)) {
+    keyword = 'fire';
+  } else if (lowercase.match(/\b(star|gold|sparkle|shine|premium|sone|chandi)\b/)) {
+    keyword = 'star';
+  } else if (lowercase.match(/\b(music|song|sound|audio|gana|sing|mic|concert|tune)\b/)) {
+    keyword = 'music';
+  } else if (lowercase.match(/\b(party|celebrate|dance|fun|nach|masti|club)\b/)) {
+    keyword = 'party';
+  }
+
+  let keywordStyles = '';
+  let keywordSvg = '';
+
+  if (keyword === 'house') {
+    keywordStyles = `
+      @keyframes houseDraw {
+        0%, 100% { stroke-dashoffset: 0; opacity: 0.12; }
+        50% { stroke-dashoffset: 15; opacity: 0.22; }
+      }
+      @keyframes windowGlow {
+        0%, 100% { opacity: 0.2; fill: #ffcc00; }
+        50% { opacity: 0.9; fill: #ffe875; }
+      }
+      .house-outline {
+        stroke: currentColor;
+        stroke-width: 5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        stroke-dasharray: 400;
+        animation: houseDraw 4s ease-in-out infinite;
+      }
+      .house-window {
+        animation: windowGlow 2.5s ease-in-out infinite;
+      }
+    `;
+    keywordSvg = `
+      <g class="keyword-graphic" style="color: currentColor;">
+        <path d="M100 80 L150 35 L200 80 Z M115 80 L185 80 L185 125 L115 125 Z M142 125 L142 100 L158 100 L158 125 Z" class="house-outline" />
+        <rect x="146" y="88" width="8" height="8" class="house-window" />
+      </g>
+    `;
+  } else if (keyword === 'cafe') {
+    keywordStyles = `
+      @keyframes riseSteam {
+        0% { transform: translateY(5px); opacity: 0; }
+        50% { opacity: 0.4; }
+        100% { transform: translateY(-10px); opacity: 0; }
+      }
+      .steam {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 4;
+        stroke-linecap: round;
+        animation: riseSteam 2s infinite ease-in-out;
+      }
+      .steam-1 { animation-delay: 0s; }
+      .steam-2 { animation-delay: 0.6s; }
+      .steam-3 { animation-delay: 1.2s; }
+      .cup-outline {
+        stroke: currentColor;
+        stroke-width: 5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        opacity: 0.15;
+      }
+    `;
+    keywordSvg = `
+      <g class="keyword-graphic" style="color: currentColor;">
+        <path d="M115 75 H185 L175 120 C175 125 125 125 125 120 Z M180 83 C196 83 196 105 178 105" class="cup-outline" />
+        <path d="M135 63 Q130 51 135 38" class="steam steam-1" />
+        <path d="M150 63 Q145 51 150 38" class="steam steam-2" />
+        <path d="M165 63 Q160 51 165 38" class="steam steam-3" />
+      </g>
+    `;
+  } else if (keyword === 'love') {
+    keywordStyles = `
+      @keyframes heartBgPulse {
+        0%, 100% { transform: scale(0.93); opacity: 0.08; }
+        50% { transform: scale(1.07); opacity: 0.22; }
+      }
+      .heart-pulse {
+        fill: #ff2d55;
+        transform-origin: 150px 75px;
+        animation: heartBgPulse 1.2s ease-in-out infinite;
+      }
+    `;
+    keywordSvg = `
+      <g class="keyword-graphic">
+        <path d="M150 45 C140 25 100 25 100 55 C100 85 150 115 150 115 C150 115 200 85 200 55 C200 25 160 25 150 45 Z" class="heart-pulse" />
+      </g>
+    `;
+  } else if (keyword === 'fire') {
+    keywordStyles = `
+      @keyframes fireFlicker {
+        0%, 100% { transform: scaleY(0.92) skewX(-1.5deg); opacity: 0.1; }
+        50% { transform: scaleY(1.08) skewX(1.5deg); opacity: 0.25; }
+      }
+      .flame-bg {
+        fill: #ff5500;
+        transform-origin: 150px 130px;
+        animation: fireFlicker 0.6s ease-in-out infinite;
+      }
+    `;
+    keywordSvg = `
+      <g class="keyword-graphic">
+        <path d="M150 30 C130 50 110 70 110 95 C110 117 128 135 150 135 C172 135 190 117 190 95 C190 65 165 45 150 30 Z" class="flame-bg" />
+      </g>
+    `;
+  } else if (keyword === 'star') {
+    keywordStyles = `
+      @keyframes starTwinkle {
+        0%, 100% { transform: scale(0.8) rotate(0deg); opacity: 0.08; }
+        50% { transform: scale(1.15) rotate(90deg); opacity: 0.25; }
+      }
+      .star-sparkle {
+        fill: #ffe259;
+        transform-origin: 150px 75px;
+        animation: starTwinkle 2s ease-in-out infinite;
+      }
+    `;
+    keywordSvg = `
+      <g class="keyword-graphic">
+        <path d="M150 30 Q150 75 105 75 Q150 75 150 120 Q150 75 195 75 Q150 75 150 30 Z" class="star-sparkle" />
+      </g>
+    `;
+  } else if (keyword === 'music') {
+    keywordStyles = `
+      @keyframes floatNote {
+        0% { transform: translateY(8px) rotate(-10deg); opacity: 0; }
+        50% { opacity: 0.25; }
+        100% { transform: translateY(-15px) rotate(10deg); opacity: 0; }
+      }
+      .note {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        animation: floatNote 2.5s infinite ease-in-out;
+      }
+      .note-1 { animation-delay: 0s; transform-origin: 115px 70px; }
+      .note-2 { animation-delay: 1.25s; transform-origin: 180px 80px; }
+    `;
+    keywordSvg = `
+      <g class="keyword-graphic" style="color: currentColor;">
+        <path d="M110 90 A10 8 0 1 1 100 78 V45 H130 V78 A10 8 0 1 1 120 66 M100 52 H130" class="note note-1" />
+        <path d="M175 100 A10 8 0 1 1 165 88 V55 H195 V88 A10 8 0 1 1 185 76 M165 62 H195" class="note note-2" />
+      </g>
+    `;
+  } else if (keyword === 'party') {
+    keywordStyles = `
+      @keyframes popConfetti {
+        0%, 100% { transform: translateY(0) scale(0.8); opacity: 0.1; }
+        50% { transform: translateY(-15px) scale(1.15); opacity: 0.35; }
+      }
+      .confetti {
+        animation: popConfetti 1.5s ease-in-out infinite;
+      }
+      .confetti-1 { animation-delay: 0s; }
+      .confetti-2 { animation-delay: 0.4s; }
+      .confetti-3 { animation-delay: 0.8s; }
+      .confetti-4 { animation-delay: 1.2s; }
+    `;
+    keywordSvg = `
+      <g class="keyword-graphic">
+        <circle cx="90" cy="50" r="5" class="confetti confetti-1" fill="#ff2d55" />
+        <circle cx="210" cy="100" r="4" class="confetti confetti-2" fill="#00ffff" />
+        <polygon points="120,110 126,118 114,118" class="confetti confetti-3" fill="#ffcc00" />
+        <polygon points="180,40 188,40 184,48" class="confetti confetti-4" fill="#ff9500" />
+      </g>
+    `;
+  }
+
+  let svgContent = '';
+
+  if (styleId === 'neon') {
+    svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150">
+  <defs>
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff007f" />
+      <stop offset="100%" stop-color="#7f00ff" />
+    </linearGradient>
+  </defs>
+  <style>
+    @keyframes neonGlow {
+      0%, 100% {
+        text-shadow: 0 0 5px #ff007f, 0 0 10px #ff007f, 0 0 20px #ff007f, 0 0 40px #ff007f;
+        fill: #ffffff;
+      }
+      50% {
+        text-shadow: 0 0 2px #7f00ff, 0 0 5px #7f00ff, 0 0 10px #7f00ff, 0 0 20px #7f00ff;
+        fill: #ff80df;
+      }
+    }
+    .neon-text {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      animation: neonGlow 1.5s ease-in-out infinite;
+    }
+    .bg {
+      fill: #0c0a0f;
+      rx: 15;
+    }
+    ${keywordStyles}
+  </style>
+  <rect width="100%" height="100%" class="bg" />
+  ${keywordSvg}
+  <text x="150" y="75" class="neon-text">${escapedText}</text>
+</svg>`;
+  } else if (styleId === 'love') {
+    svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150">
+  <style>
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    @keyframes floatHearts {
+      0% { transform: translateY(0px) scale(0.6); opacity: 0; }
+      50% { opacity: 0.8; }
+      100% { transform: translateY(-40px) scale(1.2); opacity: 0; }
+    }
+    .main-text {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      fill: #ffffff;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+    .heart-icon {
+      fill: #ff2d55;
+      transform-origin: 150px 75px;
+      animation: heartbeat 1.2s ease-in-out infinite;
+    }
+    .bg {
+      fill: #1e0b11;
+      rx: 15;
+    }
+    .particle-heart {
+      fill: #ff4d6d;
+      animation: floatHearts 2s ease-in-out infinite;
+      opacity: 0;
+    }
+    ${keywordStyles}
+  </style>
+  <rect width="100%" height="100%" class="bg" />
+  <g class="heart-icon">
+    <path d="M120 75 C120 50 150 45 150 70 C150 45 180 50 180 75 C180 100 150 115 150 120 C150 115 120 100 120 75 Z" opacity="0.15" fill="#ff2d55" />
+  </g>
+  <path d="M70 100 C70 90 80 88 80 96 C80 88 90 90 90 100 C90 110 80 115 80 117 C80 115 70 110 70 100 Z" class="particle-heart" style="animation-delay: 0s; transform-origin: 80px 100px;" />
+  <path d="M220 50 C220 40 230 38 230 46 C230 38 240 40 240 50 C240 60 230 65 230 67 C230 65 220 60 220 50 Z" class="particle-heart" style="animation-delay: 1s; transform-origin: 230px 50px;" />
+  ${keywordSvg}
+  <text x="150" y="75" class="main-text">${escapedText}</text>
+</svg>`;
+  } else if (styleId === 'glitch') {
+    svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150">
+  <style>
+    @keyframes glitch {
+      0% { clip-path: inset(40% 0 61% 0); transform: skew(0.3deg); }
+      20% { clip-path: inset(92% 0 1% 0); transform: skew(-0.5deg); }
+      40% { clip-path: inset(15% 0 80% 0); transform: skew(0.5deg); }
+      60% { clip-path: inset(80% 0 5% 0); transform: skew(-0.3deg); }
+      80% { clip-path: inset(3% 0 92% 0); transform: skew(0.8deg); }
+      100% { clip-path: inset(40% 0 61% 0); transform: skew(0deg); }
+    }
+    .glitch-text {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+    .text-base {
+      fill: #ffffff;
+    }
+    .text-glitch-1 {
+      fill: #00ffff;
+      animation: glitch 1s linear infinite;
+    }
+    .text-glitch-2 {
+      fill: #ff00ff;
+      animation: glitch 1.5s linear infinite reverse;
+    }
+    .bg {
+      fill: #080f14;
+      rx: 15;
+    }
+    ${keywordStyles}
+  </style>
+  <rect width="100%" height="100%" class="bg" />
+  ${keywordSvg}
+  <text x="153" y="77" class="glitch-text text-glitch-1">${escapedText}</text>
+  <text x="147" y="73" class="glitch-text text-glitch-2">${escapedText}</text>
+  <text x="150" y="75" class="glitch-text text-base">${escapedText}</text>
+</svg>`;
+  } else if (styleId === 'rainbow') {
+    svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150">
+  <defs>
+    <linearGradient id="rainbowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff0000" />
+      <stop offset="20%" stop-color="#ff7f00" />
+      <stop offset="40%" stop-color="#ffff00" />
+      <stop offset="60%" stop-color="#00ff00" />
+      <stop offset="80%" stop-color="#0000ff" />
+      <stop offset="100%" stop-color="#8b00ff" />
+    </linearGradient>
+  </defs>
+  <style>
+    @keyframes colorWave {
+      0% { stop-color: #ff0000; }
+      17% { stop-color: #ff7f00; }
+      33% { stop-color: #ffff00; }
+      50% { stop-color: #00ff00; }
+      67% { stop-color: #0000ff; }
+      83% { stop-color: #8b00ff; }
+      100% { stop-color: #ff0000; }
+    }
+    .rainbow-text {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      fill: url(#rainbowGrad);
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+    .bg {
+      fill: #111111;
+      rx: 15;
+    }
+    #rainbowGrad stop {
+      animation: colorWave 5s linear infinite;
+    }
+    #rainbowGrad stop:nth-child(1) { animation-delay: 0s; }
+    #rainbowGrad stop:nth-child(2) { animation-delay: -0.83s; }
+    #rainbowGrad stop:nth-child(3) { animation-delay: -1.66s; }
+    #rainbowGrad stop:nth-child(4) { animation-delay: -2.5s; }
+    #rainbowGrad stop:nth-child(5) { animation-delay: -3.33s; }
+    #rainbowGrad stop:nth-child(6) { animation-delay: -4.16s; }
+    ${keywordStyles}
+  </style>
+  <rect width="100%" height="100%" class="bg" />
+  ${keywordSvg}
+  <text x="150" y="75" class="rainbow-text">${escapedText}</text>
+</svg>`;
+  } else if (styleId === 'fire') {
+    svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150">
+  <style>
+    @keyframes fireGlow {
+      0%, 100% { text-shadow: 0 0 4px #ff3300, 0 -2px 8px #ff9900, 0 -4px 15px #ffcc00; }
+      50% { text-shadow: 0 0 6px #ff3300, 0 -4px 12px #ffaa00, 0 -8px 25px #ffea00; transform: translateY(-1px) scale(1.02); }
+    }
+    .fire-text {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      fill: #ffffff;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      transform-origin: 150px 75px;
+      animation: fireGlow 0.8s ease-in-out infinite;
+    }
+    .bg {
+      fill: #1a0500;
+      rx: 15;
+    }
+    ${keywordStyles}
+  </style>
+  <rect width="100%" height="100%" class="bg" />
+  ${keywordSvg}
+  <text x="150" y="75" class="fire-text">${escapedText}</text>
+</svg>`;
+  } else {
+    svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150" viewBox="0 0 300 150">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe259" />
+      <stop offset="100%" stop-color="#ffa751" />
+    </linearGradient>
+  </defs>
+  <style>
+    @keyframes sparkle {
+      0%, 100% { opacity: 0.2; transform: scale(0.8) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.3) rotate(45deg); }
+    }
+    .gold-text {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      fill: url(#goldGrad);
+      text-anchor: middle;
+      dominant-baseline: middle;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+    .bg {
+      fill: #15110a;
+      rx: 15;
+    }
+    .star {
+      fill: #ffe259;
+      animation: sparkle 1.5s ease-in-out infinite;
+    }
+    ${keywordStyles}
+  </style>
+  <rect width="100%" height="100%" class="bg" />
+  <polygon points="50,40 52,48 60,50 52,52 50,60 48,52 40,50 48,48" class="star" style="animation-delay: 0s; transform-origin: 50px 50px;" />
+  <polygon points="250,100 252,108 260,110 252,112 250,120 248,112 240,110 248,108" class="star" style="animation-delay: 0.7s; transform-origin: 250px 110px;" />
+  <polygon points="240,30 241,34 245,35 241,36 240,40 239,36 235,35 239,34" class="star" style="animation-delay: 0.3s; transform-origin: 240px 35px;" />
+  ${keywordSvg}
+  <text x="150" y="75" class="gold-text">${escapedText}</text>
+</svg>`;
+  }
+
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgContent)));
+};
 
 type GiftVisualConfig = {
   emoji: string;
@@ -222,16 +687,25 @@ function isChatThemeMessage(content?: string) {
 }
 
 function chatThemePayload(content: string) {
- return content.slice(CHAT_THEME_MESSAGE_PREFIX.length);
+  return content.slice(CHAT_THEME_MESSAGE_PREFIX.length);
+}
+
+function isGifMessage(content?: string) {
+  return !!content?.startsWith(GIF_MESSAGE_PREFIX);
+}
+
+function gifMessageSrc(content: string) {
+  return content.slice(GIF_MESSAGE_PREFIX.length);
 }
 
 function messagePreview(content?: string) {
- if (isChatThemeMessage(content)) return "Chat theme changed";
- if (isVoiceMessage(content)) return "Voice message";
- if (isPhotoMessage(content)) return "Photo";
- if (isVideoMessage(content)) return "Video";
- if (isGiftMessage(content)) return "Premium gift";
- return content || "No messages yet.";
+  if (isChatThemeMessage(content)) return "Chat theme changed";
+  if (isVoiceMessage(content)) return "Voice message";
+  if (isPhotoMessage(content)) return "Photo";
+  if (isVideoMessage(content)) return "Video";
+  if (isGiftMessage(content)) return "Premium gift";
+  if (isGifMessage(content)) return "GIF";
+  return content || "No messages yet.";
 }
 
 function RealRoseSvg({ label, visual, size }: { label: string; visual: GiftVisualConfig; size: "sm" | "lg" }) {
@@ -292,6 +766,62 @@ function RealRoseSvg({ label, visual, size }: { label: string; visual: GiftVisua
  );
 }
 
+function TransparentImage({ src, alt, className, style }: { src: string; alt: string; className?: string; style?: React.CSSProperties }) {
+  const [processedSrc, setProcessedSrc] = useState<string>(src);
+
+  useEffect(() => {
+    if (!src) return;
+    
+    // Only process local gift/rose images that are JPEGs
+    if (!src.includes('/images/')) {
+      setProcessedSrc(src);
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = src;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0);
+      
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+      
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i+1];
+        const b = data[i+2];
+        
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const diff = max - min;
+        
+        // Key out bright, low-saturated pixels (whites, grays, and soft shadows)
+        if (max > 185 && diff < 35) {
+          let alphaFactor = 0;
+          if (max < 240) {
+            alphaFactor = (240 - max) / (240 - 185);
+          }
+          data[i+3] = Math.round(data[i+3] * Math.max(0, Math.min(1, alphaFactor)));
+        }
+      }
+      
+      ctx.putImageData(imgData, 0, 0);
+      setProcessedSrc(canvas.toDataURL("image/png"));
+    };
+    img.onerror = () => {
+      setProcessedSrc(src);
+    };
+  }, [src]);
+
+  return <img src={processedSrc} alt={alt} className={className} style={style} />;
+}
+
 function GiftVisual({ label, emoji, size = "sm", bare = false }: { label: string; emoji?: string; size?: "sm" | "lg"; bare?: boolean }) {
   const visual = giftVisuals[label] || { emoji: emoji || "🎁", bg: "from-rose-50 via-white to-pink-100", glow: "shadow-rose-200/80" };
   const isLarge = size === "lg";
@@ -308,7 +838,7 @@ function GiftVisual({ label, emoji, size = "sm", bare = false }: { label: string
       )}
     >
       {visual.imageSrc ? (
-        <img
+        <TransparentImage
           src={visual.imageSrc}
           alt={label}
           className={cn(
@@ -506,114 +1036,244 @@ function MessageContent({ content, isMe, onOpenPhoto }: { content: string; isMe:
 
   if (isGiftMessage(content)) {
     const gift = giftPayload(content);
-    const visual = giftVisuals[gift.label] || { emoji: gift.emoji || "🌹", bg: "from-pink-50 to-white" };
     return (
-      <div className="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white/95 via-rose-50/90 to-pink-100/50 p-4 text-center backdrop-blur-md shadow-xl ring-1 ring-rose-100/40 min-w-[160px] max-w-[200px] mx-auto transition-transform duration-500 hover:scale-[1.03] cursor-default">
-        {/* Glow behind the card */}
-        <span className="absolute -left-4 -top-4 h-12 w-12 rounded-full bg-pink-300/10 blur-xl pointer-events-none" />
-        <span className="absolute -right-4 -bottom-4 h-12 w-12 rounded-full bg-rose-400/10 blur-xl pointer-events-none" />
-        
-        {/* Large rose SVG inside dynamic circular frame */}
-        <div className="relative mx-auto mb-3.5 grid h-24 w-24 place-items-center rounded-full bg-white/90 shadow-inner">
-          <GiftVisual label={gift.label} emoji={gift.emoji} size="lg" bare />
-          {/* Dotted border loop */}
-          <span className="absolute inset-0.5 rounded-full border border-dashed border-rose-200/80 animate-spin [animation-duration:12s]" />
-        </div>
-        
-        <div className="space-y-1.5">
-          <span className="inline-block rounded-full bg-rose-500 px-2.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-white shadow-sm shadow-rose-200">
-            Gift Received
-          </span>
-          <h4 className="text-[11px] font-extrabold text-slate-800 leading-tight">
-            {gift.label}
-          </h4>
-          {visual.meaning && (
-            <p className="text-[9px] font-bold italic leading-tight text-rose-500 bg-rose-50/60 rounded-xl py-1.5 px-2 border border-rose-100/30">
-              "{visual.meaning}"
-            </p>
-          )}
-        </div>
+      <div className="flex justify-center p-1.5 cursor-default select-none">
+        <GiftVisual label={gift.label} emoji={gift.emoji} size="lg" bare />
       </div>
     );
   }
 
- return <span className={cn("whitespace-pre-wrap break-words", isMe ? "text-white" : "text-foreground")}>{content}</span>;
+  if (isGifMessage(content)) {
+    const src = gifMessageSrc(content);
+    return (
+      <div className="relative overflow-hidden rounded-xl bg-transparent">
+        <img
+          src={src}
+          alt="GIF"
+          referrerPolicy="no-referrer"
+          className="max-h-60 max-w-[240px] rounded-xl object-contain border border-white/10 shadow-md transition-transform duration-300 hover:scale-[1.04]"
+        />
+      </div>
+    );
+  }
+
+  return <span className={cn("whitespace-pre-wrap break-words", isMe ? "text-white" : "text-foreground")}>{content}</span>;
 }
 
 function ChatThemeParticles({ themeId }: { themeId: string }) {
   const [particles, setParticles] = useState<any[]>([]);
 
   useEffect(() => {
-    let emojiPool = ["✨"];
     let animType = "float-up";
-    
-    if (themeId === "3d-hearts") {
-      emojiPool = ["❤️", "💖", "💝", "💕", "😍"];
-      animType = "float-up";
-    } else if (themeId === "3d-roses") {
-      emojiPool = ["🌹", "🌸", "💮", "🌺"];
+    if (themeId === "3d-roses" || themeId === "3d-diamond") {
       animType = "float-down";
-    } else if (themeId === "3d-stars") {
-      emojiPool = ["✨", "⭐", "🌟"];
+    } else if (themeId === "3d-stars" || themeId === "3d-galaxy") {
       animType = "twinkle";
     } else if (themeId === "3d-clouds") {
-      emojiPool = ["☁️", "🌥️", "🌧️"];
       animType = "float-left-right";
-    } else if (themeId === "3d-love-letter") {
-      emojiPool = ["✉️", "💌", "❤️"];
-      animType = "float-up";
-    } else if (themeId === "3d-bubble") {
-      emojiPool = ["🫧"];
-      animType = "float-up";
-    } else if (themeId === "3d-diamond") {
-      emojiPool = ["💎", "✨"];
-      animType = "float-down";
-    } else if (themeId === "3d-fire") {
-      emojiPool = ["🔥", "✨", "💥"];
-      animType = "float-up";
-    } else if (themeId === "3d-cupid") {
-      emojiPool = ["💘", "🏹", "❤️"];
-      animType = "float-up";
-    } else if (themeId === "3d-galaxy") {
-      emojiPool = ["🪐", "☄️", "⭐", "✨"];
-      animType = "twinkle";
-    } else {
-      setParticles([]);
-      return;
     }
 
-    const items = Array.from({ length: 15 }).map((_, i) => ({
+    const items = Array.from({ length: 12 }).map((_, i) => ({
       id: i,
-      emoji: emojiPool[Math.floor(Math.random() * emojiPool.length)],
+      seed: Math.random(),
       left: `${Math.random() * 100}%`,
-      top: animType === "float-down" ? "-10%" : animType === "float-up" ? "110%" : `${Math.random() * 100}%`,
-      size: `${Math.random() * 1.5 + 0.8}rem`,
-      delay: `${Math.random() * 10}s`,
-      duration: `${Math.random() * 15 + 10}s`,
+      top: animType === "float-down" ? "-10%" : animType === "float-up" ? "110%" : `${Math.random() * 80 + 10}%`,
+      size: `${Math.random() * 1.8 + 1.2}rem`,
+      delay: `${Math.random() * 8}s`,
+      duration: animType === "twinkle" ? `${Math.random() * 4 + 3}s` : `${Math.random() * 12 + 10}s`,
       animType,
     }));
     setParticles(items);
   }, [themeId]);
 
+  const renderParticleSVG = (seed: number) => {
+    switch (themeId) {
+      case "3d-stars": {
+        if (seed < 0.6) {
+          return (
+            <svg viewBox="0 0 24 24" className="w-full h-full fill-yellow-200 filter drop-shadow-[0_0_8px_rgba(254,240,138,0.9)] opacity-80">
+              <path d="M12 0 L15.5 8.5 L24 12 L15.5 15.5 L12 24 L8.5 15.5 L0 12 L8.5 8.5 Z" />
+            </svg>
+          );
+        } else if (seed < 0.85) {
+          return (
+            <svg viewBox="0 0 32 32" className="w-full h-full filter drop-shadow-[0_0_12px_rgba(251,146,60,0.6)]">
+              <circle cx="16" cy="16" r="6.5" fill="#f97316" />
+              <ellipse cx="16" cy="16" rx="13" ry="3.5" fill="none" stroke="#ffedd5" strokeWidth="2" transform="rotate(-15 16 16)" />
+            </svg>
+          );
+        } else {
+          return (
+            <svg viewBox="0 0 40 40" className="w-full h-full select-none pointer-events-none">
+              <line x1="0" y1="40" x2="40" y2="0" stroke="url(#star-shoot-trail)" strokeWidth="2.5" strokeLinecap="round" />
+              <circle cx="40" cy="0" r="3" fill="#ffffff" className="filter drop-shadow-[0_0_8px_#ffffff]" />
+              <defs>
+                <linearGradient id="star-shoot-trail" x1="0%" y1="100%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#facc15" stopOpacity="0" />
+                  <stop offset="70%" stopColor="#facc15" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
+                </linearGradient>
+              </defs>
+            </svg>
+          );
+        }
+      }
+      case "3d-galaxy": {
+        if (seed < 0.5) {
+          return (
+            <svg viewBox="0 0 24 24" className="w-full h-full fill-indigo-200 filter drop-shadow-[0_0_6px_rgba(167,139,250,0.8)] opacity-90">
+              <path d="M12 0 L15 9 L24 12 L15 15 L12 24 L9 15 L0 12 L9 9 Z" />
+            </svg>
+          );
+        } else if (seed < 0.85) {
+          return (
+            <svg viewBox="0 0 24 24" className="w-full h-full fill-fuchsia-400 filter drop-shadow-[0_0_8px_rgba(240,82,185,0.8)]">
+              <path d="M12 2 C10 8 2 10 2 12 C2 14 10 16 12 22 C14 16 22 14 22 12 C22 10 14 8 12 2 Z" />
+            </svg>
+          );
+        } else {
+          return (
+            <svg viewBox="0 0 32 32" className="w-full h-full filter drop-shadow-[0_0_12px_rgba(139,92,246,0.6)]">
+              <path d="M16 8 C18 12, 22 12, 24 16 C26 20, 22 22, 16 24 C10 26, 8 24, 6 20 C4 16, 8 12, 16 8 Z" fill="url(#gal-grad)" className="animate-spin" style={{ transformOrigin: "center", animationDuration: "12s" }} />
+              <circle cx="16" cy="16" r="4.5" fill="#ffffff" className="filter drop-shadow-[0_0_6px_#ffffff]" />
+              <defs>
+                <radialGradient id="gal-grad" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#c084fc" stopOpacity="1" />
+                  <stop offset="60%" stopColor="#6366f1" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#4338ca" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+            </svg>
+          );
+        }
+      }
+      case "3d-hearts":
+      case "3d-cupid": {
+        return (
+          <svg viewBox="0 0 24 24" className="w-full h-full fill-rose-500 filter drop-shadow-[0_0_8px_rgba(244,63,94,0.7)] transition-transform duration-300 hover:scale-125">
+            <path d="M12 21.35 l-1.45-1.32 C5.4 15.36 2 12.28 2 8.5 C2 5.42 4.42 3 7.5 3 c1.74 0 3.41.81 4.5 2.09 C13.09 3.81 14.76 3 16.5 3 C19.58 3 22 5.42 22 8.5 c0 3.78-3.4 6.86-8.55 11.54 L12 21.35 z" />
+          </svg>
+        );
+      }
+      case "3d-love-letter": {
+        if (seed < 0.5) {
+          return (
+            <svg viewBox="0 0 24 24" className="w-full h-full fill-pink-400 filter drop-shadow-[0_2px_6px_rgba(244,114,182,0.4)]">
+              <path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z" />
+            </svg>
+          );
+        } else {
+          return (
+            <svg viewBox="0 0 24 24" className="w-full h-full fill-rose-500 filter drop-shadow-[0_0_6px_rgba(244,63,94,0.5)]">
+              <path d="M12 21.35 l-1.45-1.32 C5.4 15.36 2 12.28 2 8.5 C2 5.42 4.42 3 7.5 3 c1.74 0 3.41.81 4.5 2.09 C13.09 3.81 14.76 3 16.5 3 C19.58 3 22 5.42 22 8.5 c0 3.78-3.4 6.86-8.55 11.54 L12 21.35 z" />
+            </svg>
+          );
+        }
+      }
+      case "3d-roses": {
+        return (
+          <svg viewBox="0 0 24 24" className="w-full h-full fill-rose-600 filter drop-shadow-[0_3px_5px_rgba(159,18,57,0.35)]">
+            <path d="M12,2 C9,4.5 6,5 4.5,7.5 C3,10 4,13 6,15 C8.5,17.5 12,19.5 13,20 C14,19.5 17.5,17.5 20,15 C22,13 23,10 21.5,7.5 C20,5 17,4.5 14,2 C13,3 11,3 12,2 Z" opacity="0.95" />
+            <path d="M12,5 C10,7 8,7.5 7,9 C6,10.5 6.5,12 8,13 C9.5,14 12,15.5 13,16 C14,15.5 16.5,14 18,13 C19.5,12 20,10.5 19,9 C18,7.5 16,7 14,5 C13.5,5.5 12.5,5.5 12,5 Z" fill="#be123c" opacity="0.8" />
+          </svg>
+        );
+      }
+      case "3d-fire": {
+        return (
+          <div className="w-full h-full rounded-full bg-gradient-to-t from-red-600 via-orange-500 to-yellow-400 filter blur-[1.5px] shadow-[0_0_8px_#f97316]" />
+        );
+      }
+      case "3d-bubble": {
+        return (
+          <div className="relative w-full h-full rounded-full border border-white/25 shadow-[inset_0_0_8px_rgba(255,255,255,0.7)]" style={{
+            background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.85), rgba(255,255,255,0) 70%), radial-gradient(circle, rgba(45,212,191,0.08) 0%, rgba(14,165,233,0.18) 100%)"
+          }}>
+            <span className="absolute left-[20%] top-[20%] w-[18%] h-[12%] bg-white/70 rounded-full rotate-45" />
+          </div>
+        );
+      }
+      case "3d-diamond": {
+        return (
+          <svg viewBox="0 0 24 24" className="w-full h-full fill-cyan-200 filter drop-shadow-[0_0_10px_rgba(56,189,248,0.75)] animate-pulse">
+            <path d="M12 2 L22 12 L12 22 L2 12 Z" />
+            <path d="M12 6 L18 12 L12 18 L6 12 Z" fill="#ffffff" opacity="0.5" />
+          </svg>
+        );
+      }
+      case "3d-clouds": {
+        return (
+          <svg viewBox="0 0 24 24" className="w-full h-full fill-white/80 filter drop-shadow-[0_4px_10px_rgba(255,255,255,0.3)]">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" />
+          </svg>
+        );
+      }
+      default:
+        return <span className="text-yellow-200">✨</span>;
+    }
+  };
+
+  const renderThemeGlows = () => {
+    switch (themeId) {
+      case "3d-stars":
+        return (
+          <div className="absolute inset-0 pointer-events-none opacity-45 mix-blend-screen overflow-hidden">
+            <div className="absolute -top-1/4 -left-1/4 w-[85%] h-[85%] rounded-full bg-indigo-500/20 blur-[130px] animate-[pulse_10s_infinite]" />
+            <div className="absolute -bottom-1/4 -right-1/4 w-[85%] h-[85%] rounded-full bg-violet-600/15 blur-[130px] animate-[pulse_14s_infinite]" />
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[60%] h-[60%] rounded-full bg-amber-500/10 blur-[110px] animate-[pulse_12s_infinite]" />
+          </div>
+        );
+      case "3d-galaxy":
+        return (
+          <div className="absolute inset-0 pointer-events-none opacity-50 mix-blend-screen overflow-hidden">
+            <div className="absolute -top-1/3 right-[-10%] w-[95%] h-[95%] rounded-full bg-fuchsia-600/20 blur-[150px] animate-[pulse_12s_infinite_alternate]" />
+            <div className="absolute -bottom-1/3 left-[-10%] w-[95%] h-[95%] rounded-full bg-violet-600/20 blur-[150px] animate-[pulse_16s_infinite_alternate]" />
+            <div className="absolute top-1/4 left-1/3 w-[55%] h-[55%] rounded-full bg-cyan-500/10 blur-[110px]" />
+          </div>
+        );
+      case "3d-hearts":
+      case "3d-cupid":
+        return (
+          <div className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply overflow-hidden">
+            <div className="absolute -top-10 left-10 w-96 h-96 rounded-full bg-rose-200/40 blur-[90px]" />
+            <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-pink-200/40 blur-[90px]" />
+          </div>
+        );
+      case "3d-fire":
+        return (
+          <div className="absolute inset-0 pointer-events-none opacity-40 mix-blend-screen overflow-hidden">
+            <div className="absolute -bottom-[20%] left-[-10%] w-[120%] h-[65%] rounded-full bg-gradient-to-t from-orange-600/25 via-red-600/10 to-transparent blur-[90px] animate-[pulse_6s_infinite]" />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-      {particles.map((p) => (
-        <span
-          key={p.id}
-          className={cn("absolute select-none opacity-25", `animate-${p.animType}`)}
-          style={{
-            left: p.left,
-            top: p.top,
-            fontSize: p.size,
-            animationDelay: p.delay,
-            animationDuration: p.duration,
-            animationIterationCount: "infinite",
-            animationTimingFunction: "linear",
-          }}
-        >
-          {p.emoji}
-        </span>
-      ))}
+      {renderThemeGlows()}
+      {particles.map((p) => {
+        const isDark = themeId === "3d-stars" || themeId === "3d-galaxy" || themeId === "3d-fire";
+        const opacityClass = isDark ? "opacity-60" : "opacity-85";
+        return (
+          <div
+            key={p.id}
+            className={cn("absolute select-none pointer-events-none", opacityClass, `animate-${p.animType}`)}
+            style={{
+              left: p.left,
+              top: p.top,
+              width: p.size,
+              height: p.size,
+              animationDelay: p.delay,
+              animationDuration: p.duration,
+              animationIterationCount: "infinite",
+              animationTimingFunction: "linear",
+            }}
+          >
+            {renderParticleSVG(p.seed)}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -646,8 +1306,12 @@ export default function Messages() {
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [selectedThemeId, setSelectedThemeId] = useState(FREE_CHAT_THEMES[0].id);
   const [disappearingMode, setDisappearingMode] = useState<'after-view' | '24h' | '7d' | 'off'>("off");
-  const [activePickerTab, setActivePickerTab] = useState<"emoji" | "gift">("emoji");
+  const [activePickerTab, setActivePickerTab] = useState<"emoji" | "gift" | "gif">("emoji");
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(FREE_EMOJI_CATEGORIES[0].id);
+  const [activeGifCategory, setActiveGifCategory] = useState<string>("funny");
+  const [gifSearchQuery, setGifSearchQuery] = useState<string>("");
+  const [textToGifVal, setTextToGifVal] = useState<string>("");
+  const [activeGifSubTab, setActiveGifSubTab] = useState<"library" | "text-to-gif">("library");
   const [activeGiftAnim, setActiveGiftAnim] = useState<{
     emoji: string;
     label: string;
@@ -695,11 +1359,17 @@ export default function Messages() {
    }
  }, [token]);
 
- useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const matchId = params.get("id");
-  if (matchId) setActiveId(matchId);
- }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const matchId = params.get("id");
+    if (matchId) setActiveId(matchId);
+  }, []);
+
+  useEffect(() => {
+    if (activePickerTab === "gif" && draft.trim()) {
+      setTextToGifVal(draft.trim());
+    }
+  }, [activePickerTab, draft]);
 
  useEffect(() => {
    if (!activeId) return;
@@ -718,8 +1388,22 @@ export default function Messages() {
    }
  }, [activeId]);
 
+  const { matches: activeMatches } = useMatches(token, "active");
+  const {
+    messages,
+    sendMessage,
+    socket,
+    toggleReaction,
+    sendTypingStatus,
+    sendRecordingStatus,
+    markMessagesRead,
+    isTyping,
+    isRecording,
+  } = useChatWebSocket(token, activeId);
+
  useEffect(() => {
    if (activeId && token) {
+     markMessagesRead();
      fetch(`${API_URL}/messages/${activeId}/read`, {
        method: 'PATCH',
        headers: { Authorization: `Bearer ${token}` }
@@ -727,10 +1411,7 @@ export default function Messages() {
        queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
      }).catch(() => {});
    }
- }, [activeId, token, queryClient]);
-
- const { matches: activeMatches } = useMatches(token, "active");
- const { messages, sendMessage, socket } = useChatWebSocket(token, activeId);
+ }, [activeId, token, queryClient, markMessagesRead]);
  // Disappearing messages filter
  const visibleMessages = messages.filter((m: any) => {
    if (isChatThemeMessage(m.content)) return false;
@@ -905,6 +1586,39 @@ export default function Messages() {
    .sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
 
  const active = displayMatches.find((m) => m.id === activeId);
+ const activeUserId = active?.userId;
+ const activePresenceText = isRecording
+   ? "Recording Audio..."
+   : isTyping
+     ? "Typing..."
+     : active?.online
+       ? "Online now"
+       : (active?.lastSeen ? `Last seen at ${new Date(active.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Offline");
+
+ useEffect(() => {
+   if (!activeUserId || isRecordingVoice) return;
+
+   const hasDraft = draft.trim().length > 0;
+   sendTypingStatus(activeUserId, hasDraft);
+
+   if (!hasDraft) return;
+   const timer = window.setTimeout(() => {
+     sendTypingStatus(activeUserId, false);
+   }, 1500);
+
+   return () => {
+     window.clearTimeout(timer);
+     sendTypingStatus(activeUserId, false);
+   };
+ }, [activeUserId, draft, isRecordingVoice, sendTypingStatus]);
+
+ useEffect(() => {
+   if (!activeUserId) return;
+   sendRecordingStatus(activeUserId, isRecordingVoice);
+   return () => {
+     sendRecordingStatus(activeUserId, false);
+   };
+ }, [activeUserId, isRecordingVoice, sendRecordingStatus]);
 
  const attachVideoStreams = useCallback(() => {
    if (localVideoRef.current && localStreamRef.current) {
@@ -1131,7 +1845,7 @@ export default function Messages() {
 
  useEffect(() => {
    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
- }, [visibleMessages]);
+ }, [visibleMessages, isTyping, isRecording]);
 
  const handleSend = async (e?: React.FormEvent) => {
    if (e) e.preventDefault();
@@ -1418,7 +2132,7 @@ export default function Messages() {
  </Avatar>
  <div>
  <p className="text-sm font-semibold text-[var(--chat-text)]">{active.name}, {active.age}</p>
- <p className="text-xs text-[var(--chat-text-muted)]">{active.online ? "Online now" : (active.lastSeen ? `Last seen at ${new Date(active.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Offline")}</p>
+ <p className={cn("text-xs", (isTyping || isRecording) ? "font-semibold text-rose-500" : "text-[var(--chat-text-muted)]")}>{activePresenceText}</p>
  </div>
  </div>
  <div className="flex items-center gap-1 text-[var(--chat-text)]">
@@ -1488,40 +2202,202 @@ export default function Messages() {
   }
 
   return (
- <div key={m.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
- {isMe ? (
- <ContextMenu>
- <ContextMenuTrigger asChild>
- <div className={cn(
- "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
- isGift ? "bg-transparent px-1 py-1 text-white" : "[background:var(--chat-outgoing)] px-4 py-2 text-white rounded-br-sm shadow-sm"
- )}>
- <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />
- <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", isGift ? "text-white/80 drop-shadow-sm" : "opacity-90")}>
- {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
- {m.isRead ? <CheckCheck className="h-[16px] w-[16px] text-white" /> : <Check className="h-[16px] w-[16px]" />}
+  isMe ? (
+ <div key={m.id} className="relative flex w-full my-2 justify-end">
+   <ContextMenu>
+   <ContextMenuTrigger asChild>
+   <div className={cn(
+   "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
+   isGift ? "bg-transparent px-1 py-1 text-white" : "[background:var(--chat-outgoing)] px-4 py-2 text-white rounded-br-sm shadow-sm"
+   )}>
+   <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />
+   <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", isGift ? "text-[var(--chat-text-muted)] font-semibold" : "text-white opacity-90")}>
+   {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+   {(() => {
+     const status = m.deliveryStatus === "failed"
+       ? "failed"
+       : m.deliveryStatus === "sending"
+         ? "sending"
+         : m.isRead || m.deliveryStatus === "seen"
+           ? "seen"
+           : m.deliveryStatus === "delivered"
+             ? "delivered"
+             : "sent";
+     const label = status === "failed"
+       ? "Failed to Send"
+       : status === "sending"
+         ? "Sending..."
+         : status === "seen"
+           ? "Seen"
+           : status === "delivered"
+             ? "Delivered"
+             : "Sent";
+     const statusColor = status === "failed" ? "text-red-200" : (status === "seen" || status === "delivered") ? "text-emerald-300" : (isGift ? "text-[var(--chat-text-muted)]" : "text-white/85");
+
+     return (
+       <span className={cn("inline-flex items-center gap-0.5 font-semibold", statusColor)}>
+         {label}
+         {status === "failed" ? (
+           <X className="h-[13px] w-[13px]" />
+         ) : status === "seen" || status === "delivered" ? (
+           <CheckCheck className="h-[16px] w-[16px]" />
+         ) : (
+           <Check className="h-[16px] w-[16px]" />
+         )}
+       </span>
+     );
+   })()}
+   </div>
+
+   {/* Reactions badges */}
+   {(() => {
+     if (!m.reactions) return null;
+     try {
+       const reactions = JSON.parse(m.reactions);
+       const entries = Object.entries(reactions);
+       if (entries.length === 0) return null;
+       return (
+         <div className="absolute -bottom-2.5 right-3 z-10 flex items-center gap-1 rounded-full border border-slate-100 bg-white px-2 py-0.5 shadow-sm text-[10px] font-bold select-none text-slate-800">
+           {entries.map(([emoji, userIds]: [string, any]) => {
+             const hasReacted = myId ? userIds.includes(myId) : false;
+             return (
+               <button
+                 key={emoji}
+                 type="button"
+                 onClick={() => toggleReaction(m.id, active.userId, emoji)}
+                 className={cn(
+                   "flex items-center gap-0.5 transition duration-200 active:scale-95 hover:scale-115",
+                   hasReacted ? "text-rose-600 font-extrabold" : "text-slate-500"
+                 )}
+               >
+                 <span>{emoji}</span>
+                 {userIds.length > 1 && <span>{userIds.length}</span>}
+               </button>
+             );
+           })}
+         </div>
+       );
+     } catch (e) {
+       return null;
+     }
+   })()}
+   </div>
+   </ContextMenuTrigger>
+   <ContextMenuContent className="p-1 min-w-[160px]">
+     {/* Reactions row inside ContextMenu */}
+     <div className="flex items-center justify-around gap-1 border-b border-slate-100 p-1.5 bg-rose-50/20 rounded-t-lg">
+       {["❤️", "😂", "👍", "🔥"].map((emoji) => {
+         let reactions: Record<string, string[]> = {};
+         try { reactions = m.reactions ? JSON.parse(m.reactions) : {}; } catch(e) {}
+         const userIds = reactions[emoji] || [];
+         const hasReacted = myId ? userIds.includes(myId) : false;
+         return (
+           <button
+             key={emoji}
+             type="button"
+             onClick={() => toggleReaction(m.id, active.userId, emoji)}
+             className={cn(
+               "flex h-7 w-7 items-center justify-center rounded-full text-base transition hover:scale-125 duration-150 active:scale-95",
+               hasReacted ? "bg-rose-100/80 scale-110" : "hover:bg-slate-100"
+             )}
+           >
+             {emoji}
+           </button>
+         );
+       })}
+     </div>
+     <ContextMenuItem className="text-red-500 cursor-pointer" onClick={() => handleUnsend(m.id)}>
+     Unsend Message
+     </ContextMenuItem>
+   </ContextMenuContent>
+   </ContextMenu>
  </div>
- </div>
- </ContextMenuTrigger>
- <ContextMenuContent>
- <ContextMenuItem className="text-red-500 cursor-pointer" onClick={() => handleUnsend(m.id)}>
- Unsend Message
- </ContextMenuItem>
- </ContextMenuContent>
- </ContextMenu>
  ) : (
- <div className={cn(
- "max-w-[70%] rounded-2xl text-sm relative",
- isGift ? "bg-transparent px-1 py-1 text-foreground" : "bg-[var(--chat-incoming)] px-4 py-2 text-foreground rounded-bl-sm shadow-sm"
- )}>
- <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />
- <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", isGift ? "text-muted-foreground" : "opacity-70")}>
- {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+ <div key={m.id} className="relative flex w-full my-2 justify-start">
+   <ContextMenu>
+   <ContextMenuTrigger asChild>
+   <div className={cn(
+   "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
+   isGift ? "bg-transparent px-1 py-1 text-foreground" : "bg-[var(--chat-incoming)] px-4 py-2 text-foreground rounded-bl-sm shadow-sm"
+   )}>
+   <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />
+   <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", isGift ? "text-muted-foreground" : "opacity-70")}>
+   {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+   </div>
+
+   {/* Reactions badges */}
+   {(() => {
+     if (!m.reactions) return null;
+     try {
+       const reactions = JSON.parse(m.reactions);
+       const entries = Object.entries(reactions);
+       if (entries.length === 0) return null;
+       return (
+         <div className="absolute -bottom-2.5 left-3 z-10 flex items-center gap-1 rounded-full border border-slate-100 bg-white px-2 py-0.5 shadow-sm text-[10px] font-bold select-none text-slate-800">
+           {entries.map(([emoji, userIds]: [string, any]) => {
+             const hasReacted = myId ? userIds.includes(myId) : false;
+             return (
+               <button
+                 key={emoji}
+                 type="button"
+                 onClick={() => toggleReaction(m.id, active.userId, emoji)}
+                 className={cn(
+                   "flex items-center gap-0.5 transition duration-200 active:scale-95 hover:scale-115",
+                   hasReacted ? "text-rose-600 font-extrabold" : "text-slate-500"
+                 )}
+               >
+                 <span>{emoji}</span>
+                 {userIds.length > 1 && <span>{userIds.length}</span>}
+               </button>
+             );
+           })}
+         </div>
+       );
+     } catch (e) {
+       return null;
+     }
+   })()}
+   </div>
+   </ContextMenuTrigger>
+   <ContextMenuContent className="p-1 min-w-[160px]">
+     {/* Reactions row inside ContextMenu */}
+     <div className="flex items-center justify-around gap-1 border-b border-slate-100 p-1.5 bg-rose-50/20 rounded-t-lg">
+       {["❤️", "😂", "👍", "🔥"].map((emoji) => {
+         let reactions: Record<string, string[]> = {};
+         try { reactions = m.reactions ? JSON.parse(m.reactions) : {}; } catch(e) {}
+         const userIds = reactions[emoji] || [];
+         const hasReacted = myId ? userIds.includes(myId) : false;
+         return (
+           <button
+             key={emoji}
+             type="button"
+             onClick={() => toggleReaction(m.id, active.userId, emoji)}
+             className={cn(
+               "flex h-7 w-7 items-center justify-center rounded-full text-base transition hover:scale-125 duration-150 active:scale-95",
+               hasReacted ? "bg-rose-100/80 scale-110" : "hover:bg-slate-100"
+             )}
+           >
+             {emoji}
+           </button>
+         );
+       })}
+     </div>
+     <ContextMenuItem className="cursor-pointer" onClick={() => toast.success("Message reported.")}>
+     Report Message
+     </ContextMenuItem>
+   </ContextMenuContent>
+   </ContextMenu>
  </div>
- </div>
+ )
+  );
+})}
+ {(isTyping || isRecording) && (
+   <div className="relative z-10 flex w-full justify-start">
+     <div className="rounded-2xl rounded-bl-sm bg-[var(--chat-incoming)] px-4 py-2 text-xs font-semibold text-[var(--chat-text-muted)] shadow-sm">
+       {isRecording ? "Recording Audio..." : "Typing..."}
+     </div>
+   </div>
  )}
- </div>
- )})}
  <div ref={bottomRef} />
  </div>
 
@@ -1574,33 +2450,44 @@ export default function Messages() {
  >
  <SmilePlus className="h-[16px] w-[16px]" />
  </Button>
- {showEmojiPicker && (
- <div className="absolute bottom-14 left-0 z-30 flex h-[430px] w-80 flex-col overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl">
- <div className="grid grid-cols-2 border-b border-rose-100 bg-rose-50/40 p-1.5">
- <button
- type="button"
- onClick={() => setActivePickerTab("emoji")}
- className={cn(
- "flex h-9 items-center justify-center gap-2 rounded-full text-sm font-bold transition",
- activePickerTab === "emoji" ? "bg-white text-rose-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
- )}
- >
- <SmilePlus className="h-4 w-4" />
- Emoji
- </button>
- <button
- type="button"
- onClick={() => setActivePickerTab("gift")}
- className={cn(
- "flex h-9 items-center justify-center gap-2 rounded-full text-sm font-bold transition",
- activePickerTab === "gift" ? "bg-white text-rose-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
- )}
- >
- <Gift className="h-4 w-4" />
- Gifts
- </button>
- </div>
- {activePickerTab === "emoji" ? (
+  {showEmojiPicker && (
+    <div className={cn("absolute bottom-14 left-0 z-30 flex h-[430px] flex-col overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl transition-all duration-300", activePickerTab === "gif" ? "w-[360px]" : "w-80")}>
+      <div className="grid grid-cols-3 border-b border-rose-100 bg-rose-50/40 p-1.5">
+        <button
+          type="button"
+          onClick={() => setActivePickerTab("emoji")}
+          className={cn(
+            "flex h-9 items-center justify-center gap-2 rounded-full text-sm font-bold transition",
+            activePickerTab === "emoji" ? "bg-white text-rose-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <SmilePlus className="h-4 w-4" />
+          Emoji
+        </button>
+        <button
+          type="button"
+          onClick={() => setActivePickerTab("gif")}
+          className={cn(
+            "flex h-9 items-center justify-center gap-2 rounded-full text-sm font-bold transition",
+            activePickerTab === "gif" ? "bg-white text-rose-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Sparkles className="h-4 w-4" />
+          GIFs
+        </button>
+        <button
+          type="button"
+          onClick={() => setActivePickerTab("gift")}
+          className={cn(
+            "flex h-9 items-center justify-center gap-2 rounded-full text-sm font-bold transition",
+            activePickerTab === "gift" ? "bg-white text-rose-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Gift className="h-4 w-4" />
+          Gifts
+        </button>
+      </div>
+      {activePickerTab === "emoji" ? (
  <>
  <div className="border-b border-border px-3 py-2">
  <div className="flex gap-2 overflow-x-auto pb-1">
@@ -1635,62 +2522,207 @@ export default function Messages() {
  </div>
  </div>
  </>
- ) : (
-    <div className="min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-rose-50/20 to-white/40 p-3">
-      <div className="grid grid-cols-2 gap-2.5">
-        {PREMIUM_GIFTS.map((gift) => {
-          const visual = giftVisuals[gift.label] || { emoji: "🌹", bg: "from-pink-50 to-white" };
-          const isRare = ["Burgundy Rose", "Lavender Rose", "Blue Rose", "Black Rose", "Red-tipped Rose"].includes(gift.label);
-          return (
-            <button
-              key={gift.label}
-              type="button"
-              onClick={() => sendPremiumGift(gift)}
-              className="group relative flex flex-col justify-between items-center rounded-2xl border border-rose-100 bg-white/80 p-2.5 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-rose-300 hover:shadow-md hover:shadow-rose-100/40"
-            >
-              {/* Status / Available Badge */}
-              <span className={cn(
-                "absolute top-2 right-2 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[7px] font-bold tracking-wide border",
-                isRare 
-                  ? "bg-purple-50 text-purple-600 border-purple-100" 
-                  : "bg-emerald-50 text-emerald-600 border-emerald-100"
-              )}>
-                <span className={cn("h-1 w-1 rounded-full animate-pulse", isRare ? "bg-purple-500" : "bg-emerald-500")} />
-                {isRare ? "Premium" : "In Stock"}
-              </span>
-
-              {/* Glowing SVG Center Container */}
-              <div className="relative my-2.5 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-rose-50 to-pink-100/30 group-hover:scale-110 transition-transform duration-300">
-                <span className={cn("absolute inset-0 rounded-full blur-md opacity-25 transition-opacity group-hover:opacity-40", visual.bg)} />
-                <GiftVisual label={gift.label} emoji={gift.emoji} />
-              </div>
-
-              {/* Title & Meaning */}
-              <div className="w-full flex-1 flex flex-col justify-between">
-                <div>
-                  <h4 className="text-[11px] font-extrabold text-slate-800 group-hover:text-rose-600 transition-colors leading-tight">
-                    {gift.label}
-                  </h4>
-                  {visual.meaning && (
-                    <p className="mt-1 text-[8px] font-medium leading-tight text-slate-400 italic line-clamp-2 px-0.5">
-                      "{visual.meaning}"
-                    </p>
-                  )}
-                </div>
-
-                {/* Price Container */}
-                <div className="mt-2.5 flex items-center justify-center">
-                  <span className="flex items-center gap-0.5 rounded-full bg-rose-50 px-2 py-0.5 border border-rose-100 text-[10px] font-black text-rose-600 shadow-sm group-hover:bg-rose-500 group-hover:text-white group-hover:border-rose-500 transition-all duration-300">
-                    ₹{gift.price}
+      ) : activePickerTab === "gift" ? (
+        <div className="min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-rose-50/20 to-white/40 p-3">
+          <div className="grid grid-cols-2 gap-2.5">
+            {PREMIUM_GIFTS.map((gift) => {
+              const visual = giftVisuals[gift.label] || { emoji: "🌹", bg: "from-pink-50 to-white" };
+              const isRare = ["Burgundy Rose", "Lavender Rose", "Blue Rose", "Black Rose", "Red-tipped Rose"].includes(gift.label);
+              return (
+                <button
+                  key={gift.label}
+                  type="button"
+                  onClick={() => sendPremiumGift(gift)}
+                  className="group relative flex flex-col justify-between items-center rounded-2xl border border-rose-100 bg-white/80 p-2.5 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-rose-300 hover:shadow-md hover:shadow-rose-100/40"
+                >
+                  {/* Status / Available Badge */}
+                  <span className={cn(
+                    "absolute top-2 right-2 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[7px] font-bold tracking-wide border",
+                    isRare 
+                      ? "bg-purple-50 text-purple-600 border-purple-100" 
+                      : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                  )}>
+                    <span className={cn("h-1 w-1 rounded-full animate-pulse", isRare ? "bg-purple-500" : "bg-emerald-500")} />
+                    {isRare ? "Premium" : "In Stock"}
                   </span>
+
+                  {/* Glowing SVG Center Container */}
+                  <div className="relative my-2.5 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-rose-50 to-pink-100/30 group-hover:scale-110 transition-transform duration-300">
+                    <span className={cn("absolute inset-0 rounded-full blur-md opacity-25 transition-opacity group-hover:opacity-40", visual.bg)} />
+                    <GiftVisual label={gift.label} emoji={gift.emoji} />
+                  </div>
+
+                  {/* Title & Meaning */}
+                  <div className="w-full flex-1 flex flex-col justify-between">
+                    <div>
+                      <h4 className="text-[11px] font-extrabold text-slate-800 group-hover:text-rose-600 transition-colors leading-tight">
+                        {gift.label}
+                      </h4>
+                      {visual.meaning && (
+                        <p className="mt-1 text-[8px] font-medium leading-tight text-slate-400 italic line-clamp-2 px-0.5">
+                          "{visual.meaning}"
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Price Container */}
+                    <div className="mt-2.5 flex items-center justify-center">
+                      <span className="flex items-center gap-0.5 rounded-full bg-rose-50 px-2 py-0.5 border border-rose-100 text-[10px] font-black text-rose-600 shadow-sm group-hover:bg-rose-500 group-hover:text-white group-hover:border-rose-500 transition-all duration-300">
+                        ₹{gift.price}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="min-h-0 flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-rose-50/10 to-white/30">
+          <div className="flex border-b border-rose-100 bg-rose-50/20 p-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveGifSubTab("library")}
+              className={cn(
+                "flex-1 h-8 rounded-lg text-xs font-bold transition",
+                activeGifSubTab === "library" ? "bg-white text-rose-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              GIF Library
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveGifSubTab("text-to-gif")}
+              className={cn(
+                "flex-1 h-8 rounded-lg text-xs font-bold transition",
+                activeGifSubTab === "text-to-gif" ? "bg-white text-rose-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Text to GIF
+            </button>
+          </div>
+
+          {activeGifSubTab === "library" ? (
+            <>
+              <div className="flex gap-1.5 overflow-x-auto p-2 border-b border-border bg-white shrink-0">
+                {["funny", "love", "cute", "live"].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      setActiveGifCategory(cat);
+                      setGifSearchQuery("");
+                    }}
+                    className={cn(
+                      "px-3 py-1 rounded-full text-xs font-bold capitalize transition",
+                      activeGifCategory === cat ? "bg-rose-100 text-rose-600 ring-1 ring-rose-200" : "bg-muted text-muted-foreground hover:bg-rose-50"
+                    )}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <div className="px-3 py-2 border-b border-border bg-white shrink-0">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-[14px] w-[14px] text-muted-foreground" />
+                  <Input
+                    placeholder={`Search ${activeGifCategory} GIFs...`}
+                    className="pl-8 h-8 text-xs bg-muted/40 border-none rounded-lg text-slate-800 placeholder:text-slate-400"
+                    value={gifSearchQuery}
+                    onChange={(e) => setGifSearchQuery(e.target.value)}
+                  />
                 </div>
               </div>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  )}
+
+              <div className="min-h-0 flex-1 overflow-y-auto p-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {CURATED_GIFS
+                    .filter((g) => g.category === activeGifCategory && g.label.toLowerCase().includes(gifSearchQuery.toLowerCase()))
+                    .map((gif) => (
+                      <button
+                        key={gif.id}
+                        type="button"
+                        onClick={() => {
+                          if (active) {
+                            sendMessage(active.userId, `${GIF_MESSAGE_PREFIX}${gif.url}`);
+                            setShowEmojiPicker(false);
+                          }
+                        }}
+                        className="group relative overflow-hidden rounded-xl border border-rose-100 bg-slate-50 aspect-video flex items-center justify-center transition-all duration-300 hover:scale-[1.03] hover:shadow-md hover:border-rose-200"
+                      >
+                        <img src={gif.url} alt={gif.label} referrerPolicy="no-referrer" className="h-full w-full object-cover select-none pointer-events-none" />
+                        <span className="absolute bottom-1 left-1.5 right-1.5 truncate rounded bg-black/60 px-1.5 py-0.5 text-[8px] text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold">
+                          {gif.label}
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="px-3 py-2 border-b border-border bg-white shrink-0 flex flex-col gap-1.5">
+                <Input
+                  placeholder="Type to create live sticker..."
+                  maxLength={25}
+                  className="h-8 text-xs bg-muted/40 border-rose-100 focus-visible:ring-rose-200 text-slate-800"
+                  value={textToGifVal}
+                  onChange={(e) => setTextToGifVal(e.target.value)}
+                />
+                <p className="text-[9px] text-muted-foreground leading-tight">
+                  Type custom words (up to 25 chars) to see animated text presets!
+                </p>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto p-3">
+                {textToGifVal.trim() ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: 'neon', label: 'Neon Glow', desc: 'Glowing colors' },
+                      { id: 'love', label: 'Heart Beat', desc: 'Floating hearts' },
+                      { id: 'glitch', label: 'Retro Glitch', desc: 'Shifting cyberpunk' },
+                      { id: 'rainbow', label: 'Rainbow Wave', desc: 'Smooth gradient' },
+                      { id: 'fire', label: 'Fire Flame', desc: 'Fiery shake' },
+                      { id: 'gold', label: 'Gold Sparkle', desc: 'Glittering stars' }
+                    ].map((style) => {
+                      const svgData = generateTextSvgBase64(textToGifVal, style.id);
+                      return (
+                        <button
+                          key={style.id}
+                          type="button"
+                          onClick={() => {
+                            if (active) {
+                              sendMessage(active.userId, `${GIF_MESSAGE_PREFIX}${svgData}`);
+                              setShowEmojiPicker(false);
+                              setTextToGifVal("");
+                            }
+                          }}
+                          className="group relative overflow-hidden rounded-xl border border-rose-100/50 bg-slate-950 p-1 flex flex-col items-center justify-center transition-all duration-300 hover:scale-[1.03] hover:shadow-lg"
+                        >
+                          <img src={svgData} alt={style.label} className="w-full aspect-[2/1] object-contain rounded-lg shadow-inner pointer-events-none" />
+                          <div className="mt-1 text-center">
+                            <span className="block text-[10px] font-black text-rose-500 group-hover:text-rose-400 transition-colors uppercase tracking-wider">{style.label}</span>
+                            <span className="block text-[8px] text-slate-400 leading-none">{style.desc}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-4 text-muted-foreground">
+                    <span className="text-3xl mb-1">✨</span>
+                    <p className="text-xs font-semibold">Live Text-to-GIF Converter</p>
+                    <p className="text-[10px] text-muted-foreground max-w-[200px] mt-1">
+                      Type some text in the box above to generate unique live anim GIFs!
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
  </div>
  )}
  <Input

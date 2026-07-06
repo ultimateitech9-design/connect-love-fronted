@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldAlert, ShieldCheck, Megaphone, CreditCard, TrendingUp, Headphones, ArrowRight } from "lucide-react";
+import { ShieldAlert, ShieldCheck, Database, CreditCard, TrendingUp, Headphones, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
@@ -49,10 +49,10 @@ const ROLES = [
     isPrimary: true,
   },
   {
-    title: "Marketing",
-    icon: Megaphone,
-    href: "/management/marketing",
-    buttonText: "Marketing Dashboard",
+    title: "Data Entry",
+    icon: Database,
+    href: "/management/data-entry",
+    buttonText: "Data Entry Dashboard",
   },
   {
     title: "Finance",

@@ -2,7 +2,7 @@
 
 import { cookies, headers } from "next/headers";
 
-type Role = "admin" | "super-admin" | "marketing" | "finance" | "sales" | "support";
+type Role = "admin" | "super-admin" | "marketing" | "data-entry" | "finance" | "sales" | "support";
 
 export async function loginManagement(email: string, password: string, role: Role) {
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
