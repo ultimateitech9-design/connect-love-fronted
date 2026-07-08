@@ -13,16 +13,19 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
  useEffect(() => {
  let cancelled = false;
- setLoading(true);
 
  const token = getToken();
  if (!token) {
+ setLoading(true);
  clearToken();
  router.replace("/?reason=unauthenticated");
  return;
  }
 
- fetch(`${API_URL}/users/me`, {
+ const mustCheckBeforeRender = isOnboardingRequired() || pathname === "/user/onboarding";
+ setLoading(mustCheckBeforeRender);
+
+ const verifyUser = () => fetch(`${API_URL}/users/me`, {
  headers: { Authorization: `Bearer ${token}` }
  })
  .then(res => {
@@ -56,8 +59,12 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
  router.replace("/");
  });
 
+ const timer = mustCheckBeforeRender ? null : window.setTimeout(verifyUser, 7000);
+ if (mustCheckBeforeRender) verifyUser();
+
  return () => {
  cancelled = true;
+ if (timer) window.clearTimeout(timer);
  };
  }, [pathname, router]);
 

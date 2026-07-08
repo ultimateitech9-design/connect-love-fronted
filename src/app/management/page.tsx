@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldAlert, ShieldCheck, Database, CreditCard, TrendingUp, Headphones, ArrowRight } from "lucide-react";
+import { ShieldAlert, ShieldCheck, TrendingUp, Headphones, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
@@ -47,18 +47,6 @@ const ROLES = [
     href: "/management/super-admin",
     buttonText: "Login as Super Admin",
     isPrimary: true,
-  },
-  {
-    title: "Data Entry",
-    icon: Database,
-    href: "/management/data-entry",
-    buttonText: "Data Entry Dashboard",
-  },
-  {
-    title: "Finance",
-    icon: CreditCard,
-    href: "/management/finance",
-    buttonText: "Finance Dashboard",
   },
   {
     title: "Sales",

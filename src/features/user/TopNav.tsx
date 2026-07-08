@@ -38,11 +38,12 @@ export function TopNav() {
  const [notifOpen, setNotifOpen] = useState(false);
  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
  const [userName, setUserName] = useState<string>("You");
+ const [loadNavData, setLoadNavData] = useState(false);
 
  const notifRef = useRef<HTMLDivElement>(null);
 
- const { matches: activeMatches } = useMatches(token, "active");
- const { matches: receivedMatches } = useMatches(token, "received");
+ const { matches: activeMatches } = useMatches(token, "active", { enabled: loadNavData });
+ const { matches: receivedMatches } = useMatches(token, "received", { enabled: loadNavData });
 
  const unreadMessagesCount = activeMatches.reduce((sum: number, m: any) => sum + (m.unreadCount || 0), 0);
  const newMatchesCount = receivedMatches.length;
@@ -67,17 +68,28 @@ export function TopNav() {
    }))
  ];
 
+ useEffect(() => {
+ const timer = window.setTimeout(() => setLoadNavData(true), 6000);
+ return () => window.clearTimeout(timer);
+ }, []);
+
  // Fetch user avatar for the nav
  useEffect(() => {
  const AVATAR_KEY = "cl_avatar_url";
+ const NAME_KEY = "cl_user_name";
  const cached = localStorage.getItem(AVATAR_KEY);
  if (cached) setAvatarUrl(cached);
+ const cachedName = localStorage.getItem(NAME_KEY);
+ if (cachedName) setUserName(cachedName);
 
- if (!token) return;
+ if (!token || !loadNavData) return;
  fetch(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
  .then((r) => (r.ok ? r.json() : null))
  .then((data) => {
- if (data?.name) setUserName(data.name);
+ if (data?.name) {
+ setUserName(data.name);
+ localStorage.setItem(NAME_KEY, data.name);
+ }
  const latestPhoto = data?.photos?.[0] || data?.avatarUrl;
  if (latestPhoto) {
  setAvatarUrl(latestPhoto);
@@ -85,7 +97,7 @@ export function TopNav() {
  }
  })
  .catch(() => {});
- }, [token]);
+ }, [token, loadNavData]);
 
  // Close notif panel when clicking outside
  useEffect(() => {
@@ -114,12 +126,12 @@ export function TopNav() {
  <Link href="/user/discover" className="flex items-center gap-2.5 group">
  <BrandLogo className="h-9 w-9 shadow-lg shadow-rose-500/30" priority />
         <span className="hidden text-xl font-bold tracking-tight text-foreground sm:inline">
-          Connect<span className="text-rose-500">Love</span>
+          Connect<span className="text-rose-700">Love</span>
         </span>
       </Link>
 
  {/* Nav links */}
- <nav className="hidden items-center gap-10 md:flex">
+ <nav className="hidden items-center gap-10 md:flex" aria-label="User navigation">
  {navItems.map((i) => {
  const active = pathname.startsWith(i.to);
  const isMessages = i.label === "Messages";
@@ -134,9 +146,9 @@ export function TopNav() {
  href={i.to}
  className={cn(
               "relative text-sm transition-colors flex items-center gap-1.5",
-              isBold ? "font-bold text-rose-600" : "font-semibold",
-              active && !isBold ? "text-rose-500" : "",
-              !active && !isBold ? "text-muted-foreground hover:text-rose-400" : ""
+              isBold ? "font-bold text-rose-700" : "font-semibold",
+              active && !isBold ? "text-rose-700" : "",
+              !active && !isBold ? "text-muted-foreground hover:text-rose-700" : ""
             )}
  >
  {i.label}
@@ -156,8 +168,10 @@ export function TopNav() {
  <button
  id="notif-btn"
  onClick={() => setNotifOpen(!notifOpen)}
-            className="relative flex h-[36px] w-[36px] items-center justify-center rounded-full transition-all hover:bg-rose-50 dark:hover:bg-rose-950/30 text-muted-foreground hover:text-rose-500"
+            className="relative flex h-[36px] w-[36px] items-center justify-center rounded-full transition-all hover:bg-rose-50 dark:hover:bg-rose-950/30 text-muted-foreground hover:text-rose-700"
             aria-label="Notifications"
+            aria-expanded={notifOpen}
+            aria-controls="notifications-panel"
  >
  <Bell className="h-[20px] w-[20px]" />
  {totalUnread > 0 && (
@@ -170,6 +184,7 @@ export function TopNav() {
  {/* Notification Panel */}
  {notifOpen && (
           <div
+            id="notifications-panel"
             className="fixed left-4 right-4 top-20 rounded-2xl border shadow-2xl overflow-hidden z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-90"
             style={{
               borderColor: "rgba(236, 72, 153, 0.2)",
@@ -182,10 +197,10 @@ export function TopNav() {
  style={{ borderColor: "rgba(236, 72, 153, 0.12)", background: "linear-gradient(135deg, #fff5f7, #fdf2f8)" }}
  >
  <div className="flex items-center gap-2">
- <Bell className="h-[16px] w-[16px] text-rose-500" />
+ <Bell className="h-[16px] w-[16px] text-rose-700" />
  <h3 className="font-semibold text-slate-800">Notifications</h3>
  {realNotifications.length > 0 && (
- <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-600">
+ <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
  {realNotifications.length}
  </span>
  )}
@@ -238,7 +253,7 @@ export function TopNav() {
  className="flex items-center gap-2 rounded-full py-1 pl-1 sm:pr-3 hover:bg-muted/60 transition-colors"
  >
  <Avatar className="h-[32px] w-[32px] ring-2 ring-white shadow-sm">
- {avatarUrl ? <AvatarImage src={avatarUrl} alt="User" className="object-cover" /> : <AvatarFallback className="bg-rose-100 text-rose-600"><UserRound className="h-4 w-4" /></AvatarFallback>}
+ {avatarUrl ? <AvatarImage src={avatarUrl} alt="User" className="object-cover" /> : <AvatarFallback className="bg-rose-100 text-rose-700"><UserRound className="h-4 w-4" /></AvatarFallback>}
  </Avatar>
  <span className="hidden text-sm font-medium sm:inline">{userName}</span>
  </Link>
@@ -246,6 +261,7 @@ export function TopNav() {
  href="/user/settings"
  className="ml-1 p-2 text-muted-foreground hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors"
  title="Settings"
+ aria-label="Settings"
  >
  <Settings className="h-[18px] w-[18px]" />
  </Link>
@@ -253,6 +269,7 @@ export function TopNav() {
  onClick={handleLogout}
  className="ml-1 p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
  title="Logout"
+ aria-label="Logout"
  >
  <LogOut className="h-[18px] w-[18px]" />
  </button>
@@ -264,7 +281,7 @@ export function TopNav() {
  {navItems.map((item) => {
  const active = pathname.startsWith(item.to);
  return (
- <Link key={item.to} href={item.to} className={cn("relative flex min-h-12 items-center justify-center rounded-xl px-1 text-xs font-semibold", active ? "bg-rose-50 text-rose-600 dark:bg-rose-950/40" : "text-muted-foreground")}>
+ <Link key={item.to} href={item.to} className={cn("relative flex min-h-12 items-center justify-center rounded-xl px-1 text-xs font-semibold", active ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40" : "text-muted-foreground")}>
  {item.label}
  {((item.label === "Messages" && unreadMessagesCount > 0) || (item.label === "Matches" && newMatchesCount > 0)) && <span className="absolute right-[18%] top-2 h-2 w-2 rounded-full bg-rose-500" />}
  </Link>

@@ -4,8 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
 
-export function useMatches(token: string, filter: 'active' | 'sent' | 'received' | 'blocked') {
+export function useMatches(token: string, filter: 'active' | 'sent' | 'received' | 'blocked', options: { enabled?: boolean } = {}) {
  const queryClient = useQueryClient();
+ const isEnabled = options.enabled ?? true;
 
  const fetchMatches = async () => {
  if (!token) return [];
@@ -19,7 +20,10 @@ export function useMatches(token: string, filter: 'active' | 'sent' | 'received'
  const { data: matches = [], isLoading, isError } = useQuery({
  queryKey: ['matches', filter],
  queryFn: fetchMatches,
- enabled: !!token,
+ enabled: !!token && isEnabled,
+ staleTime: 60_000,
+ gcTime: 5 * 60_000,
+ refetchOnWindowFocus: false,
  });
 
  const actionMutation = useMutation({

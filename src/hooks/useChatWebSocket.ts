@@ -28,8 +28,14 @@ export interface Message {
  receiverId: string;
  content: string;
  reactions?: string;
+ deletedForUserIds?: string | null;
+ deletedForEveryone?: boolean;
+ pinnedByUserIds?: string | null;
+ starredByUserIds?: string | null;
+ replyToMessageId?: string | null;
  isRead: boolean;
  createdAt: string;
+ editedAt?: string | null;
  deliveryStatus?: 'sending' | 'sent' | 'delivered' | 'seen' | 'failed';
  clientId?: string;
 }
@@ -171,6 +177,30 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
    });
  });
 
+ newSocket.on('messageUpdated', (message: Message) => {
+   queryClient.setQueryData(['messages', message.conversationId], (old: Message[] | undefined) => {
+     if (!old) return old;
+     return old.map((current) => current.id === message.id ? { ...current, ...message } : current);
+   });
+ });
+
+ newSocket.on('messageMetaChanged', (message: Message) => {
+   queryClient.setQueryData(['messages', message.conversationId], (old: Message[] | undefined) => {
+     if (!old) return old;
+     return old.map((current) => current.id === message.id ? { ...current, ...message } : current);
+   });
+ });
+
+ newSocket.on('messageDeleted', (payload: { message: Message; scope: 'me' | 'everyone'; userId: string }) => {
+   queryClient.setQueryData(['messages', payload.message.conversationId], (old: Message[] | undefined) => {
+     if (!old) return old;
+     if (payload.scope === 'me' && String(payload.userId) === userId) {
+       return old.filter((message) => message.id !== payload.message.id);
+     }
+     return old.map((current) => current.id === payload.message.id ? { ...current, ...payload.message } : current);
+   });
+ });
+
  return () => {
  Object.values(typingTimersRef.current).forEach(clearTimeout);
  Object.values(recordingTimersRef.current).forEach(clearTimeout);
@@ -192,7 +222,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  enabled: !!conversationId && !!token,
  });
 
- const sendMessage = useCallback((receiverId: string, content: string) => {
+ const sendMessage = useCallback((receiverId: string, content: string, replyToMessageId?: string | null) => {
  if (socket && conversationId) {
  const clientId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
  const pendingMessage: Message = {
@@ -203,6 +233,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
    receiverId,
    content,
    reactions: undefined,
+   replyToMessageId: replyToMessageId || null,
    isRead: false,
    createdAt: new Date().toISOString(),
    deliveryStatus: 'sending',
@@ -213,7 +244,8 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  socket.emit('sendMessage', {
  conversationId,
  receiverId,
- content
+ content,
+ replyToMessageId: replyToMessageId || undefined
  }, (response: any) => {
    if (response?.error) {
      queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) => {
@@ -224,6 +256,30 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  });
  }
  }, [conversationId, queryClient, socket]);
+
+ const editMessage = useCallback((messageId: string, receiverId: string, content: string) => {
+   if (socket && conversationId) {
+     socket.emit('editMessage', { messageId, receiverId, content });
+   }
+ }, [conversationId, socket]);
+
+ const deleteMessage = useCallback((messageId: string, receiverId: string, scope: 'me' | 'everyone') => {
+   if (socket && conversationId) {
+     socket.emit('deleteMessage', { messageId, receiverId, scope });
+   }
+ }, [conversationId, socket]);
+
+ const togglePin = useCallback((messageId: string, receiverId: string) => {
+   if (socket && conversationId) {
+     socket.emit('togglePin', { messageId, receiverId });
+   }
+ }, [conversationId, socket]);
+
+ const toggleStar = useCallback((messageId: string, receiverId: string) => {
+   if (socket && conversationId) {
+     socket.emit('toggleStar', { messageId, receiverId });
+   }
+ }, [conversationId, socket]);
 
  const sendTypingStatus = useCallback((receiverId: string, isTyping: boolean) => {
    if (socket && conversationId) {
@@ -259,6 +315,10 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  messages,
  isLoading,
  sendMessage,
+ editMessage,
+ deleteMessage,
+ togglePin,
+ toggleStar,
  toggleReaction,
  sendTypingStatus,
  sendRecordingStatus,

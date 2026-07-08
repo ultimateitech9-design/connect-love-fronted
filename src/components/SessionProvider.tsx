@@ -20,10 +20,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
  }).catch(() => undefined);
  };
 
- sendActivity();
+ const initialTimer = window.setTimeout(sendActivity, 8000);
  const interval = window.setInterval(sendActivity, 60_000);
  document.addEventListener("visibilitychange", sendActivity);
  return () => {
+ window.clearTimeout(initialTimer);
  window.clearInterval(interval);
  document.removeEventListener("visibilitychange", sendActivity);
  };

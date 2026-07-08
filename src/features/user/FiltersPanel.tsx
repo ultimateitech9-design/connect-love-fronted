@@ -2,10 +2,6 @@ import * as React from "react";
 import { useMemo, useState } from "react";
 import { Calendar, MapPin, Heart, Target, BadgeCheck, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export interface DiscoverFilters {
   search: string;
@@ -77,10 +73,14 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
 
       {/* Search Bar */}
       <div className="mt-4 relative">
+        <label htmlFor="discover-search" className="sr-only">
+          Search matches by name
+        </label>
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <Search className="h-4 w-4 text-muted-foreground" />
         </div>
         <input
+          id="discover-search"
           type="text"
           value={filters.search}
           onChange={(e) => update("search", e.target.value)}
@@ -89,8 +89,10 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
         />
         {filters.search && (
           <button
+            type="button"
             onClick={() => update("search", "")}
             className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
+            aria-label="Clear search"
           >
             <X className="h-4 w-4" />
           </button>
@@ -103,13 +105,15 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
           const isActive = active === f.id;
           return (
             <button
+              type="button"
               key={f.id}
               onClick={() => setActive(f.id)}
+              aria-pressed={isActive}
               className={cn(
                 "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-rose-50 text-rose-500"
-                  : "text-muted-foreground hover:bg-pink-50 hover:text-rose-400 dark:hover:bg-rose-950/20",
+                  ? "bg-rose-50 text-rose-700"
+                  : "text-muted-foreground hover:bg-pink-50 hover:text-rose-700 dark:hover:bg-rose-950/20",
               )}
             >
               <Icon className="h-4 w-4" />
@@ -127,12 +131,15 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
               <span>{filters.ageMin} yrs</span>
               <span className="font-semibold text-rose-500">{filters.ageMax} yrs</span>
             </div>
-            <Slider
-              value={[filters.ageMax]}
-              onValueChange={(v: number[]) => update("ageMax", v[0])}
+            <input
+              type="range"
+              aria-label="Maximum age"
+              value={filters.ageMax}
+              onChange={(e) => update("ageMax", Number(e.target.value))}
               min={18}
               max={90}
               step={1}
+              className="h-2 w-full accent-rose-600"
             />
             <p className="text-[10px] text-muted-foreground">Showing ages {filters.ageMin}–{filters.ageMax}</p>
           </div>
@@ -146,12 +153,15 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
               <span className="font-semibold text-rose-500">{formatDistanceLabel(filters.maxDistance)}</span>
               <span>Anywhere</span>
             </div>
-            <Slider
-              value={[filters.maxDistance]}
-              onValueChange={(v: number[]) => update("maxDistance", v[0])}
+            <input
+              type="range"
+              aria-label="Maximum distance"
+              value={filters.maxDistance}
+              onChange={(e) => update("maxDistance", Number(e.target.value))}
               min={1}
               max={ANYWHERE_DISTANCE_KM}
               step={1}
+              className="h-2 w-full accent-rose-600"
             />
             <p className="text-[10px] text-muted-foreground">
               {effectiveMaxDistance > filters.maxDistance
@@ -171,14 +181,16 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
                   className={cn(
                     "flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition",
                     filters.interests.includes(interest)
-                      ? "border-rose-500 bg-rose-500/20 text-rose-500 dark:text-rose-400"
+                      ? "border-rose-600 bg-rose-100 text-rose-700 dark:text-rose-300"
                       : "border-border bg-card text-muted-foreground hover:bg-muted",
                   )}
                 >
-                  <Checkbox
+                  <input
+                    type="checkbox"
                     checked={filters.interests.includes(interest)}
-                    onCheckedChange={() => update("interests", toggleArray(filters.interests, interest))}
+                    onChange={() => update("interests", toggleArray(filters.interests, interest))}
                     className="sr-only"
+                    aria-label={`Interest ${interest}`}
                   />
                   {interest}
                 </label>
@@ -197,14 +209,16 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
                   className={cn(
                     "flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition",
                     filters.goals.includes(goal)
-                      ? "border-pink-500 bg-pink-500/20 text-pink-500 dark:text-pink-400"
+                      ? "border-pink-600 bg-pink-100 text-pink-700 dark:text-pink-300"
                       : "border-border bg-card text-muted-foreground hover:bg-muted",
                   )}
                 >
-                  <Checkbox
+                  <input
+                    type="checkbox"
                     checked={filters.goals.includes(goal)}
-                    onCheckedChange={() => update("goals", toggleArray(filters.goals, goal))}
+                    onChange={() => update("goals", toggleArray(filters.goals, goal))}
                     className="sr-only"
+                    aria-label={`Relationship goal ${goal}`}
                   />
                   {goal}
                 </label>
@@ -216,21 +230,35 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
         {active === "verified" && (
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-foreground">Show verified profiles only</span>
-            <Switch
-              checked={filters.verifiedOnly}
-              onCheckedChange={(v: boolean) => update("verifiedOnly", v)}
-            />
+            <button
+              type="button"
+              role="switch"
+              aria-label="Show verified profiles only"
+              aria-checked={filters.verifiedOnly}
+              onClick={() => update("verifiedOnly", !filters.verifiedOnly)}
+              className={cn(
+                "relative h-6 w-11 rounded-full transition-colors",
+                filters.verifiedOnly ? "bg-rose-600" : "bg-slate-300",
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-1 h-4 w-4 rounded-full bg-white transition-transform",
+                  filters.verifiedOnly ? "left-6" : "left-1",
+                )}
+              />
+            </button>
           </div>
         )}
       </div>
 
-      <Button
+      <button
+        type="button"
         onClick={() => onChange(defaultFilters)}
-        variant="outline"
-        className="mt-4 h-[44px] w-full bg-card border border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 font-medium"
+        className="mt-4 h-[44px] w-full bg-card border border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800 dark:hover:bg-rose-950/20 font-medium"
       >
         Reset Filters
-      </Button>
+      </button>
     </aside>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
 
@@ -12,31 +11,64 @@ type DiscoveryRequestFilters = {
 };
 
 export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
-  const queryClient = useQueryClient();
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(!!token);
+  const [error, setError] = useState(false);
+  const cacheRef = useRef(new Map<string, any[]>());
 
-  const fetchSuggestions = async () => {
-    if (!token) return [];
-    const params = new URLSearchParams();
-    if (filters.search?.trim()) params.set('search', filters.search.trim());
-    if (typeof filters.ageMin === 'number') params.set('ageMin', String(filters.ageMin));
-    if (typeof filters.ageMax === 'number') params.set('ageMax', String(filters.ageMax));
-    const query = params.toString();
-    const url = query ? `${API_URL}/discovery?${query}` : `${API_URL}/discovery`;
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!res.ok) throw new Error('Failed to fetch discovery profiles');
-    return res.json();
-  };
+  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}`;
 
-  const { data: profiles = [], isLoading, isError } = useQuery({
-    queryKey: ['discovery', filters.search, filters.ageMin, filters.ageMax],
-    queryFn: fetchSuggestions,
-    enabled: !!token,
-  });
+  const fetchProfiles = useCallback(async (signal?: AbortSignal) => {
+    if (!token) {
+      setProfiles([]);
+      setLoading(false);
+      return;
+    }
 
-  const swipeMutation = useMutation({
-    mutationFn: async ({ receiverId, action }: { receiverId: string, action: 'like' | 'pass' | 'superlike' }) => {
+    const cached = cacheRef.current.get(filterKey);
+    if (cached) {
+      setProfiles(cached);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(false);
+    try {
+      const params = new URLSearchParams();
+      if (filters.search?.trim()) params.set("search", filters.search.trim());
+      if (typeof filters.ageMin === "number") params.set("ageMin", String(filters.ageMin));
+      if (typeof filters.ageMax === "number") params.set("ageMax", String(filters.ageMax));
+      const query = params.toString();
+      const url = query ? `${API_URL}/discovery?${query}` : `${API_URL}/discovery`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal,
+      });
+      if (!res.ok) throw new Error("Failed to fetch discovery profiles");
+      const data = await res.json();
+      cacheRef.current.set(filterKey, data);
+      setProfiles(data);
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        setError(true);
+      }
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
+  }, [filterKey, filters.ageMax, filters.ageMin, filters.search, token]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchProfiles(controller.signal);
+    return () => controller.abort();
+  }, [fetchProfiles]);
+
+  const swipe = useCallback(async (receiverId: string, action: "like" | "pass" | "superlike") => {
+    if (!token) return;
+    const previousProfiles = profiles;
+    setProfiles((current) => current.filter((profile) => profile.id !== receiverId));
+    try {
       const res = await fetch(`${API_URL}/matches/swipe`, {
         method: 'POST',
         headers: {
@@ -46,43 +78,23 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
         body: JSON.stringify({ receiverId, action })
       });
       if (!res.ok) throw new Error('Failed to swipe');
-      return res.json();
-    },
-    onMutate: async ({ receiverId }) => {
-      // Optimistic update: remove profile from discovery
-      await queryClient.cancelQueries({ queryKey: ['discovery'] });
-      const previousProfiles = queryClient.getQueryData(['discovery']);
-      queryClient.setQueryData(['discovery'], (old: any) => old?.filter((p: any) => p.id !== receiverId));
-      return { previousProfiles };
-    },
-    onError: (err, variables, context: any) => {
-      queryClient.setQueryData(['discovery'], context.previousProfiles);
-    },
-    onSuccess: (match: any) => {
-      if (match?.status === 'MATCHED') {
-        toast.success("It's a match!", {
-          description: "You can message or video call from the chat screen.",
-          action: {
-            label: "Open chat",
-            onClick: () => {
-              if (typeof window !== "undefined") window.location.href = `/user/messages?id=${match.id}`;
-            },
-          },
-        });
+      const match = await res.json();
+      if (match?.status === "MATCHED" && typeof window !== "undefined") {
+        window.setTimeout(() => {
+          window.location.href = `/user/messages?id=${match.id}`;
+        }, 250);
       }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['discovery'] });
-      queryClient.invalidateQueries({ queryKey: ['matches'] });
+    } catch {
+      setProfiles(previousProfiles);
     }
-  });
+  }, [profiles, token]);
 
   return {
     profiles,
-    loading: isLoading,
-    error: isError,
-    swipeRight: (id: string) => swipeMutation.mutate({ receiverId: id, action: 'like' }),
-    swipeLeft: (id: string) => swipeMutation.mutate({ receiverId: id, action: 'pass' }),
-    swipeSuper: (id: string) => swipeMutation.mutate({ receiverId: id, action: 'superlike' }),
+    loading,
+    error,
+    swipeRight: (id: string) => swipe(id, "like"),
+    swipeLeft: (id: string) => swipe(id, "pass"),
+    swipeSuper: (id: string) => swipe(id, "superlike"),
   };
 }

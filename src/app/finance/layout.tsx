@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./finance.css";
 
 export const metadata: Metadata = {
- title: "Finance Dashboard",
- description: "Finance dashboard",
+ title: "Finance",
+ description: "Finance workspace",
 };
 
 export default function RootLayout({

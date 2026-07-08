@@ -76,7 +76,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
  setLoading(false);
  }
  };
- fetchSettings();
+ const timer = window.setTimeout(fetchSettings, 5000);
+ return () => window.clearTimeout(timer);
  }, []);
 
  const updateSetting = async (key: keyof UserSettings, value: boolean | string) => {

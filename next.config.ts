@@ -13,14 +13,6 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname),
   turbopack: {},
-  webpack: (config) => {
-    // Add memory limits for Next.js webpack
-    config.optimization = {
-      ...config.optimization,
-      minimize: false,
-    };
-    return config;
-  },
 };
 
 export default nextConfig;

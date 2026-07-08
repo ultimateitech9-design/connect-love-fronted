@@ -13,6 +13,7 @@ export interface Profile {
   images?: string[];
   avatarUrl?: string;
   profession: string;
+  religion?: string;
   distanceKm?: number | null;
   distanceMi?: number | null;
   goals?: string | null;
@@ -64,7 +65,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   useEffect(() => {
     // Show instruction briefly on new profile
     setInstructionVisible(true);
-    const t = setTimeout(() => setInstructionVisible(false), 3000);
+    const t = setTimeout(() => setInstructionVisible(false), 1800);
     return () => clearTimeout(t);
   }, [idx]);
 
@@ -243,10 +244,19 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
         )}
       </AnimatePresence>
 
-      <div className="absolute inset-0 -z-10 scale-[0.96] opacity-70">
+      <div className="absolute inset-0 -z-10 hidden scale-[0.96] opacity-70 sm:block">
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-lg">
           {nextDisplayPhoto ? (
-            <img src={nextDisplayPhoto} alt="" className="h-full w-full object-cover" />
+            <img
+              src={nextDisplayPhoto}
+              alt=""
+              width={460}
+              height={575}
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="h-full w-full bg-slate-800" />
           )}
@@ -270,7 +280,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
           onPointerUp={cancelHold}
           onPointerLeave={cancelHold}
           onPointerCancel={cancelHold}
-          initial={{ scale: 0.96, opacity: 0 }}
+          initial={false}
           animate={
             isSuperLiking
               ? {
@@ -301,7 +311,17 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
           className="relative aspect-[4/5] w-full cursor-grab overflow-hidden rounded-3xl bg-slate-900 shadow-2xl active:cursor-grabbing border border-white/5"
         >
           {currentDisplayPhoto ? (
-            <img src={currentDisplayPhoto} alt={profile.name} draggable={false} className="h-full w-full select-none object-cover" />
+            <img
+              src={currentDisplayPhoto}
+              alt={profile.name}
+              width={460}
+              height={575}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              draggable={false}
+              className="h-full w-full select-none object-cover"
+            />
           ) : (
             <div className="h-full w-full bg-slate-800" />
           )}
@@ -428,6 +448,11 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                     {detailedProfile.height && (
                       <div className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-foreground">
                         📏 {detailedProfile.height}
+                      </div>
+                    )}
+                    {detailedProfile.religion && (
+                      <div className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-foreground">
+                        🙏 {detailedProfile.religion}
                       </div>
                     )}
                     {detailedProfile.city && (

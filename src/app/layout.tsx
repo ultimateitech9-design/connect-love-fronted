@@ -10,9 +10,9 @@ export const metadata: Metadata = {
  "Connect Love is a premium, verified dating platform built for intentional connection. AI-powered matching, end-to-end encryption, and a safe community of 500K+ singles.",
  keywords: ["dating app", "online dating", "soulmate", "relationships", "matches"],
  icons: {
- icon: "/connect-love-logo.png",
- shortcut: "/connect-love-logo.png",
- apple: "/connect-love-logo.png",
+ icon: "/site-icon.svg",
+ shortcut: "/site-icon.svg",
+ apple: "/site-icon.svg",
  },
  openGraph: {
  title: "Connect Love — Find the spark that feels like home",
@@ -30,11 +30,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
  return (
  <html lang="en" data-scroll-behavior="smooth">
- <head>
- <link rel="preconnect" href="https://fonts.googleapis.com" />
- <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
- </head>
  <body>
  <QueryProvider>
  <SessionProvider>

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from "react";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX, Paperclip, Image as ImageIcon, X, MapPin, Briefcase, Ruler, SmilePlus, Gift, Palette, Lock, Sparkles, CreditCard, Clock } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX, Paperclip, Image as ImageIcon, X, MapPin, Briefcase, Ruler, SmilePlus, Gift, Palette, Lock, Sparkles, CreditCard, Clock, Info, Reply, Copy, Forward, Pin, Star, Edit3, CheckSquare, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
  DropdownMenu,
@@ -21,6 +21,7 @@ import {
  ContextMenu,
  ContextMenuContent,
  ContextMenuItem,
+ ContextMenuSeparator,
  ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { useMatches } from "@/hooks/useMatches";
@@ -147,31 +148,32 @@ const PREMIUM_GIFTS = [
 ];
 
 const CURATED_GIFS = [
-  { id: "g1", label: "Minion Dance", category: "funny", url: "https://i.giphy.com/media/chzz1FQgqhytWRWbp3/giphy.gif" },
-  { id: "g2", label: "Laughter Cat", category: "funny", url: "https://i.giphy.com/media/unflknv1Lp17m/giphy.gif" },
-  { id: "g3", label: "Happy Dance", category: "funny", url: "https://i.giphy.com/media/12PA1eI8FBqEUM/giphy.gif" },
-  { id: "g4", label: "Baby Laugh", category: "funny", url: "https://i.giphy.com/media/10yIEN8cMn4i9W/giphy.gif" },
-  { id: "g5", label: "Dog Smile", category: "funny", url: "https://i.giphy.com/media/3o7527pa7qs9kCG78A/giphy.gif" },
-  { id: "g6", label: "Hysterical Laughter", category: "funny", url: "https://i.giphy.com/media/c5FhSR2f2t5qo/giphy.gif" },
+  { id: "g1", label: "Tears of Joy", category: "funny", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Face%20with%20Tears%20of%20Joy.png" },
+  { id: "g2", label: "Rolling Laughter", category: "funny", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Rolling%20on%20the%20Floor%20Laughing.png" },
+  { id: "g3", label: "Zany Face", category: "funny", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Zany%20Face.png" },
+  { id: "g4", label: "Clown Face", category: "funny", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Clown%20Face.png" },
+  { id: "g5", label: "Alien Dance", category: "funny", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Alien.png" },
+  { id: "g6", label: "Sweating Smile", category: "funny", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Grinning%20Face%20with%20Sweat.png" },
   
-  { id: "l1", label: "Heart Explode", category: "love", url: "https://i.giphy.com/media/14EXol3a7wUppC/giphy.gif" },
-  { id: "l2", label: "Bear Hug", category: "love", url: "https://i.giphy.com/media/l3q2zVr6cu95nF6O4/giphy.gif" },
-  { id: "l3", label: "Blow Kiss", category: "love", url: "https://i.giphy.com/media/RuSS1msyKHfB6/giphy.gif" },
-  { id: "l4", label: "Cute Couple", category: "love", url: "https://i.giphy.com/media/3o7TKoWXgWsJHHyFFm/giphy.gif" },
-  { id: "l5", label: "Hearts Floating", category: "love", url: "https://i.giphy.com/media/l41Ywz7JSi2W36z0Y/giphy.gif" },
-  { id: "l6", label: "Love Letters", category: "love", url: "https://i.giphy.com/media/3o7TKoWXgWsJHHyFFm/giphy.gif" },
+  { id: "l1", label: "Red Heart", category: "love", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Hearts/Red%20Heart.png" },
+  { id: "l2", label: "Sparkling Heart", category: "love", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Hearts/Sparkling%20Heart.png" },
+  { id: "l3", label: "Blowing Kiss", category: "love", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Face%20Blowing%20a%20Kiss.png" },
+  { id: "l4", label: "Heart Eyes", category: "love", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Smiling%20Face%20with%20Heart-Eyes.png" },
+  { id: "l5", label: "Floating Hearts", category: "love", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Smiling%20Face%20with%20Hearts.png" },
+  { id: "l6", label: "Ribbon Heart", category: "love", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Hearts/Heart%20with%20Ribbon.png" },
 
-  { id: "c1", label: "Cute Puppy", category: "cute", url: "https://i.giphy.com/media/3o7527pa7qs9kCG78A/giphy.gif" },
-  { id: "c2", label: "Kitten Wink", category: "cute", url: "https://i.giphy.com/media/yFQ0ywscgobJK/giphy.gif" },
-  { id: "c3", label: "Hello Wave Cat", category: "cute", url: "https://i.giphy.com/media/VxbvpfaTTo3le/giphy.gif" },
-  { id: "c4", label: "Panda Roll", category: "cute", url: "https://i.giphy.com/media/GeimqsH0TC304/giphy.gif" },
-  { id: "c5", label: "Hamster Munching", category: "cute", url: "https://i.giphy.com/media/13CoXDiaCcC2sw/giphy.gif" },
+  { id: "c1", label: "Cute Puppy", category: "cute", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Dog%20Face.png" },
+  { id: "c2", label: "Kitten Wink", category: "cute", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Cat%20Face.png" },
+  { id: "c3", label: "Cute Panda", category: "cute", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Panda.png" },
+  { id: "c4", label: "Cute Hamster", category: "cute", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Hamster.png" },
+  { id: "c5", label: "Cuddly Bear", category: "cute", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Bear.png" },
+  { id: "c6", label: "Monkey Face", category: "cute", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Monkey%20Face.png" },
 
-  { id: "d1", label: "Sparkler Neon", category: "live", url: "https://i.giphy.com/media/26tOZ42cXxdb76B5m/giphy.gif" },
-  { id: "d2", label: "Neon Pulsing Heart", category: "live", url: "https://i.giphy.com/media/3NtY188QaxDdC/giphy.gif" },
-  { id: "d3", label: "Neon Cat", category: "live", url: "https://i.giphy.com/media/GeimqsH0TC304/giphy.gif" },
-  { id: "d4", label: "Retro Grid", category: "live", url: "https://i.giphy.com/media/3o7aD2saalFrAlzVNm/giphy.gif" },
-  { id: "d5", label: "Glowing Flowers", category: "live", url: "https://i.giphy.com/media/3o7qDQ4kcQA1Z91bkQ/giphy.gif" }
+  { id: "d1", label: "Sparkles", category: "live", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Activities/Sparkles.png" },
+  { id: "d2", label: "Arrow Heart", category: "live", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Hearts/Heart%20with%20Arrow.png" },
+  { id: "d3", label: "Balloon Flight", category: "live", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Balloon.png" },
+  { id: "d4", label: "Party Popper", category: "live", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Activities/Party%20Popper.png" },
+  { id: "d5", label: "Fire Flame", category: "live", url: "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20&%20Places/Fire.png" }
 ];
 
 const generateTextSvgBase64 = (text: string, styleId: string) => {
@@ -1296,6 +1298,11 @@ export default function Messages() {
  const [profileModal, setProfileModal] = useState<any | null>(null);
  const [profileLoading, setProfileLoading] = useState(false);
  const [photoViewerSrc, setPhotoViewerSrc] = useState<string | null>(null);
+ const [deleteDialogMessage, setDeleteDialogMessage] = useState<any | null>(null);
+ const [messageInfo, setMessageInfo] = useState<any | null>(null);
+ const [replyToMessage, setReplyToMessage] = useState<any | null>(null);
+ const [editingMessage, setEditingMessage] = useState<any | null>(null);
+ const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
  const [isMicOn, setIsMicOn] = useState(true);
  const [isCameraOn, setIsCameraOn] = useState(true);
  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
@@ -1323,6 +1330,7 @@ export default function Messages() {
   const lastGiftMsgIdRef = useRef<string | null>(null);
   const initialMessageIdsRef = useRef<Set<string>>(new Set());
   const hasLoadedHistoryRef = useRef<boolean>(false);
+  const messagesListRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
  const mediaInputRef = useRef<HTMLInputElement>(null);
  const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -1399,6 +1407,10 @@ export default function Messages() {
     markMessagesRead,
     isTyping,
     isRecording,
+    editMessage,
+    deleteMessage,
+    togglePin,
+    toggleStar,
   } = useChatWebSocket(token, activeId);
 
  useEffect(() => {
@@ -1594,6 +1606,210 @@ export default function Messages() {
      : active?.online
        ? "Online now"
        : (active?.lastSeen ? `Last seen at ${new Date(active.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Offline");
+
+ const parseUserIdList = (value?: string | null) => {
+   if (!value) return [];
+   try {
+     const parsed = JSON.parse(value);
+     return Array.isArray(parsed) ? parsed.map(String) : [];
+   } catch {
+     return [];
+   }
+ };
+
+ const isMessagePinned = (message: any) => !!myId && parseUserIdList(message.pinnedByUserIds).includes(String(myId));
+ const isMessageStarred = (message: any) => !!myId && parseUserIdList(message.starredByUserIds).includes(String(myId));
+
+ const messageTextForActions = (message: any) => {
+   if (message.deletedForEveryone) return "This message was deleted";
+   return messagePreview(message.content);
+ };
+
+ const getReplyMessage = (message: any) => {
+   if (!message.replyToMessageId) return null;
+   return messages.find((candidate: any) => candidate.id === message.replyToMessageId) || null;
+ };
+
+ const copyMessage = async (message: any) => {
+   try {
+     await navigator.clipboard.writeText(messageTextForActions(message));
+     toast.success("Message copied.");
+   } catch {
+     toast.error("Copy failed.");
+   }
+ };
+
+ const openMessageInfo = (message: any) => {
+   setMessageInfo(message);
+ };
+
+ const startReply = (message: any) => {
+   if (message.deletedForEveryone) return;
+   setReplyToMessage(message);
+ };
+
+ const startEdit = (message: any) => {
+   if (message.deletedForEveryone) return;
+   setEditingMessage(message);
+   setDraft(message.content);
+ };
+
+ const toggleSelectMessage = (message: any) => {
+   setSelectedMessageIds((current) => {
+     const next = new Set(current);
+     if (next.has(message.id)) next.delete(message.id);
+     else next.add(message.id);
+     return next;
+   });
+ };
+
+ const confirmDeleteMessage = (scope: "me" | "everyone") => {
+   if (!deleteDialogMessage || !active) return;
+   deleteMessage(deleteDialogMessage.id, active.userId, scope);
+   setDeleteDialogMessage(null);
+ };
+
+ const deleteSelectedMessages = async () => {
+   if (!activeId || !token || selectedMessageIds.size === 0) return;
+   const count = selectedMessageIds.size;
+   if (!confirm(`Delete ${count} selected message${count > 1 ? "s" : ""} for you?`)) return;
+   const ids = Array.from(selectedMessageIds);
+   try {
+     const res = await fetch(`${API_URL}/messages/batch-delete`, {
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+         Authorization: `Bearer ${token}`,
+       },
+       body: JSON.stringify({ messageIds: ids }),
+     });
+     if (!res.ok) throw new Error("Batch delete failed");
+     queryClient.setQueryData(["messages", activeId], (old: any[] | undefined) => {
+       if (!old) return old;
+       const deletedIds = new Set(ids);
+       return old.filter((message) => !deletedIds.has(message.id));
+     });
+     setSelectedMessageIds(new Set());
+     queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
+     toast.success(`${count} message${count > 1 ? "s" : ""} deleted.`);
+   } catch (error) {
+     console.error("Failed to delete selected messages", error);
+     toast.error("Selected messages delete nahi ho paye.");
+   }
+ };
+
+ const clearSelectedMessages = () => {
+   setSelectedMessageIds(new Set());
+ };
+
+ const selectedMessages = () => {
+   const selectedIds = new Set(selectedMessageIds);
+   return visibleMessages.filter((message: any) => selectedIds.has(message.id));
+ };
+
+ const copySelectedMessages = async () => {
+   const text = selectedMessages().map((message: any) => messageTextForActions(message)).join("\n");
+   if (!text) return;
+   try {
+     await navigator.clipboard.writeText(text);
+     toast.success("Selected messages copied.");
+   } catch {
+     toast.error("Copy failed.");
+   }
+ };
+
+ const starSelectedMessages = () => {
+   if (!active) return;
+   selectedMessages().forEach((message: any) => toggleStar(message.id, active.userId));
+   toast.success("Selected messages starred.");
+ };
+
+ const clearChat = async () => {
+   if (!activeId || !active || !token) return;
+   if (!confirm(`Clear full chat with ${active.name}? This will remove all messages for you.`)) return;
+   try {
+     const res = await fetch(`${API_URL}/messages/conversation/${activeId}`, {
+       method: "DELETE",
+       headers: { Authorization: `Bearer ${token}` },
+     });
+     if (!res.ok) throw new Error("Clear chat failed");
+     queryClient.setQueryData(["messages", activeId], []);
+     setSelectedMessageIds(new Set());
+     queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
+     toast.success("Chat cleared.");
+   } catch (error) {
+     console.error("Failed to clear chat", error);
+     toast.error("Chat clear nahi ho payi.");
+   }
+ };
+
+ const renderMessageMenuItems = (message: any, isMe: boolean) => {
+   const reactionEmojis = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+   const deleted = !!message.deletedForEveryone;
+   const selected = selectedMessageIds.has(message.id);
+   return (
+     <>
+       {false && !deleted && (
+         <div className="flex items-center justify-around gap-1 border-b border-slate-100 p-1.5 bg-rose-50/20 rounded-t-lg">
+           {reactionEmojis.map((emoji) => {
+             let reactions: Record<string, string[]> = {};
+             try { reactions = message.reactions ? JSON.parse(message.reactions) : {}; } catch(e) {}
+             const userIds = reactions[emoji] || [];
+             const hasReacted = myId ? userIds.includes(myId) : false;
+             return (
+               <button
+                 key={emoji}
+                 type="button"
+                 onClick={() => active && toggleReaction(message.id, active.userId, emoji)}
+                 className={cn(
+                   "flex h-8 w-8 items-center justify-center rounded-full text-lg transition hover:scale-125 duration-150 active:scale-95",
+                   hasReacted ? "bg-rose-100/80 scale-110" : "hover:bg-slate-100"
+                 )}
+               >
+                 {emoji}
+               </button>
+             );
+           })}
+         </div>
+       )}
+       <ContextMenuItem className="cursor-pointer gap-2" onClick={() => openMessageInfo(message)}>
+         <Info className="h-4 w-4" /> Message info
+       </ContextMenuItem>
+       {!deleted && (
+         <ContextMenuItem className="cursor-pointer gap-2" onClick={() => startReply(message)}>
+           <Reply className="h-4 w-4" /> Reply
+         </ContextMenuItem>
+       )}
+       <ContextMenuItem className="cursor-pointer gap-2" onClick={() => copyMessage(message)}>
+         <Copy className="h-4 w-4" /> Copy
+       </ContextMenuItem>
+       {!deleted && (
+         <ContextMenuItem className="cursor-pointer gap-2" onClick={() => toast.message("Forward is ready for selected chats.")}>
+           <Forward className="h-4 w-4" /> Forward
+         </ContextMenuItem>
+       )}
+       <ContextMenuItem className="cursor-pointer gap-2" onClick={() => active && togglePin(message.id, active.userId)}>
+         <Pin className="h-4 w-4" /> {isMessagePinned(message) ? "Unpin" : "Pin"}
+       </ContextMenuItem>
+       <ContextMenuItem className="cursor-pointer gap-2" onClick={() => active && toggleStar(message.id, active.userId)}>
+         <Star className="h-4 w-4" /> {isMessageStarred(message) ? "Unstar" : "Star"}
+       </ContextMenuItem>
+       {isMe && !deleted && (
+         <ContextMenuItem className="cursor-pointer gap-2" onClick={() => startEdit(message)}>
+           <Edit3 className="h-4 w-4" /> Edit
+         </ContextMenuItem>
+       )}
+       <ContextMenuSeparator />
+       <ContextMenuItem className="cursor-pointer gap-2" onClick={() => toggleSelectMessage(message)}>
+         <CheckSquare className="h-4 w-4" /> {selected ? "Unselect" : "Select"}
+       </ContextMenuItem>
+       <ContextMenuSeparator />
+       <ContextMenuItem className="cursor-pointer gap-2 text-red-600 focus:text-red-600" onClick={() => setDeleteDialogMessage(message)}>
+         <Trash2 className="h-4 w-4" /> Delete
+       </ContextMenuItem>
+     </>
+   );
+ };
 
  useEffect(() => {
    if (!activeUserId || isRecordingVoice) return;
@@ -1843,9 +2059,17 @@ export default function Messages() {
    };
  }, [activeCall, createPeer, socket, stopCallMedia]);
 
- useEffect(() => {
-   bottomRef.current?.scrollIntoView({ behavior: "smooth" });
- }, [visibleMessages, isTyping, isRecording]);
+  useLayoutEffect(() => {
+    const messagesList = messagesListRef.current;
+    if (!messagesList) return;
+
+    messagesList.scrollTop = messagesList.scrollHeight;
+    const frame = window.requestAnimationFrame(() => {
+      messagesList.scrollTop = messagesList.scrollHeight;
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeId, visibleMessages.length, isTyping, isRecording]);
 
  const handleSend = async (e?: React.FormEvent) => {
    if (e) e.preventDefault();
@@ -1869,7 +2093,14 @@ export default function Messages() {
    }
 
    if (!draft.trim()) return;
-   sendMessage(active.userId, draft.trim());
+   if (editingMessage) {
+     editMessage(editingMessage.id, active.userId, draft.trim());
+     setEditingMessage(null);
+     setDraft("");
+     return;
+   }
+   sendMessage(active.userId, draft.trim(), replyToMessage?.id || null);
+   setReplyToMessage(null);
    setDraft("");
  };
 
@@ -2063,10 +2294,10 @@ export default function Messages() {
  return (
  <>
  <div
- className={cn("chat-theme-surface grid h-[calc(100dvh-10rem)] min-h-[420px] gap-4 rounded-2xl p-0 md:h-[calc(100dvh-8rem)] lg:grid-cols-[320px_1fr]", selectedTheme.is3d && "chat-theme-3d")}
+ className={cn("chat-theme-surface grid h-full min-h-0 gap-4 rounded-2xl p-0 lg:grid-cols-[320px_1fr]", selectedTheme.is3d && "chat-theme-3d")}
  style={chatThemeStyle}
  >
- <aside className={cn("flex flex-col overflow-hidden rounded-2xl bg-[var(--chat-panel)] shadow-sm backdrop-blur", active && "hidden lg:flex")}>
+ <aside className={cn("flex min-h-0 flex-col overflow-hidden rounded-2xl bg-[var(--chat-panel)] shadow-sm backdrop-blur", active && "hidden lg:flex")}>
  <div className="flex flex-col gap-3 border-b border-border p-4">
  <h2 className="text-lg font-semibold text-[var(--chat-text)]">Messages</h2>
  <div className="relative">
@@ -2118,12 +2349,12 @@ export default function Messages() {
  </aside>
 
  {active ? (
-  <section className="flex flex-col overflow-hidden rounded-2xl bg-[var(--chat-panel)] shadow-sm backdrop-blur relative">
+  <section className="relative flex min-h-0 flex-col overflow-hidden rounded-2xl bg-[var(--chat-panel)] shadow-sm backdrop-blur">
     {selectedTheme.is3d && (
       <ChatThemeParticles themeId={selectedTheme.id} />
     )}
     <GiftAnimationOverlay gift={activeGiftAnim} />
-  <header className="flex items-center justify-between border-b border-border px-5 py-3 relative z-10">
+   <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-border px-5 py-3">
  <div className="flex items-center gap-3">
  <Button variant="ghost" size="icon" onClick={() => setActiveId(null)} className="lg:hidden" aria-label="Back to conversations"><ArrowLeft className="h-5 w-5" /></Button>
  <Avatar className="h-[40px] w-[40px]">
@@ -2176,16 +2407,24 @@ export default function Messages() {
       </DropdownMenuSubContent>
     </DropdownMenuPortal>
   </DropdownMenuSub>
+ <DropdownMenuItem className="text-red-500" onClick={clearChat}>
+ <Trash2 className="mr-2 h-4 w-4" />
+ Clear Chat
+ </DropdownMenuItem>
  <DropdownMenuItem className="text-red-500" onClick={handleBlockUser}>Block User</DropdownMenuItem>
  </DropdownMenuContent>
  </DropdownMenu>
  </div>
  </header>
 
- <div className="flex-1 space-y-3 overflow-y-auto px-5 py-6">
+ <div ref={messagesListRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-6">
 {visibleMessages.map((m: any) => {
   const isMe = String(m.senderId) === String(myId);
   const isGift = isGiftMessage(m.content);
+  const isGif = isGifMessage(m.content);
+  const replyMessage = getReplyMessage(m);
+  const isDeleted = !!m.deletedForEveryone;
+  const isSelected = selectedMessageIds.has(m.id);
 
   if (m.content.startsWith("[CONTROL:DISAPPEARING_MODE:")) {
     const modeMatch = m.content.match(/\[CONTROL:DISAPPEARING_MODE:(.+)\]/);
@@ -2203,17 +2442,44 @@ export default function Messages() {
 
   return (
   isMe ? (
- <div key={m.id} className="relative flex w-full my-2 justify-end">
+ <div key={m.id} className={cn("relative flex w-full my-2 items-center justify-end gap-2 rounded-lg px-1 py-1", isSelected && "bg-emerald-100/35")}>
+   {selectedMessageIds.size > 0 && (
+     <button
+       type="button"
+       onClick={() => toggleSelectMessage(m)}
+       className={cn(
+         "grid h-6 w-6 shrink-0 place-items-center rounded-full border transition",
+         isSelected ? "border-[var(--chat-accent)] bg-[var(--chat-accent)] text-white" : "border-slate-300 bg-white/80 text-transparent"
+       )}
+       aria-label={isSelected ? "Unselect message" : "Select message"}
+     >
+       <Check className="h-4 w-4" />
+     </button>
+   )}
    <ContextMenu>
    <ContextMenuTrigger asChild>
    <div className={cn(
    "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
-   isGift ? "bg-transparent px-1 py-1 text-white" : "[background:var(--chat-outgoing)] px-4 py-2 text-white rounded-br-sm shadow-sm"
-   )}>
-   <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />
-   <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", isGift ? "text-[var(--chat-text-muted)] font-semibold" : "text-white opacity-90")}>
+   (isGift || isGif) ? "bg-transparent px-1 py-1 text-white" : "[background:var(--chat-outgoing)] px-4 py-2 text-white rounded-br-sm shadow-sm",
+   isSelected && "ring-2 ring-rose-300"
+   )}
+   onClick={() => {
+     if (selectedMessageIds.size > 0) toggleSelectMessage(m);
+   }}
+   >
+   {replyMessage && !isDeleted && (
+     <div className="mb-1 rounded-lg border-l-2 border-white/80 bg-white/20 px-2 py-1 text-[11px] leading-tight text-white/90">
+       <span className="block font-bold">{String(replyMessage.senderId) === String(myId) ? "You" : active.name}</span>
+       <span className="line-clamp-1 opacity-90">{messageTextForActions(replyMessage)}</span>
+     </div>
+   )}
+   {isDeleted ? <p className="italic opacity-80">This message was deleted</p> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
+   <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", (isGift || isGif) ? "text-[var(--chat-text-muted)] font-semibold" : "text-white opacity-90")}>
+   {isMessagePinned(m) && <Pin className="h-[12px] w-[12px]" />}
+   {isMessageStarred(m) && <Star className="h-[12px] w-[12px] fill-current" />}
    {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-   {(() => {
+   {m.editedAt && !isDeleted && <span>edited</span>}
+   {!isDeleted && (() => {
      const status = m.deliveryStatus === "failed"
        ? "failed"
        : m.deliveryStatus === "sending"
@@ -2283,7 +2549,7 @@ export default function Messages() {
    })()}
    </div>
    </ContextMenuTrigger>
-   <ContextMenuContent className="p-1 min-w-[160px]">
+   <ContextMenuContent className="p-1 min-w-[220px] rounded-xl">
      {/* Reactions row inside ContextMenu */}
      <div className="flex items-center justify-around gap-1 border-b border-slate-100 p-1.5 bg-rose-50/20 rounded-t-lg">
        {["❤️", "😂", "👍", "🔥"].map((emoji) => {
@@ -2306,27 +2572,52 @@ export default function Messages() {
          );
        })}
      </div>
-     <ContextMenuItem className="text-red-500 cursor-pointer" onClick={() => handleUnsend(m.id)}>
-     Unsend Message
-     </ContextMenuItem>
+     {renderMessageMenuItems(m, isMe)}
    </ContextMenuContent>
    </ContextMenu>
  </div>
  ) : (
- <div key={m.id} className="relative flex w-full my-2 justify-start">
+ <div key={m.id} className={cn("relative flex w-full my-2 items-center justify-start gap-2 rounded-lg px-1 py-1", isSelected && "bg-emerald-100/35")}>
+   {selectedMessageIds.size > 0 && (
+     <button
+       type="button"
+       onClick={() => toggleSelectMessage(m)}
+       className={cn(
+         "grid h-6 w-6 shrink-0 place-items-center rounded-full border transition",
+         isSelected ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 bg-white/80 text-transparent"
+       )}
+       aria-label={isSelected ? "Unselect message" : "Select message"}
+     >
+       <Check className="h-4 w-4" />
+     </button>
+   )}
    <ContextMenu>
    <ContextMenuTrigger asChild>
    <div className={cn(
    "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
-   isGift ? "bg-transparent px-1 py-1 text-foreground" : "bg-[var(--chat-incoming)] px-4 py-2 text-foreground rounded-bl-sm shadow-sm"
-   )}>
-   <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />
-   <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", isGift ? "text-muted-foreground" : "opacity-70")}>
+    (isGift || isGif) ? "bg-transparent px-1 py-1 text-foreground" : "bg-[var(--chat-incoming)] px-4 py-2 text-foreground rounded-bl-sm shadow-sm",
+    isSelected && "ring-2 ring-rose-300"
+   )}
+   onClick={() => {
+     if (selectedMessageIds.size > 0) toggleSelectMessage(m);
+   }}
+   >
+   {replyMessage && !isDeleted && (
+     <div className="mb-1 rounded-lg border-l-2 border-rose-400 bg-white/45 px-2 py-1 text-[11px] leading-tight text-foreground">
+       <span className="block font-bold">{String(replyMessage.senderId) === String(myId) ? "You" : active.name}</span>
+       <span className="line-clamp-1 opacity-80">{messageTextForActions(replyMessage)}</span>
+     </div>
+   )}
+   {isDeleted ? <p className="italic opacity-70">This message was deleted</p> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
+    <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", (isGift || isGif) ? "text-muted-foreground" : "opacity-70")}>
+   {isMessagePinned(m) && <Pin className="h-[12px] w-[12px]" />}
+   {isMessageStarred(m) && <Star className="h-[12px] w-[12px] fill-current" />}
    {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+   {m.editedAt && !isDeleted && <span>edited</span>}
    </div>
 
    {/* Reactions badges */}
-   {(() => {
+   {!isDeleted && (() => {
      if (!m.reactions) return null;
      try {
        const reactions = JSON.parse(m.reactions);
@@ -2359,7 +2650,7 @@ export default function Messages() {
    })()}
    </div>
    </ContextMenuTrigger>
-   <ContextMenuContent className="p-1 min-w-[160px]">
+   <ContextMenuContent className="p-1 min-w-[220px] rounded-xl">
      {/* Reactions row inside ContextMenu */}
      <div className="flex items-center justify-around gap-1 border-b border-slate-100 p-1.5 bg-rose-50/20 rounded-t-lg">
        {["❤️", "😂", "👍", "🔥"].map((emoji) => {
@@ -2382,9 +2673,7 @@ export default function Messages() {
          );
        })}
      </div>
-     <ContextMenuItem className="cursor-pointer" onClick={() => toast.success("Message reported.")}>
-     Report Message
-     </ContextMenuItem>
+     {renderMessageMenuItems(m, isMe)}
    </ContextMenuContent>
    </ContextMenu>
  </div>
@@ -2401,7 +2690,55 @@ export default function Messages() {
  <div ref={bottomRef} />
  </div>
 
- <form onSubmit={handleSend} className="border-t border-border p-3">
+ {selectedMessageIds.size > 0 ? (
+ <div className="flex h-16 items-center justify-between border-t border-border bg-white px-4 text-slate-950 shadow-[0_-8px_20px_rgba(15,23,42,0.06)]">
+ <div className="flex min-w-0 items-center gap-4">
+ <button type="button" onClick={clearSelectedMessages} className="grid h-10 w-10 place-items-center rounded-full text-slate-900 hover:bg-slate-100" aria-label="Cancel selection">
+ <X className="h-6 w-6" />
+ </button>
+ <span className="truncate text-sm font-semibold">{selectedMessageIds.size} selected</span>
+ </div>
+ <div className="flex items-center gap-2 sm:gap-4">
+ <button type="button" onClick={copySelectedMessages} className="grid h-10 w-10 place-items-center rounded-full text-slate-900 hover:bg-slate-100" title="Copy">
+ <Copy className="h-5 w-5" />
+ </button>
+ <button type="button" onClick={starSelectedMessages} className="grid h-10 w-10 place-items-center rounded-full text-slate-900 hover:bg-slate-100" title="Star">
+ <Star className="h-5 w-5" />
+ </button>
+ <button type="button" onClick={deleteSelectedMessages} className="grid h-10 w-10 place-items-center rounded-full text-slate-900 hover:bg-red-50 hover:text-red-600" title="Delete">
+ <Trash2 className="h-5 w-5" />
+ </button>
+ <button type="button" onClick={() => toast.message("Forward is ready for selected chats.")} className="grid h-10 w-10 place-items-center rounded-full text-slate-900 hover:bg-slate-100" title="Forward">
+ <Forward className="h-5 w-5" />
+ </button>
+ </div>
+ </div>
+ ) : (
+ <form onSubmit={handleSend} className="shrink-0 border-t border-border p-3">
+ {replyToMessage && !editingMessage && (
+ <div className="mb-2 flex items-center gap-2 rounded-xl border border-rose-100 bg-rose-50/80 px-3 py-2 text-xs text-slate-700">
+ <Reply className="h-4 w-4 text-rose-500" />
+ <div className="min-w-0 flex-1">
+ <p className="font-bold text-slate-900">Replying to {String(replyToMessage.senderId) === String(myId) ? "yourself" : active.name}</p>
+ <p className="truncate">{messageTextForActions(replyToMessage)}</p>
+ </div>
+ <button type="button" onClick={() => setReplyToMessage(null)} className="grid h-7 w-7 place-items-center rounded-full hover:bg-white">
+ <X className="h-4 w-4" />
+ </button>
+ </div>
+ )}
+ {editingMessage && (
+ <div className="mb-2 flex items-center gap-2 rounded-xl border border-amber-100 bg-amber-50/90 px-3 py-2 text-xs text-slate-700">
+ <Edit3 className="h-4 w-4 text-amber-600" />
+ <div className="min-w-0 flex-1">
+ <p className="font-bold text-slate-900">Editing message</p>
+ <p className="truncate">{messageTextForActions(editingMessage)}</p>
+ </div>
+ <button type="button" onClick={() => { setEditingMessage(null); setDraft(""); }} className="grid h-7 w-7 place-items-center rounded-full hover:bg-white">
+ <X className="h-4 w-4" />
+ </button>
+ </div>
+ )}
  {selectedMedia && (
  <div className="mb-3 flex items-center gap-3 rounded-2xl border border-border bg-muted/40 p-2">
  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-900">
@@ -2604,58 +2941,77 @@ export default function Messages() {
 
           {activeGifSubTab === "library" ? (
             <>
-              <div className="flex gap-1.5 overflow-x-auto p-2 border-b border-border bg-white shrink-0">
-                {["funny", "love", "cute", "live"].map((cat) => (
+              <div className="flex gap-1.5 overflow-x-auto p-2 border-b border-border bg-slate-50/50 dark:bg-zinc-900/50 shrink-0 scrollbar-none">
+                {[
+                  { id: "funny", label: "😂 Funny" },
+                  { id: "love", label: "💖 Love" },
+                  { id: "cute", label: "🐱 Cute" },
+                  { id: "live", label: "✨ Live" }
+                ].map((cat) => (
                   <button
-                    key={cat}
+                    key={cat.id}
                     type="button"
                     onClick={() => {
-                      setActiveGifCategory(cat);
+                      setActiveGifCategory(cat.id);
                       setGifSearchQuery("");
                     }}
                     className={cn(
-                      "px-3 py-1 rounded-full text-xs font-bold capitalize transition",
-                      activeGifCategory === cat ? "bg-rose-100 text-rose-600 ring-1 ring-rose-200" : "bg-muted text-muted-foreground hover:bg-rose-50"
+                      "px-3.5 py-1.5 rounded-full text-xs font-black transition-all duration-300 flex items-center gap-1 shrink-0 select-none",
+                      activeGifCategory === cat.id 
+                        ? "bg-rose-500 text-white shadow-md shadow-rose-500/20 scale-[1.03]" 
+                        : "bg-white dark:bg-zinc-800 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-zinc-800/80 hover:bg-rose-50 dark:hover:bg-zinc-800 hover:text-rose-500 hover:scale-[1.01]"
                     )}
                   >
-                    {cat}
+                    {cat.label}
                   </button>
                 ))}
               </div>
 
-              <div className="px-3 py-2 border-b border-border bg-white shrink-0">
+              <div className="px-3 py-2 border-b border-border bg-white dark:bg-zinc-900 shrink-0">
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-[14px] w-[14px] text-muted-foreground" />
+                  <Search className="absolute left-2.5 top-2.5 h-[14px] w-[14px] text-slate-400" />
                   <Input
                     placeholder={`Search ${activeGifCategory} GIFs...`}
-                    className="pl-8 h-8 text-xs bg-muted/40 border-none rounded-lg text-slate-800 placeholder:text-slate-400"
+                    className="pl-8 h-8 text-xs bg-slate-50 dark:bg-zinc-800/80 border-none rounded-lg text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
                     value={gifSearchQuery}
                     onChange={(e) => setGifSearchQuery(e.target.value)}
                   />
                 </div>
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto p-3">
-                <div className="grid grid-cols-2 gap-2">
+              <div className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-thin scrollbar-thumb-rose-200 dark:scrollbar-thumb-zinc-800">
+                <div className="grid grid-cols-2 gap-3">
                   {CURATED_GIFS
                     .filter((g) => g.category === activeGifCategory && g.label.toLowerCase().includes(gifSearchQuery.toLowerCase()))
                     .map((gif) => (
-                      <button
+                      <div
                         key={gif.id}
-                        type="button"
-                        onClick={() => {
-                          if (active) {
-                            sendMessage(active.userId, `${GIF_MESSAGE_PREFIX}${gif.url}`);
-                            setShowEmojiPicker(false);
-                          }
-                        }}
-                        className="group relative overflow-hidden rounded-xl border border-rose-100 bg-slate-50 aspect-video flex items-center justify-center transition-all duration-300 hover:scale-[1.03] hover:shadow-md hover:border-rose-200"
+                        className="group relative overflow-hidden rounded-2xl border border-slate-100 dark:border-zinc-800 bg-gradient-to-tr from-slate-50 to-rose-50/20 dark:from-zinc-900 dark:to-zinc-800/20 aspect-video flex items-center justify-center transition-all duration-300 hover:scale-[1.04] hover:rotate-1 hover:shadow-lg hover:border-rose-300 dark:hover:border-rose-500/30"
                       >
-                        <img src={gif.url} alt={gif.label} referrerPolicy="no-referrer" className="h-full w-full object-cover select-none pointer-events-none" />
-                        <span className="absolute bottom-1 left-1.5 right-1.5 truncate rounded bg-black/60 px-1.5 py-0.5 text-[8px] text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold">
+                        <img 
+                          src={gif.url} 
+                          alt={gif.label} 
+                          referrerPolicy="no-referrer" 
+                          className="h-full w-full object-contain p-1 select-none pointer-events-none transition-transform duration-500 group-hover:scale-105" 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (active) {
+                              sendMessage(active.userId, `${GIF_MESSAGE_PREFIX}${gif.url}`);
+                              setShowEmojiPicker(false);
+                            }
+                          }}
+                          className="absolute inset-0 bg-black/0 group-hover:bg-black/25 flex items-center justify-center transition-all duration-300"
+                        >
+                          <span className="scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300 bg-white/95 dark:bg-zinc-900/95 text-rose-600 dark:text-rose-400 px-3 py-1.5 rounded-full text-[10px] font-black shadow-md flex items-center gap-1.5 select-none">
+                            ⚡ Send Emoji
+                          </span>
+                        </button>
+                        <span className="absolute bottom-2 left-2 right-2 truncate rounded-lg bg-black/60 backdrop-blur-sm px-2 py-0.5 text-[9px] text-white text-center font-bold pointer-events-none opacity-90 group-hover:opacity-0 transition-opacity duration-200">
                           {gif.label}
                         </span>
-                      </button>
+                      </div>
                     ))}
                 </div>
               </div>
@@ -2728,7 +3084,7 @@ export default function Messages() {
  <Input
  value={draft}
  onChange={(e) => setDraft(e.target.value)}
- placeholder={isRecordingVoice ? `Recording voice ${formatRecordingTime(recordingSeconds)}` : "Type a message..."}
+ placeholder={isRecordingVoice ? `Recording voice ${formatRecordingTime(recordingSeconds)}` : editingMessage ? "Edit message..." : replyToMessage ? "Type a reply..." : "Type a message..."}
  disabled={isRecordingVoice || !!selectedMedia}
  className="h-[40px] rounded-full px-4 border-none bg-[var(--chat-input)] text-[var(--chat-text)] placeholder:text-[var(--chat-text-muted)]/60"
  />
@@ -2749,9 +3105,10 @@ export default function Messages() {
  </Button>
  </div>
  </form>
+ )}
  </section>
  ) : (
- <section className="flex flex-col items-center justify-center overflow-hidden rounded-2xl bg-[var(--chat-panel)] shadow-sm text-muted-foreground p-8 text-center backdrop-blur">
+ <section className="flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-2xl bg-[var(--chat-panel)] p-8 text-center text-muted-foreground shadow-sm backdrop-blur">
  <div className="h-[80px] w-[80px] rounded-full bg-muted flex items-center justify-center mb-4">
  <Search className="h-[32px] w-[32px] text-muted-foreground/50" />
  </div>
@@ -2760,6 +3117,48 @@ export default function Messages() {
  </section>
  )}
  </div>
+ {deleteDialogMessage && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
+ <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+ <h3 className="text-lg font-semibold text-slate-950">Delete message?</h3>
+ <div className="mt-12 flex flex-col items-end gap-3">
+ {String(deleteDialogMessage.senderId) === String(myId) && (
+ <Button type="button" variant="outline" className="rounded-full px-6 text-emerald-700" onClick={() => confirmDeleteMessage("everyone")}>
+ Delete for everyone
+ </Button>
+ )}
+ <Button type="button" variant="outline" className="rounded-full px-6 text-emerald-700" onClick={() => confirmDeleteMessage("me")}>
+ Delete for me
+ </Button>
+ <Button type="button" variant="outline" className="rounded-full px-6 text-emerald-700" onClick={() => setDeleteDialogMessage(null)}>
+ Cancel
+ </Button>
+ </div>
+ </div>
+ </div>
+ )}
+ {messageInfo && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+ <div className="w-full max-w-md rounded-2xl bg-card p-5 shadow-2xl">
+ <div className="flex items-center justify-between">
+ <h3 className="text-lg font-bold text-foreground">Message info</h3>
+ <Button type="button" variant="ghost" size="icon" onClick={() => setMessageInfo(null)} className="rounded-full">
+ <X className="h-4 w-4" />
+ </Button>
+ </div>
+ <div className="mt-4 rounded-xl bg-muted/40 p-3 text-sm text-foreground">
+ {messageTextForActions(messageInfo)}
+ </div>
+ <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+ <p>Sent: {new Date(messageInfo.createdAt).toLocaleString()}</p>
+ {messageInfo.editedAt && <p>Edited: {new Date(messageInfo.editedAt).toLocaleString()}</p>}
+ <p>Status: {messageInfo.deletedForEveryone ? "Deleted for everyone" : messageInfo.isRead ? "Seen" : "Sent"}</p>
+ {isMessagePinned(messageInfo) && <p>Pinned in your chat</p>}
+ {isMessageStarred(messageInfo) && <p>Starred by you</p>}
+ </div>
+ </div>
+ </div>
+ )}
  {showThemePicker && (
  <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/45 p-4">
  <div className="flex max-h-[86vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-card shadow-2xl">

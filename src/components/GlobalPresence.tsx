@@ -11,6 +11,10 @@ export function GlobalPresence() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    let socket: ReturnType<typeof io> | null = null;
+    let cancelled = false;
+    const start = () => {
+    if (cancelled) return;
     const token = getToken();
     if (!token) return;
 
@@ -22,7 +26,7 @@ export function GlobalPresence() {
       console.error("Failed to parse token for GlobalPresence", e);
     }
 
-    const socket = io(SOCKET_URL, {
+    socket = io(SOCKET_URL, {
       query: { userId, token },
     });
 
@@ -39,9 +43,14 @@ export function GlobalPresence() {
         });
       });
     });
+    };
+
+    const timer = window.setTimeout(start, 8000);
 
     return () => {
-      socket.disconnect();
+      cancelled = true;
+      window.clearTimeout(timer);
+      socket?.disconnect();
     };
   }, [queryClient]);
 
