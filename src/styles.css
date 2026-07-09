@@ -654,6 +654,56 @@ video {
   animation-name: float-left-right;
 }
 
+.gift-animation-flash {
+  opacity: 0;
+  animation: gift-flash 1.6s ease-out both;
+}
+
+.gift-animation-particle {
+  opacity: 0;
+  animation: gift-particle-burst 2.8s ease-out both;
+}
+
+.gift-animation-card {
+  opacity: 0;
+  transform-origin: 50% 60%;
+  animation: gift-card-pop 1.2s cubic-bezier(.2, .9, .2, 1) both;
+}
+
+@keyframes gift-flash {
+  0%, 100% { opacity: 0; }
+  45% { opacity: 0.45; }
+}
+
+@keyframes gift-particle-burst {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0);
+  }
+  12% {
+    opacity: 1;
+    transform: translate3d(calc(var(--gift-x) * .25), calc(var(--gift-y) * .25), 0) rotate(calc(var(--gift-rotate) * .25)) scale(var(--gift-scale));
+  }
+  82% {
+    opacity: 1;
+    transform: translate3d(var(--gift-x), calc(var(--gift-y) - 80px), 0) rotate(var(--gift-rotate)) scale(calc(var(--gift-scale) * .85));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--gift-x), calc(var(--gift-y) - 120px), 0) rotate(var(--gift-rotate)) scale(0);
+  }
+}
+
+@keyframes gift-card-pop {
+  0% { opacity: 0; transform: translate3d(0, 80px, 0) rotate(-30deg) scale(0); }
+  30% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  45% { transform: rotate(-10deg) scale(1); }
+  58% { transform: rotate(8deg) scale(1); }
+  72% { transform: rotate(-5deg) scale(1); }
+  86% { transform: rotate(5deg) scale(1); }
+  100% { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gift-spin-rose {
     animation: none;
@@ -661,5 +711,12 @@ video {
 
   .chat-theme-card-3d:hover {
     transform: none;
+  }
+
+  .gift-animation-flash,
+  .gift-animation-particle,
+  .gift-animation-card {
+    animation: none;
+    opacity: 1;
   }
 }

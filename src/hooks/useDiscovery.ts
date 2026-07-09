@@ -11,12 +11,21 @@ type DiscoveryRequestFilters = {
 };
 
 export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(!!token);
+  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}`;
+  const storageKey = `connect-love:discovery:${filterKey}`;
+  const [profiles, setProfiles] = useState<any[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const cached = window.localStorage.getItem(storageKey);
+      const parsed = cached ? JSON.parse(cached) : null;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => !!token && profiles.length === 0);
   const [error, setError] = useState(false);
   const cacheRef = useRef(new Map<string, any[]>());
-
-  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}`;
 
   const fetchProfiles = useCallback(async (signal?: AbortSignal) => {
     if (!token) {
@@ -32,7 +41,17 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
       return;
     }
 
-    setLoading(true);
+    try {
+      const stored = window.localStorage.getItem(storageKey);
+      const parsed = stored ? JSON.parse(stored) : null;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cacheRef.current.set(filterKey, parsed);
+        setProfiles(parsed);
+        setLoading(false);
+      }
+    } catch {}
+
+    setLoading((current) => (profiles.length > 0 ? false : current));
     setError(false);
     try {
       const params = new URLSearchParams();
@@ -48,6 +67,9 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
       if (!res.ok) throw new Error("Failed to fetch discovery profiles");
       const data = await res.json();
       cacheRef.current.set(filterKey, data);
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(data));
+      } catch {}
       setProfiles(data);
     } catch (err: any) {
       if (err?.name !== "AbortError") {
@@ -56,7 +78,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [filterKey, filters.ageMax, filters.ageMin, filters.search, token]);
+  }, [filterKey, filters.ageMax, filters.ageMin, filters.search, profiles.length, storageKey, token]);
 
   useEffect(() => {
     const controller = new AbortController();

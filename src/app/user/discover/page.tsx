@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useEffect, useMemo, useState, useDeferredValue } from "react";
 import { BadgeCheck, Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
 import type { DiscoverFilters } from "@/features/user/FiltersPanel";
@@ -20,10 +21,6 @@ const defaultFilters: DiscoverFilters = {
 const FiltersPanel = dynamic(() => import("@/features/user/FiltersPanel").then((mod) => mod.FiltersPanel), {
   ssr: false,
   loading: () => <FiltersPanelShell />,
-});
-const ProfileCard = dynamic(() => import("@/features/user/ProfileCard").then((mod) => mod.ProfileCard), {
-  ssr: false,
-  loading: () => <ProfileCardShell />,
 });
 const RightRail = dynamic(() => import("@/features/user/RightRail").then((mod) => mod.RightRail), {
   ssr: false,
@@ -75,8 +72,23 @@ function useDesktopLayout() {
   return isDesktop;
 }
 
+function useAfterFirstPaint(delay = 1600) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setReady(true), delay);
+    return () => window.clearTimeout(timer);
+  }, [delay]);
+
+  return ready;
+}
+
 function formatDistanceLabel(distance: number) {
   return distance >= 10000 ? "Anywhere" : `${distance} km`;
+}
+
+function isOptimizableImage(src: string) {
+  return src.startsWith("http://") || src.startsWith("https://") || src.startsWith("/");
 }
 
 function MobileFilters({
@@ -183,17 +195,28 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
         aria-label="Next profile photo"
       >
         {photo ? (
-          <img
-            src={photo}
-            alt={profile.name}
-            width={420}
-            height={525}
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-            className="h-full w-full object-cover"
-            draggable={false}
-          />
+          isOptimizableImage(photo) ? (
+            <Image
+              src={photo}
+              alt={profile.name}
+              fill
+              priority
+              sizes="(min-width: 1024px) 420px, 92vw"
+              className="object-cover"
+            />
+          ) : (
+            <img
+              src={photo}
+              alt={profile.name}
+              width={420}
+              height={525}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+          )
         ) : (
           <div className="h-full w-full bg-slate-800" />
         )}
@@ -287,6 +310,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  export default function Discover() {
   const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
   const isDesktop = useDesktopLayout();
+  const loadSecondaryPanels = useAfterFirstPaint();
   const deferredSearch = useDeferredValue(filters.search);
   const token = getToken() || "";
   const requestFilters = useMemo(
@@ -327,12 +351,16 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  </div>
  ) : (
  <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(260px,320px)]">
+ {loadSecondaryPanels ? (
  <FiltersPanel filters={filters} onChange={setFilters} availableInterests={availableInterests} availableGoals={availableGoals} effectiveMaxDistance={effectiveMaxDistance} />
+ ) : (
+ <FiltersPanelShell />
+ )}
  <div className="flex min-w-0 items-start justify-center pt-1 sm:pt-2">
- {loading ? <ProfileCardShell /> : filtered.length > 0 ? <ProfileCard profiles={filtered} onAction={handleSwipe} /> : <EmptyProfilesCard />}
+ {loading ? <ProfileCardShell /> : <MobileProfileCard profiles={filtered} onAction={handleSwipe} />}
  </div>
  <div className="hidden min-w-0 lg:block">
- <RightRail />
+ {loadSecondaryPanels ? <RightRail /> : <RightRailShell />}
  </div>
  </div>
  )}
