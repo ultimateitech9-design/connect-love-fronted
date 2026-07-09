@@ -1160,14 +1160,7 @@ function GiftAnimationOverlay({ gift }: GiftAnimationOverlayProps) {
               )}
             </div>
 
-            <h3 className="relative z-10 text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider drop-shadow-sm">
-              {gift.label} Sent
-            </h3>
-            {gift.meaning && (
-              <p className="relative z-10 text-[10px] font-bold text-rose-500 dark:text-rose-300 italic mt-1 leading-tight px-1">
-                "{gift.meaning}"
-              </p>
-            )}
+
           </div>
         </div>
       )}
