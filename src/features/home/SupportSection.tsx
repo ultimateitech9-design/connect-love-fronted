@@ -3,7 +3,7 @@
 
 import { useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { Mail, Phone, MessageSquare, ChevronDown, Send, Loader2 } from "lucide-react";
+import { Mail, Phone, ChevronDown, Send, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -100,7 +100,6 @@ export function SupportSection() {
  {[
  { icon: Mail, label: "support@connectlove.app", detail: "Email us anytime" },
  { icon: Phone, label: "+91 98765 43210", detail: "Mon–Fri, 9am–6pm IST" },
- { icon: MessageSquare, label: "Live Chat", detail: "Response in ~5 minutes" },
  ].map((c) => (
  <div key={c.label} className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-3 shadow-sm">
  <div className="flex h-[36px] w-[36px] items-center justify-center rounded-xl bg-gradient-to-br from-rose-50 to-pink-100">

@@ -30,19 +30,21 @@ function LoveScene() {
         </Link>
 
         <div className="mx-auto grid h-[230px] w-[280px] place-items-center [perspective:760px]">
-          <div className="love-orbit relative h-44 w-44 [transform-style:preserve-3d]">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute left-1/2 top-1/2 grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-xl bg-white/10 shadow-xl shadow-rose-500/20 backdrop-blur-md"
-                style={{
-                  transform: `rotateY(${i * 30}deg) translateZ(88px) rotateX(${i % 2 ? 16 : -16}deg)`,
-                }}
-              >
-                <Heart className="h-5 w-5 fill-rose-400 text-rose-400" strokeWidth={0} />
-              </div>
-            ))}
-            <BrandLogo className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 shadow-2xl shadow-rose-500/50" />
+          <div className="relative h-44 w-44">
+            <div className="love-orbit absolute inset-0 [transform-style:preserve-3d]">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute left-1/2 top-1/2 grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-xl bg-white/10 shadow-xl shadow-rose-500/20 backdrop-blur-md"
+                  style={{
+                    transform: `rotateY(${i * 30}deg) translateZ(88px) rotateX(${i % 2 ? 16 : -16}deg)`,
+                  }}
+                >
+                  <Heart className="h-5 w-5 fill-rose-400 text-rose-400" strokeWidth={0} />
+                </div>
+              ))}
+            </div>
+            <BrandLogo className="absolute left-1/2 top-1/2 z-10 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-[28%] ring-2 ring-white/50 shadow-2xl shadow-rose-500/50" priority />
           </div>
         </div>
 

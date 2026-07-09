@@ -5,11 +5,13 @@ export function BrandLogo({ className, priority = false }: { className?: string;
   return (
     <span className={cn("relative inline-block shrink-0 overflow-hidden rounded-[22%]", className)}>
       <Image
-        src="/site-icon.svg"
+        src="/connect-love-logo.png"
         alt="ConnectLove"
         fill
         sizes="64px"
         priority={priority}
+        quality={100}
+        unoptimized
         className="object-cover"
       />
     </span>
