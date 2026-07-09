@@ -13,7 +13,7 @@ import { DataTable } from "@/components/admin/DataTable";
 
 type RoleStatus = "All" | "Active" | "Inactive";
 
-type RoleKey = "superAdmin" | "admin" | "sales" | "support" | "moderator" | "finance";
+type RoleKey = "superAdmin" | "admin" | "sales" | "support";
 
 interface AccessPermission {
  label: string;
@@ -22,21 +22,19 @@ interface AccessPermission {
  admin: boolean;
  sales: boolean;
  support: boolean;
- moderator: boolean;
- finance: boolean;
 }
 
 const accessMatrix: AccessPermission[] = [
- { label: "Dashboard", icon: LayoutDashboard, superAdmin: true, admin: true, sales: true, support: true, moderator: true, finance: true },
- { label: "User Management", icon: Users, superAdmin: true, admin: true, sales: false, support: true, moderator: true, finance: false },
- { label: "Verification", icon: ShieldCheck, superAdmin: true, admin: true, sales: false, support: true, moderator: true, finance: false },
- { label: "Payments", icon: DollarSign, superAdmin: true, admin: true, sales: true, support: false, moderator: false, finance: true },
- { label: "Reports", icon: BarChart3, superAdmin: true, admin: true, sales: true, support: false, moderator: true, finance: true },
- { label: "Notifications", icon: Bell, superAdmin: true, admin: true, sales: true, support: true, moderator: false, finance: false },
- { label: "Security", icon: Lock, superAdmin: true, admin: true, sales: false, support: false, moderator: false, finance: false },
- { label: "Settings", icon: Settings, superAdmin: true, admin: true, sales: false, support: false, moderator: false, finance: false },
- { label: "Roles & Permissions", icon: KeyRound, superAdmin: true, admin: false, sales: false, support: false, moderator: false, finance: false },
- { label: "System Logs", icon: ScrollText, superAdmin: true, admin: true, sales: false, support: false, moderator: false, finance: false },
+ { label: "Dashboard", icon: LayoutDashboard, superAdmin: true, admin: true, sales: true, support: true },
+ { label: "User Management", icon: Users, superAdmin: true, admin: true, sales: false, support: true },
+ { label: "Verification", icon: ShieldCheck, superAdmin: true, admin: true, sales: false, support: true },
+ { label: "Payments", icon: DollarSign, superAdmin: true, admin: true, sales: true, support: false },
+ { label: "Reports", icon: BarChart3, superAdmin: true, admin: true, sales: true, support: false },
+ { label: "Notifications", icon: Bell, superAdmin: true, admin: true, sales: true, support: true },
+ { label: "Security", icon: Lock, superAdmin: true, admin: true, sales: false, support: false },
+ { label: "Settings", icon: Settings, superAdmin: true, admin: true, sales: false, support: false },
+ { label: "Roles & Permissions", icon: KeyRound, superAdmin: true, admin: false, sales: false, support: false },
+ { label: "System Logs", icon: ScrollText, superAdmin: true, admin: true, sales: false, support: false },
 ];
 
 const roleColumns: { key: RoleKey; label: string; color: string }[] = [
@@ -44,8 +42,6 @@ const roleColumns: { key: RoleKey; label: string; color: string }[] = [
  { key: "admin", label: "Admin", color: "text-violet-600" },
  { key: "sales", label: "Sales", color: "text-blue-600" },
  { key: "support", label: "Support", color: "text-emerald-600" },
- { key: "moderator", label: "Moderator", color: "text-amber-600" },
- { key: "finance", label: "Finance", color: "text-indigo-600" },
 ];
 
 const MODULE_LIST = ["Dashboard", "User Management", "Verification", "Payments", "Reports", "Notifications", "Security", "Settings", "System Logs"];
@@ -224,8 +220,6 @@ export default function RolesPage() {
  admin: perm.admin,
  sales: perm.sales,
  support: perm.support,
- moderator: perm.moderator,
- finance: perm.finance,
  };
  });
  return init;

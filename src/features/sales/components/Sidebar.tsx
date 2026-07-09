@@ -42,7 +42,7 @@ export function Sidebar() {
         <BrandLogo className="h-10 w-10" />
         <div>
           <div className="font-display text-lg font-bold leading-none">
-            <span className="text-white">Connect</span><span className="text-red-500">Love</span>
+            <span className="text-slate-900">Connect</span><span className="text-red-500">Love</span>
           </div>
           <div className="mt-1 text-[10px] uppercase tracking-widest text-sidebar-foreground/60">Sales Dashboard</div>
         </div>
@@ -57,11 +57,11 @@ export function Sidebar() {
               href={item.href}
               className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
                 active
-                  ? "bg-pink-500/20 text-white shadow-sm"
-                  : "text-sidebar-foreground/70 hover:bg-white/10 hover:text-white"
+                  ? "bg-pink-100 text-pink-700 shadow-sm"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
               }`}
             >
-              <Icon className={`h-4 w-4 ${active ? "text-white" : ""}`} />
+              <Icon className={`h-4 w-4 ${active ? "text-pink-600" : ""}`} />
               {item.label}
             </Link>
           );

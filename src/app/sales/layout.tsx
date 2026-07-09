@@ -15,12 +15,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="h-full antialiased dark theme-sales bg-background text-foreground">
+    <div className="h-full antialiased theme-sales bg-background text-foreground">
         <div className="min-h-screen overflow-x-hidden bg-background">
           <Sidebar />
           <div className="lg:pl-64">
             <nav className="flex gap-2 overflow-x-auto border-b border-border bg-sidebar px-3 py-3 lg:hidden" aria-label="Sales navigation">
-              {[['Overview','/sales'],['Plans','/sales/plans'],['User 360','/sales/user-360'],['Conversions','/sales/conversions'],['Campaigns','/sales/campaigns'],['Trends','/sales/trends'],['Retention','/sales/retention']].map(([label, href]) => <Link key={href} href={href} className="shrink-0 rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-sidebar-foreground">{label}</Link>)}
+              {[['Overview','/sales'],['Plans','/sales/plans'],['User 360','/sales/user-360'],['Conversions','/sales/conversions'],['Campaigns','/sales/campaigns'],['Trends','/sales/trends'],['Retention','/sales/retention']].map(([label, href]) => <Link key={href} href={href} className="shrink-0 rounded-full border border-sidebar-border bg-sidebar-accent px-4 py-2 text-xs font-semibold text-sidebar-foreground">{label}</Link>)}
             </nav>
             <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 py-2 backdrop-blur-md sm:px-6 lg:px-10">
               <div className="flex flex-1 items-center gap-3">

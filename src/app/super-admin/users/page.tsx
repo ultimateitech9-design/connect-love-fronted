@@ -374,14 +374,14 @@ export default function UsersPage() {
  <table className="w-full table-fixed">
  <thead>
  <tr className={`border-b border-border ${monoLabel}`}>
- <th className="w-[29%] text-left py-2.5 pl-4 font-mono">Name / Avatar</th>
- <th className="w-[12%] text-left py-2.5 font-mono">Role</th>
- <th className="w-[12%] text-left py-2.5 font-mono">Verify</th>
+ <th className="w-[24%] text-left py-2.5 pl-4 font-mono">Name / Avatar</th>
+ <th className="w-[10%] text-left py-2.5 font-mono">Role</th>
+ <th className="w-[11%] text-left py-2.5 font-mono">Verify</th>
  <th className="w-[13%] text-left py-2.5 font-mono">City</th>
  <th className="w-[10%] text-left py-2.5 font-mono">Joined</th>
  <th className="w-[10%] text-left py-2.5 font-mono">Active</th>
- <th className="w-[8%] text-left py-2.5 font-mono">Status</th>
- <th className="w-[6%] text-right py-2.5 pr-4 font-mono">Act</th>
+ <th className="w-[10%] text-left py-2.5 font-mono">Status</th>
+ <th className="w-[12%] text-right py-2.5 pr-4 font-mono">Actions</th>
  </tr>
  </thead>
  <tbody>
@@ -432,29 +432,32 @@ export default function UsersPage() {
  <StatusDot status={row.status} />
  </td>
   <td className="py-2.5 pr-4 text-right">
-    <div className="inline-flex items-center justify-end gap-1.5 text-muted-foreground">
+    <div className="inline-flex items-center justify-end gap-1 text-slate-500">
       <button 
         onClick={() => handleViewDetails(row)} 
         title="View Details"
-        className="hover:text-secondary p-1 hover:bg-muted/80 rounded transition-colors cursor-pointer"
+        aria-label={`View ${row.name}`}
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary/10 hover:text-secondary transition-colors cursor-pointer"
       >
-        <Eye className="h-3.5 w-3.5" />
+        <Eye className="h-[18px] w-[18px]" strokeWidth={2.25} />
       </button>
       <button 
         onClick={() => handleToggleBan(row)} 
         disabled={actionLoading === row.id}
         title={row.status === "Banned" ? "Unban User" : "Ban User"}
-        className={`p-1 hover:bg-muted/80 rounded transition-colors cursor-pointer ${row.status === "Banned" ? "text-amber-500 hover:text-amber-600 animate-pulse" : "hover:text-primary"}`}
+        aria-label={`${row.status === "Banned" ? "Unban" : "Ban"} ${row.name}`}
+        className={`inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors cursor-pointer disabled:opacity-50 ${row.status === "Banned" ? "bg-amber-500/10 text-amber-500 hover:text-amber-600 animate-pulse" : "hover:bg-primary/10 hover:text-primary"}`}
       >
-        <Ban className="h-3.5 w-3.5" />
+        <Ban className="h-[18px] w-[18px]" strokeWidth={2.25} />
       </button>
       <button 
         onClick={() => setDeleteConfirmUser(row)}
         disabled={actionLoading === row.id}
         title="Delete User"
-        className="hover:text-rose-500 p-1 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+        aria-label={`Delete ${row.name}`}
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-rose-500/10 hover:text-rose-500 transition-colors cursor-pointer disabled:opacity-50"
       >
-        <Trash2 className="h-3.5 w-3.5" />
+        <Trash2 className="h-[18px] w-[18px]" strokeWidth={2.25} />
       </button>
     </div>
   </td>

@@ -3087,7 +3087,6 @@ export default function Messages() {
           <div className="grid grid-cols-2 gap-2.5">
             {PREMIUM_GIFTS.map((gift) => {
               const visual = giftVisuals[gift.label] || { emoji: "🌹", bg: "from-pink-50 to-white" };
-              const isRare = ["Burgundy Rose", "Lavender Rose", "Blue Rose", "Black Rose", "Red-tipped Rose"].includes(gift.label);
               return (
                 <button
                   key={gift.label}
@@ -3095,17 +3094,6 @@ export default function Messages() {
                   onClick={() => sendPremiumGift(gift)}
                   className="group relative flex flex-col justify-between items-center rounded-2xl border border-rose-100 bg-white/80 p-2.5 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-rose-300 hover:shadow-md hover:shadow-rose-100/40"
                 >
-                  {/* Status / Available Badge */}
-                  <span className={cn(
-                    "absolute top-2 right-2 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[7px] font-bold tracking-wide border",
-                    isRare 
-                      ? "bg-purple-50 text-purple-600 border-purple-100" 
-                      : "bg-emerald-50 text-emerald-600 border-emerald-100"
-                  )}>
-                    <span className={cn("h-1 w-1 rounded-full animate-pulse", isRare ? "bg-purple-500" : "bg-emerald-500")} />
-                    {isRare ? "Premium" : "In Stock"}
-                  </span>
-
                   {/* Glowing SVG Center Container */}
                   <div className="relative my-2.5 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-rose-50 to-pink-100/30 group-hover:scale-110 transition-transform duration-300">
                     <span className={cn("absolute inset-0 rounded-full blur-md opacity-25 transition-opacity group-hover:opacity-40", visual.bg)} />

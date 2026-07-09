@@ -310,13 +310,13 @@ video {
   --chart-3: oklch(0.55 0.18 320);
   --chart-4: oklch(0.7 0.15 60);
   --chart-5: oklch(0.45 0.15 340);
-  --sidebar: oklch(0.22 0.08 340);
-  --sidebar-foreground: oklch(0.95 0.02 350);
+  --sidebar: oklch(0.99 0.008 350);
+  --sidebar-foreground: oklch(0.25 0.05 350);
   --sidebar-primary: oklch(0.62 0.22 0);
   --sidebar-primary-foreground: oklch(0.99 0.01 0);
-  --sidebar-accent: oklch(0.3 0.08 340);
-  --sidebar-accent-foreground: oklch(0.99 0.01 350);
-  --sidebar-border: oklch(0.3 0.06 340);
+  --sidebar-accent: oklch(0.96 0.025 350);
+  --sidebar-accent-foreground: oklch(0.25 0.08 350);
+  --sidebar-border: oklch(0.91 0.02 350);
   --sidebar-ring: oklch(0.62 0.22 0);
 
   --brand-rose: oklch(0.62 0.22 0);
