@@ -10,7 +10,6 @@ export function BrandLogo({ className, priority = false }: { className?: string;
         fill
         sizes="64px"
         priority={priority}
-        quality={100}
         unoptimized
         className="object-cover"
       />

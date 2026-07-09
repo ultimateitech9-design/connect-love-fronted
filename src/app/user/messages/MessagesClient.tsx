@@ -1,11 +1,12 @@
 "use client";
 
 import { cloneElement, createContext, isValidElement, useContext, useState, useEffect, useRef, useCallback, useLayoutEffect, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX, Paperclip, Image as ImageIcon, X, MapPin, Briefcase, Ruler, SmilePlus, Gift, Palette, Lock, Sparkles, CreditCard, Clock, Info, Reply, Copy, Forward, Pin, Star, Edit3, CheckSquare, Trash2 } from "lucide-react";
+import { ArrowLeft, Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX, Paperclip, Image as ImageIcon, X, MapPin, Briefcase, Ruler, SmilePlus, Gift, Palette, Lock, Sparkles, CreditCard, Clock, Info, Reply, Copy, Pin, Star, Edit3, CheckSquare, Trash2, Flag, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
  DropdownMenu,
@@ -21,6 +22,7 @@ import { useMatches } from "@/hooks/useMatches";
 import { useChatWebSocket } from "@/hooks/useChatWebSocket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { MESSAGE_REACTIONS, reportMessage } from "@/features/messages/messageActionsApi";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
@@ -37,13 +39,24 @@ type LightweightMenuContextValue = {
   open: boolean;
   x: number;
   y: number;
-  setMenu: (menu: { open: boolean; x: number; y: number }) => void;
+  anchor?: { top: number; right: number; bottom: number; left: number };
+  setMenu: (menu: {
+    open: boolean;
+    x: number;
+    y: number;
+    anchor?: { top: number; right: number; bottom: number; left: number };
+  }) => void;
 };
 
 const LightweightMenuContext = createContext<LightweightMenuContextValue | null>(null);
 
 function ContextMenu({ children }: { children: ReactNode }) {
-  const [menu, setMenu] = useState({ open: false, x: 0, y: 0 });
+  const [menu, setMenu] = useState<{
+    open: boolean;
+    x: number;
+    y: number;
+    anchor?: { top: number; right: number; bottom: number; left: number };
+  }>({ open: false, x: 0, y: 0 });
 
   useEffect(() => {
     if (!menu.open) return;
@@ -51,46 +64,155 @@ function ContextMenu({ children }: { children: ReactNode }) {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") close();
     };
-    window.addEventListener("click", close);
+    window.addEventListener("pointerdown", close);
     window.addEventListener("scroll", close, true);
     window.addEventListener("keydown", onKey);
     return () => {
-      window.removeEventListener("click", close);
+      window.removeEventListener("pointerdown", close);
       window.removeEventListener("scroll", close, true);
       window.removeEventListener("keydown", onKey);
     };
   }, [menu.open]);
 
   return (
-    <LightweightMenuContext.Provider value={{ open: menu.open, x: menu.x, y: menu.y, setMenu }}>
+    <LightweightMenuContext.Provider value={{ open: menu.open, x: menu.x, y: menu.y, anchor: menu.anchor, setMenu }}>
       {children}
     </LightweightMenuContext.Provider>
   );
 }
 
-function ContextMenuTrigger({ children }: { asChild?: boolean; children: ReactNode }) {
+function ContextMenuTrigger({ children, openOnClick = true }: { asChild?: boolean; children: ReactNode; openOnClick?: boolean }) {
   const context = useContext(LightweightMenuContext);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressStartRef = useRef({ x: 0, y: 0 });
+  const suppressNextClickRef = useRef(false);
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => cancelLongPress, []);
+
   if (!context || !isValidElement(children)) return <>{children}</>;
+  const child = children as any;
+  const openMenu = (x: number, y: number, element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    context.setMenu({
+      open: true,
+      x,
+      y,
+      anchor: { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left },
+    });
+  };
+
   return cloneElement(children, {
     onContextMenu: (event: React.MouseEvent) => {
+      child.props.onContextMenu?.(event);
       event.preventDefault();
       event.stopPropagation();
-      context.setMenu({ open: true, x: event.clientX, y: event.clientY });
+      openMenu(event.clientX, event.clientY, event.currentTarget as HTMLElement);
+    },
+    onPointerDown: (event: React.PointerEvent) => {
+      child.props.onPointerDown?.(event);
+      if (event.button !== 0) return;
+      cancelLongPress();
+      pressStartRef.current = { x: event.clientX, y: event.clientY };
+      longPressTimerRef.current = setTimeout(() => {
+        suppressNextClickRef.current = true;
+        openMenu(event.clientX, event.clientY, event.currentTarget as HTMLElement);
+        if (navigator.vibrate) navigator.vibrate(25);
+        longPressTimerRef.current = null;
+      }, 500);
+    },
+    onPointerMove: (event: React.PointerEvent) => {
+      child.props.onPointerMove?.(event);
+      const distance = Math.hypot(
+        event.clientX - pressStartRef.current.x,
+        event.clientY - pressStartRef.current.y
+      );
+      if (distance > 10) cancelLongPress();
+    },
+    onPointerUp: (event: React.PointerEvent) => {
+      child.props.onPointerUp?.(event);
+      cancelLongPress();
+      const target = event.target as HTMLElement;
+      const isInteractiveContent = !!target.closest("button, a, input, textarea, audio, video, img");
+      if (openOnClick && !event.defaultPrevented && !isInteractiveContent) {
+        event.stopPropagation();
+        openMenu(event.clientX, event.clientY, event.currentTarget as HTMLElement);
+      }
+    },
+    onPointerCancel: (event: React.PointerEvent) => {
+      child.props.onPointerCancel?.(event);
+      cancelLongPress();
+    },
+    onPointerLeave: (event: React.PointerEvent) => {
+      child.props.onPointerLeave?.(event);
+      cancelLongPress();
+    },
+    onClick: (event: React.MouseEvent) => {
+      if (suppressNextClickRef.current) {
+        suppressNextClickRef.current = false;
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      child.props.onClick?.(event);
     },
   } as Partial<HTMLElement>);
 }
 
 function ContextMenuContent({ children, className }: { children: ReactNode; className?: string }) {
   const context = useContext(LightweightMenuContext);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ left: 8, top: 8, ready: false });
+
+  useLayoutEffect(() => {
+    if (!context?.open || !menuRef.current) return;
+    const menu = menuRef.current;
+    const width = menu.offsetWidth;
+    const height = menu.offsetHeight;
+    const gap = 8;
+    const margin = 8;
+    const anchor = context.anchor;
+
+    let left = context.x;
+    let top = context.y;
+
+    if (anchor) {
+      const alignRight = (anchor.left + anchor.right) / 2 > window.innerWidth / 2;
+      left = alignRight ? anchor.right - width : anchor.left;
+
+      const roomBelow = window.innerHeight - anchor.bottom - margin;
+      const roomAbove = anchor.top - margin;
+      const placeBelow = roomBelow >= height || roomBelow >= roomAbove;
+      top = placeBelow ? anchor.bottom + gap : anchor.top - height - gap;
+    }
+
+    left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
+    top = Math.max(margin, Math.min(top, window.innerHeight - height - margin));
+    setPosition({ left, top, ready: true });
+  }, [context?.open, context?.x, context?.y, context?.anchor]);
+
   if (!context?.open) return null;
-  return (
+  return createPortal(
     <div
-      className={cn("fixed z-50 border border-slate-200 bg-white p-1 text-slate-800 shadow-xl", className)}
-      style={{ left: Math.min(context.x, window.innerWidth - 240), top: Math.min(context.y, window.innerHeight - 340) }}
+      ref={menuRef}
+      className={cn("fixed z-[100] max-h-[calc(100vh-16px)] overflow-y-auto border border-slate-200 bg-white p-1 text-slate-800 shadow-xl", className)}
+      style={{
+        left: position.left,
+        top: position.top,
+        visibility: position.ready ? "visible" : "hidden",
+      }}
+      onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -1719,6 +1841,22 @@ export default function Messages() {
    setMessageInfo(message);
  };
 
+ const reportReceivedMessage = async (message: any) => {
+   try {
+     await reportMessage(API_URL, message.id, messageTextForActions(message));
+     toast.success("Message report support team ko bhej di gayi.");
+   } catch {
+     toast.error("Message report nahi ho payi.");
+   }
+ };
+
+ const addCustomReaction = (message: any) => {
+   if (!active) return;
+   const emoji = window.prompt("Ek emoji enter karein:");
+   if (!emoji?.trim()) return;
+   toggleReaction(message.id, active.userId, emoji.trim());
+ };
+
  const startReply = (message: any) => {
    if (message.deletedForEveryone) return;
    setReplyToMessage(message);
@@ -1820,7 +1958,7 @@ export default function Messages() {
  };
 
  const renderMessageMenuItems = (message: any, isMe: boolean) => {
-   const reactionEmojis = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+   const reactionEmojis = MESSAGE_REACTIONS;
    const deleted = !!message.deletedForEveryone;
    const selected = selectedMessageIds.has(message.id);
    return (
@@ -1848,9 +1986,11 @@ export default function Messages() {
            })}
          </div>
        )}
-       <ContextMenuItem className="cursor-pointer gap-2" onClick={() => openMessageInfo(message)}>
-         <Info className="h-4 w-4" /> Message info
-       </ContextMenuItem>
+       {isMe && (
+         <ContextMenuItem className="cursor-pointer gap-2" onClick={() => openMessageInfo(message)}>
+           <Info className="h-4 w-4" /> Message info
+         </ContextMenuItem>
+       )}
        {!deleted && (
          <ContextMenuItem className="cursor-pointer gap-2" onClick={() => startReply(message)}>
            <Reply className="h-4 w-4" /> Reply
@@ -1859,11 +1999,6 @@ export default function Messages() {
        <ContextMenuItem className="cursor-pointer gap-2" onClick={() => copyMessage(message)}>
          <Copy className="h-4 w-4" /> Copy
        </ContextMenuItem>
-       {!deleted && (
-         <ContextMenuItem className="cursor-pointer gap-2" onClick={() => toast.message("Forward is ready for selected chats.")}>
-           <Forward className="h-4 w-4" /> Forward
-         </ContextMenuItem>
-       )}
        <ContextMenuItem className="cursor-pointer gap-2" onClick={() => active && togglePin(message.id, active.userId)}>
          <Pin className="h-4 w-4" /> {isMessagePinned(message) ? "Unpin" : "Pin"}
        </ContextMenuItem>
@@ -1879,6 +2014,11 @@ export default function Messages() {
        <ContextMenuItem className="cursor-pointer gap-2" onClick={() => toggleSelectMessage(message)}>
          <CheckSquare className="h-4 w-4" /> {selected ? "Unselect" : "Select"}
        </ContextMenuItem>
+       {!isMe && !deleted && (
+         <ContextMenuItem className="cursor-pointer gap-2" onClick={() => reportReceivedMessage(message)}>
+           <Flag className="h-4 w-4" /> Report
+         </ContextMenuItem>
+       )}
        <ContextMenuSeparator />
        <ContextMenuItem className="cursor-pointer gap-2 text-red-600 focus:text-red-600" onClick={() => setDeleteDialogMessage(message)}>
          <Trash2 className="h-4 w-4" /> Delete
@@ -2533,7 +2673,7 @@ export default function Messages() {
      </button>
    )}
    <ContextMenu>
-   <ContextMenuTrigger asChild>
+   <ContextMenuTrigger asChild openOnClick={selectedMessageIds.size === 0}>
    <div className={cn(
    "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
    (isGift || isGif) ? "bg-transparent px-1 py-1 text-white" : "[background:var(--chat-outgoing)] px-4 py-2 text-white rounded-br-sm shadow-sm",
@@ -2628,7 +2768,7 @@ export default function Messages() {
    <ContextMenuContent className="p-1 min-w-[220px] rounded-xl">
      {/* Reactions row inside ContextMenu */}
      <div className="flex items-center justify-around gap-1 border-b border-slate-100 p-1.5 bg-rose-50/20 rounded-t-lg">
-       {["❤️", "😂", "👍", "🔥"].map((emoji) => {
+       {MESSAGE_REACTIONS.map((emoji) => {
          let reactions: Record<string, string[]> = {};
          try { reactions = m.reactions ? JSON.parse(m.reactions) : {}; } catch(e) {}
          const userIds = reactions[emoji] || [];
@@ -2647,6 +2787,14 @@ export default function Messages() {
            </button>
          );
        })}
+       <button
+         type="button"
+         onClick={() => addCustomReaction(m)}
+         className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 transition hover:scale-125 hover:bg-slate-100"
+         aria-label="Add another reaction"
+       >
+         <Plus className="h-4 w-4" />
+       </button>
      </div>
      {renderMessageMenuItems(m, isMe)}
    </ContextMenuContent>
@@ -2668,7 +2816,7 @@ export default function Messages() {
      </button>
    )}
    <ContextMenu>
-   <ContextMenuTrigger asChild>
+   <ContextMenuTrigger asChild openOnClick={selectedMessageIds.size === 0}>
    <div className={cn(
    "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
     (isGift || isGif) ? "bg-transparent px-1 py-1 text-foreground" : "bg-[var(--chat-incoming)] px-4 py-2 text-foreground rounded-bl-sm shadow-sm",
@@ -2729,7 +2877,7 @@ export default function Messages() {
    <ContextMenuContent className="p-1 min-w-[220px] rounded-xl">
      {/* Reactions row inside ContextMenu */}
      <div className="flex items-center justify-around gap-1 border-b border-slate-100 p-1.5 bg-rose-50/20 rounded-t-lg">
-       {["❤️", "😂", "👍", "🔥"].map((emoji) => {
+       {MESSAGE_REACTIONS.map((emoji) => {
          let reactions: Record<string, string[]> = {};
          try { reactions = m.reactions ? JSON.parse(m.reactions) : {}; } catch(e) {}
          const userIds = reactions[emoji] || [];
@@ -2748,6 +2896,14 @@ export default function Messages() {
            </button>
          );
        })}
+       <button
+         type="button"
+         onClick={() => addCustomReaction(m)}
+         className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 transition hover:scale-125 hover:bg-slate-100"
+         aria-label="Add another reaction"
+       >
+         <Plus className="h-4 w-4" />
+       </button>
      </div>
      {renderMessageMenuItems(m, isMe)}
    </ContextMenuContent>
@@ -2783,9 +2939,6 @@ export default function Messages() {
  </button>
  <button type="button" onClick={deleteSelectedMessages} className="grid h-10 w-10 place-items-center rounded-full text-slate-900 hover:bg-red-50 hover:text-red-600" title="Delete">
  <Trash2 className="h-5 w-5" />
- </button>
- <button type="button" onClick={() => toast.message("Forward is ready for selected chats.")} className="grid h-10 w-10 place-items-center rounded-full text-slate-900 hover:bg-slate-100" title="Forward">
- <Forward className="h-5 w-5" />
  </button>
  </div>
  </div>
