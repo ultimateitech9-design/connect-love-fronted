@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, type PanInfo } from "framer-motion";
-import { MapPin, X, Heart, Star, BadgeCheck, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, BadgeCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
 
@@ -48,6 +48,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [instructionVisible, setInstructionVisible] = useState(true);
   const [isSuperLiking, setIsSuperLiking] = useState(false);
+  const isDraggingRef = useRef(false);
 
   // Photo carousel state
   const [photoIndex, setPhotoIndex] = useState(0);
@@ -60,6 +61,8 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
 
   useEffect(() => {
     setPhotoIndex(0);
+    setDetailedProfile(null);
+    setShowDetails(false);
   }, [idx]);
 
   useEffect(() => {
@@ -94,6 +97,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   const nextPhotos = next.photos && next.photos.length > 0 ? next.photos : (next.photo ? [next.photo] : []);
   const nextDisplayPhoto = nextPhotos[0] || null;
   const profileDistanceKm = profile.distanceKm ?? profile.distanceMi ?? null;
+  const profileReligion = profile.religion?.trim();
 
 
 
@@ -110,6 +114,9 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
     const threshold = 120;
     if (info.offset.x > threshold) advance("like");
     else if (info.offset.x < -threshold) advance("pass");
+    window.setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 0);
   };
 
   const triggerSwipe = (action: Action) => {
@@ -126,7 +133,6 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
     setTimeout(() => advance(action), 180);
   };
 
-  // --- Hold-to-view interaction ---
   const fetchDetails = async () => {
     setLoadingDetails(true);
     try {
@@ -148,59 +154,26 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
     }
   };
 
-  const startHold = (e: React.PointerEvent) => {
-    pointerDownTime.current = Date.now();
-    pointerDownPos.current = { x: e.clientX, y: e.clientY };
-    setInstructionVisible(false);
-
-    if (holdTimeoutRef.current) {
-      clearTimeout(holdTimeoutRef.current);
-    }
-
-    holdTimeoutRef.current = setTimeout(() => {
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(50);
-      }
-      setShowDetails(true);
-      fetchDetails();
-    }, 200);
-  };
-
-  const cancelHold = (e?: React.PointerEvent) => {
+  const cancelHold = () => {
     if (holdTimeoutRef.current) {
       clearTimeout(holdTimeoutRef.current);
       holdTimeoutRef.current = null;
     }
-
-    if (e && !showDetails && pointerDownTime.current > 0 && e.type !== 'pointerleave' && e.type !== 'pointercancel') {
-      const timeElapsed = Date.now() - pointerDownTime.current;
-      const dx = Math.abs(e.clientX - pointerDownPos.current.x);
-      const dy = Math.abs(e.clientY - pointerDownPos.current.y);
-
-      // Tap threshold: < 200ms and minimal movement
-      if (timeElapsed < 200 && dx < 10 && dy < 10) {
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        const xPos = e.clientX - rect.left;
-
-        if (xPos > rect.width * 0.4) {
-          // Tap right
-          setPhotoIndex(prev => Math.min(prev + 1, currentPhotos.length - 1));
-        } else {
-          // Tap left
-          setPhotoIndex(prev => Math.max(prev - 1, 0));
-        }
-      }
-    }
-
     pointerDownTime.current = 0;
-    if (showDetails && e && e.type === 'pointerup') {
-      setShowDetails(false);
-    }
   };
 
   const handleDragStart = () => {
+    isDraggingRef.current = true;
     pointerDownTime.current = 0;
+    setInstructionVisible(false);
     cancelHold();
+  };
+
+  const openProfileDetails = () => {
+    if (showDetails || isDraggingRef.current) return;
+    setInstructionVisible(false);
+    setShowDetails(true);
+    if (!detailedProfile) fetchDetails();
   };
 
   return (
@@ -276,10 +249,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
           }}
           onDragEnd={onDragEnd}
           onDragStart={handleDragStart}
-          onPointerDown={startHold}
-          onPointerUp={cancelHold}
-          onPointerLeave={cancelHold}
-          onPointerCancel={cancelHold}
+          onClick={openProfileDetails}
           initial={false}
           animate={
             isSuperLiking
@@ -347,10 +317,39 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                 exit={{ opacity: 0, y: -10 }}
             className="absolute left-1/2 top-4 max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-center text-xs font-medium text-white backdrop-blur-md sm:top-6 sm:px-4"
               >
-                Hold to view full bio
+                Click to view full profile
               </motion.div>
             )}
           </AnimatePresence>
+
+          {!showDetails && currentPhotos.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setPhotoIndex((prev) => Math.max(prev - 1, 0));
+                }}
+                disabled={photoIndex === 0}
+                className="absolute left-3 top-1/2 z-30 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/35 text-white backdrop-blur-md transition hover:bg-black/55 disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Previous photo"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setPhotoIndex((prev) => Math.min(prev + 1, currentPhotos.length - 1));
+                }}
+                disabled={photoIndex >= currentPhotos.length - 1}
+                className="absolute right-3 top-1/2 z-30 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-black/35 text-white backdrop-blur-md transition hover:bg-black/55 disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Next photo"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </>
+          )}
 
           {!showDetails && (
             <>
@@ -416,7 +415,20 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                 transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 className="absolute inset-x-0 bottom-0 flex h-[78%] flex-col rounded-t-3xl bg-card/95 p-4 text-foreground shadow-2xl backdrop-blur-xl sm:h-[75%] sm:p-6"
           >
-            <div className="mx-auto mb-4 h-[6px] w-[48px] rounded-full bg-slate-300 dark:bg-slate-700" />
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="h-[6px] w-[48px] rounded-full bg-slate-300 dark:bg-slate-700" />
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setShowDetails(false);
+                }}
+                className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-muted-foreground transition hover:text-foreground"
+                aria-label="Close profile details"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
 
             <div className="flex-1 overflow-y-auto pr-2 pb-10">
               {loadingDetails && !detailedProfile ? (
@@ -442,6 +454,11 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                     <p className="mt-1 text-sm font-medium text-muted-foreground">
                       {detailedProfile.profession}
                     </p>
+                    {(detailedProfile.religion || profileReligion) && (
+                      <p className="mt-2 inline-flex rounded-full bg-rose-50 px-3 py-1 text-sm font-semibold text-rose-700 ring-1 ring-rose-100 dark:bg-rose-950/30 dark:text-rose-300 dark:ring-rose-900/50">
+                        Religion: {detailedProfile.religion || profileReligion}
+                      </p>
+                    )}
                   </div>
 
                       <div className="flex flex-wrap gap-3">

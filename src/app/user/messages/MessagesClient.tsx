@@ -1471,6 +1471,7 @@ export default function Messages() {
  const [profileLoading, setProfileLoading] = useState(false);
  const [photoViewerSrc, setPhotoViewerSrc] = useState<string | null>(null);
  const [deleteDialogMessage, setDeleteDialogMessage] = useState<any | null>(null);
+ const [deleteDialogNow, setDeleteDialogNow] = useState(() => Date.now());
  const [messageInfo, setMessageInfo] = useState<any | null>(null);
  const [replyToMessage, setReplyToMessage] = useState<any | null>(null);
  const [editingMessage, setEditingMessage] = useState<any | null>(null);
@@ -1875,6 +1876,22 @@ export default function Messages() {
    deleteMessage(deleteDialogMessage.id, active.userId, scope);
    setDeleteDialogMessage(null);
  };
+
+ useEffect(() => {
+   if (!deleteDialogMessage) return;
+   setDeleteDialogNow(Date.now());
+   const timer = window.setInterval(() => setDeleteDialogNow(Date.now()), 1000);
+   return () => window.clearInterval(timer);
+ }, [deleteDialogMessage]);
+
+ const deleteForEveryoneDeadline = deleteDialogMessage
+   ? new Date(deleteDialogMessage.createdAt).getTime() + 10 * 60 * 1000
+   : 0;
+ const canDeleteForEveryone =
+   !!deleteDialogMessage &&
+   String(deleteDialogMessage.senderId) === String(myId) &&
+   Number.isFinite(deleteForEveryoneDeadline) &&
+   deleteDialogNow <= deleteForEveryoneDeadline;
 
  const deleteSelectedMessages = async () => {
    if (!activeId || !token || selectedMessageIds.size === 0) return;
@@ -3337,7 +3354,7 @@ export default function Messages() {
  <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
  <h3 className="text-lg font-semibold text-slate-950">Delete message?</h3>
  <div className="mt-12 flex flex-col items-end gap-3">
- {String(deleteDialogMessage.senderId) === String(myId) && (
+ {canDeleteForEveryone && (
  <Button type="button" variant="outline" className="rounded-full px-6 text-emerald-700" onClick={() => confirmDeleteMessage("everyone")}>
  Delete for everyone
  </Button>

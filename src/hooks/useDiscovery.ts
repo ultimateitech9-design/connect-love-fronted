@@ -86,10 +86,20 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     return () => controller.abort();
   }, [fetchProfiles]);
 
+  const removeProfileLocally = useCallback((receiverId: string) => {
+    setProfiles((current) => {
+      const next = current.filter((profile) => profile.id !== receiverId);
+      cacheRef.current.set(filterKey, next);
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }, [filterKey, storageKey]);
+
   const swipe = useCallback(async (receiverId: string, action: "like" | "pass" | "superlike") => {
     if (!token) return;
-    const previousProfiles = profiles;
-    setProfiles((current) => current.filter((profile) => profile.id !== receiverId));
+    removeProfileLocally(receiverId);
     try {
       const res = await fetch(`${API_URL}/matches/swipe`, {
         method: 'POST',
@@ -107,9 +117,9 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
         }, 250);
       }
     } catch {
-      setProfiles(previousProfiles);
+      setError(true);
     }
-  }, [profiles, token]);
+  }, [removeProfileLocally, token]);
 
   return {
     profiles,

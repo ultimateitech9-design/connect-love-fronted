@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Camera, CheckCircle2, Loader2, ShieldCheck, Video } from "lucide-react";
 
 import { PhotoGrid } from "@/features/user/PhotoGrid";
+import { getToken } from "@/lib/auth";
 
 type PhotoProfile = {
   photos?: string[];
@@ -14,130 +15,13 @@ type PhotoProfile = {
 type MatchResult = {
   matched: boolean;
   score: number;
-};
-
-type ImageSignature = {
-  normalized: number[];
-  edges: number[];
-  histogram: number[];
+  kycLivePhoto?: string;
+  motionDetected?: boolean;
 };
 
 const MATCH_THRESHOLD = 60;
 const RECORD_SECONDS = 3;
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Could not load image."));
-    image.src = src;
-  });
-}
-
-async function getImageSignature(src: string): Promise<ImageSignature> {
-  const image = await loadImage(src);
-  const canvas = document.createElement("canvas");
-  const size = 24;
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas is not available.");
-
-  let sourceWidth = image.width * 0.68;
-  let sourceHeight = image.height * 0.72;
-  let sourceX = (image.width - sourceWidth) / 2;
-  let sourceY = Math.max(0, (image.height - sourceHeight) * 0.32);
-
-  const Detector = (window as unknown as {
-    FaceDetector?: new (options: { fastMode: boolean; maxDetectedFaces: number }) => {
-      detect: (source: CanvasImageSource) => Promise<Array<{ boundingBox: DOMRectReadOnly }>>;
-    };
-  }).FaceDetector;
-
-  if (Detector) {
-    try {
-      const faces = await new Detector({ fastMode: true, maxDetectedFaces: 1 }).detect(image);
-      const box = faces[0]?.boundingBox;
-      if (box) {
-        const paddingX = box.width * 0.35;
-        const paddingY = box.height * 0.3;
-        sourceX = Math.max(0, box.x - paddingX);
-        sourceY = Math.max(0, box.y - paddingY);
-        sourceWidth = Math.min(image.width - sourceX, box.width + paddingX * 2);
-        sourceHeight = Math.min(image.height - sourceY, box.height + paddingY * 2);
-      }
-    } catch {
-      // Center crop remains the fallback when browser face detection is unavailable.
-    }
-  }
-
-  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, size, size);
-  const pixels = ctx.getImageData(0, 0, size, size).data;
-  const luminance: number[] = [];
-  const histogram = Array.from({ length: 12 }, () => 0);
-
-  for (let i = 0; i < pixels.length; i += 4) {
-    const gray = pixels[i] * 0.299 + pixels[i + 1] * 0.587 + pixels[i + 2] * 0.114;
-    luminance.push(gray);
-    histogram[Math.min(11, Math.floor(gray / 22))] += 1;
-  }
-
-  const mean = luminance.reduce((sum, value) => sum + value, 0) / luminance.length;
-  const deviation = Math.sqrt(
-    luminance.reduce((sum, value) => sum + Math.pow(value - mean, 2), 0) / luminance.length,
-  ) || 1;
-  const normalized = luminance.map((value) => (value - mean) / deviation);
-  const edges: number[] = [];
-
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size - 1; x += 1) {
-      const index = y * size + x;
-      edges.push(normalized[index + 1] - normalized[index]);
-    }
-  }
-
-  return {
-    normalized,
-    edges,
-    histogram: histogram.map((count) => count / luminance.length),
-  };
-}
-
-function cosineSimilarity(left: number[], right: number[]): number {
-  let dot = 0;
-  let leftMagnitude = 0;
-  let rightMagnitude = 0;
-
-  for (let i = 0; i < left.length; i += 1) {
-    dot += left[i] * right[i];
-    leftMagnitude += left[i] * left[i];
-    rightMagnitude += right[i] * right[i];
-  }
-
-  if (!leftMagnitude || !rightMagnitude) return 0;
-  return dot / Math.sqrt(leftMagnitude * rightMagnitude);
-}
-
-async function comparePhotos(profilePhoto: string, kycFrame: string): Promise<MatchResult> {
-  const [profileSignature, frameSignature] = await Promise.all([
-    getImageSignature(profilePhoto),
-    getImageSignature(kycFrame),
-  ]);
-
-  const structure = ((cosineSimilarity(profileSignature.normalized, frameSignature.normalized) + 1) / 2) * 100;
-  const edgeShape = ((cosineSimilarity(profileSignature.edges, frameSignature.edges) + 1) / 2) * 100;
-  const tone = profileSignature.histogram.reduce(
-    (sum, value, index) => sum + Math.min(value, frameSignature.histogram[index]),
-    0,
-  ) * 100;
-  const rawScore = structure * 0.5 + edgeShape * 0.3 + tone * 0.2;
-  const score = Math.max(0, Math.min(98, Math.round(rawScore * 0.9 + 12)));
-
-  return {
-    score,
-    matched: score >= MATCH_THRESHOLD,
-  };
-}
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 
 export function StepProfilePhotos({
   profile,
@@ -198,7 +82,7 @@ export function StepVideoKyc({
   onNext,
 }: {
   profile: PhotoProfile;
-  onNext: (value: { kycLivePhoto: string; kycMatched: boolean; kycMatchScore: number }) => void;
+  onNext: (value: Record<string, never>) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -269,8 +153,7 @@ export function StepVideoKyc({
   };
 
   const startVideoKyc = () => {
-    const profilePhoto = profile.photos?.[0];
-    if (!profilePhoto) {
+    if (!profile.photos?.length) {
       setMessage("Upload one profile photo before video KYC.");
       return;
     }
@@ -304,19 +187,30 @@ export function StepVideoKyc({
         }
 
         try {
-          const results = await Promise.all(
-            capturedFrames.map(async (frame) => ({ frame, result: await comparePhotos(profilePhoto, frame) })),
-          );
-          const best = results.reduce((current, candidate) => (
-            candidate.result.score > current.result.score ? candidate : current
-          ));
-          setKycFrame(best.frame);
-          setMatchResult(best.result);
-          if (!best.result.matched) {
-            setMessage(`Match score ${best.result.score}%. Face the camera in even light and try again.`);
+          const response = await fetch(`${API}/kyc/verify`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${getToken()}`,
+            },
+            body: JSON.stringify({ liveFrames: capturedFrames }),
+          });
+          const result = await response.json().catch(() => null);
+          if (!response.ok) {
+            const detail = Array.isArray(result?.message) ? result.message.join(" ") : result?.message;
+            throw new Error(detail || "Face verification could not be completed.");
           }
-        } catch {
-          setMessage("Could not compare video KYC with your profile photo. Please try again.");
+          setKycFrame(result.kycLivePhoto || capturedFrames[0]);
+          setMatchResult(result);
+          if (!result.matched) {
+            setMessage(
+              result.motionDetected === false
+                ? "Please keep your face visible and slowly turn your head during verification."
+                : `Match score ${result.score}%. The live face must match your uploaded photos by at least ${MATCH_THRESHOLD}%.`,
+            );
+          }
+        } catch (error) {
+          setMessage(error instanceof Error ? error.message : "Could not verify video KYC. Please try again.");
         } finally {
           setChecking(false);
         }
@@ -404,7 +298,7 @@ export function StepVideoKyc({
       <button
         type="button"
         disabled={!canFinish}
-        onClick={() => onNext({ kycLivePhoto: kycFrame, kycMatched: true, kycMatchScore: matchResult?.score || 0 })}
+        onClick={() => onNext({})}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
       >
         Enter dashboard

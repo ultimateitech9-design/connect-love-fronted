@@ -1,0 +1,51 @@
+
+> dev
+> set NODE_OPTIONS=--max-old-space-size=2048 && next dev --port 3002
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://192.168.1.33:3002
+- Environments: .env.local
+✓ Ready in 1680ms
+Creating turbopack project {
+  dir: 'C:\\Users\\User\\Desktop\\Dating App\\connect-love-fronted',
+  testMode: true
+}
+
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 2.2s (next.js: 1346ms, proxy.ts: 381ms, application-code: 473ms)
+ GET /?reason=unauthenticated 200 in 404ms (next.js: 94ms, application-code: 310ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 140ms (next.js: 12ms, proxy.ts: 15ms, application-code: 112ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 301ms (next.js: 11ms, proxy.ts: 18ms, application-code: 273ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 152ms (next.js: 13ms, proxy.ts: 25ms, application-code: 113ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 190ms (next.js: 19ms, proxy.ts: 16ms, application-code: 155ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 179ms (next.js: 19ms, proxy.ts: 26ms, application-code: 135ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 121ms (next.js: 15ms, proxy.ts: 14ms, application-code: 93ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 211ms (next.js: 22ms, proxy.ts: 19ms, application-code: 170ms)
+✓ Compiled in 2.3s
+✓ Compiled in 1451ms
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 604ms (next.js: 286ms, proxy.ts: 17ms, application-code: 302ms)
+✓ Compiled in 612ms
+ GET /?reason=unauthenticated 200 in 162ms (next.js: 12ms, application-code: 150ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 327ms (next.js: 127ms, proxy.ts: 9ms, application-code: 191ms)
+✓ Compiled in 505ms
+✓ Compiled in 1802ms
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 398ms (next.js: 107ms, proxy.ts: 120ms, application-code: 172ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 254ms (next.js: 9ms, proxy.ts: 8ms, application-code: 237ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 245ms (next.js: 19ms, proxy.ts: 23ms, application-code: 204ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 245ms (next.js: 56ms, proxy.ts: 22ms, application-code: 166ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 244ms (next.js: 129ms, proxy.ts: 21ms, application-code: 93ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 248ms (next.js: 90ms, proxy.ts: 21ms, application-code: 137ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 265ms (next.js: 11ms, proxy.ts: 165ms, application-code: 89ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 222ms (next.js: 25ms, proxy.ts: 24ms, application-code: 173ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 222ms (next.js: 61ms, proxy.ts: 24ms, application-code: 136ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 215ms (next.js: 106ms, proxy.ts: 23ms, application-code: 86ms)
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 215ms (next.js: 149ms, proxy.ts: 22ms, application-code: 44ms)
+✓ Compiled in 1186ms
+✓ Compiled in 272ms
+✓ Compiled in 313ms
+✓ Compiled in 593ms
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 375ms (next.js: 232ms, proxy.ts: 28ms, application-code: 115ms)
+✓ Finished filesystem cache database compaction in 11.5s
+✓ Compiled in 622ms
+ GET /user/messages?id=2569e314-6ebb-463f-87ad-063b72961972 200 in 615ms (next.js: 26ms, proxy.ts: 16ms, application-code: 572ms)
+[?25h

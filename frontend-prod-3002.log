@@ -1,0 +1,8 @@
+
+> start
+> set PORT=3002&& node .next/standalone/server.js
+
+▲ Next.js 16.2.6
+- Local:         http://localhost:3002
+- Network:       http://0.0.0.0:3002
+✓ Ready in 0ms

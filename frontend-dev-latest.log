@@ -1,0 +1,14 @@
+
+> dev
+> set NODE_OPTIONS=--max-old-space-size=2048 && next dev --port 3002
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://192.168.1.33:3002
+- Environments: .env.local
+✓ Ready in 1306ms
+Creating turbopack project {
+  dir: 'C:\\Users\\User\\Desktop\\Dating App\\connect-love-fronted',
+  testMode: true
+}
+

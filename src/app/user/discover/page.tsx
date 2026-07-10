@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState, useDeferredValue } from "react";
 import { BadgeCheck, Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
 import type { DiscoverFilters } from "@/features/user/FiltersPanel";
+import { ProfileCard } from "@/features/user/ProfileCard";
 import { useDiscovery } from "@/hooks/useDiscovery";
 import { getToken } from "@/lib/auth";
 
@@ -309,6 +310,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
 
  export default function Discover() {
   const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
+  const [dismissedProfileIds, setDismissedProfileIds] = useState<Set<string>>(new Set());
   const isDesktop = useDesktopLayout();
   const loadSecondaryPanels = useAfterFirstPaint();
   const deferredSearch = useDeferredValue(filters.search);
@@ -327,10 +329,19 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
     () => applyFilters(profiles, filters, false, effectiveMaxDistance),
     [profiles, filters, effectiveMaxDistance],
   );
+  const visibleProfiles = useMemo(
+    () => filtered.filter((profile: any) => !dismissedProfileIds.has(profile.id)),
+    [dismissedProfileIds, filtered],
+  );
  const availableInterests = useMemo(() => profiles.flatMap((p: any) => p.interests || []), [profiles]);
  const availableGoals = useMemo(() => profiles.map((p: any) => p.goals).filter(Boolean), [profiles]);
  
  const handleSwipe = (id: string, action: string) => {
+   setDismissedProfileIds((current) => {
+     const next = new Set(current);
+     next.add(id);
+     return next;
+   });
    if (action === "superlike" || action === "super") {
      swipeSuper(id);
    } else if (action === "right" || action === "like") {
@@ -346,7 +357,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  <div className="space-y-4">
  <MobileFilters filters={filters} onChange={setFilters} effectiveMaxDistance={effectiveMaxDistance} />
  <div className="flex min-w-0 items-start justify-center">
- {loading ? <ProfileCardShell /> : <MobileProfileCard profiles={filtered} onAction={handleSwipe} />}
+ {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} />}
  </div>
  </div>
  ) : (
@@ -357,7 +368,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  <FiltersPanelShell />
  )}
  <div className="flex min-w-0 items-start justify-center pt-1 sm:pt-2">
- {loading ? <ProfileCardShell /> : <MobileProfileCard profiles={filtered} onAction={handleSwipe} />}
+ {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} />}
  </div>
  <div className="hidden min-w-0 lg:block">
  {loadSecondaryPanels ? <RightRail /> : <RightRailShell />}
