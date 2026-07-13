@@ -31,7 +31,7 @@ export default function AboutUsPage() {
       {
         title: "How the platform runs",
         body: "Connect Love has separate user, admin, support, finance, sales, marketing, and super-admin areas so each team works with the right data and the right actions.",
-        points: ["Support handles tickets and safety reports.", "Finance handles invoices, refunds, payments, and subscriptions.", "Super-admin controls roles, settings, security, and logs."],
+        points: ["Support handles tickets and safety reports.", "Administrators handle billing, payments, and subscriptions.", "Super-admin controls roles, settings, security, and logs."],
       },
       {
         title: "Product values",
@@ -47,7 +47,7 @@ export default function AboutUsPage() {
     roleAccess: [
       { role: "User", access: "Profile, onboarding, discovery, matches, messages, premium, and settings." },
       { role: "Support", access: "Contact requests, tickets, reports, and customer help workflows." },
-      { role: "Finance", access: "Subscriptions, payments, transactions, invoices, and refunds." },
+      { role: "Sales", access: "Subscriptions, plans, and revenue trends." },
       { role: "Super Admin", access: "Roles, security, logs, settings, notifications, and verification oversight." },
     ],
     faq: [

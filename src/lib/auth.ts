@@ -1,9 +1,10 @@
+import { API_ORIGIN } from "@/config/runtime";
 const TOKEN_KEY = "sm_token";
 const ONBOARDING_REQUIRED_KEY = "cl_onboarding_required";
 // Short-lived cookie used by Edge Middleware to protect /user/* routes.
 // Value is just "1" — actual JWT validation is done server-side.
 const COOKIE_NAME = "sm_auth";
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_BASE = API_ORIGIN;
 
 function storage(): Storage | null {
  if (typeof window === "undefined") return null;

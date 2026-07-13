@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getManagementToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 const USERS_PER_PAGE = 10;
 
 type AdminUser = {
@@ -23,14 +24,12 @@ type AdminUser = {
 };
 
 type CreatableRole = "sales" | "support";
-type DashboardRole = CreatableRole | "marketing" | "admin" | "super_admin" | "data_entry" | "finance";
+type DashboardRole = CreatableRole | "marketing" | "admin" | "super_admin";
 
 const roleLabels: Record<DashboardRole, string> = {
  admin: "Admin",
  super_admin: "Super Admin",
  marketing: "Marketing",
- data_entry: "Data Entry",
- finance: "Finance",
  sales: "Sales",
  support: "Support",
 };

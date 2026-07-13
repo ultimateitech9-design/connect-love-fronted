@@ -1,11 +1,12 @@
 "use client";
+import { SOCKET_ORIGIN } from "@/config/runtime";
 
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { getToken } from "@/lib/auth";
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5002";
+const SOCKET_URL = SOCKET_ORIGIN;
 
 export function GlobalPresence() {
   const queryClient = useQueryClient();

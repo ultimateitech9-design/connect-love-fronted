@@ -1,16 +1,17 @@
 /* eslint-disable */
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Eye, EyeOff, Heart, Loader2, MapPin, ShieldCheck, Sparkles, UserRoundPlus } from "lucide-react";
+import { FormEvent, useMemo, useState } from "react";
+import { ArrowLeft, Check, Eye, EyeOff, Heart, Loader2, MailCheck, MapPin, ShieldCheck, Sparkles, UserRoundPlus } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { requireOnboarding, setToken } from "@/lib/auth";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_BASE = API_ORIGIN;
 
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -20,7 +21,7 @@ const signupSchema = z.object({
   birthDate: z.string().min(1, "Date of birth is required"),
   gender: z.string().min(1, "Please select a gender"),
   city: z.string().max(150, "City name is too long").optional(),
-  agreeTerms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms" }) }),
+  agreeTerms: z.boolean().refine(Boolean, "You must accept the terms"),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -31,6 +32,9 @@ type SignupData = z.infer<typeof signupSchema>;
 export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
+  const [otp, setOtp] = useState("");
+  const [pendingSignup, setPendingSignup] = useState<SignupData | null>(null);
+  const [creatingAccount, setCreatingAccount] = useState(false);
   const [locationStatus, setLocationStatus] = useState("");
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -41,7 +45,19 @@ export default function RegisterPage() {
     watch,
     setValue,
     formState: { errors, isSubmitting },
-  } = useForm<SignupData>({ resolver: zodResolver(signupSchema) });
+  } = useForm<SignupData>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      birthDate: "",
+      gender: "",
+      city: "",
+      agreeTerms: false,
+    },
+  });
 
   const password = watch("password", "");
   const checks = useMemo(() => [
@@ -98,8 +114,9 @@ export default function RegisterPage() {
     );
   };
 
-  const onSubmit = async (data: SignupData) => {
+  const createAccount = async (data: SignupData) => {
     setError("");
+    setCreatingAccount(true);
     try {
       const regRes = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
@@ -139,7 +156,25 @@ export default function RegisterPage() {
       window.location.href = "/login";
     } catch {
       setError("Cannot connect to server. Please try again.");
+    } finally {
+      setCreatingAccount(false);
     }
+  };
+
+  const onSubmit = (data: SignupData) => {
+    setError("");
+    setOtp("");
+    setPendingSignup(data);
+  };
+
+  const verifyOtp = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!pendingSignup) return;
+    if (!otp.trim()) {
+      setError("Please enter the OTP.");
+      return;
+    }
+    await createAccount(pendingSignup);
   };
 
   return (
@@ -196,11 +231,46 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <h2 className="text-2xl font-black tracking-tight text-slate-950">Create your account</h2>
-              <p className="mt-1 text-xs leading-5 text-slate-500">A clean start for real matches. No clutter, no oversized modal.</p>
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">{pendingSignup ? "Verify your email" : "Create your account"}</h2>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                {pendingSignup ? `Enter the OTP sent to ${pendingSignup.email}. For now any OTP will work.` : "A clean start for real matches. No clutter, no oversized modal."}
+              </p>
 
               {error && <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
+              {pendingSignup ? (
+                <form onSubmit={verifyOtp} className="mt-6 grid gap-4">
+                  <div className="grid h-14 w-14 place-items-center rounded-2xl bg-rose-50 text-rose-500">
+                    <MailCheck className="h-7 w-7" />
+                  </div>
+                  <Field label="OTP Code">
+                    <input
+                      value={otp}
+                      onChange={(event) => setOtp(event.target.value)}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="Enter any OTP"
+                      className="field-input h-12 text-center text-lg font-black tracking-[0.35em]"
+                    />
+                  </Field>
+                  <div className="grid gap-2 sm:grid-cols-[auto_1fr]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPendingSignup(null);
+                        setError("");
+                      }}
+                      className="h-11 rounded-xl border border-slate-200 px-5 text-xs font-black text-slate-600 transition hover:border-rose-200 hover:text-rose-600"
+                    >
+                      Edit details
+                    </button>
+                    <button type="submit" disabled={creatingAccount} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-xs font-black text-white shadow-lg shadow-rose-500/25 transition hover:scale-[1.01] hover:from-rose-400 hover:to-pink-500 active:scale-[0.99] disabled:opacity-70">
+                      {creatingAccount && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {creatingAccount ? "Verifying..." : "Verify OTP"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="mt-3 grid gap-2.5">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Full Name" error={errors.name?.message}>
@@ -276,9 +346,10 @@ export default function RegisterPage() {
 
                 <button id="signup-submit-btn" type="submit" disabled={isSubmitting} className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-xs font-black text-white shadow-lg shadow-rose-500/25 transition hover:scale-[1.01] hover:from-rose-400 hover:to-pink-500 active:scale-[0.99] disabled:opacity-70">
                   {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {isSubmitting ? "Creating account..." : "Create My Account"}
+                  {isSubmitting ? "Sending OTP..." : "Create My Account"}
                 </button>
               </form>
+              )}
 
               <p className="mt-2 text-center text-xs text-slate-500">
                 Already have an account? <Link href="/login" className="font-black text-rose-500 hover:text-rose-600">Sign In</Link>

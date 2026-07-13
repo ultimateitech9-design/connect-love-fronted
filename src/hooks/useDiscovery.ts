@@ -1,17 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
+import { getDiscoveryProfiles, swipeProfile } from "@/features/discovery/api";
 
 type DiscoveryRequestFilters = {
   search?: string;
   ageMin?: number;
   ageMax?: number;
+  goals?: string[];
 };
 
 export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
-  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}`;
+  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}:${(filters.goals || []).join(",")}`;
   const storageKey = `connect-love:discovery:${filterKey}`;
   const [profiles, setProfiles] = useState<any[]>(() => {
     if (typeof window === "undefined") return [];
@@ -26,15 +26,20 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   const [loading, setLoading] = useState(() => !!token && profiles.length === 0);
   const [error, setError] = useState(false);
   const cacheRef = useRef(new Map<string, any[]>());
+  const profilesRef = useRef(profiles);
 
-  const fetchProfiles = useCallback(async (signal?: AbortSignal) => {
+  useEffect(() => {
+    profilesRef.current = profiles;
+  }, [profiles]);
+
+  const fetchProfiles = useCallback(async (signal?: AbortSignal, force = false) => {
     if (!token) {
       setProfiles([]);
       setLoading(false);
       return;
     }
 
-    const cached = cacheRef.current.get(filterKey);
+    const cached = force ? undefined : cacheRef.current.get(filterKey);
     if (cached) {
       setProfiles(cached);
       setLoading(false);
@@ -42,7 +47,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     }
 
     try {
-      const stored = window.localStorage.getItem(storageKey);
+      const stored = force ? null : window.localStorage.getItem(storageKey);
       const parsed = stored ? JSON.parse(stored) : null;
       if (Array.isArray(parsed) && parsed.length > 0) {
         cacheRef.current.set(filterKey, parsed);
@@ -54,23 +59,13 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     setLoading((current) => (profiles.length > 0 ? false : current));
     setError(false);
     try {
-      const params = new URLSearchParams();
-      if (filters.search?.trim()) params.set("search", filters.search.trim());
-      if (typeof filters.ageMin === "number") params.set("ageMin", String(filters.ageMin));
-      if (typeof filters.ageMax === "number") params.set("ageMax", String(filters.ageMax));
-      const query = params.toString();
-      const url = query ? `${API_URL}/discovery?${query}` : `${API_URL}/discovery`;
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal,
-      });
-      if (!res.ok) throw new Error("Failed to fetch discovery profiles");
-      const data = await res.json();
+      const data = await getDiscoveryProfiles({ ...filters, search: filters.search?.trim() }, signal);
       cacheRef.current.set(filterKey, data);
       try {
         window.localStorage.setItem(storageKey, JSON.stringify(data));
       } catch {}
       setProfiles(data);
+      profilesRef.current = data;
     } catch (err: any) {
       if (err?.name !== "AbortError") {
         setError(true);
@@ -78,7 +73,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [filterKey, filters.ageMax, filters.ageMin, filters.search, profiles.length, storageKey, token]);
+  }, [filterKey, filters.ageMax, filters.ageMin, filters.goals, filters.search, profiles.length, storageKey, token]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -89,6 +84,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   const removeProfileLocally = useCallback((receiverId: string) => {
     setProfiles((current) => {
       const next = current.filter((profile) => profile.id !== receiverId);
+      profilesRef.current = next;
       cacheRef.current.set(filterKey, next);
       try {
         window.localStorage.setItem(storageKey, JSON.stringify(next));
@@ -101,25 +97,21 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     if (!token) return;
     removeProfileLocally(receiverId);
     try {
-      const res = await fetch(`${API_URL}/matches/swipe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ receiverId, action })
-      });
-      if (!res.ok) throw new Error('Failed to swipe');
-      const match = await res.json();
+      const match = await swipeProfile(receiverId, action);
       if (match?.status === "MATCHED" && typeof window !== "undefined") {
         window.setTimeout(() => {
           window.location.href = `/user/messages?id=${match.id}`;
         }, 250);
       }
+      // The API excludes the newly swiped profile, so page one now acts as the
+      // next nearest batch without unstable offset pagination.
+      if (profilesRef.current.length <= 5) {
+        await fetchProfiles(undefined, true);
+      }
     } catch {
       setError(true);
     }
-  }, [removeProfileLocally, token]);
+  }, [fetchProfiles, removeProfileLocally, token]);
 
   return {
     profiles,

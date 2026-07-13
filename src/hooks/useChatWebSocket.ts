@@ -1,11 +1,12 @@
 "use client";
+import { API_ORIGIN, SOCKET_ORIGIN } from "@/config/runtime";
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5002';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5002';
+const SOCKET_URL = SOCKET_ORIGIN;
+const API_URL = API_ORIGIN;
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
 const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
 const VIDEO_MESSAGE_PREFIX = "__video_message__:";
@@ -263,7 +264,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
    }
  }, [conversationId, socket]);
 
- const deleteMessage = useCallback((messageId: string, receiverId: string, scope: 'me' | 'everyone') => {
+ const deleteMessage = useCallback((messageId: string, receiverId: string, scope: 'me' | 'everyone' = 'me') => {
    if (socket && conversationId) {
      socket.emit('deleteMessage', { messageId, receiverId, scope });
    }

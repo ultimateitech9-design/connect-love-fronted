@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,7 @@ import { StepProfilePhotos, StepVideoKyc } from "@/features/onboarding/StepPhoto
 import { StepAge } from "@/features/onboarding/StepAge";
 import { StepReligion } from "@/features/onboarding/StepReligion";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 
 const STEPS = [
   { id: "age", title: "How old are you?" },

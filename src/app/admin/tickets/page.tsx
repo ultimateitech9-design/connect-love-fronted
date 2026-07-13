@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { getManagementToken } from "@/lib/auth";
 import { api } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 
 export default function TicketsPage() {
  const [tickets, setTickets] = useState<any[]>([]);

@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { MoreVertical, Phone, Search, Send, Video } from "lucide-react";
 
 const MessagesClient = dynamic(() => import("./MessagesClient"), {
   ssr: false,
@@ -16,7 +15,7 @@ function MessagesShell() {
         <div className="flex flex-col gap-3 border-b border-rose-100 p-4">
           <h1 className="text-lg font-semibold text-slate-950">Messages</h1>
           <div className="relative hidden lg:block">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+            <span className="absolute left-3 top-2.5 h-4 w-4 rounded-full border border-slate-400" />
             <div className="h-9 rounded-full bg-rose-50 pl-9" />
           </div>
         </div>
@@ -43,9 +42,9 @@ function MessagesShell() {
             </div>
           </div>
           <div className="flex items-center gap-3 text-slate-500">
-            <Phone className="h-4 w-4" />
-            <Video className="h-4 w-4" />
-            <MoreVertical className="h-4 w-4" />
+            <span className="h-4 w-4 rounded-full bg-slate-200" />
+            <span className="h-4 w-4 rounded bg-slate-200" />
+            <span className="h-4 w-1 rounded bg-slate-200" />
           </div>
         </header>
         <div className="flex-1 px-5 py-6">
@@ -56,7 +55,7 @@ function MessagesShell() {
         <div className="flex shrink-0 items-center gap-2 border-t border-rose-100 p-4">
           <div className="h-10 flex-1 rounded-full bg-rose-50" />
           <div className="grid h-10 w-10 place-items-center rounded-full bg-rose-600 text-white">
-            <Send className="h-4 w-4" />
+            <span className="block h-3 w-3 rotate-45 border-r-2 border-t-2 border-white" />
           </div>
         </div>
       </section>
@@ -74,10 +73,10 @@ export default function MessagesPage() {
     };
 
     let idleId: number | undefined;
-    const timer = window.setTimeout(() => setReady(true), 8000);
+    const timer = window.setTimeout(() => setReady(true), 1200);
 
     if (win.requestIdleCallback) {
-      idleId = win.requestIdleCallback(() => setReady(true), { timeout: 8000 });
+      idleId = win.requestIdleCallback(() => setReady(true), { timeout: 1200 });
     }
 
     return () => {

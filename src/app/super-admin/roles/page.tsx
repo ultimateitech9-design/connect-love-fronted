@@ -203,7 +203,9 @@ export default function RolesPage() {
  setRolesError("");
  try {
  const res = await api.roles();
- setAllRows(res.roles.map((r) => [r.role, r.assignedUsers, r.permissions, r.status, "—"]));
+ setAllRows(res.roles
+ .filter((r) => !["data_entry", "finance"].includes(r.role.trim().toLowerCase().replace(/[\s-]+/g, "_")))
+ .map((r) => [r.role, r.assignedUsers, r.permissions, r.status, "—"]));
  } catch {
  setRolesError("Failed to load roles from backend. Is the backend server running?");
  } finally {

@@ -1,8 +1,11 @@
+import { API_ORIGIN } from "@/config/runtime";
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, type PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, BadgeCheck, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, BadgeCheck, Loader2, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
+import { BoostDialog } from "@/features/boost/BoostDialog";
+import { formatDistance } from "@/lib/distance";
 
 export interface Profile {
   id: string;
@@ -14,6 +17,8 @@ export interface Profile {
   avatarUrl?: string;
   profession: string;
   religion?: string;
+  zodiac?: string;
+  birthDate?: string;
   distanceKm?: number | null;
   distanceMi?: number | null;
   goals?: string | null;
@@ -34,7 +39,29 @@ export interface ProfileCardProps {
   onAction?: (id: string, action: string) => void;
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const ZODIAC_RANGES = [
+  { sign: "Capricorn", emoji: "♑", from: 1222 }, { sign: "Aquarius", emoji: "♒", from: 120 },
+  { sign: "Pisces", emoji: "♓", from: 219 }, { sign: "Aries", emoji: "♈", from: 321 },
+  { sign: "Taurus", emoji: "♉", from: 420 }, { sign: "Gemini", emoji: "♊", from: 521 },
+  { sign: "Cancer", emoji: "♋", from: 621 }, { sign: "Leo", emoji: "♌", from: 723 },
+  { sign: "Virgo", emoji: "♍", from: 823 }, { sign: "Libra", emoji: "♎", from: 923 },
+  { sign: "Scorpio", emoji: "♏", from: 1023 }, { sign: "Sagittarius", emoji: "♐", from: 1122 },
+] as const;
+
+function zodiacDisplay(sign?: string, birthDate?: string) {
+  let resolvedSign = sign;
+  if (!resolvedSign && birthDate) {
+    const date = new Date(`${birthDate.slice(0, 10)}T00:00:00`);
+    if (!Number.isNaN(date.getTime())) {
+      const monthDay = (date.getMonth() + 1) * 100 + date.getDate();
+      resolvedSign = ([...ZODIAC_RANGES].reverse().find((item) => monthDay >= item.from) ?? ZODIAC_RANGES[0]).sign;
+    }
+  }
+  const zodiac = ZODIAC_RANGES.find((item) => item.sign === resolvedSign);
+  return zodiac ? `${zodiac.emoji} ${zodiac.sign}` : null;
+}
+
+const API = API_ORIGIN;
 
 type Action = "pass" | "like" | "super";
 
@@ -48,6 +75,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [instructionVisible, setInstructionVisible] = useState(true);
   const [isSuperLiking, setIsSuperLiking] = useState(false);
+  const [boostOpen, setBoostOpen] = useState(false);
   const isDraggingRef = useRef(false);
 
   // Photo carousel state
@@ -97,6 +125,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   const nextPhotos = next.photos && next.photos.length > 0 ? next.photos : (next.photo ? [next.photo] : []);
   const nextDisplayPhoto = nextPhotos[0] || null;
   const profileDistanceKm = profile.distanceKm ?? profile.distanceMi ?? null;
+  const profileDistanceLabel = formatDistance(profileDistanceKm);
   const profileReligion = profile.religion?.trim();
 
 
@@ -386,10 +415,10 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
               </div>
             )}
             <div className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
-              {profile.showDistance !== false && typeof profileDistanceKm === "number" && (
+              {profile.showDistance !== false && profileDistanceLabel && (
                 <>
                   <MapPin className="h-4 w-4" />
-                  {profileDistanceKm} km away ·
+                  {profileDistanceLabel} ·
                 </>
               )}
               {profile.profession}
@@ -472,9 +501,20 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                         🙏 {detailedProfile.religion}
                       </div>
                     )}
+                    {zodiacDisplay(detailedProfile.zodiac || profile.zodiac, detailedProfile.birthDate || profile.birthDate) && (
+                      <div className="rounded-lg bg-violet-50 px-3 py-1.5 text-sm font-semibold text-violet-700 ring-1 ring-violet-100 dark:bg-violet-950/30 dark:text-violet-300 dark:ring-violet-900/50">
+                        {zodiacDisplay(detailedProfile.zodiac || profile.zodiac, detailedProfile.birthDate || profile.birthDate)}
+                      </div>
+                    )}
                     {detailedProfile.city && (
                       <div className="rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-foreground">
                         📍 {detailedProfile.city}
+                      </div>
+                    )}
+                    {detailedProfile.showDistance !== false && formatDistance(detailedProfile.distanceKm) && (
+                      <div className="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+                        <MapPin className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{formatDistance(detailedProfile.distanceKm)} from you</span>
                       </div>
                     )}
                   </div>
@@ -520,7 +560,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
         </motion.div>
       </AnimatePresence>
 
-      <div className="relative z-10 mt-5 flex items-center justify-center gap-4 sm:mt-6 sm:gap-5">
+      <div className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-6 sm:gap-4">
         <button
           onClick={() => triggerSwipe("pass")}
           className="grid h-12 w-12 place-items-center rounded-full border-2 border-border bg-card text-muted-foreground shadow-md transition hover:scale-105 hover:border-rose-300 hover:text-rose-400 sm:h-[56px] sm:w-[56px]"
@@ -535,6 +575,9 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
         >
           <Star className="h-5 w-5" strokeWidth={2.5} />
         </button>
+        <button type="button" onClick={() => setBoostOpen(true)} className="grid h-11 w-11 place-items-center rounded-full border-2 border-amber-300 bg-card text-amber-500 shadow-md transition hover:scale-105 sm:h-[48px] sm:w-[48px]" aria-label="Boost your profile" title="Boost your profile">
+          <Zap className="h-5 w-5" strokeWidth={2.5} fill="currentColor" />
+        </button>
         <button
           onClick={() => triggerSwipe("like")}
           className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20 transition hover:scale-105 sm:h-14 sm:w-14"
@@ -547,6 +590,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
       <p className="mt-4 text-center text-xs text-slate-400">
         Swipe right to like · Swipe left to pass
       </p>
+      <BoostDialog open={boostOpen} onClose={() => setBoostOpen(false)} />
     </div>
   );
 }

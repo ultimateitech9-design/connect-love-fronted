@@ -1,5 +1,6 @@
 /* eslint-disable */
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -11,7 +12,7 @@ import { z } from "zod";
 import { clearOnboardingRequired, setToken } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_BASE = API_ORIGIN;
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),

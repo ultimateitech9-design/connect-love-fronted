@@ -47,7 +47,7 @@ export default function PremiumPage() {
     ],
     roleAccess: [
       { role: "User", access: "Plan choice, upgrade, premium feature use, and billing support request." },
-      { role: "Finance", access: "Subscriptions, invoices, refunds, transactions, and reports." },
+      { role: "Admin", access: "Subscriptions, payments, billing records, and reports." },
       { role: "Sales", access: "Plans, campaigns, conversions, retention, and trends." },
       { role: "Support", access: "Premium questions and customer tickets." },
     ],

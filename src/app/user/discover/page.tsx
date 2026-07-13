@@ -5,9 +5,9 @@ import Image from "next/image";
 import { useEffect, useMemo, useState, useDeferredValue } from "react";
 import { BadgeCheck, Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
 import type { DiscoverFilters } from "@/features/user/FiltersPanel";
-import { ProfileCard } from "@/features/user/ProfileCard";
 import { useDiscovery } from "@/hooks/useDiscovery";
 import { getToken } from "@/lib/auth";
+import { formatDistance } from "@/lib/distance";
 
 const DISTANCE_STEP_KM = 100;
 const defaultFilters: DiscoverFilters = {
@@ -22,6 +22,10 @@ const defaultFilters: DiscoverFilters = {
 const FiltersPanel = dynamic(() => import("@/features/user/FiltersPanel").then((mod) => mod.FiltersPanel), {
   ssr: false,
   loading: () => <FiltersPanelShell />,
+});
+const ProfileCard = dynamic(() => import("@/features/user/ProfileCard").then((mod) => mod.ProfileCard), {
+  ssr: false,
+  loading: () => <ProfileCardShell />,
 });
 const RightRail = dynamic(() => import("@/features/user/RightRail").then((mod) => mod.RightRail), {
   ssr: false,
@@ -234,10 +238,10 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
             {(profile.verified || profile.isVerified) && <BadgeCheck className="h-5 w-5 text-emerald-400" />}
           </div>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
-            {typeof distance === "number" && profile.showDistance !== false && (
+            {formatDistance(distance) && profile.showDistance !== false && (
               <>
                 <MapPin className="h-4 w-4" />
-                {distance} km away ·
+                {formatDistance(distance)} ·
               </>
             )}
             {profile.profession}
@@ -275,7 +279,6 @@ function matchesNonDistanceFilters(p: any, filters: DiscoverFilters, onlyShowVer
   if ((p.age ?? 0) < filters.ageMin || (p.age ?? 0) > filters.ageMax) return false;
   if ((filters.verifiedOnly || onlyShowVerifiedProfiles) && !p.isVerified && !p.verified) return false;
   if (filters.interests.length > 0 && !filters.interests.some((i) => (p.interests || []).includes(i))) return false;
-  if (filters.goals.length > 0 && !filters.goals.includes(p.goals)) return false;
   return true;
 }
 
@@ -305,6 +308,11 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
     const distance = getProfileDistanceKm(p);
     if (distance !== null && distance > maxDistance) return false;
     return true;
+  }).sort((a, b) => {
+    const aGoalPriority = filters.goals.length > 0 && filters.goals.includes(a.goals) ? 0 : 1;
+    const bGoalPriority = filters.goals.length > 0 && filters.goals.includes(b.goals) ? 0 : 1;
+    if (aGoalPriority !== bGoalPriority) return aGoalPriority - bGoalPriority;
+    return (getProfileDistanceKm(a) ?? Number.MAX_SAFE_INTEGER) - (getProfileDistanceKm(b) ?? Number.MAX_SAFE_INTEGER);
   });
 }
 
@@ -316,8 +324,8 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
   const deferredSearch = useDeferredValue(filters.search);
   const token = getToken() || "";
   const requestFilters = useMemo(
-    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax }),
-    [deferredSearch, filters.ageMin, filters.ageMax],
+    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, goals: filters.goals }),
+    [deferredSearch, filters.ageMin, filters.ageMax, filters.goals],
   );
   const { profiles, loading, swipeLeft, swipeRight, swipeSuper } = useDiscovery(token, requestFilters);
 

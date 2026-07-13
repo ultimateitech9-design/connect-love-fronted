@@ -1,10 +1,11 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { FormEvent, useEffect, useState } from "react";
 import { Save, UserRound } from "lucide-react";
 import { getManagementToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 
 export default function SupportProfilePage() {
   const [name, setName] = useState("");

@@ -19,7 +19,7 @@ export default function HelpCenterPage() {
       { title: "Backend support", body: "Contact Us posts to the NestJS support endpoint and creates a support record that dashboards can list and update.", points: ["POST /support/contact.", "GET /support/tickets.", "PATCH ticket status."] },
     ],
     actions: [{ title: "Find topic", body: "User identifies account, safety, billing, or product issue." }, { title: "Contact support", body: "User submits backend-connected contact form." }, { title: "Resolve ticket", body: "Support reviews and updates status." }],
-    roleAccess: [{ role: "Support", access: "Contacts, tickets, high priority queues, and trust-safety pages." }, { role: "Finance", access: "Billing, subscriptions, transactions, invoices, and refunds." }, { role: "Admin", access: "Users, reports, tickets, verification, and payments context." }],
+    roleAccess: [{ role: "Support", access: "Contacts, tickets, high priority queues, and trust-safety pages." }, { role: "Sales", access: "Plans, subscriptions, and revenue context." }, { role: "Admin", access: "Users, reports, tickets, verification, billing, and payments context." }],
     faq: [{ question: "What is connected to backend?", answer: "Contact Us is connected to /support/contact and footer subscribe is connected to /support/newsletter." }, { question: "Can support update tickets?", answer: "Yes, protected support routes can list and update ticket status." }],
   };
   return <MarketingInfoPage page={page} />;

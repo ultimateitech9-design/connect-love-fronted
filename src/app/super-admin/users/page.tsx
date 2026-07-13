@@ -26,7 +26,7 @@ type StatusFilter = "All" | Status;
 type Verification = "Verified" | "Pending" | "Revoked";
 type Account = string;
 type Role = string;
-type CreatableRole = "Admin" | "Data Entry" | "Finance" | "Sales" | "Support";
+type CreatableRole = "Admin" | "Sales" | "Support";
 type RoleFilter = "All" | Role;
 
 interface Row {
@@ -83,10 +83,8 @@ function buildRow(u: { id: string; name: string; email: string; role: string; ac
 }
 
 const monoLabel = "font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground";
-const roleValueMap: Record<CreatableRole, "admin" | "data_entry" | "finance" | "sales" | "support"> = {
+const roleValueMap: Record<CreatableRole, "admin" | "sales" | "support"> = {
  Admin: "admin",
- "Data Entry": "data_entry",
- Finance: "finance",
  Sales: "sales",
  Support: "support",
 };
@@ -106,7 +104,7 @@ export default function UsersPage() {
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [newRole, setNewRole] = useState<CreatableRole>("Data Entry");
+  const [newRole, setNewRole] = useState<CreatableRole>("Admin");
   const [creatingId, setCreatingId] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<Row | null>(null);
@@ -182,7 +180,7 @@ export default function UsersPage() {
     setNewEmail("");
     setNewPassword("");
     setConfirmPassword("");
-    setNewRole("Data Entry");
+    setNewRole("Admin");
     setShowModal(false);
   };
 
@@ -226,7 +224,7 @@ export default function UsersPage() {
  <div>
  <h1 className="text-3xl font-bold tracking-tight text-foreground">User Management</h1>
  <p className="text-sm text-muted-foreground mt-2">
- Create and manage system access IDs for Admin, Data Entry, Finance, Sales, and Support.
+ Create and manage system access IDs for Admin, Sales, and Support.
  </p>
  </div>
  <button onClick={() => setShowModal(true)} className="inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-90" style={{ background: "var(--gradient-brand)" }}>
@@ -252,8 +250,7 @@ export default function UsersPage() {
  <div className="space-y-1.5">
  <label className="text-xs font-semibold uppercase text-muted-foreground">Role</label>
  <select value={newRole} onChange={e => setNewRole(e.target.value as CreatableRole)} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary">
- <option value="Data Entry">Data Entry</option>
- <option value="Finance">Finance</option>
+ <option value="Admin">Admin</option>
  <option value="Sales">Sales</option>
  <option value="Support">Support</option>
  </select>
@@ -280,7 +277,7 @@ export default function UsersPage() {
  <div className="space-y-1.5"><label className={monoLabel}>Login Email</label><input required type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="name@company.com" /></div>
  <div className="space-y-1.5"><label className={monoLabel}>Password</label><input required minLength={8} type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Minimum 8 characters" /></div>
  <div className="space-y-1.5"><label className={monoLabel}>Confirm Password</label><input required minLength={8} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Repeat password" /></div>
- <div className="space-y-1.5 sm:col-span-2"><label className={monoLabel}>Dashboard Role</label><select value={newRole} onChange={(e) => setNewRole(e.target.value as CreatableRole)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"><option value="Admin">Admin</option><option value="Data Entry">Data Entry</option><option value="Finance">Finance</option><option value="Sales">Sales</option><option value="Support">Support</option></select><p className="text-xs text-muted-foreground">Admin IDs can only be created from the Super Admin panel.</p></div>
+ <div className="space-y-1.5 sm:col-span-2"><label className={monoLabel}>Dashboard Role</label><select value={newRole} onChange={(e) => setNewRole(e.target.value as CreatableRole)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"><option value="Admin">Admin</option><option value="Sales">Sales</option><option value="Support">Support</option></select><p className="text-xs text-muted-foreground">Admin IDs can only be created from the Super Admin panel.</p></div>
  </div>
  <div className="mt-6 flex justify-end gap-3 border-t border-border pt-5"><button type="button" disabled={creatingId} onClick={() => setShowModal(false)} className="h-10 rounded-lg border border-border bg-card px-5 text-sm font-semibold text-foreground hover:bg-muted disabled:opacity-50">Cancel</button><button type="submit" disabled={creatingId} className="h-10 min-w-32 rounded-lg px-5 text-sm font-semibold text-white shadow-md disabled:opacity-50" style={{ background: "var(--gradient-brand)" }}>{creatingId ? "Creating..." : "Create ID"}</button></div>
  </form>
@@ -335,10 +332,8 @@ export default function UsersPage() {
           <option value="All">All Roles</option>
           <option value="Super Admin">Super Admin</option>
           <option value="Admin">Admin</option>
-          <option value="Finance">Finance</option>
           <option value="Sales">Sales</option>
           <option value="Support">Support</option>
-          <option value="Data Entry">Data Entry</option>
           <option value="Marketing">Marketing</option>
           <option value="User">User</option>
         </select>

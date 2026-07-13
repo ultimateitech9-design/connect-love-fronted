@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,7 +11,7 @@ import { logout, getToken } from "@/lib/auth";
 import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 
 const navItems = [
  { to: "/user/discover", label: "Discover" },

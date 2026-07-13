@@ -3,13 +3,17 @@
 import { TopNav } from "@/features/user/TopNav";
 import { NotificationProvider } from "@/features/user/NotificationContext";
 import { SettingsProvider } from "@/features/user/SettingsContext";
-import { GlobalPresence } from "@/components/GlobalPresence";
+import dynamic from "next/dynamic";
 
-export default function UserProviders({ children, showNav }: { children: React.ReactNode; showNav: boolean }) {
+const GlobalPresence = dynamic(() => import("@/components/GlobalPresence").then((mod) => mod.GlobalPresence), {
+  ssr: false,
+});
+
+export default function UserProviders({ children, showNav, enablePresence = true }: { children: React.ReactNode; showNav: boolean; enablePresence?: boolean }) {
   return (
     <SettingsProvider>
       <NotificationProvider>
-        <GlobalPresence />
+        {enablePresence ? <GlobalPresence /> : null}
         {showNav ? <TopNav /> : null}
         {children}
       </NotificationProvider>

@@ -1,10 +1,11 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { getManagementToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 const demoPayments = [
  { id: "demo-1", user: { name: "Super Admin" }, planName: "Premium", amount: 399, createdAt: "2026-07-03T09:15:00.000Z", status: "successful" },
  { id: "demo-2", user: { name: "Suraj Kumar" }, planName: "Plus", amount: 199, createdAt: "2026-07-02T14:40:00.000Z", status: "pending" },

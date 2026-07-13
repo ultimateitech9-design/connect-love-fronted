@@ -1,9 +1,10 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect } from "react";
 import { getToken } from "@/lib/auth";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_BASE = API_ORIGIN;
 
 /**
  * SessionProvider historically handled JWT session lifecycle.

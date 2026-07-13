@@ -1,10 +1,11 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { clearOnboardingRequired, getToken, clearToken, isOnboardingRequired } from "@/lib/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_URL = API_ORIGIN;
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
  const [loading, setLoading] = useState(true);

@@ -16,7 +16,7 @@ export default function CookiePolicyPage() {
     sections: [
       { title: "Essential cookies", body: "These keep authentication, protected routes, and security checks working.", points: ["Login state.", "Role access.", "Anti-abuse checks."] },
       { title: "Preference cookies", body: "These remember choices like theme, dashboard state, and repeated setup preferences.", points: ["Theme.", "Layout.", "Notification choices."] },
-      { title: "Backend connection", body: "Cookies help the frontend send authenticated requests to protected backend endpoints for dashboards and account pages.", points: ["JWT protected routes.", "Support dashboard calls.", "Admin/finance APIs."] },
+      { title: "Backend connection", body: "Cookies help the frontend send authenticated requests to protected backend endpoints for dashboards and account pages.", points: ["JWT protected routes.", "Support dashboard calls.", "Admin APIs."] },
     ],
     actions: [{ title: "Use site", body: "Essential cookies support navigation and login." }, { title: "Save preferences", body: "Optional choices can make the app smoother." }, { title: "Ask privacy", body: "Questions route to Contact Us." }],
     roleAccess: [{ role: "User", access: "Own session and preferences." }, { role: "Admin/Super Admin", access: "Dashboard session and security context." }, { role: "Sales/Marketing", access: "Aggregated campaign and conversion signals where allowed." }],

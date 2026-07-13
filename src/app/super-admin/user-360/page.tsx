@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, BadgeCheck, Camera, Save, Search, Trash2, UserRoundSearch, X } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -104,6 +104,8 @@ export default function User360Page() {
  const [form, setForm] = useState<UserForm>(emptyForm);
  const [query, setQuery] = useState("");
  const [loadingUsers, setLoadingUsers] = useState(true);
+ const [totalUsers, setTotalUsers] = useState(0);
+ const usersRequestRef = useRef(0);
  const [loadingDetails, setLoadingDetails] = useState(false);
  const [saving, setSaving] = useState(false);
  const [deleting, setDeleting] = useState(false);
@@ -125,17 +127,30 @@ export default function User360Page() {
  );
  }, [query, users]);
 
- const loadUsers = async () => {
+ const loadUsers = async (search = "") => {
+ const requestId = ++usersRequestRef.current;
  setLoadingUsers(true);
  setError("");
  try {
- const res = await api.users();
- setUsers(res.users as UserRow[]);
- if (!selectedId && res.users[0]) setSelectedId(res.users[0].id);
+ let page = 1;
+ let hasMore = true;
+ let allUsers: UserRow[] = [];
+ while (hasMore) {
+ const res = await api.users(search, page, 100);
+ if (requestId !== usersRequestRef.current) return;
+ allUsers = Array.from(new Map([...allUsers, ...(res.users as UserRow[])].map((user) => [user.id, user])).values());
+ setUsers(allUsers);
+ setTotalUsers(res.total);
+ hasMore = res.hasMore;
+ page += 1;
+ }
+ if (allUsers[0] && (!selectedId || !allUsers.some((user) => user.id === selectedId))) {
+ setSelectedId(allUsers[0].id);
+ }
  } catch {
  setError("Users load nahi hue. Backend/session check karein.");
  } finally {
- setLoadingUsers(false);
+ if (requestId === usersRequestRef.current) setLoadingUsers(false);
  }
  };
 
@@ -173,7 +188,10 @@ export default function User360Page() {
  }
  };
 
- useEffect(() => { loadUsers(); }, []);
+ useEffect(() => {
+ const timer = window.setTimeout(() => loadUsers(query), 250);
+ return () => window.clearTimeout(timer);
+ }, [query]);
  useEffect(() => { loadDetails(selectedId); }, [selectedId]);
 
  const updateField = (key: keyof UserForm, value: string | boolean) => {
@@ -208,7 +226,7 @@ export default function User360Page() {
  if (res.message && !res.success) setError(res.message);
  else {
  setMessage("User profile update ho gaya.");
- await loadUsers();
+ await loadUsers(query);
  await loadDetails(selectedId);
  }
  } catch {
@@ -262,9 +280,9 @@ export default function User360Page() {
  <div className="border-b border-border p-4">
  <div className="relative">
  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
- <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, email, number..." className="h-10 w-full rounded-full border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-rose-400" />
+ <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search ID, name or email..." className="h-10 w-full rounded-full border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-rose-400" />
  </div>
- <p className="mt-3 text-xs font-semibold text-muted-foreground">{filteredUsers.length} users</p>
+ <p className="mt-3 text-xs font-semibold text-muted-foreground">{totalUsers} users</p>
  </div>
  <div className="max-h-[680px] overflow-y-auto p-2">
  {loadingUsers ? (
@@ -276,6 +294,7 @@ export default function User360Page() {
  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 text-sm font-bold text-white">{initials(user.name)}</div>
  <div className="min-w-0 flex-1">
  <p className="truncate text-sm font-bold text-foreground">{user.name}</p>
+ <p className="truncate font-mono text-[10px] font-semibold text-rose-600" title={user.id}>ID: {user.id}</p>
  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
  {(user.mobile || user.phone) && <p className="truncate text-[11px] font-medium text-muted-foreground">{user.mobile || user.phone}</p>}
  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">{formatPlan(user.plan)}</p>
@@ -320,7 +339,7 @@ export default function User360Page() {
  <div className="grid gap-4 md:grid-cols-2">
  <TextField label="Name" value={form.name} onChange={(value) => updateField("name", value)} />
  <TextField label="Email" value={form.email} onChange={(value) => updateField("email", value)} type="email" />
- <SelectField label="Role" value={form.role} onChange={(value) => updateField("role", value)} options={["user", "admin", "super_admin", "marketing", "data_entry", "finance", "sales", "support"]} />
+ <SelectField label="Role" value={form.role} onChange={(value) => updateField("role", value)} options={["user", "admin", "super_admin", "marketing", "sales", "support"]} />
  <SelectField label="Plan" value={form.plan} onChange={(value) => updateField("plan", value)} options={["free", "gold", "platinum"]} />
  <SelectField label="Status" value={form.status} onChange={(value) => updateField("status", value)} options={["active", "suspended", "banned", "pending_verification"]} />
  <TextField label="Birth Date" value={form.birthDate} onChange={(value) => updateField("birthDate", value)} type="date" />

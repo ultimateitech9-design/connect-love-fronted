@@ -49,7 +49,7 @@ export default function FeaturesPage() {
       { role: "User", access: "Own dating experience and account settings." },
       { role: "Admin", access: "Users, reports, verification, subscriptions, tickets, payments, and analytics." },
       { role: "Support", access: "Contacts, tickets, customer support, reports, and trust-safety queues." },
-      { role: "Finance", access: "Invoices, refunds, transactions, subscriptions, and finance reports." },
+      { role: "Admin", access: "Users, reports, billing, verification, and platform operations." },
     ],
     faq: [
       { question: "Should every feature have an action?", answer: "Yes. A feature page should tell users exactly where to go next." },

@@ -1,11 +1,12 @@
 "use server";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { cookies, headers } from "next/headers";
 
-type Role = "admin" | "super-admin" | "marketing" | "data-entry" | "finance" | "sales" | "support";
+type Role = "admin" | "super-admin" | "marketing" | "sales" | "support";
 
 export async function loginManagement(email: string, password: string, role: Role) {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+  const apiBase = API_ORIGIN;
   const requestHeaders = await headers();
 
   const res = await fetch(`${apiBase}/auth/management/login`, {
@@ -66,7 +67,7 @@ export async function loginManagement(email: string, password: string, role: Rol
 export async function logoutManagement() {
   const cookieStore = await cookies();
   const token = cookieStore.get("management_token")?.value;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+  const apiBase = API_ORIGIN;
   if (token) {
     await fetch(`${apiBase}/auth/logout`, {
       method: "POST",

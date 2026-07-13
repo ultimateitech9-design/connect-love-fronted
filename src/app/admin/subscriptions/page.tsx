@@ -1,11 +1,12 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect, useState } from "react";
 import { StatCard } from "@/features/admin/StatCard";
 import { Crown, Users, TrendingUp } from "lucide-react";
 import { getManagementToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 
 export default function SubscriptionsPage() {
  const [totals, setTotals] = useState({ free: 0, plus: 0, premium: 0 });

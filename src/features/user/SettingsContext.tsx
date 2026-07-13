@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
@@ -53,7 +54,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
  return;
  }
  try {
- const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+ const API = API_ORIGIN;
  const res = await fetch(`${API}/users/me`, {
  headers: { Authorization: `Bearer ${token}` },
  });
@@ -85,7 +86,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
  const token = getToken();
  if (!token) return;
  try {
- const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+ const API = API_ORIGIN;
  await fetch(`${API}/users/me`, {
  method: "PATCH",
  headers: {

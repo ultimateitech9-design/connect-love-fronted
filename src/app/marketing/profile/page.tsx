@@ -1,10 +1,11 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect, useState } from "react";
 import { User, Mail, Lock, Shield, Save } from "lucide-react";
 import { getManagementToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 
 export default function ProfilePage() {
  const [formData, setFormData] = useState({

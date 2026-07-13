@@ -1,10 +1,11 @@
 /* eslint-disable */
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { FormEvent, useState } from "react";
 import { ImagePlus, Loader2, Mail, MessageSquare, Phone, Send, X } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_BASE = API_ORIGIN;
 
 type ContactForm = {
   name: string;

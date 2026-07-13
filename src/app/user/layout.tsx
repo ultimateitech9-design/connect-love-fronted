@@ -1,13 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { OnboardingGuard } from "@/components/OnboardingGuard";
-
-const UserProviders = dynamic(() => import("./UserProviders"), {
-  ssr: false,
-  loading: () => null,
-});
+import UserProviders from "./UserProviders";
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,7 +19,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <OnboardingGuard>
-      <UserProviders showNav={!isOnboarding}>
+      <UserProviders showNav={!isOnboarding} enablePresence={!isMessages}>
         <div
           className={shellClassName}
           style={{

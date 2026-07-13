@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -13,7 +14,7 @@ import { motion } from "framer-motion";
 
 type MatchStatus = "PENDING" | "MATCHED" | "DECLINED" | "BLOCKED";
 type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; createdAt?: string };
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_URL = API_ORIGIN;
 
 async function readMatches(res: Response): Promise<DBMatch[]> {
  if (!res.ok) return [];

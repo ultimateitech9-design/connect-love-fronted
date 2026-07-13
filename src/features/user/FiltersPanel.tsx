@@ -24,6 +24,7 @@ export const defaultFilters: DiscoverFilters = {
 };
 
 const ANYWHERE_DISTANCE_KM = 10000;
+const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"];
 
 function formatDistanceLabel(distance: number) {
   return distance >= ANYWHERE_DISTANCE_KM ? "Anywhere" : `${distance} km`;
@@ -52,10 +53,7 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
     () => Array.from(new Set(availableInterests)).sort(),
     [availableInterests],
   );
-  const allGoals = useMemo(
-    () => Array.from(new Set(availableGoals)).sort(),
-    [availableGoals],
-  );
+  const allGoals = RELATIONSHIP_GOALS;
 
   const update = <K extends keyof DiscoverFilters>(key: K, value: DiscoverFilters[K]) => {
     onChange({ ...filters, [key]: value });

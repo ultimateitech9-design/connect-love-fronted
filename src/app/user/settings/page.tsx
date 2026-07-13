@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useState } from "react";
 import {
@@ -123,7 +124,7 @@ export default function SettingsPage() {
  const downloadMyData = async () => {
    setAccountMessage("");
    try {
-     const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+     const API = API_ORIGIN;
      const res = await fetch(`${API}/users/me/export`, {
        headers: { Authorization: `Bearer ${getToken()}` },
      });
@@ -144,7 +145,7 @@ export default function SettingsPage() {
 
  const deactivateAccount = async () => {
    if (!confirm("Deactivate your account? Your profile will stop appearing in discovery.")) return;
-   const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+   const API = API_ORIGIN;
    try {
      const res = await fetch(`${API}/users/me/deactivate`, {
        method: "PATCH",
@@ -161,7 +162,7 @@ export default function SettingsPage() {
  const handleDeleteAccount = async () => {
    if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) return;
    try {
-     const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+     const API = API_ORIGIN;
      const res = await fetch(`${API}/users/me`, {
        method: "DELETE",
        headers: { Authorization: `Bearer ${getToken()}` },

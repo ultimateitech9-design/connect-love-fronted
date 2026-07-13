@@ -1,4 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+import { API_ORIGIN } from "@/config/runtime";
+const API_BASE = API_ORIGIN;
 const BASE = `${API_BASE.replace(/\/$/, "")}/api`;
 
 function getClientToken(): string | null {
@@ -31,7 +32,11 @@ export async function directFetch<T>(path: string, init: RequestInit = {}): Prom
 
 export const api = {
  dashboard: () => apiFetch<{ stats: { label: string; value: string; delta: string }[]; growth?: { m: string; users: number; matches: number }[] }>("/dashboard"),
- users: () => apiFetch<{ users: { id: string; name: string; email: string; mobile?: string; role: string; plan: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string }[] }>("/users"),
+ users: (search = "", page = 1, limit = 100) => {
+   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+   if (search.trim()) params.set("search", search.trim());
+   return apiFetch<{ total: number; page: number; limit: number; hasMore: boolean; users: { id: string; name: string; email: string; mobile?: string; phone?: string; role: string; plan: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string }[] }>(`/users?${params.toString()}`);
+ },
  verification: () => apiFetch<{ queue: { id: string; name: string; email?: string; idType: string; priority: string; status: string; date?: string; documents?: string[]; photo?: string | null; birthDate?: string | null; matchScore?: number }[] }>("/verification"),
  payments: () => apiFetch<{
  plans: { id?: string; key?: string; name: string; price: string; rawPrice?: number; currency?: string; period?: string; features?: string[]; subscribers?: number; status: string }[];
@@ -82,18 +87,13 @@ export const api = {
  }>("/support/overview"),
  supportTickets: (status = "all") => directFetch<any[]>(`/support/tickets?status=${encodeURIComponent(status)}`),
  updateTicketStatus: (id: number, status: string) => directFetch(`/support/tickets/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
- financeRefunds: () => apiFetch<{ refunds: { id: string; user: string; plan: string; amount: number; status: string; date: string }[] }>("/finance/refunds"),
- financeNotifications: () => apiFetch<{ notifications: { id: string; title: string; message: string; time: string; type: "success" | "error" | "info" }[] }>("/finance/notifications"),
- refundPayment: (id: string) => apiFetch(`/finance/payments/${id}/refund`, { method: "PATCH" }),
- rejectRefund: (id: string) => apiFetch(`/finance/payments/${id}/reject-refund`, { method: "PATCH" }),
- invoices: () => apiFetch<{ invoices: { id: string; customer: string; email: string; plan: string; amount: number; status: string; due: string; paymentId: string }[] }>("/finance/invoices"),
- createInvoice: (body: unknown) => apiFetch("/finance/invoices", { method: "POST", body: JSON.stringify(body) }),
+ refundPayment: (id: string) => apiFetch(`/payments/${id}/refund`, { method: "PATCH" }),
  createPlan: (body: { displayName: string; price: number; features?: string[]; status?: string }) => apiFetch("/plans", { method: "POST", body: JSON.stringify(body) }),
  updatePlan: (id: string, body: { displayName: string; price: number; features?: string[]; status?: string }) => apiFetch(`/plans/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
  updateSettings: (settings: Record<string, boolean>) => apiFetch<{ settings: Record<string, boolean> }>("/settings", { method: "PATCH", body: JSON.stringify(settings) }),
  createRole: (body: { role: string; permissions?: number; status?: string }) => apiFetch("/roles", { method: "POST", body: JSON.stringify(body) }),
  createUser: (body: { name: string; email: string; password: string; role: string }) => apiFetch<{ user: unknown; message?: string }>("/users", { method: "POST", body: JSON.stringify(body) }),
- createManagementUser: (body: { name: string; email: string; password: string; role: "admin" | "marketing" | "data_entry" | "finance" | "sales" | "support" }) => directFetch<{ user: unknown; message: string }>("/admin/management-users", { method: "POST", body: JSON.stringify(body) }),
+ createManagementUser: (body: { name: string; email: string; password: string; role: "admin" | "marketing" | "sales" | "support" }) => directFetch<{ user: unknown; message: string }>("/admin/management-users", { method: "POST", body: JSON.stringify(body) }),
  banUser: (id: string, banned: boolean) => apiFetch<{ success: boolean }>(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: banned ? "banned" : "active" }) }),
  deleteUser: (id: string) => apiFetch<{ success: boolean }>(`/users/${id}`, { method: "DELETE" }),
  userDetails: (id: string) => apiFetch<{ user: any }>(`/users/${id}`),

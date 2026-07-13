@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
@@ -12,7 +13,7 @@ const RevenueChart = dynamic(() => import("@/features/admin/AdminRevenueChart"),
  loading: () => <div className="w-full h-full flex items-center justify-center text-slate-400">Loading chart...</div>
 });
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 const demoRevenueMonthly = [
  { m: "Mar", rev: 6200 },
  { m: "Apr", rev: 8400 },
@@ -110,13 +111,13 @@ export default function AdminOverview() {
  }, []);
 
  return (
- <div className="space-y-8 pb-12">
+ <div className="space-y-5 pb-8 sm:space-y-8 sm:pb-12">
  <header>
- <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Overview</h1>
+ <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight sm:text-3xl">Overview</h1>
  <p className="text-sm font-medium text-slate-500 mt-1">Platform health at a glance.</p>
  </header>
 
- <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+ <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
  <StatCard label="Total users" value={stats.users.toLocaleString()} delta="+4.2% this month" tone="positive" icon={Users} />
  <StatCard label="Premium subscribers" value={stats.premium.toLocaleString()} delta="+118 this week" tone="positive" icon={Crown} />
  <StatCard label="Revenue (MTD)" value={`$${stats.revenueMtd.toLocaleString()}`} delta="+11.6% vs last month" tone="positive" icon={DollarSign} />
@@ -124,7 +125,7 @@ export default function AdminOverview() {
  </div>
 
  <div className="grid gap-6 lg:grid-cols-3">
- <div className="rounded-3xl bg-white/60 backdrop-blur-md p-6 shadow-xl shadow-rose-500/5 lg:col-span-2 ring-1 ring-white/50">
+ <div className="rounded-2xl bg-white/60 p-4 shadow-xl shadow-rose-500/5 ring-1 ring-white/50 sm:rounded-3xl sm:p-6 lg:col-span-2">
  <div className="flex items-start justify-between gap-3">
  <div>
  <h3 className="text-lg font-bold text-slate-900">Revenue trend</h3>
@@ -134,12 +135,12 @@ export default function AdminOverview() {
  <span className="rounded-full bg-rose-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-600 ring-1 ring-rose-100">Demo</span>
  )}
  </div>
- <div className="mt-4 h-[260px] min-h-[220px]">
+ <div className="mt-4 h-[220px] min-h-[200px] sm:h-[260px]">
  <RevenueChart data={chartData} />
  </div>
  </div>
 
- <div className="rounded-3xl bg-white/60 backdrop-blur-md p-6 shadow-xl shadow-rose-500/5 ring-1 ring-white/50">
+ <div className="rounded-2xl bg-white/60 p-4 shadow-xl shadow-rose-500/5 ring-1 ring-white/50 sm:rounded-3xl sm:p-6">
  <h3 className="text-lg font-bold text-slate-900">Recent reports</h3>
  <ul className="mt-6 space-y-4 text-sm">
  {recentReports.map((r) => (
@@ -155,13 +156,13 @@ export default function AdminOverview() {
  </div>
  </div>
 
- <div className="rounded-3xl bg-white/60 backdrop-blur-md p-6 shadow-xl shadow-rose-500/5 ring-1 ring-white/50">
+ <div className="rounded-2xl bg-white/60 p-4 shadow-xl shadow-rose-500/5 ring-1 ring-white/50 sm:rounded-3xl sm:p-6">
  <div className="flex items-center justify-between mb-6">
  <h3 className="text-lg font-bold text-slate-900">Recently joined</h3>
  <span className="text-xs font-bold text-slate-500 bg-white shadow-sm px-3 py-1.5 rounded-full">{recentUsers.length} users</span>
  </div>
- <div className="overflow-hidden rounded-2xl bg-white/50">
- <table className="w-full text-sm text-slate-600">
+ <div className="overflow-x-auto rounded-2xl bg-white/50">
+ <table className="w-full min-w-[680px] text-sm text-slate-600">
  <thead className="text-left text-xs font-bold uppercase tracking-wider text-slate-400">
  <tr>
  <th className="px-6 py-4">User</th><th className="px-6 py-4">Plan</th>

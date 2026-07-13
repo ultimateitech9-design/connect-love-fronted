@@ -1,5 +1,6 @@
 /* eslint-disable */
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useRef, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
@@ -16,7 +17,7 @@ const contactSchema = z.object({
 });
 type ContactData = z.infer<typeof contactSchema>;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_BASE = API_ORIGIN;
 
 const faqs = [
  {

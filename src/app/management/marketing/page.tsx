@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -9,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { motion, AnimatePresence } from "framer-motion";
 import { loginManagement } from "@/app/actions/managementAuth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 
 export default function MarketingLoginPage() {
  const router = useRouter();

@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -15,11 +16,30 @@ import {
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
+const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"] as const;
+const ZODIAC_SIGNS = [
+ { sign: "Capricorn", emoji: "♑", from: 1222 }, { sign: "Aquarius", emoji: "♒", from: 120 },
+ { sign: "Pisces", emoji: "♓", from: 219 }, { sign: "Aries", emoji: "♈", from: 321 },
+ { sign: "Taurus", emoji: "♉", from: 420 }, { sign: "Gemini", emoji: "♊", from: 521 },
+ { sign: "Cancer", emoji: "♋", from: 621 }, { sign: "Leo", emoji: "♌", from: 723 },
+ { sign: "Virgo", emoji: "♍", from: 823 }, { sign: "Libra", emoji: "♎", from: 923 },
+ { sign: "Scorpio", emoji: "♏", from: 1023 }, { sign: "Sagittarius", emoji: "♐", from: 1122 },
+] as const;
+const ZODIAC_DROPDOWN_ORDER = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'] as const;
+
+function zodiacFromDate(value?: string) {
+ if (!value) return null;
+ const date = new Date(`${value.slice(0, 10)}T00:00:00`);
+ if (Number.isNaN(date.getTime())) return null;
+ const monthDay = (date.getMonth() + 1) * 100 + date.getDate();
+ const zodiac = [...ZODIAC_SIGNS].reverse().find((item) => monthDay >= item.from) ?? ZODIAC_SIGNS[0];
+ return zodiac;
+}
 
 // Fields that count toward profile completion (in order of weight)
 const COMPLETION_FIELDS = [
- "name", "dob", "gender", "profession", "height", "city", "bio", "interests", "personality", "hobbies", "photos",
+ "name", "dob", "gender", "religion", "profession", "height", "city", "relationshipGoal", "bio", "interests", "personality", "hobbies", "photos",
 ] as const;
 
 type ProfileField = typeof COMPLETION_FIELDS[number];
@@ -30,9 +50,12 @@ interface UserProfile {
  email: string;
  dob: string;
  gender: string;
+ religion: string;
  profession: string;
  height: string;
  city: string;
+ relationshipGoal: string;
+ zodiac: string;
  bio: string;
  interests: string; // comma-separated
  personality: string; // comma-separated
@@ -98,6 +121,7 @@ export default function ProfilePage() {
           interests: data.interests ? (Array.isArray(data.interests) ? data.interests.join(", ") : data.interests) : "",
           hobbies: data.hobbies ? (Array.isArray(data.hobbies) ? data.hobbies.join(", ") : data.hobbies) : ""
         };
+        merged.zodiac = data.zodiac || zodiacFromDate(merged.dob)?.sign || "";
         setProfile(merged);
         setSavedCompletion(calcCompletion(merged));
         if (merged.photos?.[0]) localStorage.setItem(AVATAR_KEY, merged.photos[0]);
@@ -124,7 +148,7 @@ export default function ProfilePage() {
 
     // Missing fields validation
     const requiredFields = [
-      "name", "dob", "gender", "profession", "height", "city", "bio", "interests", "personality", "hobbies"
+      "name", "dob", "gender", "religion", "profession", "height", "city", "relationshipGoal", "bio", "interests", "personality", "hobbies"
     ] as const;
 
     for (const field of requiredFields) {
@@ -146,9 +170,12 @@ export default function ProfilePage() {
         name: profile.name,
         birthDate: profile.dob,
         gender: profile.gender,
+        religion: profile.religion,
         profession: profile.profession,
         height: profile.height,
         city: profile.city,
+        relationshipGoal: profile.relationshipGoal,
+        zodiac: profile.zodiac || zodiacFromDate(profile.dob)?.sign,
         interests: parseTags(profile.interests),
         personalityWords: parseTags(profile.personality),
         hobbies: parseTags(profile.hobbies),
@@ -332,8 +359,55 @@ export default function ProfilePage() {
  type="date"
  value={profile.dob ?? ""}
  required={isEmpty("dob")}
- onChange={(v) => set("dob", v)}
+ onChange={(v) => {
+ if (isLocked) return;
+ const automaticZodiac = zodiacFromDate(v)?.sign || "";
+ setProfile((current) => ({ ...current, dob: v, zodiac: automaticZodiac }));
+ setSaveMsg(null);
+ }}
  />
+ <div className="space-y-2">
+ <Label className="text-slate-600">Zodiac</Label>
+ <select
+ disabled={isLocked}
+ value={profile.zodiac || zodiacFromDate(profile.dob)?.sign || ""}
+ onChange={(event) => set("zodiac", event.target.value)}
+ className="h-[42px] w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-rose-300 focus:ring-2 focus:ring-rose-200 disabled:cursor-not-allowed disabled:bg-slate-50"
+ >
+ <option value="">Select date of birth first</option>
+ {ZODIAC_DROPDOWN_ORDER.map((sign) => ZODIAC_SIGNS.find((item) => item.sign === sign)!).map((item) => (
+ <option key={item.sign} value={item.sign}>{item.emoji} {item.sign}</option>
+ ))}
+ </select>
+ <p className="text-[11px] text-slate-400">Selected automatically from DOB; you can change it while editing.</p>
+ </div>
+ <div className="space-y-2">
+ <Label className={isEmpty("religion") && !isLocked ? "text-rose-500" : "text-slate-600"}>
+ Religion {isEmpty("religion") && <span className="text-xs font-normal text-rose-400">(required)</span>}
+ </Label>
+ <select
+  disabled={isLocked}
+ value={profile.religion ?? ""}
+ onChange={(e) => set("religion", e.target.value)}
+ className={`w-full rounded-xl border px-3 py-2.5 text-sm bg-white text-slate-800 outline-none transition-all focus:ring-2 ${
+ isEmpty("religion") && !isLocked
+ ? "border-rose-400 focus:ring-rose-300 focus:border-rose-500"
+ : "border-slate-200 focus:ring-rose-200 focus:border-rose-300"
+ }`}
+ >
+ <option value="" className="bg-white text-slate-800">Select religion</option>
+ <option value="Hindu" className="bg-white text-slate-800">Hindu</option>
+ <option value="Muslim" className="bg-white text-slate-800">Muslim</option>
+ <option value="Christian" className="bg-white text-slate-800">Christian</option>
+ <option value="Sikh" className="bg-white text-slate-800">Sikh</option>
+ <option value="Buddhist" className="bg-white text-slate-800">Buddhist</option>
+ <option value="Jain" className="bg-white text-slate-800">Jain</option>
+ <option value="Jewish" className="bg-white text-slate-800">Jewish</option>
+ <option value="Spiritual" className="bg-white text-slate-800">Spiritual</option>
+ <option value="Atheist / Agnostic" className="bg-white text-slate-800">Atheist / Agnostic</option>
+ <option value="Other" className="bg-white text-slate-800">Other</option>
+ </select>
+ </div>
  <div className="space-y-2">
  <Label className={isEmpty("gender") && !isLocked ? "text-rose-500" : "text-slate-600"}>
  Gender {isEmpty("gender") && <span className="text-xs font-normal text-rose-400">(required)</span>}
@@ -379,6 +453,22 @@ export default function ProfilePage() {
  required={isEmpty("city")}
  onChange={(v) => set("city", v)}
  />
+ </div>
+
+ <div className="space-y-2">
+ <Label className={isEmpty("relationshipGoal") && !isLocked ? "text-rose-500" : "text-slate-600"}>
+ Relationship Goal {isEmpty("relationshipGoal") && <span className="text-xs font-normal text-rose-400">(required)</span>}
+ </Label>
+ <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+ {RELATIONSHIP_GOALS.map((goal) => {
+ const selected = profile.relationshipGoal === goal;
+ return (
+ <button key={goal} type="button" disabled={isLocked} onClick={() => set("relationshipGoal", goal)} aria-pressed={selected} className={`rounded-full border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed ${selected ? "border-rose-500 bg-rose-100 text-rose-700 shadow-sm" : "border-rose-200 bg-white text-slate-600 hover:border-rose-400 hover:bg-rose-50"}`}>
+ {goal}
+ </button>
+ );
+ })}
+ </div>
  </div>
 
  {/* Bio */}
@@ -472,6 +562,7 @@ export default function ProfilePage() {
  {savedCompletion}% Complete
  </p>
  </div>
+
  </div>
  <div className="mt-4 h-[8px] w-full overflow-hidden rounded-full bg-muted">
  <div

@@ -1,5 +1,6 @@
 /* eslint-disable */
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { requireOnboarding, setToken } from "@/lib/auth";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_BASE = API_ORIGIN;
 
 const signupSchema = z.object({
  name: z.string().min(2, "Name must be at least 2 characters"),

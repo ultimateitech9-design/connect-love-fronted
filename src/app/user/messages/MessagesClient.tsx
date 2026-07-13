@@ -1,6 +1,7 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
-import { cloneElement, createContext, isValidElement, useContext, useState, useEffect, useRef, useCallback, useLayoutEffect, type CSSProperties, type ReactNode } from "react";
+import { cloneElement, createContext, isValidElement, useContext, useState, useEffect, useRef, useCallback, useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,7 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MESSAGE_REACTIONS, reportMessage } from "@/features/messages/messageActionsApi";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_URL = API_ORIGIN;
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
 const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
 const VIDEO_MESSAGE_PREFIX = "__video_message__:";
@@ -34,6 +35,7 @@ const GIF_MESSAGE_PREFIX = "__gif_message__:";
 const MAX_VOICE_SECONDS = 60;
 const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 const CHAT_THEME_STORAGE_KEY = "connect-love-chat-theme";
+const INITIAL_MESSAGE_RENDER_LIMIT = 80;
 
 type LightweightMenuContextValue = {
   open: boolean;
@@ -1475,6 +1477,8 @@ export default function Messages() {
  const [messageInfo, setMessageInfo] = useState<any | null>(null);
  const [replyToMessage, setReplyToMessage] = useState<any | null>(null);
  const [editingMessage, setEditingMessage] = useState<any | null>(null);
+ const [reactionPickerMessage, setReactionPickerMessage] = useState<any | null>(null);
+ const [reactionEmojiCategory, setReactionEmojiCategory] = useState(FREE_EMOJI_CATEGORIES[0].id);
  const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
  const [isMicOn, setIsMicOn] = useState(true);
  const [isCameraOn, setIsCameraOn] = useState(true);
@@ -1485,6 +1489,7 @@ export default function Messages() {
  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [selectedThemeId, setSelectedThemeId] = useState(FREE_CHAT_THEMES[0].id);
+  const [showFullHistory, setShowFullHistory] = useState(false);
   const [disappearingMode, setDisappearingMode] = useState<'after-view' | '24h' | '7d' | 'off'>("off");
   const [activePickerTab, setActivePickerTab] = useState<"emoji" | "gift" | "gif">("emoji");
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(FREE_EMOJI_CATEGORIES[0].id);
@@ -1636,6 +1641,10 @@ export default function Messages() {
    }
    return true;
  });
+ const hiddenOlderMessageCount = Math.max(0, visibleMessages.length - INITIAL_MESSAGE_RENDER_LIMIT);
+ const renderedMessages = showFullHistory || hiddenOlderMessageCount === 0
+   ? visibleMessages
+   : visibleMessages.slice(-INITIAL_MESSAGE_RENDER_LIMIT);
 
  // Sync disappearing mode when receiving websocket control message
  useEffect(() => {
@@ -1655,6 +1664,7 @@ export default function Messages() {
   useEffect(() => {
     initialMessageIdsRef.current = new Set();
     hasLoadedHistoryRef.current = false;
+    setShowFullHistory(false);
   }, [activeId]);
 
   // Capture initial history message IDs
@@ -1725,7 +1735,11 @@ export default function Messages() {
      if (shouldDelete) {
        fetch(API_URL + "/messages/" + m.id, {
          method: 'DELETE',
-         headers: { Authorization: "Bearer " + token }
+         headers: {
+           "Content-Type": "application/json",
+           Authorization: "Bearer " + token,
+         },
+         body: JSON.stringify({ scope: "me" }),
        }).catch(() => {});
      }
    });
@@ -1759,7 +1773,7 @@ export default function Messages() {
    window.localStorage.setItem(CHAT_THEME_STORAGE_KEY, themeId);
  }, [activeId, messages]);
 
- const displayMatches = Array.from(new Map(activeMatches.map((m: any) => {
+ const displayMatches = useMemo(() => Array.from(new Map(activeMatches.map((m: any) => {
       const targetId = m.senderId === myId ? m.receiverId : m.senderId;
       return [m.id, { ...m, targetId }];
     })).values()).map((m: any) => {
@@ -1783,7 +1797,7 @@ export default function Messages() {
         lastMessageTime: m.lastMessageTime || m.createdAt,
         unread: m.unreadCount || 0,
       };
-    });
+    }), [activeMatches, myId]);
 
  const sortedMatches = [...displayMatches]
    .filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -1846,9 +1860,15 @@ export default function Messages() {
 
  const addCustomReaction = (message: any) => {
    if (!active) return;
-   const emoji = window.prompt("Ek emoji enter karein:");
-   if (!emoji?.trim()) return;
-   toggleReaction(message.id, active.userId, emoji.trim());
+   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+   setReactionEmojiCategory(FREE_EMOJI_CATEGORIES[0].id);
+   window.setTimeout(() => setReactionPickerMessage(message), 0);
+ };
+
+ const selectCustomReaction = (emoji: string) => {
+   if (!active || !reactionPickerMessage) return;
+   toggleReaction(reactionPickerMessage.id, active.userId, emoji);
+   setReactionPickerMessage(null);
  };
 
  const startReply = (message: any) => {
@@ -2469,7 +2489,11 @@ export default function Messages() {
    try {
      await fetch(`${API_URL}/messages/${msgId}`, {
        method: 'DELETE',
-       headers: { Authorization: `Bearer ${token}` }
+       headers: {
+         "Content-Type": "application/json",
+         Authorization: `Bearer ${token}`,
+       },
+       body: JSON.stringify({ scope: "me" }),
      });
      queryClient.invalidateQueries({ queryKey: ['messages', activeId] });
      queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
@@ -2644,7 +2668,18 @@ export default function Messages() {
  </header>
 
  <div ref={messagesListRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-6">
-{visibleMessages.map((m: any) => {
+{hiddenOlderMessageCount > 0 && !showFullHistory && (
+  <div className="flex justify-center">
+    <button
+      type="button"
+      onClick={() => setShowFullHistory(true)}
+      className="rounded-full border border-rose-100 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm hover:bg-rose-50"
+    >
+      Load {hiddenOlderMessageCount} older messages
+    </button>
+  </div>
+)}
+{renderedMessages.map((m: any) => {
   const isMe = String(m.senderId) === String(myId);
   const isGift = isGiftMessage(m.content);
   const isGif = isGifMessage(m.content);
@@ -3610,6 +3645,59 @@ export default function Messages() {
  ))}
  </div>
  )}
+ </div>
+ </div>
+ )}
+ {reactionPickerMessage && (
+ <div
+ className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 p-4 backdrop-blur-[1px]"
+ onClick={() => setReactionPickerMessage(null)}
+ >
+ <div
+ role="dialog"
+ aria-modal="true"
+ aria-label="Choose a message reaction"
+ onClick={(event) => event.stopPropagation()}
+ className="flex max-h-[min(520px,85vh)] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl"
+ >
+ <div className="flex items-center justify-between border-b border-rose-100 px-4 py-3">
+ <div>
+ <h3 className="font-bold text-slate-900">Choose reaction</h3>
+ <p className="text-xs text-slate-500">All these emoji reactions are free.</p>
+ </div>
+ <button type="button" onClick={() => setReactionPickerMessage(null)} className="grid h-8 w-8 place-items-center rounded-full text-slate-500 hover:bg-rose-50" aria-label="Close reaction picker">
+ <X className="h-4 w-4" />
+ </button>
+ </div>
+ <div className="flex gap-1 overflow-x-auto border-b border-rose-100 bg-rose-50/50 p-2">
+ {FREE_EMOJI_CATEGORIES.map((category) => (
+ <button
+ key={category.id}
+ type="button"
+ onClick={() => setReactionEmojiCategory(category.id)}
+ title={category.label}
+ className={cn(
+ "grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg transition",
+ reactionEmojiCategory === category.id ? "bg-white shadow ring-1 ring-rose-300" : "hover:bg-white/80"
+ )}
+ >
+ {category.icon}
+ </button>
+ ))}
+ </div>
+ <div className="grid grid-cols-7 gap-2 overflow-y-auto p-4 sm:grid-cols-8">
+ {(FREE_EMOJI_CATEGORIES.find((category) => category.id === reactionEmojiCategory)?.emojis ?? FREE_EMOJI_CATEGORIES[0].emojis).map((emoji) => (
+ <button
+ key={emoji}
+ type="button"
+ onClick={() => selectCustomReaction(emoji)}
+ className="grid aspect-square min-h-10 place-items-center rounded-full bg-rose-50 text-xl transition hover:scale-110 hover:bg-rose-100 active:scale-95"
+ aria-label={`React with ${emoji}`}
+ >
+ {emoji}
+ </button>
+ ))}
+ </div>
  </div>
  </div>
  )}

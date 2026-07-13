@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, Camera, CheckCircle2, Loader2, ShieldCheck, Video } from "lucide-react";
@@ -20,8 +21,9 @@ type MatchResult = {
 };
 
 const MATCH_THRESHOLD = 60;
-const RECORD_SECONDS = 3;
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const RECORD_SECONDS = 7;
+const MAX_KYC_FRAMES = 5;
+const API = API_ORIGIN;
 
 export function StepProfilePhotos({
   profile,
@@ -170,10 +172,15 @@ export function StepVideoKyc({
     let secondsLeft = RECORD_SECONDS;
     const capturedFrames: string[] = [];
     timerRef.current = window.setInterval(async () => {
-      const sampledFrame = captureFrame();
-      if (sampledFrame) capturedFrames.push(sampledFrame);
       secondsLeft -= 1;
       setCountdown(secondsLeft);
+
+      // Let auto-focus/exposure settle for the first two seconds, then collect
+      // five distinct samples accepted by the verification API.
+      if (secondsLeft > 0 && secondsLeft <= MAX_KYC_FRAMES) {
+        const sampledFrame = captureFrame();
+        if (sampledFrame) capturedFrames.push(sampledFrame);
+      }
 
       if (secondsLeft <= 0) {
         if (timerRef.current) window.clearInterval(timerRef.current);
@@ -239,7 +246,7 @@ export function StepVideoKyc({
               <p className="font-semibold">Video KYC match</p>
             </div>
             <p className="mt-2 text-xs leading-5 text-slate-400">
-              Record a short live video. We compare a video frame with your first profile photo.
+              Record a 7-second live video. Keep your face visible and slowly turn your head; valid frames are compared with your profile photos.
             </p>
             <p className="mt-2 text-xs font-semibold text-slate-300">Required match: {MATCH_THRESHOLD}% or higher</p>
 

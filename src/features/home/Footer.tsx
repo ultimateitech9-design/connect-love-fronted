@@ -1,5 +1,6 @@
 /* eslint-disable */
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
@@ -7,7 +8,7 @@ import { Instagram, Facebook, Linkedin, Youtube, ArrowRight } from "lucide-react
 import { BrandLogo } from "@/components/BrandLogo";
 import { footerLinkGroups } from "./marketingPages";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API_BASE = API_ORIGIN;
 
 const socialLinks = [
  { label: "Instagram", href: "https://www.instagram.com/connectloveofficial/", icon: Instagram },

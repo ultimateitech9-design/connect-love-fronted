@@ -1,4 +1,5 @@
 "use client";
+import { API_ORIGIN } from "@/config/runtime";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { getToken } from "@/lib/auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
+const API = API_ORIGIN;
 const COMPLETION_FIELDS = [
   "name", "birthDate", "gender", "religion", "profession", "height", "city", "bio", "interests", "personalityWords", "hobbies",
 ] as const;
