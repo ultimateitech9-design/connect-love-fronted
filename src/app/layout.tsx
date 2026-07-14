@@ -10,9 +10,9 @@ export const metadata: Metadata = {
  "Connect Love is a premium, verified dating platform built for intentional connection. AI-powered matching, end-to-end encryption, and a safe community of 500K+ singles.",
  keywords: ["dating app", "online dating", "soulmate", "relationships", "matches"],
  icons: {
-    icon: [{ url: "/connect-love-icon.svg", type: "image/svg+xml" }],
-    shortcut: "/connect-love-icon.svg",
-    apple: "/connect-love-icon.svg",
+    icon: [{ url: "/connect-love-logo.png", type: "image/png" }],
+    shortcut: "/connect-love-logo.png",
+    apple: "/connect-love-logo.png",
  },
  openGraph: {
  title: "Connect Love — Find the spark that feels like home",

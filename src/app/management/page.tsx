@@ -25,9 +25,12 @@ function ManagementNavbar() {
 function ManagementFooter() {
   return (
     <footer className="w-full border-t border-slate-100 bg-white/50 backdrop-blur-md py-4">
-      <div className="mx-auto max-w-7xl px-6 text-center">
-        <p className="text-[10px] text-slate-400 font-medium">
-          © 2026 Connect Love. All rights reserved.
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-6 text-center sm:flex-row sm:text-left">
+        <p className="text-[10px] font-medium text-slate-400">
+          Designed and developed by <span className="font-semibold text-slate-600">Ultimate iTech Pvt. Ltd.</span>
+        </p>
+        <p className="text-[10px] font-medium text-slate-400 sm:text-right">
+          © {new Date().getFullYear()} Connect Love. All rights reserved.
         </p>
       </div>
     </footer>

@@ -137,8 +137,13 @@ export function Footer() {
  </div>
 
  {/* Bottom bar */}
- <div className="border-t border-white/10 px-6 py-5 text-center">
- <p className="text-xs text-white/25">© {new Date().getFullYear()} Connect Love. All rights reserved.</p>
+ <div className="border-t border-white/10 px-6 py-5">
+ <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 text-center sm:flex-row sm:text-left">
+ <p className="text-xs text-white/40">
+ Designed and developed by <span className="font-semibold text-white/70">Ultimate iTech Pvt. Ltd.</span>
+ </p>
+ <p className="text-xs text-white/40 sm:text-right">© {new Date().getFullYear()} Connect Love. All rights reserved.</p>
+ </div>
  </div>
  </footer>
  );
