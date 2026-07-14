@@ -7,7 +7,7 @@ import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX, Paperclip, Image as ImageIcon, X, MapPin, Briefcase, Ruler, SmilePlus, Gift, Palette, Lock, Sparkles, CreditCard, Clock, Info, Reply, Copy, Pin, Star, Edit3, CheckSquare, Trash2, Flag, Plus } from "lucide-react";
+import { ArrowLeft, BellOff, Coins, Phone, Video, MoreVertical, Send, Check, CheckCheck, Search, PhoneOff, Mic, MicOff, VideoOff, Volume2, VolumeX, Paperclip, Image as ImageIcon, X, MapPin, Briefcase, Ruler, SmilePlus, Gift, Palette, Lock, Sparkles, CreditCard, Clock, Info, Reply, Copy, Pin, Star, Edit3, CheckSquare, Trash2, Flag, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
  DropdownMenu,
@@ -35,6 +35,8 @@ const GIF_MESSAGE_PREFIX = "__gif_message__:";
 const MAX_VOICE_SECONDS = 60;
 const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 const CHAT_THEME_STORAGE_KEY = "connect-love-chat-theme";
+const DELETED_CHATS_STORAGE_KEY = "connect-love-deleted-chats";
+const MUTED_CHATS_STORAGE_KEY = "connect-love-muted-chats";
 const INITIAL_MESSAGE_RENDER_LIMIT = 80;
 
 type LightweightMenuContextValue = {
@@ -282,7 +284,7 @@ const PREMIUM_CHAT_THEMES: ChatTheme[] = [
 
 const CHAT_THEMES = [...FREE_CHAT_THEMES, ...PREMIUM_CHAT_THEMES];
 const chatThemeStorageKey = (conversationId: string) => `${CHAT_THEME_STORAGE_KEY}:${conversationId}`;
-const FREE_EMOJI_CATEGORIES = [
+const LEGACY_EMOJI_CATEGORIES = [
  {
    id: "love",
    icon: "💖",
@@ -320,6 +322,80 @@ const FREE_EMOJI_CATEGORIES = [
    emojis: ["💯", "✅", "☑️", "✔️", "❌", "💤", "💢", "💥", "💦", "💨", "🕊️", "🔐", "🔒", "🔑", "📍", "📌", "📎", "📝", "🔔", "🔕", "♾️", "🔱", "⚜️", "🔆"],
  },
 ];
+const FREE_EMOJI_CATEGORIES = [
+  {
+    id: "faces",
+    icon: "😀",
+    label: "Smileys & People",
+    emojis: [
+      "😀", "😃", "😄", "😁", "😆", "🥹", "😅", "😂", "🤣", "🥲", "☺️", "😊", "😇", "🙂",
+      "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪",
+      "🤨", "🧐", "🤓", "😎", "🥸", "🤩", "🥳", "🙂‍↕️", "😏", "😒", "🙂‍↔️", "😞", "😔", "😟",
+      "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬",
+      "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🫣", "🤭", "🫢",
+      "🫡", "🤫", "🫠", "🤥", "😶", "😶‍🌫️", "😐", "😑", "😬", "🫨", "🙄", "😯", "😦", "😧",
+      "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "😵‍💫", "🤐", "🥴", "🤢", "🤮", "🤧", "😷",
+      "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👹", "👺", "🤡", "💩", "👻", "💀", "☠️", "👽",
+      "👾", "🤖", "🎃", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾"
+    ],
+  },
+  {
+    id: "hands",
+    icon: "👋",
+    label: "Hands & Gestures",
+    emojis: [
+      "👋", "🤚", "🖐️", "✋", "🖖", "🫱", "🫲", "🫳", "🫴", "👌", "🤌", "🤏", "✌️", "🤞",
+      "🫰", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "🫵", "👍", "👎", "✊",
+      "👊", "🤛", "🤜", "👏", "🙌", "🫶", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪",
+      "🦾", "🦿", "🦵", "🦶", "👂", "👃", "🧠", "🫀", "🫁", "🦷", "👀", "👁️", "👅", "👄"
+    ],
+  },
+  {
+    id: "love",
+    icon: "❤️",
+    label: "Love & Hearts",
+    emojis: [
+      "❤️", "🩷", "🧡", "💛", "💚", "💙", "🩵", "💜", "🤎", "🖤", "🩶", "🤍", "💔", "❤️‍🔥",
+      "❤️‍🩹", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "♥️", "💋", "💌", "🫶",
+      "😍", "🥰", "😘", "😻", "🌹", "💐", "🌷", "🌸", "💍", "👩‍❤️‍👨", "👩‍❤️‍👩", "👨‍❤️‍👨"
+    ],
+  },
+  {
+    id: "animals",
+    icon: "🐱",
+    label: "Animals & Nature",
+    emojis: [
+      "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐻‍❄️", "🐨", "🐯", "🦁", "🐮", "🐷",
+      "🐸", "🐵", "🙈", "🙉", "🙊", "🐒", "🐔", "🐧", "🐦", "🐤", "🦄", "🐝", "🦋", "🐌",
+      "🐞", "🐢", "🐍", "🦎", "🐙", "🦑", "🦀", "🐠", "🐟", "🐬", "🐳", "🌸", "🌹", "🌻",
+      "🌞", "🌝", "⭐", "🌟", "✨", "🔥", "🌈", "☀️", "🌙", "❄️", "☁️", "⚡"
+    ],
+  },
+  {
+    id: "food",
+    icon: "🍕",
+    label: "Food & Activities",
+    emojis: [
+      "🍏", "🍎", "🍊", "🍋", "🍉", "🍇", "🍓", "🫐", "🍒", "🥭", "🍍", "🥥", "🥝", "🍅",
+      "🍔", "🍟", "🍕", "🌭", "🥪", "🌮", "🍿", "🍩", "🍪", "🎂", "🍰", "🧁", "🍫", "🍬",
+      "☕", "🧋", "🥤", "🍺", "🍻", "🥂", "🍷", "⚽", "🏀", "🏏", "🎾", "🏆", "🎮", "🎯",
+      "🎨", "🎭", "🎤", "🎧", "🎸", "🎹", "🎬", "🎉", "🎊", "🎁", "🎈"
+    ],
+  },
+  {
+    id: "symbols",
+    icon: "💯",
+    label: "Objects & Symbols",
+    emojis: [
+      "💯", "✅", "❌", "⚠️", "❓", "❗", "‼️", "💤", "💥", "💫", "💦", "💨", "🔔", "🔕",
+      "📌", "📍", "📎", "✏️", "📝", "📱", "💻", "⌚", "📷", "🎥", "🔒", "🔑", "💡", "💎",
+      "🚗", "🚕", "🚌", "🚲", "✈️", "🚀", "🏠", "🏢", "🏖️", "⛰️", "🌍", "🇮🇳", "🏳️", "🏁"
+    ],
+  },
+];
+
+void LEGACY_EMOJI_CATEGORIES;
+
 const PREMIUM_GIFTS = [
   { emoji: "🌹", label: "Red Rose", price: 29 },
   { emoji: "🌹", label: "Burgundy Rose", price: 39 },
@@ -1176,7 +1252,88 @@ function formatRecordingTime(seconds: number) {
  return `${mins}:${secs}`;
 }
 
+function isEmojiOnlyMessage(content: string) {
+ const value = content.trim();
+ if (!value || !/[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Regional_Indicator}]/u.test(value)) return false;
+ return value.replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Regional_Indicator}\p{Emoji_Modifier}\uFE0E\uFE0F\u200D\u20E3\s]/gu, "").length === 0;
+}
+
+function isSingleEmojiMessage(content: string) {
+ const value = content.trim();
+ if (!isEmojiOnlyMessage(value)) return false;
+ const Segmenter = (Intl as any).Segmenter;
+ if (Segmenter) {
+   return [...new Segmenter(undefined, { granularity: "grapheme" }).segment(value)].length === 1;
+ }
+ return Array.from(value).length <= 2;
+}
+
+function emojiGraphemes(content: string): string[] {
+ const value = content.trim();
+ const Segmenter = (Intl as any).Segmenter;
+ if (Segmenter) {
+   return [...new Segmenter(undefined, { granularity: "grapheme" }).segment(value)].map((part: any) => part.segment);
+ }
+ return Array.from(value);
+}
+
+function emojiReactionClass(emoji: string) {
+ if (/[❤🩷🧡💛💚💙🩵💜🤎🖤🩶🤍💕💞💓💗💖💘💝😍🥰]/u.test(emoji)) return "chat-emoji-heartbeat";
+ if (/[😂🤣😹😆😁😄😃😀]/u.test(emoji)) return "chat-emoji-laugh";
+ if (/[😭😢🥹😿😥😰]/u.test(emoji)) return "chat-emoji-cry";
+ if (/[😡😠🤬👿😤]/u.test(emoji)) return "chat-emoji-angry";
+ if (/[👋🤚🖐✋🖖]/u.test(emoji)) return "chat-emoji-wave";
+ if (/[😘😗😙😚💋]/u.test(emoji)) return "chat-emoji-kiss";
+ if (/[🥳🎉🎊🎈🤩]/u.test(emoji)) return "chat-emoji-party";
+ if (/[😱😲😮🤯]/u.test(emoji)) return "chat-emoji-surprise";
+ if (/[😴😪🥱]/u.test(emoji)) return "chat-emoji-sleep";
+ if (/[👍👎👏🙌🙏💪]/u.test(emoji)) return "chat-emoji-gesture";
+ return "chat-single-emoji";
+}
+
+function emojiCodepoints(emoji: string, separator: string) {
+ return Array.from(emoji.trim())
+   .filter((character) => character.codePointAt(0) !== 0xfe0f)
+   .map((character) => character.codePointAt(0)!.toString(16))
+   .join(separator);
+}
+
+function HdEmoji({ emoji, className }: { emoji: string; className?: string }) {
+ const [sourceIndex, setSourceIndex] = useState(0);
+ const sources = [
+   `https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji/svg/emoji_u${emojiCodepoints(emoji, "_")}.svg`,
+   `https://cdn.jsdelivr.net/gh/jdecked/twemoji@16.0.1/assets/svg/${emojiCodepoints(emoji, "-")}.svg`,
+ ];
+ if (sourceIndex >= sources.length) return <span className={className}>{emoji}</span>;
+ return (
+   <img
+     src={sources[sourceIndex]}
+     alt={emoji}
+     draggable={false}
+     loading="lazy"
+     decoding="async"
+     onError={() => setSourceIndex((current) => current + 1)}
+     className={cn("block object-contain", className)}
+   />
+ );
+}
+
 function MessageContent({ content, isMe, onOpenPhoto }: { content: string; isMe: boolean; onOpenPhoto: (src: string) => void }) {
+ if (isSingleEmojiMessage(content)) {
+   const emoji = content.trim();
+   return <HdEmoji emoji={emoji} className={cn("h-14 w-14 drop-shadow-sm", emojiReactionClass(emoji))} />;
+ }
+
+ if (isEmojiOnlyMessage(content)) {
+   return (
+     <div className="flex flex-wrap items-center gap-0.5 py-0.5">
+       {emojiGraphemes(content).map((emoji, index) => (
+         <HdEmoji key={`${emoji}-${index}`} emoji={emoji} className="h-7 w-7" />
+       ))}
+     </div>
+   );
+ }
+
  if (isVoiceMessage(content)) {
    return <audio controls src={voiceMessageSrc(content)} className="h-9 w-60 max-w-full" />;
  }
@@ -1465,6 +1622,10 @@ type ActiveCall = {
 
 export default function Messages() {
  const [activeId, setActiveId] = useState<string | null>(null);
+ const [deletedChats, setDeletedChats] = useState<Record<string, number>>({});
+ const [mutedChatIds, setMutedChatIds] = useState<Set<string>>(new Set());
+ const [coinBalance, setCoinBalance] = useState(0);
+ const [coinActionPending, setCoinActionPending] = useState(false);
  const [searchQuery, setSearchQuery] = useState("");
  const [draft, setDraft] = useState("");
  const [incomingCall, setIncomingCall] = useState<any | null>(null);
@@ -1524,6 +1685,20 @@ export default function Messages() {
  const queryClient = useQueryClient();
 
  useEffect(() => {
+   try {
+     const saved = JSON.parse(window.localStorage.getItem(DELETED_CHATS_STORAGE_KEY) || "{}");
+     if (saved && typeof saved === "object") setDeletedChats(saved);
+   } catch {}
+ }, []);
+
+ useEffect(() => {
+   try {
+     const saved = JSON.parse(window.localStorage.getItem(MUTED_CHATS_STORAGE_KEY) || "[]");
+     if (Array.isArray(saved)) setMutedChatIds(new Set(saved.map(String)));
+   } catch {}
+ }, []);
+
+ useEffect(() => {
    if (!showEmojiPicker) return;
 
    const closePickerOnOutsideClick = (event: PointerEvent) => {
@@ -1541,6 +1716,16 @@ export default function Messages() {
  }, [showEmojiPicker]);
 
  const token = getToken() || "";
+
+ useEffect(() => {
+   if (!token) return;
+   fetch(`${API_URL}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
+     .then((response) => response.ok ? response.json() : null)
+     .then((user) => {
+       if (user) setCoinBalance(Number(user.coinBalance) || 0);
+     })
+     .catch(() => {});
+ }, [token]);
  const selectedTheme = CHAT_THEMES.find((theme) => theme.id === selectedThemeId) || FREE_CHAT_THEMES[0];
  const isDarkTheme = selectedTheme.id === "3d-stars" || selectedTheme.id === "3d-fire" || selectedTheme.id === "3d-galaxy";
  const chatThemeStyle = {
@@ -1797,7 +1982,11 @@ export default function Messages() {
         lastMessageTime: m.lastMessageTime || m.createdAt,
         unread: m.unreadCount || 0,
       };
-    }), [activeMatches, myId]);
+    }).filter((match: any) => {
+      const deletedAt = deletedChats[match.id];
+      if (!deletedAt) return true;
+      return new Date(match.lastMessageTime).getTime() > deletedAt;
+    }), [activeMatches, deletedChats, myId]);
 
  const sortedMatches = [...displayMatches]
    .filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -1970,7 +2159,7 @@ export default function Messages() {
 
  const clearChat = async () => {
    if (!activeId || !active || !token) return;
-   if (!confirm(`Clear full chat with ${active.name}? This will remove all messages for you.`)) return;
+   if (!confirm(`Delete chat with ${active.name}? The messages will be removed only for you.`)) return;
    try {
      const res = await fetch(`${API_URL}/messages/conversation/${activeId}`, {
        method: "DELETE",
@@ -1980,10 +2169,31 @@ export default function Messages() {
      queryClient.setQueryData(["messages", activeId], []);
      setSelectedMessageIds(new Set());
      queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
-     toast.success("Chat cleared.");
+     toast.success("Chat deleted for you.");
    } catch (error) {
      console.error("Failed to clear chat", error);
      toast.error("Chat clear nahi ho payi.");
+   }
+ };
+
+ const deleteChatFromList = async (conversationId: string, name: string) => {
+   if (!token) return;
+   if (!confirm(`Delete chat with ${name}? The messages will be removed only for you.`)) return;
+   try {
+     const res = await fetch(`${API_URL}/messages/conversation/${conversationId}`, {
+       method: "DELETE",
+       headers: { Authorization: `Bearer ${token}` },
+     });
+     if (!res.ok) throw new Error("Delete chat failed");
+
+     const nextDeletedChats = { ...deletedChats, [conversationId]: Date.now() };
+     setDeletedChats(nextDeletedChats);
+     window.localStorage.setItem(DELETED_CHATS_STORAGE_KEY, JSON.stringify(nextDeletedChats));
+     queryClient.setQueryData(["messages", conversationId], []);
+     if (activeId === conversationId) setActiveId(null);
+     toast.success("Chat deleted for you.");
+   } catch {
+     toast.error("Chat delete nahi ho payi.");
    }
  };
 
@@ -2378,14 +2588,6 @@ export default function Messages() {
    setDraft((value) => `${value}${emoji}`);
  };
 
- const sendPremiumGift = (gift: { emoji: string; label: string; price: number }) => {
-   if (!active) return;
-   const ok = confirm(`Send ${gift.label} for ₹${gift.price}?`);
-   if (!ok) return;
-   sendMessage(active.userId, `${GIFT_MESSAGE_PREFIX}${gift.emoji}|${gift.label}|${gift.price}`);
-   setShowEmojiPicker(false);
- };
-
  const applyChatTheme = (theme: ChatTheme) => {
    if (!activeId || !active) return;
    if (theme.tier === "premium") {
@@ -2507,6 +2709,70 @@ export default function Messages() {
    queryClient.invalidateQueries({ queryKey: ['messages', id] });
  };
 
+ const rechargeCoins = async () => {
+   if (!token || coinActionPending) return;
+   const input = prompt("How many coins do you want to recharge?", "100");
+   if (input === null) return;
+   const amount = Number(input);
+   if (!Number.isInteger(amount) || amount < 1 || amount > 100000) {
+     toast.error("Enter a valid coin amount between 1 and 100000.");
+     return;
+   }
+   setCoinActionPending(true);
+   try {
+     const response = await fetch(`${API_URL}/users/me/coins/recharge`, {
+       method: "POST",
+       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+       body: JSON.stringify({ amount }),
+     });
+     const data = await response.json().catch(() => null);
+     if (!response.ok) throw new Error(data?.message || "Recharge failed.");
+     setCoinBalance(Number(data.coinBalance) || 0);
+     toast.success(`${amount} coins added.`);
+   } catch (error) {
+     toast.error(error instanceof Error ? error.message : "Recharge failed.");
+   } finally {
+     setCoinActionPending(false);
+   }
+ };
+
+ const sendGiftWithCoins = async (gift: { emoji: string; label: string; price: number }) => {
+   if (!active || !token || coinActionPending) return;
+   if (coinBalance < gift.price) {
+     toast.error(`You need ${gift.price - coinBalance} more coins. Please recharge.`);
+     return;
+   }
+   if (!confirm(`Send ${gift.label} for ${gift.price} coins?`)) return;
+   setCoinActionPending(true);
+   try {
+     const response = await fetch(`${API_URL}/users/me/coins/spend`, {
+       method: "POST",
+       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+       body: JSON.stringify({ amount: gift.price }),
+     });
+     const data = await response.json().catch(() => null);
+     if (!response.ok) throw new Error(data?.message || "Not enough coins.");
+     setCoinBalance(Number(data.coinBalance) || 0);
+     sendMessage(active.userId, `${GIFT_MESSAGE_PREFIX}${gift.emoji}|${gift.label}|${gift.price}`);
+     setShowEmojiPicker(false);
+   } catch (error) {
+     toast.error(error instanceof Error ? error.message : "Gift could not be sent.");
+   } finally {
+     setCoinActionPending(false);
+   }
+ };
+
+ const toggleMuteActiveChat = () => {
+   if (!activeId) return;
+   const next = new Set(mutedChatIds);
+   const willMute = !next.has(activeId);
+   if (willMute) next.add(activeId);
+   else next.delete(activeId);
+   setMutedChatIds(next);
+   window.localStorage.setItem(MUTED_CHATS_STORAGE_KEY, JSON.stringify([...next]));
+   toast.success(willMute ? "Notifications muted." : "Notifications unmuted.");
+ };
+
  const handleViewProfile = async () => {
    if (!active) return;
    setProfileLoading(true);
@@ -2564,6 +2830,8 @@ export default function Messages() {
  {sortedMatches.map((m) => {
  return (
  <li key={m.id}>
+ <ContextMenu>
+ <ContextMenuTrigger openOnClick={false}>
  <button
  onClick={() => handleSelectMatch(m.id)}
  className={cn(
@@ -2581,17 +2849,28 @@ export default function Messages() {
  <div className="min-w-[0px] flex-1">
  <div className="flex items-center justify-between">
  <p className="truncate text-sm font-semibold text-[var(--chat-text)]">{m.name}</p>
- {m.unread > 0 && activeId !== m.id && (
- <span className="grid h-[20px] min-w-[20px] place-items-center rounded-full bg-[var(--chat-accent)] px-1.5 text-[10px] font-semibold text-white">
- {m.unread}
- </span>
- )}
+ <div className="ml-2 flex shrink-0 items-center gap-1.5">
+   {mutedChatIds.has(m.id) && <BellOff className="h-3.5 w-3.5 text-[var(--chat-text-muted)]" aria-label="Muted" />}
+   {m.unread > 0 && activeId !== m.id && (
+     <span className="grid h-[20px] min-w-[20px] place-items-center rounded-full bg-[var(--chat-accent)] px-1.5 text-[10px] font-semibold text-white">
+       {m.unread}
+     </span>
+   )}
+ </div>
  </div>
  <p className="truncate text-xs text-[var(--chat-text-muted)]">
  {messagePreview(m.lastMessage)}
  </p>
  </div>
  </button>
+ </ContextMenuTrigger>
+ <ContextMenuContent className="min-w-[170px]">
+   <ContextMenuItem className="text-red-600 hover:bg-red-50" onClick={() => deleteChatFromList(m.id, m.name)}>
+     <Trash2 className="h-4 w-4" />
+     <span>Delete chat</span>
+   </ContextMenuItem>
+ </ContextMenuContent>
+ </ContextMenu>
  </li>
  );
  })}
@@ -2619,7 +2898,6 @@ export default function Messages() {
  <div className="flex items-center gap-1 text-[var(--chat-text)]">
  <Button variant="ghost" size="icon" onClick={() => startCall("audio")} disabled={!socket}><Phone className="h-[16px] w-[16px]" /></Button>
  <Button variant="ghost" size="icon" onClick={() => startCall("video")} disabled={!socket}><Video className="h-[16px] w-[16px]" /></Button>
-
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <Button variant="ghost" size="icon"><MoreVertical className="h-[16px] w-[16px]" /></Button>
@@ -2630,7 +2908,10 @@ export default function Messages() {
  <Palette className="mr-2 h-4 w-4" />
  Chat Themes
  </DropdownMenuItem>
- <DropdownMenuItem>Mute Notifications</DropdownMenuItem>
+ <DropdownMenuItem onClick={toggleMuteActiveChat}>
+   <BellOff className="mr-2 h-4 w-4" />
+   {activeId && mutedChatIds.has(activeId) ? "Unmute Notifications" : "Mute Notifications"}
+ </DropdownMenuItem>
  <DropdownMenuSub>
     <DropdownMenuSubTrigger>
       <Clock className="mr-2 h-4 w-4" />
@@ -2685,6 +2966,7 @@ export default function Messages() {
   const isGif = isGifMessage(m.content);
   const replyMessage = getReplyMessage(m);
   const isDeleted = !!m.deletedForEveryone;
+  const isSingleEmoji = !replyMessage && !isDeleted && isSingleEmojiMessage(m.content);
   const isSelected = selectedMessageIds.has(m.id);
 
   if (m.content.startsWith("[CONTROL:DISAPPEARING_MODE:")) {
@@ -2721,7 +3003,7 @@ export default function Messages() {
    <ContextMenuTrigger asChild openOnClick={selectedMessageIds.size === 0}>
    <div className={cn(
    "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
-   (isGift || isGif) ? "bg-transparent px-1 py-1 text-white" : "[background:var(--chat-outgoing)] px-4 py-2 text-white rounded-br-sm shadow-sm",
+   (isGift || isGif || isSingleEmoji) ? "bg-transparent px-1 py-1 text-white" : "[background:var(--chat-outgoing)] px-4 py-2 text-white rounded-br-sm shadow-sm",
    isSelected && "ring-2 ring-rose-300"
    )}
    onClick={() => {
@@ -2735,7 +3017,7 @@ export default function Messages() {
      </div>
    )}
    {isDeleted ? <p className="italic opacity-80">This message was deleted</p> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
-   <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", (isGift || isGif) ? "text-[var(--chat-text-muted)] font-semibold" : "text-white opacity-90")}>
+   <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", (isGift || isGif || isSingleEmoji) ? "text-[var(--chat-text-muted)] font-semibold" : "text-white opacity-90")}>
    {isMessagePinned(m) && <Pin className="h-[12px] w-[12px]" />}
    {isMessageStarred(m) && <Star className="h-[12px] w-[12px] fill-current" />}
    {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -2864,7 +3146,7 @@ export default function Messages() {
    <ContextMenuTrigger asChild openOnClick={selectedMessageIds.size === 0}>
    <div className={cn(
    "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
-    (isGift || isGif) ? "bg-transparent px-1 py-1 text-foreground" : "bg-[var(--chat-incoming)] px-4 py-2 text-foreground rounded-bl-sm shadow-sm",
+    (isGift || isGif || isSingleEmoji) ? "bg-transparent px-1 py-1 text-foreground" : "bg-[var(--chat-incoming)] px-4 py-2 text-foreground rounded-bl-sm shadow-sm",
     isSelected && "ring-2 ring-rose-300"
    )}
    onClick={() => {
@@ -2878,7 +3160,7 @@ export default function Messages() {
      </div>
    )}
    {isDeleted ? <p className="italic opacity-70">This message was deleted</p> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
-    <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", (isGift || isGif) ? "text-muted-foreground" : "opacity-70")}>
+    <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", (isGift || isGif || isSingleEmoji) ? "text-muted-foreground" : "opacity-70")}>
    {isMessagePinned(m) && <Pin className="h-[12px] w-[12px]" />}
    {isMessageStarred(m) && <Star className="h-[12px] w-[12px] fill-current" />}
    {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -3063,8 +3345,8 @@ export default function Messages() {
  <SmilePlus className="h-[16px] w-[16px]" />
  </Button>
   {showEmojiPicker && (
-    <div ref={emojiPickerRef} className={cn("absolute bottom-14 left-0 z-30 flex h-[430px] flex-col overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl transition-all duration-300", activePickerTab === "gif" ? "w-[360px]" : "w-80")}>
-      <div className="grid grid-cols-3 border-b border-rose-100 bg-rose-50/40 p-1.5">
+    <div ref={emojiPickerRef} className="absolute bottom-14 left-0 z-30 flex h-[430px] w-80 flex-col overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl transition-all duration-300">
+      <div className="grid grid-cols-2 border-b border-rose-100 bg-rose-50/40 p-1.5">
         <button
           type="button"
           onClick={() => setActivePickerTab("emoji")}
@@ -3078,17 +3360,6 @@ export default function Messages() {
         </button>
         <button
           type="button"
-          onClick={() => setActivePickerTab("gif")}
-          className={cn(
-            "flex h-9 items-center justify-center gap-2 rounded-full text-sm font-bold transition",
-            activePickerTab === "gif" ? "bg-white text-rose-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <Sparkles className="h-4 w-4" />
-          GIFs
-        </button>
-        <button
-          type="button"
           onClick={() => setActivePickerTab("gift")}
           className={cn(
             "flex h-9 items-center justify-center gap-2 rounded-full text-sm font-bold transition",
@@ -3099,7 +3370,7 @@ export default function Messages() {
           Gifts
         </button>
       </div>
-      {activePickerTab === "emoji" ? (
+      {activePickerTab !== "gift" ? (
  <>
  <div className="border-b border-border px-3 py-2">
  <div className="flex gap-2 overflow-x-auto pb-1">
@@ -3114,21 +3385,24 @@ export default function Messages() {
  activeEmojiCategory === category.id ? "bg-rose-100 ring-2 ring-rose-300" : "bg-muted hover:bg-rose-50"
  )}
  >
- {category.icon}
+ <HdEmoji emoji={category.icon} className="h-6 w-6" />
  </button>
  ))}
  </div>
  </div>
- <div className="min-h-0 flex-1 overflow-y-auto p-3">
- <div className="grid grid-cols-6 gap-2">
+ <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+ <div className="mb-2 px-1 text-xs font-semibold text-slate-500">
+   {FREE_EMOJI_CATEGORIES.find((category) => category.id === activeEmojiCategory)?.label}
+ </div>
+ <div className="grid grid-cols-7 gap-x-1 gap-y-2">
  {(FREE_EMOJI_CATEGORIES.find((category) => category.id === activeEmojiCategory)?.emojis ?? FREE_EMOJI_CATEGORIES[0].emojis).map((emoji) => (
  <button
  key={emoji}
  type="button"
  onClick={() => addEmojiToDraft(emoji)}
- className="grid h-10 w-10 place-items-center rounded-xl bg-muted text-xl transition hover:bg-rose-50 hover:scale-105"
+ className="chat-picker-emoji grid h-10 w-10 place-items-center rounded-lg bg-transparent text-[28px] leading-none transition hover:scale-125 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300"
  >
- {emoji}
+ <HdEmoji emoji={emoji} className="h-8 w-8" />
  </button>
  ))}
  </div>
@@ -3136,6 +3410,15 @@ export default function Messages() {
  </>
       ) : activePickerTab === "gift" ? (
         <div className="min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-rose-50/20 to-white/40 p-3">
+          <div className="sticky top-0 z-10 mb-3 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50/95 px-3 py-2 shadow-sm backdrop-blur">
+            <div className="flex items-center gap-2 text-sm font-bold text-amber-800">
+              <Coins className="h-5 w-5 text-amber-500" />
+              <span>{coinBalance.toLocaleString()} coins</span>
+            </div>
+            <Button type="button" size="sm" onClick={rechargeCoins} disabled={coinActionPending} className="h-8 rounded-full bg-amber-500 px-3 text-xs font-bold text-white hover:bg-amber-600">
+              {coinActionPending ? "Please wait..." : "Recharge"}
+            </Button>
+          </div>
           <div className="grid grid-cols-2 gap-2.5">
             {PREMIUM_GIFTS.map((gift) => {
               const visual = giftVisuals[gift.label] || { emoji: "🌹", bg: "from-pink-50 to-white" };
@@ -3143,7 +3426,7 @@ export default function Messages() {
                 <button
                   key={gift.label}
                   type="button"
-                  onClick={() => sendPremiumGift(gift)}
+                  onClick={() => sendGiftWithCoins(gift)}
                   className="group relative flex flex-col justify-between items-center rounded-2xl border border-rose-100 bg-white/80 p-2.5 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-rose-300 hover:shadow-md hover:shadow-rose-100/40"
                 >
                   {/* Glowing SVG Center Container */}
@@ -3168,7 +3451,7 @@ export default function Messages() {
                     {/* Price Container */}
                     <div className="mt-2.5 flex items-center justify-center">
                       <span className="flex items-center gap-0.5 rounded-full bg-rose-50 px-2 py-0.5 border border-rose-100 text-[10px] font-black text-rose-600 shadow-sm group-hover:bg-rose-500 group-hover:text-white group-hover:border-rose-500 transition-all duration-300">
-                        ₹{gift.price}
+                        <Coins className="h-3 w-3" /> {gift.price}
                       </span>
                     </div>
                   </div>
@@ -3681,7 +3964,7 @@ export default function Messages() {
  reactionEmojiCategory === category.id ? "bg-white shadow ring-1 ring-rose-300" : "hover:bg-white/80"
  )}
  >
- {category.icon}
+ <HdEmoji emoji={category.icon} className="h-6 w-6" />
  </button>
  ))}
  </div>
@@ -3694,7 +3977,7 @@ export default function Messages() {
  className="grid aspect-square min-h-10 place-items-center rounded-full bg-rose-50 text-xl transition hover:scale-110 hover:bg-rose-100 active:scale-95"
  aria-label={`React with ${emoji}`}
  >
- {emoji}
+ <HdEmoji emoji={emoji} className="h-8 w-8" />
  </button>
  ))}
  </div>

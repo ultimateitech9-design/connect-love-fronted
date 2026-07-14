@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Ban, Clock, Sparkles, Star, UserCheck } from "lucide-react";
+import { MessageSquare, Ban, Clock, RefreshCw, Sparkles, Star, Trash2, UserCheck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner"; 
 import { cn } from "@/lib/utils";
@@ -30,6 +30,8 @@ export default function MatchesDashboard() {
  const [isLoading, setIsLoading] = useState(true);
  const [pendingTab, setPendingTab] = useState<"sent" | "received" | "super">("sent");
  const [myId, setMyId] = useState<string | null>(null);
+ const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
+ const [fetchError, setFetchError] = useState(false);
 
  useEffect(() => {
    const token = getToken();
@@ -56,6 +58,7 @@ export default function MatchesDashboard() {
  };
 
  const fetchMatches = async () => {
+   setFetchError(false);
    try {
      const token = getToken();
      if (!token) return;
@@ -79,7 +82,7 @@ export default function MatchesDashboard() {
      setReceivedLikes(received);
      setBlockedUsers(blocked);
    } catch (error) {
-     console.error("Failed to fetch matches", error);
+     setFetchError(true);
    } finally {
      setIsLoading(false);
    }
@@ -116,15 +119,24 @@ export default function MatchesDashboard() {
  };
 
  const handleWithdrawLike = async (id: string) => {
+    if (deletingRequestId) return;
+    setDeletingRequestId(id);
     try {
-      await fetch(`${API_URL}/matches/unblock/${id}`, {
-        method: "PATCH",
+      const response = await fetch(`${API_URL}/matches/pending/${id}`, {
+        method: "DELETE",
         headers: { "Authorization": `Bearer ${getToken()}` },
       });
-      toast.success("Like withdrawn");
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message || "Could not delete the pending request.");
+      }
+      toast.success("Pending request deleted");
       setSentLikes(prev => prev.filter(m => m.id !== id));
     } catch (error) {
       console.error("Failed to withdraw", error);
+      toast.error(error instanceof Error ? error.message : "Could not delete the pending request.");
+    } finally {
+      setDeletingRequestId(null);
     }
  };
 
@@ -166,6 +178,14 @@ export default function MatchesDashboard() {
 
  return (
  <div className="space-y-6">
+   {fetchError && (
+     <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:flex-row sm:items-center sm:justify-between">
+       <span>Matches could not be loaded. Please check the connection and try again.</span>
+       <Button variant="outline" size="sm" onClick={fetchMatches} className="shrink-0 border-amber-300 bg-white text-amber-800 hover:bg-amber-100">
+         <RefreshCw className="mr-2 h-4 w-4" /> Retry
+       </Button>
+     </div>
+   )}
    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
      <div>
        <h1 className="text-2xl font-semibold text-slate-800">Your Matches</h1>
@@ -269,8 +289,8 @@ export default function MatchesDashboard() {
                    <div className="w-full flex items-center justify-center rounded-full border border-dashed border-slate-300 bg-white px-3 py-2 text-sm text-slate-400">
                      <Clock className="mr-2 h-4 w-4 opacity-70" /> Pending Approval
                    </div>
-                   <button onClick={() => handleWithdrawLike(m.id)} className="text-xs text-slate-400 hover:text-slate-600 text-center py-1 mt-1 transition-colors">
-                     Withdraw Like
+                   <button disabled={deletingRequestId === m.id} onClick={() => handleWithdrawLike(m.id)} className="flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 text-center py-1 mt-1 transition-colors">
+                     <Trash2 className="h-3.5 w-3.5" /> {deletingRequestId === m.id ? "Deleting..." : "Delete Request"}
                    </button>
                  </div>
                </motion.div>
@@ -353,8 +373,8 @@ export default function MatchesDashboard() {
                    <div className="w-full flex items-center justify-center rounded-full bg-gradient-to-r from-amber-400 to-amber-500 px-3 py-2 text-sm font-bold text-white shadow-sm animate-pulse">
                      <Star className="mr-1.5 h-4 w-4 fill-current" /> Awaiting Match
                    </div>
-                   <button onClick={() => handleWithdrawLike(m.id)} className="text-xs text-slate-400 hover:text-slate-600 text-center py-1 mt-1 transition-colors">
-                     Withdraw Super Like
+                   <button disabled={deletingRequestId === m.id} onClick={() => handleWithdrawLike(m.id)} className="flex items-center justify-center gap-1.5 text-xs text-red-500 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 text-center py-1 mt-1 transition-colors">
+                     <Trash2 className="h-3.5 w-3.5" /> {deletingRequestId === m.id ? "Deleting..." : "Delete Super Like"}
                    </button>
                  </div>
                </motion.div>
