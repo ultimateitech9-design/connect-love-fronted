@@ -1,13 +1,16 @@
 import * as React from "react";
 import { useMemo, useState } from "react";
-import { Calendar, MapPin, Heart, Target, BadgeCheck, Search, X } from "lucide-react";
+import { Calendar, MapPin, Heart, Target, BadgeCheck, Search, X, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { INTERESTED_IN_OPTIONS, type InterestedIn } from "@/features/discovery/gender-options";
+import { AgeRangeSlider } from "@/features/discovery/AgeRangeSlider";
 
 export interface DiscoverFilters {
   search: string;
   ageMin: number;
   ageMax: number;
   maxDistance: number;
+  interestedIn: InterestedIn;
   interests: string[];
   goals: string[];
   verifiedOnly: boolean;
@@ -18,6 +21,7 @@ export const defaultFilters: DiscoverFilters = {
   ageMin: 18,
   ageMax: 90,
   maxDistance: 100,
+  interestedIn: "everyone",
   interests: [],
   goals: [],
   verifiedOnly: false,
@@ -33,6 +37,7 @@ function formatDistanceLabel(distance: number) {
 const filtersMeta = [
   { id: "age", label: "Age Range", icon: Calendar },
   { id: "distance", label: "Distance", icon: MapPin },
+  { id: "interestedIn", label: "Interested In", icon: Users },
   { id: "interests", label: "Interests", icon: Heart },
   { id: "goals", label: "Relationship Goals", icon: Target },
   { id: "verified", label: "Verified Only", icon: BadgeCheck },
@@ -125,21 +130,11 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
         {active === "age" && (
           <div className="space-y-4">
             <p className="text-sm font-semibold text-foreground">Age Range</p>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>{filters.ageMin} yrs</span>
-              <span className="font-semibold text-rose-500">{filters.ageMax} yrs</span>
-            </div>
-            <input
-              type="range"
-              aria-label="Maximum age"
-              value={filters.ageMax}
-              onChange={(e) => update("ageMax", Number(e.target.value))}
-              min={18}
-              max={90}
-              step={1}
-              className="h-2 w-full accent-rose-600"
+            <AgeRangeSlider
+              minAge={filters.ageMin}
+              maxAge={filters.ageMax}
+              onChange={(ageMin, ageMax) => onChange({ ...filters, ageMin, ageMax })}
             />
-            <p className="text-[10px] text-muted-foreground">Showing ages {filters.ageMin}–{filters.ageMax}</p>
           </div>
         )}
 
@@ -192,6 +187,30 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
                   />
                   {interest}
                 </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {active === "interestedIn" && (
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-foreground">Interested In</p>
+            <div className="flex flex-wrap gap-2">
+              {INTERESTED_IN_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => update("interestedIn", option.value)}
+                  aria-pressed={filters.interestedIn === option.value}
+                  className={cn(
+                    "rounded-full border px-3 py-2 text-xs font-medium transition",
+                    filters.interestedIn === option.value
+                      ? "border-rose-600 bg-rose-100 text-rose-700 dark:text-rose-300"
+                      : "border-border bg-card text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  {option.label}
+                </button>
               ))}
             </div>
           </div>

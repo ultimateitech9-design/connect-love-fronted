@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { clearOnboardingRequired, setToken } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 
 const API_BASE = API_ORIGIN;
 
@@ -435,6 +436,13 @@ export default function LoginPage() {
                   )}
                 </motion.button>
               </form>
+
+              <div className="my-6 flex items-center gap-3" aria-hidden="true">
+                <span className="h-px flex-1 bg-slate-200" />
+                <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">or</span>
+                <span className="h-px flex-1 bg-slate-200" />
+              </div>
+              <GoogleAuthButton mode="signin" />
 
               <p className="mt-8 text-center text-sm text-slate-500">
                 Don't have an account?{" "}

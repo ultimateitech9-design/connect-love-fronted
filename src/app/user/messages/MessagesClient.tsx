@@ -1318,17 +1318,25 @@ function HdEmoji({ emoji, className }: { emoji: string; className?: string }) {
  );
 }
 
+function CinematicEmoji({ emoji, size = "lg" }: { emoji: string; size?: "lg" | "sm" }) {
+ return (
+   <span className={cn("emotion-emoji", size === "lg" ? "emotion-emoji-lg" : "emotion-emoji-sm", emojiReactionClass(emoji))}>
+     <HdEmoji emoji={emoji} className={size === "lg" ? "h-16 w-16" : "h-8 w-8"} />
+   </span>
+ );
+}
+
 function MessageContent({ content, isMe, onOpenPhoto }: { content: string; isMe: boolean; onOpenPhoto: (src: string) => void }) {
  if (isSingleEmojiMessage(content)) {
    const emoji = content.trim();
-   return <HdEmoji emoji={emoji} className={cn("h-14 w-14 drop-shadow-sm", emojiReactionClass(emoji))} />;
+   return <CinematicEmoji emoji={emoji} />;
  }
 
  if (isEmojiOnlyMessage(content)) {
    return (
-     <div className="flex flex-wrap items-center gap-0.5 py-0.5">
+     <div className="flex flex-wrap items-center gap-1.5 py-0.5">
        {emojiGraphemes(content).map((emoji, index) => (
-         <HdEmoji key={`${emoji}-${index}`} emoji={emoji} className="h-7 w-7" />
+         <CinematicEmoji key={`${emoji}-${index}`} emoji={emoji} size="sm" />
        ))}
      </div>
    );
@@ -3079,7 +3087,7 @@ export default function Messages() {
                    hasReacted ? "text-rose-600 font-extrabold" : "text-slate-500"
                  )}
                >
-                 <span>{emoji}</span>
+                 <span className="cinematic-reaction-emoji">{emoji}</span>
                  {userIds.length > 1 && <span>{userIds.length}</span>}
                </button>
              );
@@ -3110,7 +3118,7 @@ export default function Messages() {
                hasReacted ? "bg-rose-100/80 scale-110" : "hover:bg-slate-100"
              )}
            >
-             {emoji}
+             <span className="cinematic-reaction-emoji">{emoji}</span>
            </button>
          );
        })}
@@ -3188,7 +3196,7 @@ export default function Messages() {
                    hasReacted ? "text-rose-600 font-extrabold" : "text-slate-500"
                  )}
                >
-                 <span>{emoji}</span>
+                 <span className="cinematic-reaction-emoji">{emoji}</span>
                  {userIds.length > 1 && <span>{userIds.length}</span>}
                </button>
              );
@@ -3219,7 +3227,7 @@ export default function Messages() {
                hasReacted ? "bg-rose-100/80 scale-110" : "hover:bg-slate-100"
              )}
            >
-             {emoji}
+             <span className="cinematic-reaction-emoji">{emoji}</span>
            </button>
          );
        })}

@@ -1,6 +1,7 @@
 import { directFetch } from "@/lib/api";
 
 export type DiscoveryFilters = {
+  interestedIn?: "female" | "male" | "non-binary" | "everyone";
   search?: string;
   ageMin?: number;
   ageMax?: number;

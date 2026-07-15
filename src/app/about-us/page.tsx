@@ -39,6 +39,12 @@ export default function AboutUsPage() {
         points: ["No confusing dead links.", "No hidden safety path.", "No unnecessary access to private member data."],
       },
     ],
+    longForm: [
+      { title: "Why ConnectLove exists", paragraphs: ["Online dating can feel noisy, uncertain, and overly focused on quick judgments. ConnectLove is designed to give people more context: what someone values, what kind of relationship they want, what interests they share, and whether they are ready to communicate respectfully.", "Our aim is not to manufacture perfect compatibility. It is to provide clearer tools so adults can make their own informed choices while retaining control over consent, privacy, and pace."], points: ["Intentional profiles over empty swiping.", "Clear relationship goals and preferences.", "Mutual interest before messaging.", "Easy access to safety and support."] },
+      { title: "The member journey", paragraphs: ["A member begins with registration and guided onboarding, adds profile and verification details, sets discovery preferences, explores profiles, and expresses interest through likes or super likes. Mutual interest creates a match, after which members can communicate and decide whether to continue.", "At every stage, members can change preferences, manage visibility, stop an interaction, block or report, request support, review premium options, or deactivate the account."], points: ["Register and complete a truthful profile.", "Discover using personal preferences.", "Match and communicate with consent.", "Manage privacy, billing, and support."] },
+      { title: "How we think about trust", paragraphs: ["Trust is built through product design and consistent operations, not a single badge. Verification, reporting, access controls, moderation records, support workflows, and transparent policies each contribute a layer.", "No technology can eliminate all risk. We encourage members to combine platform tools with careful judgment, safe meeting practices, and prompt reporting of suspicious behavior."], points: ["Verification is a signal, not a guarantee.", "Core safety tools remain free.", "Sensitive access follows job responsibilities.", "Serious concerns can be escalated."] },
+      { title: "A product that should keep improving", paragraphs: ["We use support themes, operational data, safety trends, accessibility needs, and member feedback to understand where the experience is confusing or unsafe. Product decisions should balance usefulness with privacy and avoid engagement patterns that encourage harmful behavior.", "As ConnectLove evolves, public pages, feature descriptions, prices, and policies should remain aligned with the actual service."], points: ["Listen to member feedback.", "Measure quality as well as growth.", "Document sensitive operational actions.", "Explain material product changes."] },
+    ],
     actions: [
       { title: "Learn the mission", body: "Visitors understand what Connect Love stands for before creating an account." },
       { title: "Create an account", body: "Users move into registration and onboarding when they are ready." },
@@ -53,6 +59,8 @@ export default function AboutUsPage() {
     faq: [
       { question: "Is Connect Love only a landing page?", answer: "No. It has public pages, user pages, and internal dashboards for different roles." },
       { question: "Why split roles?", answer: "Separate roles help keep user data protected and make each dashboard focused on its real work." },
+      { question: "Does ConnectLove guarantee relationships?", answer: "No. The service provides discovery and communication tools, while members make their own choices and outcomes vary." },
+      { question: "How can I share feedback?", answer: "Use the Contact Us page with Product Feedback as the problem type." },
     ],
   };
 

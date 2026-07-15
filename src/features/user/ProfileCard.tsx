@@ -101,9 +101,11 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   }, [idx]);
 
   const x = useMotionValue(0);
+  const y = useMotionValue(0);
   const rotate = useTransform(x, [-220, 0, 220], [-18, 0, 18]);
   const likeOpacity = useTransform(x, [40, 160], [0, 1]);
   const nopeOpacity = useTransform(x, [-160, -40], [1, 0]);
+  const superLikeOpacity = useTransform(y, [-160, -40], [1, 0]);
 
   if (profiles.length === 0) {
     return (
@@ -137,12 +139,18 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
     if (onAction) onAction(profile.id, action);
     setIdx((i) => i + 1);
     x.set(0);
+    y.set(0);
   };
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
-    const threshold = 120;
-    if (info.offset.x > threshold) advance("like");
-    else if (info.offset.x < -threshold) advance("pass");
+    const horizontalThreshold = 120;
+    const upwardThreshold = 100;
+    const isUpwardSwipe = info.offset.y < -upwardThreshold
+      && Math.abs(info.offset.y) > Math.abs(info.offset.x);
+
+    if (isUpwardSwipe) triggerSwipe("super");
+    else if (info.offset.x > horizontalThreshold) advance("like");
+    else if (info.offset.x < -horizontalThreshold) advance("pass");
     window.setTimeout(() => {
       isDraggingRef.current = false;
     }, 0);
@@ -269,11 +277,12 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
       <AnimatePresence mode="wait">
         <motion.div
           key={profile.id + idx}
-          drag={showDetails ? false : "x"}
-          dragConstraints={{ left: 0, right: 0 }}
+          drag={showDetails || isSuperLiking ? false : true}
+          dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
           dragElastic={0.6}
           style={{
             x: showDetails || isSuperLiking ? 0 : x,
+            y: showDetails || isSuperLiking ? 0 : y,
             rotate: showDetails || isSuperLiking ? 0 : rotate
           }}
           onDragEnd={onDragEnd}
@@ -393,6 +402,12 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
                 className="pointer-events-none absolute right-5 top-6 rotate-[12deg] rounded-lg border-[3px] border-rose-500 px-3 py-1 text-xl font-extrabold tracking-wider text-rose-500"
               >
                 NOPE
+              </motion.div>
+              <motion.div
+                style={{ opacity: superLikeOpacity }}
+                className="pointer-events-none absolute left-1/2 top-6 -translate-x-1/2 rounded-lg border-[3px] border-cyan-400 px-3 py-1 text-xl font-extrabold tracking-wider text-cyan-300"
+              >
+                SUPER LIKE
               </motion.div>
             </>
           )}
@@ -588,7 +603,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
       </div>
 
       <p className="mt-4 text-center text-xs text-slate-400">
-        Swipe right to like · Swipe left to pass
+        Swipe right to like · Swipe left to pass · Swipe up to super like
       </p>
       <BoostDialog open={boostOpen} onClose={() => setBoostOpen(false)} />
     </div>

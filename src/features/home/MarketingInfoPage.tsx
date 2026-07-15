@@ -84,10 +84,10 @@ export function MarketingInfoPage({ page }: { page: PublicPageData }) {
             <div className="max-w-3xl">
               <p className="text-xs font-bold uppercase tracking-widest text-rose-500">Details</p>
               <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
-                Built around the action this page represents
+                A closer look at {page.title}
               </h2>
               <p className="mt-4 text-base leading-7 text-slate-600">
-                Each public page now explains what the link does, which routes or teams it connects to, and how users should act from there.
+                Understand the purpose, key capabilities, and choices available to you across this part of ConnectLove.
               </p>
             </div>
 
@@ -110,6 +110,38 @@ export function MarketingInfoPage({ page }: { page: PublicPageData }) {
           </div>
         </section>
 
+        {page.longForm?.length ? (
+          <section className="border-y border-slate-200 bg-white py-16 md:py-20">
+            <div className="mx-auto w-[90vw] max-w-5xl">
+              <div className="max-w-3xl">
+                <p className="text-xs font-bold uppercase tracking-widest text-rose-500">Complete guide</p>
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">Everything you should know</h2>
+                <p className="mt-4 text-base leading-7 text-slate-600">Detailed information written for members, visitors, and anyone who wants to understand how this area of ConnectLove works.</p>
+              </div>
+              <div className="mt-10 divide-y divide-slate-200 rounded-3xl border border-slate-200 px-6 md:px-9">
+                {page.longForm.map((section, index) => (
+                  <article key={section.title} className="py-8 md:py-10">
+                    <div className="grid gap-4 md:grid-cols-[48px_minmax(0,1fr)]">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-sm font-black text-rose-600">{index + 1}</div>
+                      <div>
+                        <h3 className="text-xl font-black text-slate-950 md:text-2xl">{section.title}</h3>
+                        <div className="mt-4 space-y-4">
+                          {section.paragraphs.map((paragraph) => <p key={paragraph} className="text-sm leading-7 text-slate-600">{paragraph}</p>)}
+                        </div>
+                        {section.points?.length ? (
+                          <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                            {section.points.map((point) => <li key={point} className="flex gap-2.5 rounded-xl bg-slate-50 p-3 text-sm leading-6 text-slate-700"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" /><span>{point}</span></li>)}
+                          </ul>
+                        ) : null}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         <section className="bg-slate-50 py-16 md:py-20">
           <div className="mx-auto grid w-[90vw] max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
             <div>
@@ -118,7 +150,7 @@ export function MarketingInfoPage({ page }: { page: PublicPageData }) {
                 What should happen next
               </h2>
               <p className="mt-4 text-base leading-7 text-slate-600">
-                These steps make each page feel connected to the real product instead of only showing static text.
+                Follow these practical steps to move from information to the right ConnectLove action.
               </p>
             </div>
 
@@ -152,8 +184,8 @@ export function MarketingInfoPage({ page }: { page: PublicPageData }) {
               </div>
 
               <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200">
-                {page.roleAccess.map((item) => (
-                  <div key={item.role} className="grid gap-2 border-b border-slate-200 bg-white p-5 last:border-b-0 md:grid-cols-[220px_1fr]">
+                {page.roleAccess.map((item, index) => (
+                  <div key={`${item.role}-${index}`} className="grid gap-2 border-b border-slate-200 bg-white p-5 last:border-b-0 md:grid-cols-[220px_1fr]">
                     <p className="font-bold text-slate-950">{item.role}</p>
                     <p className="text-sm leading-6 text-slate-600">{item.access}</p>
                   </div>
@@ -171,7 +203,7 @@ export function MarketingInfoPage({ page }: { page: PublicPageData }) {
               </div>
               <h2 className="mt-5 text-3xl font-black tracking-tight md:text-4xl">Common questions</h2>
               <p className="mt-4 text-base leading-7 text-white/60">
-                Short answers for the questions users or internal teams are most likely to ask on this page.
+                Clear answers to the questions members and visitors most often ask about this topic.
               </p>
             </div>
 

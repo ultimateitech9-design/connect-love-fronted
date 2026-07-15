@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { requireOnboarding, setToken } from "@/lib/auth";
+import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options";
 
 const API_BASE = API_ORIGIN;
 
@@ -217,10 +218,9 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
  >
  <option value="">Select gender</option>
- <option value="male">Male</option>
- <option value="female">Female</option>
- <option value="non-binary">Non-binary</option>
- <option value="prefer-not">Prefer not to say</option>
+ {REGISTRATION_GENDER_OPTIONS.map((option) => (
+ <option key={option.value} value={option.value}>{option.label}</option>
+ ))}
  </select>
  {errors.gender && <p className="mt-1 text-xs text-rose-500">{errors.gender.message}</p>}
  </div>

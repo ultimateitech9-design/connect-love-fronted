@@ -39,7 +39,7 @@ function zodiacFromDate(value?: string) {
 
 // Fields that count toward profile completion (in order of weight)
 const COMPLETION_FIELDS = [
- "name", "dob", "gender", "religion", "profession", "height", "city", "relationshipGoal", "bio", "interests", "personality", "hobbies", "photos",
+ "name", "dob", "gender", "religion", "profession", "height", "city", "relationshipGoal", "bio", "interests", "personality", "photos",
 ] as const;
 
 type ProfileField = typeof COMPLETION_FIELDS[number];
@@ -148,7 +148,7 @@ export default function ProfilePage() {
 
     // Missing fields validation
     const requiredFields = [
-      "name", "dob", "gender", "religion", "profession", "height", "city", "relationshipGoal", "bio", "interests", "personality", "hobbies"
+      "name", "dob", "gender", "religion", "profession", "height", "city", "relationshipGoal", "bio", "interests", "personality"
     ] as const;
 
     for (const field of requiredFields) {
@@ -510,16 +510,6 @@ export default function ProfilePage() {
     color="blue"
     onChange={(v) => set("interests", v)}
   />
-  <TagField
-    label="Hobbies"
-    hint="(comma-separated)"
-    value={profile.hobbies ?? ""}
-    required={isEmpty("hobbies")}
-    disabled={isLocked}
-    color="blue"
-    onChange={(v) => set("hobbies", v)}
-  />
-
  {/* Actions */}
  <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4 border-border">
  <div className="flex gap-2">

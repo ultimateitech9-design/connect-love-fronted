@@ -10,6 +10,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { requireOnboarding, setToken } from "@/lib/auth";
+import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 
 const API_BASE = API_ORIGIN;
 
@@ -271,7 +273,19 @@ export default function RegisterPage() {
                   </div>
                 </form>
               ) : (
-              <form onSubmit={handleSubmit(onSubmit)} className="mt-3 grid gap-2.5">
+              <div>
+                <div className="mt-4">
+                  <GoogleAuthButton mode="signup" />
+                  <p className="mt-2 text-center text-[10px] leading-4 text-slate-400">
+                    By continuing with Google, you confirm you are 18+ and agree to the Terms of Service and Privacy Policy.
+                  </p>
+                </div>
+                <div className="my-3 flex items-center gap-3" aria-hidden="true">
+                  <span className="h-px flex-1 bg-slate-200" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">or register with email</span>
+                  <span className="h-px flex-1 bg-slate-200" />
+                </div>
+              <form onSubmit={handleSubmit(onSubmit)} className="grid gap-2.5">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Full Name" error={errors.name?.message}>
                     <input {...register("name")} id="signup-name" placeholder="Jane Doe" className="field-input" />
@@ -288,10 +302,9 @@ export default function RegisterPage() {
                 <Field label="Gender" error={errors.gender?.message}>
                   <select {...register("gender")} id="signup-gender" className="field-input">
                     <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="non-binary">Non-binary</option>
-                    <option value="prefer-not">Prefer not to say</option>
+                    {REGISTRATION_GENDER_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </Field>
 
@@ -349,6 +362,7 @@ export default function RegisterPage() {
                   {isSubmitting ? "Sending OTP..." : "Create My Account"}
                 </button>
               </form>
+              </div>
               )}
 
               <p className="mt-2 text-center text-xs text-slate-500">

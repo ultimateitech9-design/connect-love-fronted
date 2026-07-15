@@ -68,117 +68,140 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  window.scrollTo({ top, behavior: "smooth" });
  };
 
- return (
- <header
- className={`pointer-events-auto fixed top-0 left-0 right-0 z-[100] border-b border-slate-200 bg-white/90 shadow-sm backdrop-blur-xl transition-all duration-300 ${
- scrolled ? "" : ""
- }`}
- >
- <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
- {/* Logo */}
- <Link href="/" onClick={(event) => handleNavClick(event, "#hero")} className="flex items-center gap-2.5 group">
- <BrandLogo className="h-11 w-11 shadow-lg shadow-rose-500/30 transition-shadow group-hover:shadow-rose-500/50" priority />
- <span className="text-xl font-bold tracking-tight text-slate-900">
- Connect<span className="text-rose-500">Love</span>
- </span>
- </Link>
+  return (
+    <header
+      className={`pointer-events-auto fixed top-0 left-0 right-0 z-[100] border-b transition-all duration-500 ease-in-out ${
+        scrolled
+          ? "bg-white/80 border-rose-100 shadow-lg shadow-rose-500/5 backdrop-blur-xl py-0"
+          : "bg-transparent border-transparent shadow-none py-2"
+      }`}
+    >
+      <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <Link href="/" onClick={(event) => handleNavClick(event, "#hero")} className="flex items-center gap-2.5 group">
+          <BrandLogo className="h-11 w-11 shadow-lg shadow-rose-500/30 transition-all duration-300 group-hover:shadow-rose-500/60 group-hover:scale-105" priority />
+          <span className={`text-xl font-bold tracking-tight transition-colors duration-300 ${scrolled ? "text-slate-900" : "text-white"}`}>
+            Connect<span className="text-rose-500">Love</span>
+          </span>
+        </Link>
 
- {/* Desktop nav */}
- <nav className="hidden md:flex items-center gap-8">
- {navLinks.map((link) => (
- <Link
- href={link.href}
- key={link.href}
- onClick={(event) => handleNavClick(event, link.href)}
- className="text-sm font-medium text-slate-600 transition-colors relative group hover:text-rose-500"
- >
- {link.label}
- <span className="absolute -bottom-1 left-0 h-0.5 w-0 rounded-full bg-rose-400 transition-all group-hover:w-full" />
- </Link>
- ))}
- </nav>
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-8">
+          {navLinks.map((link) => (
+            <Link
+              href={link.href}
+              key={link.href}
+              onClick={(event) => handleNavClick(event, link.href)}
+              className={`text-sm font-semibold transition-all duration-300 relative group py-1.5 ${
+                scrolled ? "text-slate-600 hover:text-rose-500" : "text-white/80 hover:text-white"
+              }`}
+            >
+              {link.label}
+              <span className={`absolute bottom-0 left-0 h-0.5 w-0 rounded-full bg-rose-500 transition-all duration-300 group-hover:w-full`} />
+            </Link>
+          ))}
+        </nav>
 
- {/* Desktop actions */}
- <div className="hidden md:flex items-center gap-3">
- {loggedIn ? (
- <Link
- href="/user"
- className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 transition-colors hover:bg-slate-200"
- >
- <User className="h-5 w-5 text-slate-700" />
- </Link>
- ) : (
- <>
- <Link
- href="/login"
- id="navbar-login-btn"
- onClick={goToLogin}
- className="px-5 py-2 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
- >
- Sign In
- </Link>
- <Link
- href="/register"
- id="navbar-signup-btn"
- onClick={goToSignup}
- className="px-5 py-2 text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 transition-all hover:scale-105 active:scale-95"
- >
- Get Started
- </Link>
- </>
- )}
- </div>
+        {/* Desktop actions */}
+        <div className="hidden md:flex items-center gap-3">
+          {loggedIn ? (
+            <Link
+              href="/user"
+              className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:scale-105 ${
+                scrolled ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              <User className="h-5 w-5" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                id="navbar-login-btn"
+                onClick={goToLogin}
+                className={`px-5 py-2 text-sm font-semibold transition-all duration-300 ${
+                  scrolled ? "text-slate-700 hover:text-slate-900" : "text-white/80 hover:text-white"
+                }`}
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                id="navbar-signup-btn"
+                onClick={goToSignup}
+                className="px-6 py-2.5 text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40 transition-all duration-300 hover:scale-105 active:scale-95"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
+        </div>
 
- {/* Mobile menu button */}
- <button
- type="button"
- className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl text-slate-900 hover:bg-slate-100 md:hidden sm:right-6"
- onClick={() => setMobileOpen(!mobileOpen)}
- aria-label="Toggle menu"
- >
- {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
- </button>
- </div>
+        {/* Mobile menu button */}
+        <button
+          type="button"
+          className={`absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl transition-all duration-300 md:hidden sm:right-6 ${
+            scrolled ? "text-slate-900 hover:bg-slate-100" : "text-white hover:bg-white/10"
+          }`}
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
 
- {/* Mobile menu */}
- <AnimatePresence>
- {mobileOpen && (
- <motion.div
- initial={{ opacity: 0, height: 0 }}
- animate={{ opacity: 1, height: "auto" }}
- exit={{ opacity: 0, height: 0 }}
- className="max-h-[calc(100dvh-5rem)] space-y-3 overflow-y-auto border-t border-slate-200 bg-white/95 px-4 pb-6 pt-4 shadow-xl backdrop-blur-xl md:hidden sm:px-6"
- >
- {navLinks.map((link) => (
- <Link
- href={link.href}
- key={link.href}
- onClick={(event) => handleNavClick(event, link.href)}
- className="block w-full rounded-xl px-3 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-rose-50 hover:text-rose-600"
- >
- {link.label}
- </Link>
- ))}
- <div className="flex flex-col gap-3 border-t border-slate-200 pt-4">
- {loggedIn ? (
- <Link
- href="/user"
- onClick={() => setMobileOpen(false)}
- className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600"
- >
- <User className="h-4 w-4" />
- Go to Dashboard
- </Link>
- ) : (
- <>
- <Link href="/login" onClick={goToLogin} className="w-full rounded-full border border-slate-300 py-3 text-center text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">Sign In</Link>
- <Link href="/register" onClick={goToSignup} className="w-full py-2.5 text-center text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600">Get Started</Link>
- </>
- )}
- </div>
- </motion.div>
- )}
- </AnimatePresence>
- </header>
- );
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="max-h-[calc(100dvh-5rem)] space-y-2 overflow-y-auto border-t border-slate-100 bg-white px-4 pb-6 pt-4 shadow-xl md:hidden sm:px-6"
+          >
+            {navLinks.map((link) => (
+              <Link
+                href={link.href}
+                key={link.href}
+                onClick={(event) => handleNavClick(event, link.href)}
+                className="block w-full rounded-xl px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-rose-50/50 hover:text-rose-600 transition-all"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <div className="flex flex-col gap-3 border-t border-slate-100 pt-4">
+              {loggedIn ? (
+                <Link
+                  href="/user"
+                  onClick={() => setMobileOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600 shadow-md shadow-rose-500/25"
+                >
+                  <User className="h-4 w-4" />
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={goToLogin}
+                    className="w-full rounded-full border border-slate-200 py-3 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={goToSignup}
+                    className="w-full py-3 text-center text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600 shadow-md shadow-rose-500/25"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
+  );
 }

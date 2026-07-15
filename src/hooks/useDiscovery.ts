@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getDiscoveryProfiles, swipeProfile } from "@/features/discovery/api";
 
 type DiscoveryRequestFilters = {
+  interestedIn?: "female" | "male" | "non-binary" | "everyone";
   search?: string;
   ageMin?: number;
   ageMax?: number;
@@ -11,7 +12,7 @@ type DiscoveryRequestFilters = {
 };
 
 export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
-  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}:${(filters.goals || []).join(",")}`;
+  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}:${filters.interestedIn || "everyone"}:${(filters.goals || []).join(",")}`;
   const storageKey = `connect-love:discovery:${filterKey}`;
   const [profiles, setProfiles] = useState<any[]>(() => {
     if (typeof window === "undefined") return [];
@@ -73,7 +74,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [filterKey, filters.ageMax, filters.ageMin, filters.goals, filters.search, profiles.length, storageKey, token]);
+  }, [filterKey, filters.ageMax, filters.ageMin, filters.goals, filters.interestedIn, filters.search, profiles.length, storageKey, token]);
 
   useEffect(() => {
     const controller = new AbortController();

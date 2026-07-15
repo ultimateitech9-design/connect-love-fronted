@@ -12,10 +12,8 @@ export const footerLinkGroups = [
     category: "Product",
     links: [
       { label: "Discover", href: "/discover" },
-      { label: "Stories", href: "/stories" },
       { label: "Features", href: "/features" },
       { label: "Safety", href: "/safety" },
-      { label: "Premium", href: "/premium" },
     ],
   },
   {
@@ -23,9 +21,7 @@ export const footerLinkGroups = [
     links: [
       { label: "About Us", href: "/about-us" },
       { label: "Blog", href: "/blog" },
-      { label: "Careers", href: "/careers" },
-      { label: "Press", href: "/press" },
-      { label: "Ethics Statement", href: "/ethics-statement" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
     ],
   },
   {
@@ -33,9 +29,7 @@ export const footerLinkGroups = [
     links: [
       { label: "Help Center", href: "/help-center" },
       { label: "Contact Us", href: "/contact-us" },
-      { label: "Privacy Policy", href: "/privacy-policy" },
       { label: "Terms of Service", href: "/terms-of-service" },
-      { label: "Cookie Policy", href: "/cookie-policy" },
     ],
   },
 ];
@@ -50,6 +44,7 @@ export type PublicPageData = {
   highlights: string[];
   metrics: { value: string; label: string }[];
   sections: { title: string; body: string; points: string[] }[];
+  longForm?: { title: string; paragraphs: string[]; points?: string[] }[];
   actions: { title: string; body: string }[];
   roleAccess?: { role: string; access: string }[];
   faq: { question: string; answer: string }[];

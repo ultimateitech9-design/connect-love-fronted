@@ -8,6 +8,8 @@ import type { DiscoverFilters } from "@/features/user/FiltersPanel";
 import { useDiscovery } from "@/hooks/useDiscovery";
 import { getToken } from "@/lib/auth";
 import { formatDistance } from "@/lib/distance";
+import { INTERESTED_IN_OPTIONS } from "@/features/discovery/gender-options";
+import { AgeRangeSlider } from "@/features/discovery/AgeRangeSlider";
 
 const DISTANCE_STEP_KM = 100;
 const defaultFilters: DiscoverFilters = {
@@ -15,6 +17,7 @@ const defaultFilters: DiscoverFilters = {
   ageMin: 18,
   ageMax: 90,
   maxDistance: 100,
+  interestedIn: "everyone",
   interests: [],
   goals: [],
   verifiedOnly: false,
@@ -129,17 +132,14 @@ function MobileFilters({
             className="mt-1 h-10 w-full rounded-xl border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-rose-400"
           />
         </label>
-        <label className="block text-xs font-semibold text-muted-foreground">
-          Max age: <span className="text-rose-600">{filters.ageMax}</span>
-          <input
-            type="range"
-            value={filters.ageMax}
-            onChange={(event) => update("ageMax", Number(event.target.value))}
-            min={18}
-            max={90}
-            className="mt-2 h-2 w-full accent-rose-600"
+        <div>
+          <p className="mb-2 text-xs font-semibold text-muted-foreground">Age Range</p>
+          <AgeRangeSlider
+            minAge={filters.ageMin}
+            maxAge={filters.ageMax}
+            onChange={(ageMin, ageMax) => onChange({ ...filters, ageMin, ageMax })}
           />
-        </label>
+        </div>
         <label className="block text-xs font-semibold text-muted-foreground">
           Distance: <span className="text-rose-600">{formatDistanceLabel(filters.maxDistance)}</span>
           <input
@@ -151,6 +151,26 @@ function MobileFilters({
             className="mt-2 h-2 w-full accent-rose-600"
           />
         </label>
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground">Interested In</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {INTERESTED_IN_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => update("interestedIn", option.value)}
+                aria-pressed={filters.interestedIn === option.value}
+                className={`rounded-full border px-3 py-2 text-xs font-semibold ${
+                  filters.interestedIn === option.value
+                    ? "border-rose-600 bg-rose-50 text-rose-700"
+                    : "border-border text-muted-foreground"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"
@@ -270,6 +290,7 @@ function getProfileDistanceKm(profile: any): number | null {
 }
 
 function matchesNonDistanceFilters(p: any, filters: DiscoverFilters, onlyShowVerifiedProfiles = false): boolean {
+  if (filters.interestedIn !== "everyone" && String(p.gender || "").toLowerCase() !== filters.interestedIn) return false;
   if (filters.search && filters.search.trim()) {
     const query = filters.search.toLowerCase().trim();
     const nameMatch = p.name && p.name.toLowerCase().includes(query);
@@ -324,8 +345,8 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
   const deferredSearch = useDeferredValue(filters.search);
   const token = getToken() || "";
   const requestFilters = useMemo(
-    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, goals: filters.goals }),
-    [deferredSearch, filters.ageMin, filters.ageMax, filters.goals],
+    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals }),
+    [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals],
   );
   const { profiles, loading, swipeLeft, swipeRight, swipeSuper } = useDiscovery(token, requestFilters);
 

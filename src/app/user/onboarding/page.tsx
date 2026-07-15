@@ -15,6 +15,7 @@ import { StepTags } from "@/features/onboarding/StepTags";
 import { StepProfilePhotos, StepVideoKyc } from "@/features/onboarding/StepPhotosKyc";
 import { StepAge } from "@/features/onboarding/StepAge";
 import { StepReligion } from "@/features/onboarding/StepReligion";
+import { StepRelationshipGoal } from "@/features/onboarding/StepRelationshipGoal";
 
 const API = API_ORIGIN;
 
@@ -27,7 +28,7 @@ const STEPS = [
   { id: "bio", title: "Write your bio" },
   { id: "personality", title: "Your personality" },
   { id: "interests", title: "Your interests" },
-  { id: "hobbies", title: "Your hobbies" },
+  { id: "relationship-goal", title: "Relationship Goal" },
   { id: "photos", title: "Add profile photos" },
   { id: "video-kyc", title: "Video KYC verification" },
 ];
@@ -188,10 +189,9 @@ export default function OnboardingPage() {
                 />
               )}
               {currentStepIndex === 8 && (
-                <StepTags
-                  type="hobbies"
+                <StepRelationshipGoal
                   profile={profile}
-                  onNext={(val) => handleNext({ hobbies: val })}
+                  onNext={(val) => handleNext({ relationshipGoal: val })}
                 />
               )}
               {currentStepIndex === 9 && (
