@@ -83,15 +83,15 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
         </motion.div>
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[100vw] px-4 py-8 sm:px-6 lg:max-w-7xl lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+      <div className="relative z-10 mx-auto box-border w-full max-w-full px-4 py-8 sm:px-6 lg:max-w-7xl lg:px-8">
+        <div className="grid min-w-0 w-full gap-12 lg:grid-cols-2 lg:items-center">
           
           {/* Left Content */}
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="min-w-0 flex flex-col items-center lg:items-start text-center lg:text-left"
+            className="min-w-0 w-full max-w-full flex flex-col items-center lg:items-start text-center lg:text-left"
           >
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/5 px-4 py-2 backdrop-blur-md">
               <div className="flex gap-0.5">
@@ -113,7 +113,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
               <span className="text-white/95">like home</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-300/80 md:text-lg">
+            <p className="mt-6 w-full max-w-xl text-base leading-relaxed text-slate-300/80 md:text-lg">
               Experience a premium sanctuary for modern connection. We prioritize emotional resonance
               and safety over superficial swiping.
             </p>
@@ -122,7 +122,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
               <button
                 id="hero-getstarted-btn"
                 onClick={onSignupClick}
-                className="w-full sm:w-auto min-h-12 rounded-full bg-gradient-to-r from-rose-50 via-pink-500 to-rose-600 px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-rose-500/30 transition-all duration-300 hover:scale-105 hover:shadow-rose-500/50 hover:brightness-110 active:scale-95 cursor-pointer"
+                className="box-border w-full max-w-full sm:w-auto min-h-12 rounded-full bg-gradient-to-r from-rose-50 via-pink-500 to-rose-600 px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-rose-500/30 transition-all duration-300 hover:scale-105 hover:shadow-rose-500/50 hover:brightness-110 active:scale-95 cursor-pointer"
               >
                 Start Your Journey
               </button>
@@ -140,10 +140,10 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
 
           {/* Right Visual Frame */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={false}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, ease: "easeOut", delay: 0.1 }}
-            className="relative flex justify-center lg:justify-end"
+            className="relative min-w-0 w-full max-w-full flex justify-center lg:justify-end"
           >
             <div className="relative h-[min(115vw,460px)] w-full max-w-[340px] sm:h-[500px] lg:h-[520px]">
               
@@ -166,7 +166,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
 
               {/* Floating Quote badge */}
               <motion.div 
-                initial={{ x: -20, opacity: 0 }}
+                initial={false}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
                 className="absolute -bottom-4 left-4 max-w-[240px] rounded-2xl border border-white/10 bg-glass-dark p-4 shadow-xl backdrop-blur-xl sm:-left-8"
@@ -191,7 +191,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
 
               {/* Active counter badge */}
               <motion.div 
-                initial={{ y: -20, opacity: 0 }}
+                initial={false}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.8, duration: 0.6 }}
                 className="absolute -top-4 right-2 rounded-full border border-white/10 bg-glass-dark px-4 py-2.5 shadow-xl backdrop-blur-xl sm:-right-4"

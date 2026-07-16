@@ -21,11 +21,14 @@ function GoogleIcon() {
 declare global {
   interface Window {
     google?: {
-      accounts: {
+      accounts?: {
         id: {
           initialize: (options: { client_id: string; callback: (response: GoogleCredentialResponse) => void }) => void;
           renderButton: (element: HTMLElement, options: Record<string, string | number | boolean>) => void;
         };
+      };
+      translate?: {
+        TranslateElement: new (options: Record<string, unknown>, elementId: string) => void;
       };
     };
   }
@@ -72,7 +75,7 @@ export function GoogleAuthButton({ mode }: { mode: "signin" | "signup" }) {
     };
 
     const render = () => {
-      if (!window.google || !containerRef.current) return;
+      if (!window.google?.accounts || !containerRef.current) return;
       window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredential });
       containerRef.current.innerHTML = "";
       window.google.accounts.id.renderButton(containerRef.current, {
@@ -87,7 +90,7 @@ export function GoogleAuthButton({ mode }: { mode: "signin" | "signup" }) {
     };
 
     const existing = document.querySelector<HTMLScriptElement>('script[src="https://accounts.google.com/gsi/client"]');
-    if (window.google) render();
+    if (window.google?.accounts) render();
     else if (existing) existing.addEventListener("load", render, { once: true });
     else {
       const script = document.createElement("script");

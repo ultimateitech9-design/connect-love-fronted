@@ -84,8 +84,8 @@ export function FeaturesSection() {
         
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
+          initial={false}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto"
         >
@@ -146,7 +146,7 @@ export function FeaturesSection() {
             {(tab === "basic" ? basicFeatures : premiumFeatures).map((feature) => (
               <motion.button
                 layout
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={false}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3 }}
@@ -169,8 +169,8 @@ export function FeaturesSection() {
 
         {/* Pricing section */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
+          initial={false}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="mt-28"
         >

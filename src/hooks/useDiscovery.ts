@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getDiscoveryProfiles, swipeProfile } from "@/features/discovery/api";
+import { getDiscoveryProfileDetails, getDiscoveryProfiles, swipeProfile } from "@/features/discovery/api";
 
 type DiscoveryRequestFilters = {
   interestedIn?: "female" | "male" | "non-binary" | "everyone";
@@ -9,10 +9,11 @@ type DiscoveryRequestFilters = {
   ageMin?: number;
   ageMax?: number;
   goals?: string[];
+  limit?: number;
 };
 
 export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
-  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}:${filters.interestedIn || "everyone"}:${(filters.goals || []).join(",")}`;
+  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}:${filters.interestedIn || "everyone"}:${(filters.goals || []).join(",")}:${filters.limit || ""}`;
   const storageKey = `connect-love:discovery:${filterKey}`;
   const [profiles, setProfiles] = useState<any[]>(() => {
     if (typeof window === "undefined") return [];
@@ -31,6 +32,32 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
 
   useEffect(() => {
     profilesRef.current = profiles;
+  }, [profiles]);
+
+  // Fetch the current card's remaining photos after the critical first paint.
+  // The discovery response only carries primary thumbnails, which keeps its
+  // JSON payload small while preserving the complete carousel moments later.
+  useEffect(() => {
+    const current = profiles[0];
+    if (!current || (current.photos?.length || 0) >= (current.photoCount || 1)) return;
+    const controller = new AbortController();
+    const win = window as Window & { requestIdleCallback?: (callback: IdleRequestCallback) => number; cancelIdleCallback?: (handle: number) => void };
+    let idleId: number | undefined;
+    const load = () => {
+      getDiscoveryProfileDetails(current.id, controller.signal)
+        .then((details) => {
+          if (!details?.photos?.length) return;
+          setProfiles((items) => items.map((item) => item.id === current.id ? { ...item, photos: details.photos } : item));
+        })
+        .catch(() => {});
+    };
+    const timer = window.setTimeout(load, 900);
+    if (win.requestIdleCallback) idleId = win.requestIdleCallback(load);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+      if (idleId && win.cancelIdleCallback) win.cancelIdleCallback(idleId);
+    };
   }, [profiles]);
 
   const fetchProfiles = useCallback(async (signal?: AbortSignal, force = false) => {
@@ -74,7 +101,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [filterKey, filters.ageMax, filters.ageMin, filters.goals, filters.interestedIn, filters.search, profiles.length, storageKey, token]);
+  }, [filterKey, filters.ageMax, filters.ageMin, filters.goals, filters.interestedIn, filters.limit, filters.search, profiles.length, storageKey, token]);
 
   useEffect(() => {
     const controller = new AbortController();

@@ -5,7 +5,6 @@ import { useState, useEffect, type MouseEvent } from "react";
 import Link from "next/link";
 import { Menu, X, User } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
-import { motion, AnimatePresence } from "framer-motion";
 import { isAuthenticated } from "@/lib/auth";
 import { navLinks } from "./marketingPages";
 
@@ -145,63 +144,60 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
           }`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-navigation"
         >
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+      {mobileOpen && (
+          <div
+            id="mobile-navigation"
             className="max-h-[calc(100dvh-5rem)] space-y-2 overflow-y-auto border-t border-slate-100 bg-white px-4 pb-6 pt-4 shadow-xl md:hidden sm:px-6"
           >
             {navLinks.map((link) => (
-              <Link
+              <a
                 href={link.href}
                 key={link.href}
-                onClick={(event) => handleNavClick(event, link.href)}
+                onClick={() => setMobileOpen(false)}
                 className="block w-full rounded-xl px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-rose-50/50 hover:text-rose-600 transition-all"
               >
                 {link.label}
-              </Link>
+              </a>
             ))}
             <div className="flex flex-col gap-3 border-t border-slate-100 pt-4">
               {loggedIn ? (
-                <Link
+                <a
                   href="/user"
                   onClick={() => setMobileOpen(false)}
                   className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600 shadow-md shadow-rose-500/25"
                 >
                   <User className="h-4 w-4" />
                   Go to Dashboard
-                </Link>
+                </a>
               ) : (
                 <>
-                  <Link
+                  <a
                     href="/login"
-                    onClick={goToLogin}
+                    onClick={() => setMobileOpen(false)}
                     className="w-full rounded-full border border-slate-200 py-3 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all"
                   >
                     Sign In
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="/register"
-                    onClick={goToSignup}
+                    onClick={() => setMobileOpen(false)}
                     className="w-full py-3 text-center text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600 shadow-md shadow-rose-500/25"
                   >
                     Get Started
-                  </Link>
+                  </a>
                 </>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
     </header>
   );
 }

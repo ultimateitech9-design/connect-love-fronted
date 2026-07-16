@@ -3,6 +3,7 @@ import { Inter, Fraunces } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/SessionProvider";
 import { QueryProvider } from "@/components/QueryProvider";
+import { TranslationProvider } from "@/features/i18n/TranslationProvider";
 import "../styles.css";
 
 const sans = Inter({
@@ -43,13 +44,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${sans.variable} ${display.variable} scroll-smooth`}>
       <body>
         <QueryProvider>
-          <SessionProvider>
-            {children}
-          </SessionProvider>
+          <TranslationProvider>
+            <SessionProvider>
+              {children}
+            </SessionProvider>
+          </TranslationProvider>
         </QueryProvider>
         <Toaster />
       </body>
     </html>
   );
 }
-

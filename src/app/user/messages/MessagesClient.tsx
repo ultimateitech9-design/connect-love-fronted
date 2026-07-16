@@ -35,7 +35,6 @@ const GIF_MESSAGE_PREFIX = "__gif_message__:";
 const MAX_VOICE_SECONDS = 60;
 const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 const CHAT_THEME_STORAGE_KEY = "connect-love-chat-theme";
-const DELETED_CHATS_STORAGE_KEY = "connect-love-deleted-chats";
 const MUTED_CHATS_STORAGE_KEY = "connect-love-muted-chats";
 const INITIAL_MESSAGE_RENDER_LIMIT = 80;
 
@@ -1630,7 +1629,6 @@ type ActiveCall = {
 
 export default function Messages() {
  const [activeId, setActiveId] = useState<string | null>(null);
- const [deletedChats, setDeletedChats] = useState<Record<string, number>>({});
  const [mutedChatIds, setMutedChatIds] = useState<Set<string>>(new Set());
  const [coinBalance, setCoinBalance] = useState(0);
  const [coinActionPending, setCoinActionPending] = useState(false);
@@ -1691,13 +1689,6 @@ export default function Messages() {
  const voiceStreamRef = useRef<MediaStream | null>(null);
  const peerRef = useRef<RTCPeerConnection | null>(null);
  const queryClient = useQueryClient();
-
- useEffect(() => {
-   try {
-     const saved = JSON.parse(window.localStorage.getItem(DELETED_CHATS_STORAGE_KEY) || "{}");
-     if (saved && typeof saved === "object") setDeletedChats(saved);
-   } catch {}
- }, []);
 
  useEffect(() => {
    try {
@@ -1990,11 +1981,7 @@ export default function Messages() {
         lastMessageTime: m.lastMessageTime || m.createdAt,
         unread: m.unreadCount || 0,
       };
-    }).filter((match: any) => {
-      const deletedAt = deletedChats[match.id];
-      if (!deletedAt) return true;
-      return new Date(match.lastMessageTime).getTime() > deletedAt;
-    }), [activeMatches, deletedChats, myId]);
+    }), [activeMatches, myId]);
 
  const sortedMatches = [...displayMatches]
    .filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -2194,12 +2181,9 @@ export default function Messages() {
      });
      if (!res.ok) throw new Error("Delete chat failed");
 
-     const nextDeletedChats = { ...deletedChats, [conversationId]: Date.now() };
-     setDeletedChats(nextDeletedChats);
-     window.localStorage.setItem(DELETED_CHATS_STORAGE_KEY, JSON.stringify(nextDeletedChats));
      queryClient.setQueryData(["messages", conversationId], []);
-     if (activeId === conversationId) setActiveId(null);
-     toast.success("Chat deleted for you.");
+     queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
+     toast.success("Messages deleted. The match remains available for a new chat.");
    } catch {
      toast.error("Chat delete nahi ho payi.");
    }

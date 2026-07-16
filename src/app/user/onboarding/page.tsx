@@ -39,6 +39,7 @@ export default function OnboardingPage() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   // Fetch initial profile
   useEffect(() => {
@@ -65,6 +66,7 @@ export default function OnboardingPage() {
   const handleNext = async (fieldValues: Record<string, any>, isFinal = false) => {
     if (saving) return;
     setSaving(true);
+    setSaveError("");
     const token = getToken();
 
     const payload = {
@@ -82,19 +84,24 @@ export default function OnboardingPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Failed to save step");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        const detail = Array.isArray(body?.message) ? body.message.join(" ") : body?.message;
+        throw new Error(detail || "Failed to save step");
+      }
 
       // Update local profile state
       setProfile((prev: any) => ({ ...prev, ...payload }));
 
       if (isFinal) {
         clearOnboardingRequired();
-        router.push("/user/profile");
+        router.replace("/user/profile");
       } else {
         setCurrentStepIndex((prev) => prev + 1);
       }
     } catch (error) {
       console.error(error);
+      setSaveError(error instanceof Error ? error.message : "Could not save your profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -225,6 +232,11 @@ export default function OnboardingPage() {
               <Loader2 className="h-[16px] w-[16px] animate-spin text-rose-500" />
               Saving...
             </div>
+          )}
+          {saveError && (
+            <p className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              {saveError}
+            </p>
           )}
         </div>
       </div>

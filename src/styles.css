@@ -977,3 +977,25 @@ button:focus-visible > .cinematic-reaction-emoji {
   background: #e11d48; box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
   cursor: grab; pointer-events: auto;
 }
+/* Keep the translation engine's legacy toolbar from shifting application UI. */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+#goog-te-banner-frame,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+iframe.skiptranslate,
+iframe[src*="translate.google"],
+[class*="VIpgJd-ZVi9od-ORHb"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+html {
+  margin-top: 0 !important;
+}

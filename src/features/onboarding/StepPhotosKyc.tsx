@@ -84,7 +84,7 @@ export function StepVideoKyc({
   onNext,
 }: {
   profile: PhotoProfile;
-  onNext: (value: Record<string, never>) => void;
+  onNext: (value: Record<string, never>) => void | Promise<void>;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -209,7 +209,10 @@ export function StepVideoKyc({
           }
           setKycFrame(result.kycLivePhoto || capturedFrames[0]);
           setMatchResult(result);
-          if (!result.matched) {
+          if (result.matched) {
+            setMessage("Verification complete. Opening your dashboard...");
+            await onNext({});
+          } else {
             setMessage(
               result.motionDetected === false
                 ? "Please keep your face visible and slowly turn your head during verification."
@@ -267,7 +270,11 @@ export function StepVideoKyc({
               </div>
             )}
 
-            {message && <p className="mt-3 text-sm text-rose-300">{message}</p>}
+            {message && (
+              <p className={`mt-3 text-sm ${matchResult?.matched ? "text-emerald-300" : "text-rose-300"}`}>
+                {message}
+              </p>
+            )}
           </div>
 
           <div className="mt-4 grid gap-2">

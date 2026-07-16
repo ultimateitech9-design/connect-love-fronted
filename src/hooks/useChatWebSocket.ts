@@ -224,7 +224,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  });
 
  const sendMessage = useCallback((receiverId: string, content: string, replyToMessageId?: string | null) => {
- if (socket && conversationId) {
+ if (conversationId) {
  const clientId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
  const pendingMessage: Message = {
    id: clientId,
@@ -242,7 +242,8 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
 
  queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) => [...(old || []), pendingMessage]);
 
- socket.emit('sendMessage', {
+ if (socket?.connected) {
+  socket.emit('sendMessage', {
  conversationId,
  receiverId,
  content,
@@ -254,9 +255,35 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
        return old.map((message) => message.id === clientId ? { ...message, deliveryStatus: 'failed' } : message);
      });
    }
- });
+  });
+  return;
  }
- }, [conversationId, queryClient, socket]);
+
+ // Keep sending responsive while the websocket is still connecting or briefly
+ // reconnecting. The REST endpoint persists the same message immediately.
+ fetch(`${API_URL}/messages/${conversationId}`, {
+  method: 'POST',
+  headers: {
+   'Content-Type': 'application/json',
+   Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ receiverId, content, replyToMessageId: replyToMessageId || undefined }),
+ })
+  .then(async (response) => {
+   if (!response.ok) throw new Error('Message send failed');
+   const saved = await response.json() as Message;
+   queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) =>
+    (old || []).map((message) => message.id === clientId ? { ...saved, deliveryStatus: 'sent' } : message),
+   );
+   queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
+  })
+  .catch(() => {
+   queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) =>
+    (old || []).map((message) => message.id === clientId ? { ...message, deliveryStatus: 'failed' } : message),
+   );
+  });
+ }
+ }, [conversationId, queryClient, socket, token]);
 
  const editMessage = useCallback((messageId: string, receiverId: string, content: string) => {
    if (socket && conversationId) {

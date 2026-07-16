@@ -5,11 +5,12 @@ import { useState } from "react";
 import {
  Eye, MapPin, Bell, Heart, ShieldCheck,
  Lock, Trash2, UserX, Download, ChevronRight,
- Moon, Globe, Smartphone,
+ Moon, Smartphone,
 } from "lucide-react";
 
 import { useSettings, UserSettings } from "@/features/user/SettingsContext";
 import { getToken, clearToken } from "@/lib/auth";
+import { LanguageSelector } from "@/features/i18n/LanguageSelector";
 
 interface Toggle {
  id: keyof UserSettings;
@@ -28,10 +29,6 @@ const notifToggles: Toggle[] = [
  { id: "notifyMessages", label: "Message notifications", desc: "Push notifications for new messages.", icon: Bell },
  { id: "notifyMatches", label: "Match notifications", desc: "Be notified when someone matches with you.", icon: Heart },
  { id: "notifyPush", label: "Push notifications", desc: "Receive alerts on your mobile device.", icon: Smartphone },
-];
-
-const appToggles: Toggle[] = [
- { id: "language", label: "Language: English", desc: "Change your app display language.", icon: Globe },
 ];
 
 function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
@@ -213,7 +210,7 @@ export default function SettingsPage() {
 
  {/* App Preferences */}
  <SectionCard title="App Preferences" subtitle="Customize your app experience.">
- {appToggles.map((t) => <ToggleRow key={t.id} toggle={t} checked={!!settings[t.id]} onChange={(v) => updateSetting(t.id, v)} />)}
+ <LanguageSelector />
  </SectionCard>
 
  {/* Account */}

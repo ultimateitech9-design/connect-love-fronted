@@ -19,6 +19,7 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  staleTime: 60_000,
  gcTime: 5 * 60_000,
  refetchOnWindowFocus: false,
+ refetchOnMount: "always",
  });
 
  const actionMutation = useMutation({

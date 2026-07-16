@@ -13,9 +13,7 @@ export function GlobalPresence() {
 
   useEffect(() => {
     let socket: ReturnType<typeof io> | null = null;
-    let cancelled = false;
     const start = () => {
-    if (cancelled) return;
     const token = getToken();
     if (!token) return;
 
@@ -46,11 +44,9 @@ export function GlobalPresence() {
     });
     };
 
-    const timer = window.setTimeout(start, 8000);
+    start();
 
     return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
       socket?.disconnect();
     };
   }, [queryClient]);

@@ -36,8 +36,8 @@ export function AboutSection() {
       <div className="mx-auto w-[90vw] max-w-7xl">
         <motion.div
           variants={containerVariants}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
+          initial="visible"
+          animate="visible"
           className="grid gap-16 lg:grid-cols-2 lg:items-center"
         >
           {/* Left Block */}

@@ -8,6 +8,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { getToken } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useMatches } from "@/hooks/useMatches";
 
 const API = API_ORIGIN;
 const COMPLETION_FIELDS = [
@@ -28,46 +30,24 @@ export function RightRail() {
   const [completion, setCompletion] = useState(85);
   const [avatarUrl, setAvatarUrl] = useState("https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop");
   const [recentMatches, setRecentMatches] = useState<any[]>([]);
+  const token = getToken() || "";
+  const { data: currentUser } = useCurrentUser(token);
+  const { matches: activeMatches } = useMatches(token, "active");
 
   useEffect(() => {
-    const token = getToken();
-
-    // Fetch User Profile
-    if (token) {
-      fetch(`${API}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => {
-          if (res.ok) return res.json();
-          return null;
-        })
-        .then((data) => {
-          if (data) {
-            setCompletion(calcCompletion(data));
-            const latestPhoto = data.photos?.[0] || data.avatarUrl;
-            if (latestPhoto) setAvatarUrl(latestPhoto);
-            else {
-              const cached = localStorage.getItem("cl_avatar_url");
-              if (cached) setAvatarUrl(cached);
-            }
-          }
-        })
-        .catch(() => {});
+    if (currentUser) {
+      setCompletion(calcCompletion(currentUser));
+      const latestPhoto = currentUser.photos?.[0] || currentUser.avatarUrl || localStorage.getItem("cl_avatar_url");
+      if (latestPhoto) setAvatarUrl(latestPhoto);
     }
+  }, [currentUser]);
 
-    // Fetch matches from DB
-    if (token) {
+  useEffect(() => {
+    if (token && activeMatches.length) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const myId = payload.userId || payload.sub;
-
-        fetch(`${API}/matches?filter=active`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        .then((res) => res.json())
-        .then((data) => {
-          if (Array.isArray(data)) {
-            const displayMatches = Array.from(new Map(data.map((m: any) => {
+            const displayMatches = Array.from(new Map(activeMatches.map((m: any) => {
               const targetId = m.senderId === myId ? m.receiverId : m.senderId;
               return [m.id, { ...m, targetId }];
             })).values()).map((m: any) => {
@@ -83,12 +63,9 @@ export function RightRail() {
               };
             });
             setRecentMatches(displayMatches.slice(0, 5));
-          }
-        })
-        .catch(() => {});
       } catch(e) {}
     }
-  }, []);
+  }, [activeMatches, token]);
 
   return (
     <div className="flex h-full flex-col gap-4">

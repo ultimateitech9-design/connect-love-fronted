@@ -25,3 +25,7 @@ export function swipeProfile(receiverId: string, action: "like" | "pass" | "supe
     body: JSON.stringify({ receiverId, action }),
   });
 }
+
+export function getDiscoveryProfileDetails(userId: string, signal?: AbortSignal) {
+  return directFetch<any>(`/users/${userId}/details`, { signal });
+}

@@ -80,13 +80,24 @@ function useDesktopLayout() {
   return isDesktop;
 }
 
-function useAfterFirstPaint(delay = 1600) {
+function useSecondaryPanels() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setReady(true), delay);
-    return () => window.clearTimeout(timer);
-  }, [delay]);
+    const win = window as Window & {
+      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => setReady(true), 800);
+    if (win.requestIdleCallback) {
+      idleId = win.requestIdleCallback(() => setReady(true), { timeout: 800 });
+    }
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId && win.cancelIdleCallback) win.cancelIdleCallback(idleId);
+    };
+  }, []);
 
   return ready;
 }
@@ -341,11 +352,11 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
   const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
   const [dismissedProfileIds, setDismissedProfileIds] = useState<Set<string>>(new Set());
   const isDesktop = useDesktopLayout();
-  const loadSecondaryPanels = useAfterFirstPaint();
+  const loadSecondaryPanels = useSecondaryPanels();
   const deferredSearch = useDeferredValue(filters.search);
   const token = getToken() || "";
   const requestFilters = useMemo(
-    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals }),
+    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, limit: 8 }),
     [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals],
   );
   const { profiles, loading, swipeLeft, swipeRight, swipeSuper } = useDiscovery(token, requestFilters);

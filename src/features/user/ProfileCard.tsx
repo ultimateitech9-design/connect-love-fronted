@@ -13,6 +13,7 @@ export interface Profile {
   age: number | null;
   photo?: string;
   photos?: string[];
+  photoCount?: number;
   images?: string[];
   avatarUrl?: string;
   profession: string;
@@ -190,6 +191,7 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
       setLoadingDetails(false);
     }
   };
+
 
   const cancelHold = () => {
     if (holdTimeoutRef.current) {

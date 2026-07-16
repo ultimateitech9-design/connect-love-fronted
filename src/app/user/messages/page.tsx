@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
 
 const MessagesClient = dynamic(() => import("./MessagesClient"), {
   ssr: false,
@@ -64,26 +63,5 @@ function MessagesShell() {
 }
 
 export default function MessagesPage() {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const win = window as Window & {
-      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
-      cancelIdleCallback?: (handle: number) => void;
-    };
-
-    let idleId: number | undefined;
-    const timer = window.setTimeout(() => setReady(true), 1200);
-
-    if (win.requestIdleCallback) {
-      idleId = win.requestIdleCallback(() => setReady(true), { timeout: 1200 });
-    }
-
-    return () => {
-      window.clearTimeout(timer);
-      if (idleId && win.cancelIdleCallback) win.cancelIdleCallback(idleId);
-    };
-  }, []);
-
-  return ready ? <MessagesClient /> : <MessagesShell />;
+  return <MessagesClient />;
 }

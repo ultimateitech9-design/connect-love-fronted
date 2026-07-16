@@ -2,18 +2,19 @@ import { API_ORIGIN } from "@/config/runtime";
 const API_BASE = API_ORIGIN;
 const BASE = `${API_BASE.replace(/\/$/, "")}/api`;
 
-function getClientToken(): string | null {
+function getClientToken(preferManagement = false): string | null {
  if (typeof window === "undefined") return null;
  const localToken = window.localStorage.getItem("sm_token");
  const cookieToken = document.cookie
  .split("; ")
  .find((row) => row.startsWith("management_client_token="))
  ?.split("=")[1];
- return (cookieToken ? decodeURIComponent(cookieToken) : null) || localToken;
+ const managementToken = cookieToken ? decodeURIComponent(cookieToken) : null;
+ return preferManagement ? managementToken || localToken : localToken || managementToken;
 }
 
-async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
- const token = getClientToken();
+async function request<T>(url: string, init: RequestInit = {}, preferManagement = false): Promise<T> {
+ const token = getClientToken(preferManagement);
  const headers = new Headers(init.headers);
  if (!headers.has("Content-Type") && init.body) headers.set("Content-Type", "application/json");
  if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -23,11 +24,11 @@ async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
- return request<T>(`${BASE}${path}`, init);
+ return request<T>(`${BASE}${path}`, init, true);
 }
 
 export async function directFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
- return request<T>(`${API_BASE.replace(/\/$/, "")}${path}`, init);
+ return request<T>(`${API_BASE.replace(/\/$/, "")}${path}`, init, false);
 }
 
 export const api = {

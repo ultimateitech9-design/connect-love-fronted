@@ -3,6 +3,7 @@ import { API_ORIGIN } from "@/config/runtime";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Bell, Settings, LogOut, UserRound } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { logout, getToken } from "@/lib/auth";
 import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const API = API_ORIGIN;
 
@@ -34,21 +36,29 @@ const notifColor = {
 
 export function TopNav() {
  const pathname = usePathname();
+ const router = useRouter();
  const token = getToken() || "";
 
  const [notifOpen, setNotifOpen] = useState(false);
  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
  const [userName, setUserName] = useState<string>("You");
  const [loadNavData, setLoadNavData] = useState(false);
+ const [seenNotificationIds, setSeenNotificationIds] = useState<Set<string>>(new Set());
 
  const notifRef = useRef<HTMLDivElement>(null);
 
  const { matches: activeMatches } = useMatches(token, "active", { enabled: loadNavData });
  const { matches: receivedMatches } = useMatches(token, "received", { enabled: loadNavData });
+ const { data: navUser } = useCurrentUser(token, loadNavData);
 
  const unreadMessagesCount = activeMatches.reduce((sum: number, m: any) => sum + (m.unreadCount || 0), 0);
  const newMatchesCount = receivedMatches.length;
- const totalUnread = unreadMessagesCount + newMatchesCount;
+ let sessionUserId = "user";
+ try {
+  const payload = JSON.parse(atob(token.split('.')[1] || ''));
+  sessionUserId = String(payload.sub || payload.userId || "user");
+ } catch {}
+ const seenStorageKey = `cl_seen_notifications:${sessionUserId}`;
 
  const realNotifications = [
    ...receivedMatches.map((m: any) => ({
@@ -57,22 +67,47 @@ export function TopNav() {
      title: "New Match Request! 💕",
      body: "Someone liked your profile. Check it out!",
      time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-     link: "/user/matches"
+     link: "/user/matches",
+     count: 1,
    })),
    ...activeMatches.filter((m: any) => m.unreadCount > 0).map((m: any) => ({
-     id: `msg-${m.id}`,
+     id: `msg-${m.id}-${m.lastMessageTime || m.updatedAt || m.unreadCount}`,
      type: "message" as const,
      title: `New Message (${m.unreadCount})`,
      body: m.lastMessage || "You have unread messages.",
      time: new Date(m.lastMessageTime || m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-     link: `/user/messages?id=${m.id}`
+     link: `/user/messages?id=${m.id}`,
+     count: Number(m.unreadCount) || 1,
    }))
  ];
+ const unseenNotifications = realNotifications.filter((notification) => !seenNotificationIds.has(notification.id));
+ const totalUnread = unseenNotifications.reduce((sum, notification) => sum + notification.count, 0);
 
  useEffect(() => {
- const timer = window.setTimeout(() => setLoadNavData(true), 6000);
- return () => window.clearTimeout(timer);
+  const routes = [...navItems.map((item) => item.to), "/user/settings", "/user/premium"];
+  const timers = routes.map((route, index) => window.setTimeout(() => router.prefetch(route), index * 150));
+  return () => timers.forEach(window.clearTimeout);
+ }, [router]);
+
+ useEffect(() => {
+  const win = window as Window & { requestIdleCallback?: (callback: IdleRequestCallback) => number; cancelIdleCallback?: (handle: number) => void };
+  let idleId: number | undefined;
+  const timer = window.setTimeout(() => setLoadNavData(true), 1000);
+  if (win.requestIdleCallback) idleId = win.requestIdleCallback(() => setLoadNavData(true));
+  return () => {
+   window.clearTimeout(timer);
+   if (idleId && win.cancelIdleCallback) win.cancelIdleCallback(idleId);
+  };
  }, []);
+
+ useEffect(() => {
+  try {
+   const saved = JSON.parse(localStorage.getItem(seenStorageKey) || "[]");
+   setSeenNotificationIds(new Set(Array.isArray(saved) ? saved.map(String) : []));
+  } catch {
+   setSeenNotificationIds(new Set());
+  }
+ }, [seenStorageKey]);
 
  // Fetch user avatar for the nav
  useEffect(() => {
@@ -83,22 +118,19 @@ export function TopNav() {
  const cachedName = localStorage.getItem(NAME_KEY);
  if (cachedName) setUserName(cachedName);
 
- if (!token || !loadNavData) return;
- fetch(`${API}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
- .then((r) => (r.ok ? r.json() : null))
- .then((data) => {
- if (data?.name) {
- setUserName(data.name);
- localStorage.setItem(NAME_KEY, data.name);
- }
- const latestPhoto = data?.photos?.[0] || data?.avatarUrl;
- if (latestPhoto) {
- setAvatarUrl(latestPhoto);
- localStorage.setItem(AVATAR_KEY, latestPhoto);
- }
- })
- .catch(() => {});
- }, [token, loadNavData]);
+ }, []);
+
+ useEffect(() => {
+  if (navUser?.name) {
+   setUserName(navUser.name);
+   localStorage.setItem("cl_user_name", navUser.name);
+  }
+  const latestPhoto = navUser?.photos?.[0] || navUser?.avatarUrl;
+  if (latestPhoto) {
+   setAvatarUrl(latestPhoto);
+   localStorage.setItem("cl_avatar_url", latestPhoto);
+  }
+ }, [navUser]);
 
  // Close notif panel when clicking outside
  useEffect(() => {
@@ -112,6 +144,17 @@ export function TopNav() {
  }, [notifOpen]);
 
  const handleLogout = () => logout("/");
+ const handleNotificationToggle = () => {
+  const willOpen = !notifOpen;
+  if (willOpen && realNotifications.length) {
+   const next = new Set(seenNotificationIds);
+   realNotifications.forEach((notification) => next.add(notification.id));
+   const trimmed = [...next].slice(-200);
+   setSeenNotificationIds(new Set(trimmed));
+   localStorage.setItem(seenStorageKey, JSON.stringify(trimmed));
+  }
+  setNotifOpen(willOpen);
+ };
 
  return (
   <>
@@ -168,7 +211,7 @@ export function TopNav() {
  <div className="relative" ref={notifRef}>
  <button
  id="notif-btn"
- onClick={() => setNotifOpen(!notifOpen)}
+ onClick={handleNotificationToggle}
             className="relative flex h-[36px] w-[36px] items-center justify-center rounded-full transition-all hover:bg-rose-50 dark:hover:bg-rose-950/30 text-muted-foreground hover:text-rose-700"
             aria-label="Notifications"
             aria-expanded={notifOpen}

@@ -52,7 +52,7 @@ export default function PrivacyPolicyPage() {
       <Navbar onLoginClick={() => { window.location.href = "/login"; }} onSignupClick={() => { window.location.href = "/register"; }} />
 
       <main className="pt-20">
-        <section className="border-b border-rose-100 bg-gradient-to-b from-rose-50 via-white to-slate-50 py-16 md:py-24">
+        <section className="border-b border-rose-100 bg-gradient-to-b from-rose-50 via-white to-slate-50 pb-16 pt-4 md:pb-24 md:pt-4">
           <div className="mx-auto w-[90vw] max-w-5xl">
             <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold uppercase tracking-widest text-rose-600 shadow-sm ring-1 ring-rose-100">
               <ShieldCheck className="h-4 w-4" /> Privacy & data protection
