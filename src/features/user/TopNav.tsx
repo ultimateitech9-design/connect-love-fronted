@@ -12,6 +12,7 @@ import { logout, getToken } from "@/lib/auth";
 import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ThemeToggle } from "@/features/theme/ThemeToggle";
 
 const API = API_ORIGIN;
 
@@ -207,6 +208,7 @@ export function TopNav() {
 
  {/* Right icons */}
  <div className="flex items-center gap-3">
+ <ThemeToggle className="h-9 w-9" />
  {/* Notification Bell */}
  <div className="relative" ref={notifRef}>
  <button

@@ -3,6 +3,7 @@ import { API_ORIGIN } from "@/config/runtime";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
+import { getStoredTheme, THEME_STORAGE_KEY, type AppTheme } from "@/features/theme/theme";
 
 export interface UserSettings {
  showOnlineStatus: boolean;
@@ -35,7 +36,10 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
- const [settings, setSettings] = useState<UserSettings>(defaultSettings);
+ const [settings, setSettings] = useState<UserSettings>(() => ({
+  ...defaultSettings,
+  darkMode: typeof window !== "undefined" && getStoredTheme() === "dark",
+ }));
  const [loading, setLoading] = useState(true);
 
  useEffect(() => {
@@ -45,6 +49,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
      document.documentElement.classList.remove("dark");
    }
  }, [settings.darkMode]);
+
+ useEffect(() => {
+  const syncTheme = (event: Event) => {
+   const theme = (event as CustomEvent<AppTheme>).detail;
+   setSettings((current) => ({ ...current, darkMode: theme === "dark" }));
+  };
+  window.addEventListener("connect-love-theme-change", syncTheme);
+  return () => window.removeEventListener("connect-love-theme-change", syncTheme);
+ }, []);
 
  useEffect(() => {
  const fetchSettings = async () => {
@@ -67,7 +80,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
  notifyMessages: data.notifyMessages ?? true,
  notifyMatches: data.notifyMatches ?? true,
  notifyPush: data.notifyPush ?? true,
- darkMode: data.darkMode ?? false,
+ darkMode: localStorage.getItem(THEME_STORAGE_KEY) ? getStoredTheme() === "dark" : data.darkMode ?? false,
  language: data.language ?? "en",
  });
  }

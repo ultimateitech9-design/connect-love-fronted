@@ -7,6 +7,7 @@ import { Menu, X, User } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { isAuthenticated } from "@/lib/auth";
 import { navLinks } from "./marketingPages";
+import { ThemeToggle } from "@/features/theme/ThemeToggle";
 
 interface NavbarProps {
  onLoginClick: () => void;
@@ -103,6 +104,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
 
         {/* Desktop actions */}
         <div className="hidden md:flex items-center gap-3">
+          <ThemeToggle className={scrolled ? "dark:bg-slate-900" : "border-white/20 bg-white/10 text-white hover:bg-white/20"} />
           {loggedIn ? (
             <Link
               href="/user"
@@ -137,6 +139,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         </div>
 
         {/* Mobile menu button */}
+        <ThemeToggle className={`absolute right-16 md:hidden sm:right-20 ${scrolled ? "dark:bg-slate-900" : "border-white/20 bg-white/10 text-white"}`} />
         <button
           type="button"
           className={`absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl transition-all duration-300 md:hidden sm:right-6 ${
