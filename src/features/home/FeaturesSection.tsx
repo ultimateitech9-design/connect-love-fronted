@@ -29,7 +29,7 @@ const plans = [
     description: "Start your journey",
     color: "from-slate-100 to-slate-50",
     border: "border-slate-200",
-    btn: "bg-slate-900 text-white hover:bg-slate-800",
+    btn: "bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white",
     features: ["5 matches per day", "Basic messaging", "Profile creation", "Safety tools"],
     popular: false,
   },
@@ -40,7 +40,7 @@ const plans = [
     description: "Most popular choice",
     color: "from-rose-500 via-pink-500 to-rose-600",
     border: "border-rose-500",
-    btn: "bg-white text-rose-600 hover:bg-rose-50 font-bold shadow-md shadow-rose-500/10",
+    btn: "bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:brightness-110 shadow-md shadow-rose-500/20",
     features: ["Unlimited matches", "Priority visibility", "Video dates", "AI icebreakers", "Read receipts", "Advanced filters"],
     popular: true,
   },
@@ -51,7 +51,7 @@ const plans = [
     description: "The ultimate experience",
     color: "from-purple-600 to-indigo-700",
     border: "border-purple-500",
-    btn: "bg-white text-purple-700 hover:bg-purple-50 font-bold",
+    btn: "bg-gradient-to-r from-purple-600 to-indigo-700 text-white hover:brightness-110 shadow-md shadow-purple-500/20",
     features: ["Everything in Gold", "Global search", "Verified badge", "Dedicated support", "Profile boost daily", "Exclusive events"],
     popular: false,
   },
@@ -79,7 +79,7 @@ export function FeaturesSection() {
   };
 
   return (
-    <section id="features" className="bg-slate-50/70 py-24 border-y border-slate-100" ref={ref}>
+    <section id="features" className="bg-slate-50/70 py-16 sm:py-20 border-y border-slate-100" ref={ref}>
       <div className="mx-auto w-[90vw] max-w-7xl">
         
         {/* Header */}
@@ -172,7 +172,7 @@ export function FeaturesSection() {
           initial={false}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-28"
+          className="mt-16 sm:mt-20"
         >
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h3 className="text-3xl font-bold text-slate-900 font-display">Choose your plan</h3>
@@ -183,9 +183,9 @@ export function FeaturesSection() {
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`relative rounded-[32px] overflow-hidden flex flex-col justify-between transition-all duration-300 ${
+                className={`relative h-full rounded-[32px] overflow-hidden flex flex-col transition-all duration-300 ${
                   plan.popular
-                    ? "ring-2 ring-rose-500 shadow-2xl shadow-rose-500/20 scale-105 z-10"
+                    ? "ring-2 ring-rose-500 shadow-xl shadow-rose-500/20 z-10"
                     : "border border-slate-200/80 shadow-sm bg-white hover:border-slate-300"
                 }`}
               >
@@ -196,13 +196,13 @@ export function FeaturesSection() {
                 )}
                 
                 {/* Plan Header */}
-                <div className={`bg-gradient-to-br ${plan.color} p-8 ${plan.popular ? "pt-12" : ""} text-${plan.popular ? "white" : "slate-900"}`}>
+                <div className={`min-h-[144px] bg-gradient-to-br ${plan.color} p-7 ${plan.popular ? "pt-10" : ""} text-${plan.popular ? "white" : "slate-900"}`}>
                   <p className={`text-xs font-extrabold tracking-wider uppercase ${plan.popular ? "text-rose-100" : "text-slate-400"}`}>
                     {plan.name}
                   </p>
                   <div className="mt-3 flex items-end gap-1">
-                    <span className="text-5xl font-black tracking-tight leading-none">{plan.price}</span>
-                    <span className={`text-sm mb-1 font-semibold ${plan.popular ? "text-rose-100/85" : "text-slate-400"}`}>
+                    <span className="text-[2rem] font-black tracking-tight leading-none sm:text-4xl">{plan.price}</span>
+                    <span className={`mb-0.5 text-xs font-semibold ${plan.popular ? "text-rose-100/85" : "text-slate-400"}`}>
                       /{plan.period}
                     </span>
                   </div>
@@ -212,7 +212,7 @@ export function FeaturesSection() {
                 </div>
 
                 {/* Plan Body */}
-                <div className="bg-white p-8 flex-1 flex flex-col justify-between">
+                <div className="bg-white p-7 flex-1 flex flex-col justify-between">
                   <ul className="space-y-3.5 mb-8">
                     {plan.features.map((f) => (
                       <li key={f} className="flex items-start gap-3 text-sm text-slate-600">

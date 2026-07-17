@@ -45,7 +45,7 @@ export function Footer() {
     >
       {/* CTA Band */}
       <div
-        className="relative py-24 text-center px-6 overflow-hidden flex flex-col items-center justify-center"
+        className="relative py-16 sm:py-20 text-center px-6 overflow-hidden flex flex-col items-center justify-center"
         style={{ background: "linear-gradient(135deg, #c2185b 0%, #880e4f 50%, #4a0e4e 100%)" }}
       >
         {/* Decorative blur overlay */}
@@ -83,7 +83,7 @@ export function Footer() {
       </div>
 
       {/* Footer links */}
-      <div className="mx-auto grid w-[90vw] max-w-7xl gap-12 border-b border-white/5 py-20 lg:grid-cols-5 lg:gap-16">
+      <div className="mx-auto grid w-[90vw] max-w-7xl gap-10 border-b border-white/5 py-14 sm:py-16 lg:grid-cols-5 lg:gap-16">
         
         {/* Brand column */}
         <div className="lg:col-span-2 flex flex-col items-start min-w-[0px]">

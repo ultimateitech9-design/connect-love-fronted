@@ -75,7 +75,7 @@ export function SupportSection() {
   };
 
   return (
-    <section id="support" className="bg-white py-28 relative overflow-hidden" ref={ref}>
+    <section id="support" className="bg-white py-16 sm:py-20 relative overflow-hidden" ref={ref}>
       {/* Background soft blur blobs */}
       <div className="absolute left-[10%] top-[20%] h-80 w-80 rounded-full bg-rose-100/10 blur-[100px] pointer-events-none" />
       <div className="absolute right-[5%] bottom-[10%] h-96 w-96 rounded-full bg-purple-100/10 blur-[120px] pointer-events-none" />
@@ -119,7 +119,7 @@ export function SupportSection() {
           ))}
         </div>
 
-        <div className="mt-20 grid lg:grid-cols-2 gap-16 items-start">
+        <div className="mt-12 sm:mt-14 grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           
           {/* Contact Form */}
           <motion.div

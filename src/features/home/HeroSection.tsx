@@ -16,43 +16,40 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
   return (
     <section
       id="hero"
-      className="relative min-h-[100dvh] overflow-hidden pt-24 pb-12 flex items-center"
+      className="relative flex min-h-[100svh] items-center overflow-hidden pb-16 pt-20 sm:min-h-[100dvh] sm:pt-24"
       style={{
         background:
           "linear-gradient(135deg, #090214 0%, #150529 35%, #2c0847 70%, #060e26 100%)",
       }}
     >
-      {/* Background Animated blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            x: [0, 30, -20, 0],
-            y: [0, -40, 20, 0],
+      {/* Background Video */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 max-w-none opacity-85"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center center",
           }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute left-[15%] top-[15%] h-96 w-96 rounded-full bg-rose-600/15 blur-[120px]"
-        />
-        <motion.div
-          animate={{
-            x: [0, -20, 40, 0],
-            y: [0, 30, -30, 0],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute bottom-[20%] right-[15%] h-96 w-96 rounded-full bg-purple-600/15 blur-[130px]"
-        />
-        <div className="absolute left-[45%] top-[40%] h-80 w-80 rounded-full bg-pink-500/10 blur-[100px]" />
+        >
+          <source
+            src="/hero-bg.mp4"
+            type="video/mp4"
+          />
+        </video>
+        {/* A directional veil keeps the copy readable without hiding the video. */}
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,2,20,0.84)_0%,rgba(9,2,20,0.66)_38%,rgba(21,5,41,0.24)_68%,rgba(9,2,20,0.12)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#090214]/35 via-transparent to-[#090214]/80" />
       </div>
 
       {/* Floating Sparkles & Hearts */}
-      <div className="absolute inset-0 pointer-events-none z-0">
+      <div className="absolute inset-0 pointer-events-none z-10">
         {/* Floating Heart 1 */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -83,17 +80,17 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
         </motion.div>
       </div>
 
-      <div className="relative z-10 mx-auto box-border w-full max-w-full px-4 py-8 sm:px-6 lg:max-w-7xl lg:px-8">
-        <div className="grid min-w-0 w-full gap-12 lg:grid-cols-2 lg:items-center">
+      <div className="relative z-20 mx-auto box-border w-full max-w-7xl px-5 py-8 sm:px-8 lg:px-12 xl:px-16">
+        <div className="flex justify-start">
           
-          {/* Left Content */}
+          {/* Left-aligned hero content */}
           <motion.div 
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="min-w-0 w-full max-w-full flex flex-col items-center lg:items-start text-center lg:text-left"
+            className="flex w-full min-w-0 max-w-3xl flex-col items-start text-left lg:max-w-[760px]"
           >
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/5 px-4 py-2 backdrop-blur-md">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-400/25 bg-[#16091f]/55 px-4 py-2 shadow-lg shadow-black/10 backdrop-blur-md">
               <div className="flex gap-0.5">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
@@ -102,7 +99,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
               <span className="text-xs font-semibold text-rose-300">Trusted by 500K+ singles</span>
             </div>
 
-            <h1 className="text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl md:text-6xl xl:text-7xl font-display">
+            <h1 className="font-display text-4xl font-extrabold leading-[1.04] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5rem]">
               Find the{" "}
               <span className="bg-gradient-to-r from-rose-400 via-pink-400 to-rose-300 bg-clip-text text-transparent text-glow-rose">
                 spark
@@ -113,12 +110,12 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
               <span className="text-white/95">like home</span>
             </h1>
 
-            <p className="mt-6 w-full max-w-xl text-base leading-relaxed text-slate-300/80 md:text-lg">
+            <p className="mt-6 w-full max-w-2xl text-base leading-relaxed text-slate-200/90 sm:text-lg lg:text-xl">
               Experience a premium sanctuary for modern connection. We prioritize emotional resonance
               and safety over superficial swiping.
             </p>
 
-            <div className="mt-8 flex flex-col w-full sm:w-auto sm:flex-row gap-4 items-center justify-center lg:justify-start">
+            <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
               <button
                 id="hero-getstarted-btn"
                 onClick={onSignupClick}
@@ -138,80 +135,11 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
             </div>
           </motion.div>
 
-          {/* Right Visual Frame */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.1 }}
-            className="relative min-w-0 w-full max-w-full flex justify-center lg:justify-end"
-          >
-            <div className="relative h-[min(115vw,460px)] w-full max-w-[340px] sm:h-[500px] lg:h-[520px]">
-              
-              {/* Decorative breathing blur background */}
-              <div className="absolute inset-0 scale-105 rounded-[36px] bg-gradient-to-br from-rose-500/20 via-pink-600/10 to-purple-600/20 blur-xl animate-pulse-ring" />
-
-              {/* Main Image Card */}
-              <div className="relative h-full w-full overflow-hidden rounded-[32px] border border-white/10 shadow-2xl bg-slate-900/40">
-                <Image
-                  src="/hero-couple.png"
-                  alt="Happy couple connecting on Connect Love"
-                  fill
-                  sizes="(max-width: 768px) 90vw, 380px"
-                  className="object-cover transition-transform duration-700 hover:scale-105"
-                  priority
-                />
-                {/* Smooth Dark Gradient overlay at bottom */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#090214]/90 via-transparent to-transparent" />
-              </div>
-
-              {/* Floating Quote badge */}
-              <motion.div 
-                initial={false}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.6, duration: 0.6 }}
-                className="absolute -bottom-4 left-4 max-w-[240px] rounded-2xl border border-white/10 bg-glass-dark p-4 shadow-xl backdrop-blur-xl sm:-left-8"
-              >
-                <p className="text-[11px] italic leading-relaxed text-rose-100/80">
-                  "A sanctuary for meaningful connection."
-                </p>
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-505 text-[10px] font-bold text-white shadow-sm">
-                    A
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-white">Aisha &amp; James</p>
-                    <div className="mt-0.5 flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-2 w-2 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Active counter badge */}
-              <motion.div 
-                initial={false}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.8, duration: 0.6 }}
-                className="absolute -top-4 right-2 rounded-full border border-white/10 bg-glass-dark px-4 py-2.5 shadow-xl backdrop-blur-xl sm:-right-4"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-                  </span>
-                  <span className="text-xs font-semibold text-white tracking-wide">12,438 online now</span>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-
         </div>
       </div>
 
       {/* Decorative Bottom Wave Overlay */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-white via-white/80 to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white/90 to-transparent dark:from-[#090910]" />
 
       {/* Video Modal */}
       <AnimatePresence>

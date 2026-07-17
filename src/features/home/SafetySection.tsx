@@ -55,7 +55,7 @@ export function SafetySection() {
  const inView = useInView(ref, { once: true, margin: "-80px" });
 
  return (
- <section id="safety" ref={ref} className="relative overflow-hidden py-28"
+ <section id="safety" ref={ref} className="relative overflow-hidden py-16 sm:py-20"
  style={{ background: "linear-gradient(150deg, #0D0B2B 0%, #1F0B35 50%, #0E1940 100%)" }}
  >
  {/* BG blobs */}
@@ -88,7 +88,7 @@ export function SafetySection() {
  </motion.div>
 
  {/* Feature grid */}
- <div className="mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+ <div className="mt-10 sm:mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
  {safetyFeatures.map((feat, i) => (
  <motion.div
  key={feat.title}
@@ -111,7 +111,7 @@ export function SafetySection() {
  initial={false}
  animate={inView ? { opacity: 1 } : {}}
  transition={{ duration: 0.7, delay: 0.6 }}
- className="mt-16 flex flex-wrap justify-center gap-6"
+ className="mt-10 sm:mt-12 flex flex-wrap justify-center gap-4 sm:gap-6"
  >
  {["GDPR Compliant", "256-bit Encryption", "ISO 27001 Certified", "No Data Selling"].map((badge) => (
  <div key={badge} className="flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-5 py-2 backdrop-blur-sm">

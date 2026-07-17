@@ -1318,11 +1318,94 @@ function HdEmoji({ emoji, className }: { emoji: string; className?: string }) {
 }
 
 function CinematicEmoji({ emoji, size = "lg" }: { emoji: string; size?: "lg" | "sm" }) {
- return (
-   <span className={cn("emotion-emoji", size === "lg" ? "emotion-emoji-lg" : "emotion-emoji-sm", emojiReactionClass(emoji))}>
-     <HdEmoji emoji={emoji} className={size === "lg" ? "h-16 w-16" : "h-8 w-8"} />
-   </span>
- );
+  const isCrying = emoji === "😢" || emoji === "😭" || emoji === "🥹" || emoji === "🥲" || /[😭😢🥹😿😥😰]/u.test(emoji);
+  const reactClass = emojiReactionClass(emoji);
+
+  return (
+    <span className={cn("emotion-emoji relative inline-flex items-center justify-center", size === "lg" ? "emotion-emoji-lg" : "emotion-emoji-sm", reactClass)}>
+      <HdEmoji emoji={emoji} className={size === "lg" ? "h-16 w-16" : "h-8 w-8"} />
+      {isCrying && (
+        <span className="absolute inset-0 pointer-events-none overflow-visible">
+          {/* Left tear drop for big/small emoji */}
+          <span className={cn(
+            "absolute bg-[#00d2ff] shadow-[0_0_4px_rgba(0,210,255,0.6)] rounded-b-full opacity-0 animate-tear-fall-1",
+            size === "lg" ? "left-[24%] top-[38%] w-[5px] h-[9px]" : "left-[22%] top-[34%] w-[3px] h-[5px]"
+          )} />
+          {/* Right tear drop for big/small emoji */}
+          <span className={cn(
+            "absolute bg-[#00d2ff] shadow-[0_0_4px_rgba(0,210,255,0.6)] rounded-b-full opacity-0 animate-tear-fall-2",
+            size === "lg" ? "right-[24%] top-[38%] w-[5px] h-[9px]" : "right-[22%] top-[34%] w-[3px] h-[5px]"
+          )} />
+        </span>
+      )}
+    </span>
+  );
+}
+
+function getReactionEmojiClass(emoji: string) {
+  if (emoji === "👍") return "react-thumbsup";
+  if (emoji === "❤️" || /[❤🩷🧡💛💚💙🩵💜🤎🖤🩶🤍💕💞💓💗💖💘💝😍🥰]/u.test(emoji)) return "react-heart";
+  if (emoji === "😂" || /[😂🤣😹😆😁😄😃😀]/u.test(emoji)) return "react-laugh";
+  if (emoji === "😮" || /[😱😲😮🤯]/u.test(emoji)) return "react-surprise";
+  if (emoji === "😢" || emoji === "😭" || emoji === "🥹" || emoji === "🥲" || /[😭😢🥹😿😥😰]/u.test(emoji)) return "react-cry";
+  if (emoji === "🙏") return "react-pray";
+  return "react-default";
+}
+
+function ReactionEmoji({ emoji }: { emoji: string }) {
+  const isCrying = emoji === "😢" || emoji === "😭" || emoji === "🥹" || emoji === "🥲";
+  const reactionClass = getReactionEmojiClass(emoji);
+
+  return (
+    <span className={cn("reaction-emoji-container relative inline-flex items-center justify-center", reactionClass)}>
+      <span className="cinematic-reaction-emoji no-bounce">{emoji}</span>
+      {isCrying && (
+        <span className="absolute inset-0 pointer-events-none overflow-visible">
+          {/* Left tear drop */}
+          <span className="absolute left-[15%] top-[25%] w-[3px] h-[5px] bg-[#00d2ff] shadow-[0_0_4px_rgba(0,210,255,0.6)] rounded-b-full opacity-0 animate-tear-fall-1" />
+          {/* Right tear drop */}
+          <span className="absolute right-[15%] top-[25%] w-[3px] h-[5px] bg-[#00d2ff] shadow-[0_0_4px_rgba(0,210,255,0.6)] rounded-b-full opacity-0 animate-tear-fall-2" />
+        </span>
+      )}
+    </span>
+  );
+}
+
+function FloatingReactionParticles({ emoji }: { emoji: string }) {
+  const particles = useMemo(() => {
+    return Array.from({ length: 6 }).map((_, i) => {
+      const angle = (Math.random() - 0.5) * 40;
+      const delay = Math.random() * 0.3;
+      const duration = 1.0 + Math.random() * 0.4;
+      const scale = 0.7 + Math.random() * 0.6;
+      const left = 30 + Math.random() * 40;
+      return {
+        id: i,
+        style: {
+          left: `${left}%`,
+          animation: `float-reaction-particle ${duration}s ease-out forwards`,
+          animationDelay: `${delay}s`,
+          transform: `scale(${scale})`,
+          fontSize: "20px",
+          "--drift-x": `${angle}px`,
+        } as React.CSSProperties,
+      };
+    });
+  }, [emoji]);
+
+  return (
+    <span className="absolute inset-0 pointer-events-none overflow-visible z-50">
+      {particles.map((p) => (
+        <span
+          key={p.id}
+          className="absolute bottom-1 opacity-0 select-none pointer-events-none"
+          style={p.style}
+        >
+          {emoji}
+        </span>
+      ))}
+    </span>
+  );
 }
 
 function MessageContent({ content, isMe, onOpenPhoto }: { content: string; isMe: boolean; onOpenPhoto: (src: string) => void }) {
@@ -1397,7 +1480,7 @@ function MessageContent({ content, isMe, onOpenPhoto }: { content: string; isMe:
     );
   }
 
-  return <span className={cn("whitespace-pre-wrap break-words", isMe ? "text-white" : "text-foreground")}>{content}</span>;
+  return <span className={cn("whitespace-pre-wrap break-words", isMe ? "text-white" : "text-[var(--chat-text)]")}>{content}</span>;
 }
 
 function ChatThemeParticles({ themeId }: { themeId: string }) {
@@ -1628,7 +1711,29 @@ type ActiveCall = {
 };
 
 export default function Messages() {
- const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [messageBursts, setMessageBursts] = useState<Record<string, { id: number; emoji: string }[]>>({});
+
+  const triggerReactionBurst = useCallback((messageId: string, emoji: string) => {
+    const burstId = Date.now() + Math.random();
+    setMessageBursts((prev) => {
+      const existing = prev[messageId] || [];
+      const updated = [...existing, { id: burstId, emoji }].slice(-5);
+      return { ...prev, [messageId]: updated };
+    });
+    setTimeout(() => {
+      setMessageBursts((prev) => {
+        const existing = prev[messageId] || [];
+        const updated = existing.filter((item) => item.id !== burstId);
+        if (updated.length === 0) {
+          const copy = { ...prev };
+          delete copy[messageId];
+          return copy;
+        }
+        return { ...prev, [messageId]: updated };
+      });
+    }, 1500);
+  }, []);
  const [mutedChatIds, setMutedChatIds] = useState<Set<string>>(new Set());
  const [coinBalance, setCoinBalance] = useState(0);
  const [coinActionPending, setCoinActionPending] = useState(false);
@@ -1734,6 +1839,8 @@ export default function Messages() {
    "--chat-panel": selectedTheme.colors.panel,
    "--chat-input": selectedTheme.colors.input,
    "--chat-bg": selectedTheme.colors.background,
+   "--chat-selected": isDarkTheme ? "rgba(255,255,255,.14)" : "rgba(15,23,42,.08)",
+   "--chat-hover": isDarkTheme ? "rgba(255,255,255,.09)" : "rgba(15,23,42,.05)",
    "--chat-text": isDarkTheme ? "#f8fafc" : "#0f172a",
    "--chat-text-muted": isDarkTheme ? "#94a3b8" : "#64748b",
  } as React.CSSProperties;
@@ -1782,7 +1889,7 @@ export default function Messages() {
     messages,
     sendMessage,
     socket,
-    toggleReaction,
+    toggleReaction: originalToggleReaction,
     sendTypingStatus,
     sendRecordingStatus,
     markMessagesRead,
@@ -1793,6 +1900,28 @@ export default function Messages() {
     togglePin,
     toggleStar,
   } = useChatWebSocket(token, activeId);
+
+  const toggleReaction = useCallback((messageId: string, receiverId: string, emoji: string) => {
+    triggerReactionBurst(messageId, emoji);
+    originalToggleReaction(messageId, receiverId, emoji);
+  }, [originalToggleReaction, triggerReactionBurst]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleReactionChanged = (payload: { messageId: string; conversationId: string; reactions: Record<string, string[]> }) => {
+      try {
+        const keys = Object.keys(payload.reactions);
+        if (keys.length > 0) {
+          const lastEmoji = keys[keys.length - 1];
+          triggerReactionBurst(payload.messageId, lastEmoji);
+        }
+      } catch (e) {}
+    };
+    socket.on('messageReactionChanged', handleReactionChanged);
+    return () => {
+      socket.off('messageReactionChanged', handleReactionChanged);
+    };
+  }, [socket, triggerReactionBurst]);
 
  useEffect(() => {
    if (activeId && token) {
@@ -2806,19 +2935,19 @@ export default function Messages() {
  style={chatThemeStyle}
  >
  <aside className={cn("flex min-h-0 flex-col overflow-hidden rounded-2xl bg-[var(--chat-panel)] shadow-sm backdrop-blur", active && "hidden lg:flex")}>
- <div className="flex flex-col gap-3 border-b border-border p-4">
+ <div className="flex flex-col gap-3 border-b border-black/10 p-4 dark:border-white/10">
  <h2 className="text-lg font-semibold text-[var(--chat-text)]">Messages</h2>
  <div className="relative">
  <Search className="absolute left-2.5 top-2.5 h-[16px] w-[16px] text-[var(--chat-text-muted)]" />
  <Input
  placeholder="Search matches..."
- className="pl-9 h-[36px] bg-muted/50 border-none text-[var(--chat-text)] placeholder:text-[var(--chat-text-muted)]/60"
+ className="h-[36px] border border-black/10 bg-[var(--chat-input)] pl-9 text-[var(--chat-text)] placeholder:text-[var(--chat-text-muted)] dark:border-white/10"
  value={searchQuery}
  onChange={e => setSearchQuery(e.target.value)}
  />
  </div>
  </div>
- <ul className="flex-1 overflow-y-auto divide-y divide-border">
+ <ul className="flex-1 overflow-y-auto divide-y divide-black/10 dark:divide-white/10">
  {sortedMatches.map((m) => {
  return (
  <li key={m.id}>
@@ -2828,7 +2957,7 @@ export default function Messages() {
  onClick={() => handleSelectMatch(m.id)}
  className={cn(
  "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
- activeId === m.id ? "bg-muted" : "hover:bg-muted/50",
+ activeId === m.id ? "bg-[var(--chat-selected)]" : "hover:bg-[var(--chat-hover)]",
  )}
  >
  <div className="relative">
@@ -3009,6 +3138,9 @@ export default function Messages() {
      </div>
    )}
    {isDeleted ? <p className="italic opacity-80">This message was deleted</p> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
+    {messageBursts[m.id]?.map((burst: any) => (
+      <FloatingReactionParticles key={burst.id} emoji={burst.emoji} />
+    ))}
    <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", (isGift || isGif || isSingleEmoji) ? "text-[var(--chat-text-muted)] font-semibold" : "text-white opacity-90")}>
    {isMessagePinned(m) && <Pin className="h-[12px] w-[12px]" />}
    {isMessageStarred(m) && <Star className="h-[12px] w-[12px] fill-current" />}
@@ -3071,7 +3203,7 @@ export default function Messages() {
                    hasReacted ? "text-rose-600 font-extrabold" : "text-slate-500"
                  )}
                >
-                 <span className="cinematic-reaction-emoji">{emoji}</span>
+                 <ReactionEmoji emoji={emoji} />
                  {userIds.length > 1 && <span>{userIds.length}</span>}
                </button>
              );
@@ -3102,7 +3234,7 @@ export default function Messages() {
                hasReacted ? "bg-rose-100/80 scale-110" : "hover:bg-slate-100"
              )}
            >
-             <span className="cinematic-reaction-emoji">{emoji}</span>
+             <ReactionEmoji emoji={emoji} />
            </button>
          );
        })}
@@ -3138,7 +3270,7 @@ export default function Messages() {
    <ContextMenuTrigger asChild openOnClick={selectedMessageIds.size === 0}>
    <div className={cn(
    "max-w-[70%] rounded-2xl text-sm relative cursor-context-menu select-none",
-    (isGift || isGif || isSingleEmoji) ? "bg-transparent px-1 py-1 text-foreground" : "bg-[var(--chat-incoming)] px-4 py-2 text-foreground rounded-bl-sm shadow-sm",
+    (isGift || isGif || isSingleEmoji) ? "bg-transparent px-1 py-1 text-[var(--chat-text)]" : "bg-[var(--chat-incoming)] px-4 py-2 text-[var(--chat-text)] rounded-bl-sm shadow-sm",
     isSelected && "ring-2 ring-rose-300"
    )}
    onClick={() => {
@@ -3146,12 +3278,15 @@ export default function Messages() {
    }}
    >
    {replyMessage && !isDeleted && (
-     <div className="mb-1 rounded-lg border-l-2 border-rose-400 bg-white/45 px-2 py-1 text-[11px] leading-tight text-foreground">
+     <div className="mb-1 rounded-lg border-l-2 border-rose-400 bg-white/45 px-2 py-1 text-[11px] leading-tight text-[var(--chat-text)]">
        <span className="block font-bold">{String(replyMessage.senderId) === String(myId) ? "You" : active.name}</span>
        <span className="line-clamp-1 opacity-80">{messageTextForActions(replyMessage)}</span>
      </div>
    )}
    {isDeleted ? <p className="italic opacity-70">This message was deleted</p> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
+    {messageBursts[m.id]?.map((burst: any) => (
+      <FloatingReactionParticles key={burst.id} emoji={burst.emoji} />
+    ))}
     <div className={cn("mt-1 flex items-center justify-end gap-1 text-[10px]", (isGift || isGif || isSingleEmoji) ? "text-muted-foreground" : "opacity-70")}>
    {isMessagePinned(m) && <Pin className="h-[12px] w-[12px]" />}
    {isMessageStarred(m) && <Star className="h-[12px] w-[12px] fill-current" />}
@@ -3180,7 +3315,7 @@ export default function Messages() {
                    hasReacted ? "text-rose-600 font-extrabold" : "text-slate-500"
                  )}
                >
-                 <span className="cinematic-reaction-emoji">{emoji}</span>
+                 <ReactionEmoji emoji={emoji} />
                  {userIds.length > 1 && <span>{userIds.length}</span>}
                </button>
              );
@@ -3211,7 +3346,7 @@ export default function Messages() {
                hasReacted ? "bg-rose-100/80 scale-110" : "hover:bg-slate-100"
              )}
            >
-             <span className="cinematic-reaction-emoji">{emoji}</span>
+             <ReactionEmoji emoji={emoji} />
            </button>
          );
        })}

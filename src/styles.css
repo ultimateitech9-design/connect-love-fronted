@@ -222,16 +222,81 @@ video {
   animation: chat-emoji-pop 220ms ease-out both;
 }
 
-.chat-emoji-heartbeat { animation: chat-heartbeat 700ms ease-in-out both; }
-.chat-emoji-laugh { animation: chat-laugh 620ms ease-out both; }
-.chat-emoji-cry { animation: chat-cry 700ms ease-out both; }
-.chat-emoji-angry { animation: chat-angry 520ms ease-out both; }
-.chat-emoji-wave { transform-origin: 70% 80%; animation: chat-wave 700ms ease-in-out both; }
-.chat-emoji-kiss { animation: chat-kiss 650ms ease-out both; }
-.chat-emoji-party { animation: chat-party 700ms cubic-bezier(.2,.8,.2,1) both; }
-.chat-emoji-surprise { animation: chat-surprise 520ms ease-out both; }
-.chat-emoji-sleep { animation: chat-sleep 900ms ease-out both; }
-.chat-emoji-gesture { animation: chat-gesture 560ms ease-out both; }
+.chat-emoji-heartbeat { animation: chat-emoji-pop 300ms ease-out both; }
+.chat-emoji-laugh { animation: chat-emoji-pop 300ms ease-out both; }
+.chat-emoji-cry { animation: chat-emoji-pop 300ms ease-out both; }
+.chat-emoji-angry { animation: chat-emoji-pop 300ms ease-out both; }
+.chat-emoji-wave { transform-origin: 70% 80%; animation: chat-emoji-pop 300ms ease-out both; }
+.chat-emoji-kiss { animation: chat-emoji-pop 300ms ease-out both; }
+.chat-emoji-party { animation: chat-emoji-pop 300ms ease-out both; }
+.chat-emoji-surprise { animation: chat-emoji-pop 300ms ease-out both; }
+.chat-emoji-sleep { animation: chat-emoji-pop 300ms ease-out both; }
+.chat-emoji-gesture { animation: chat-emoji-pop 300ms ease-out both; }
+
+/* Looping animations for inner images */
+.chat-emoji-heartbeat img { animation: loop-heartbeat 1.6s ease-in-out infinite 300ms; }
+.chat-emoji-laugh img { animation: loop-laugh 1.8s ease-in-out infinite 300ms; }
+.chat-emoji-cry img { animation: loop-cry-breath 2.5s ease-in-out infinite 300ms; }
+.chat-emoji-angry img { animation: loop-angry 1.2s ease-in-out infinite 300ms; }
+.chat-emoji-wave img { animation: loop-wave 1.6s ease-in-out infinite 300ms; }
+.chat-emoji-kiss img { animation: loop-kiss 1.5s ease-in-out infinite 300ms; }
+.chat-emoji-party img { animation: loop-party 1.6s ease-in-out infinite 300ms; }
+.chat-emoji-surprise img { animation: loop-surprise 1.4s ease-in-out infinite 300ms; }
+.chat-emoji-sleep img { animation: loop-sleep 2.4s ease-in-out infinite 300ms; }
+.chat-emoji-gesture img { animation: loop-gesture 1.6s ease-in-out infinite 300ms; }
+
+/* Looping Keyframes */
+@keyframes loop-heartbeat {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.18) saturate(1.2); }
+  45% { transform: scale(0.95); }
+  60% { transform: scale(1.12) saturate(1.1); }
+}
+@keyframes loop-laugh {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-8px) rotate(-10deg); }
+  50% { transform: translateY(2px) rotate(8deg); }
+  75% { transform: translateY(-4px) rotate(-6deg); }
+}
+@keyframes loop-cry-breath {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.97) translateY(1px); }
+}
+@keyframes loop-angry {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  20% { transform: translate(-3px, 0.5px) rotate(-3deg); }
+  40% { transform: translate(3px, -0.5px) rotate(3deg); }
+  60% { transform: translate(-2px, -0.5px) rotate(-2deg); }
+  80% { transform: translate(2px, 0.5px) rotate(2deg); }
+}
+@keyframes loop-wave {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(18deg); }
+  50% { transform: rotate(-12deg); }
+  75% { transform: rotate(10deg); }
+}
+@keyframes loop-kiss {
+  0%, 100% { transform: scale(1) translateX(0); }
+  40% { transform: scale(1.12) translateX(4px) rotate(3deg); }
+  70% { transform: scale(0.96) translateX(-2px) rotate(-2deg); }
+}
+@keyframes loop-party {
+  0%, 100% { transform: scale(1) rotate(0); }
+  50% { transform: scale(1.15) rotate(8deg) translateY(-5px); }
+}
+@keyframes loop-surprise {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.22) translateY(-3px); }
+  75% { transform: scale(0.92); }
+}
+@keyframes loop-sleep {
+  0%, 100% { transform: scale(1) translateY(0); filter: brightness(1); }
+  50% { transform: scale(0.93) translateY(3px); filter: brightness(0.9); }
+}
+@keyframes loop-gesture {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.08); }
+}
 
 @keyframes chat-heartbeat {
   0% { opacity: 0; transform: scale(.55); filter: saturate(1); }
@@ -369,9 +434,135 @@ video {
   animation: cinematic-reaction-pop 360ms cubic-bezier(.2, .9, .2, 1) both;
 }
 
-button:hover > .cinematic-reaction-emoji,
-button:focus-visible > .cinematic-reaction-emoji {
+button:hover > .cinematic-reaction-emoji:not(.no-bounce),
+button:focus-visible > .cinematic-reaction-emoji:not(.no-bounce) {
   animation: cinematic-reaction-bounce 620ms ease both;
+}
+
+/* --- Custom Emoji Reaction Animations --- */
+
+.reaction-emoji-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+/* Thumbs Up: rot-tilt bounce on hover */
+@keyframes react-thumbsup-anim {
+  0% { transform: scale(1) rotate(0); }
+  25% { transform: scale(1.3) rotate(-15deg); }
+  50% { transform: scale(0.9) rotate(5deg); }
+  75% { transform: scale(1.1) rotate(-3deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.react-thumbsup:hover .cinematic-reaction-emoji,
+button:hover .react-thumbsup .cinematic-reaction-emoji {
+  animation: react-thumbsup-anim 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* Heart: heartbeat pulse */
+@keyframes react-heart-anim {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.25); }
+  45% { transform: scale(1.05); }
+  70% { transform: scale(1.3); }
+}
+.react-heart:hover .cinematic-reaction-emoji,
+button:hover .react-heart .cinematic-reaction-emoji {
+  animation: react-heart-anim 0.8s ease-in-out infinite;
+}
+
+/* Laugh: bouncy side-to-side wiggle */
+@keyframes react-laugh-anim {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  20% { transform: translateY(-3px) rotate(-10deg); }
+  40% { transform: translateY(1px) rotate(8deg); }
+  60% { transform: translateY(-2px) rotate(-6deg); }
+  80% { transform: translateY(0) rotate(4deg); }
+}
+.react-laugh:hover .cinematic-reaction-emoji,
+button:hover .react-laugh .cinematic-reaction-emoji {
+  animation: react-laugh-anim 0.75s ease-in-out infinite;
+}
+
+/* Surprise: scale way up and wobble */
+@keyframes react-surprise-anim {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.35) translateY(-5px) rotate(-5deg); }
+  65% { transform: scale(0.85) translateY(2px) rotate(5deg); }
+  100% { transform: scale(1); }
+}
+.react-surprise:hover .cinematic-reaction-emoji,
+button:hover .react-surprise .cinematic-reaction-emoji {
+  animation: react-surprise-anim 0.65s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+}
+
+/* Pray: smooth vertical bowing with a soft golden glow shadow */
+@keyframes react-pray-anim {
+  0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 0 transparent); }
+  50% { transform: translateY(-5px) scale(1.08); filter: drop-shadow(0 2px 6px rgba(234, 179, 8, 0.5)); }
+}
+.react-pray:hover .cinematic-reaction-emoji,
+button:hover .react-pray .cinematic-reaction-emoji {
+  animation: react-pray-anim 0.8s ease-in-out infinite;
+}
+
+/* Cry: tremble in place while tears drop */
+@keyframes react-cry-tremble {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-0.5px, 0.5px); }
+  40% { transform: translate(0.5px, -0.5px); }
+  60% { transform: translate(-0.5px, -0.5px); }
+  80% { transform: translate(0.5px, 0.5px); }
+}
+.react-cry:hover .cinematic-reaction-emoji,
+button:hover .react-cry .cinematic-reaction-emoji {
+  animation: react-cry-tremble 0.25s linear infinite;
+}
+
+/* Teardrop falling animations */
+@keyframes tear-fall-left {
+  0% {
+    transform: translate(0, 0) scale(0.3);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-1px, 2px) scale(1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-2px, 12px) scale(0.7);
+    opacity: 0;
+  }
+}
+@keyframes tear-fall-right {
+  0% {
+    transform: translate(0, 0) scale(0.3);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(1px, 2px) scale(1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(2px, 12px) scale(0.7);
+    opacity: 0;
+  }
+}
+
+.animate-tear-fall-1 {
+  animation: tear-fall-left 1.4s infinite cubic-bezier(0.4, 0, 1, 1);
+}
+.animate-tear-fall-2 {
+  animation: tear-fall-right 1.4s infinite cubic-bezier(0.4, 0, 1, 1) 0.7s;
 }
 
 @keyframes cinematic-reaction-pop {
@@ -1014,3 +1205,104 @@ html {
 .dark .border-slate-100,
 .dark .border-slate-200 { border-color: #334155; }
 .dark .divide-slate-200 > :not(:last-child) { border-color: #334155; }
+
+/* Public homepage: intentional dark surfaces and WCAG-friendly text contrast. */
+.dark .marketing-home #about {
+  background: linear-gradient(180deg, #090910 0%, #11101a 52%, #090910 100%);
+}
+
+.dark .marketing-home #features {
+  background: #11111a;
+  border-color: rgb(51 65 85 / 0.7);
+}
+
+.dark .marketing-home #support {
+  background: #0b0b12;
+}
+
+.dark .marketing-home :is(#about, #features, #support) :is(h2, h3) {
+  color: #f8fafc;
+}
+
+.dark .marketing-home :is(#about, #features, #support) p:not([class*="text-white"]):not([class*="text-rose-100"]):not([class*="text-emerald-"]) {
+  color: #cbd5e1;
+}
+
+.dark .marketing-home :is(#about, #features, #support) [class*="bg-white"] {
+  background-color: rgb(24 24 36 / 0.96);
+  border-color: rgb(71 85 105 / 0.65);
+}
+
+.dark .marketing-home #about [class*="hover:bg-rose-50"]:hover,
+.dark .marketing-home #support [class*="bg-rose-50"] {
+  background-color: rgb(244 63 94 / 0.08);
+}
+
+.dark .marketing-home #features button[class*="min-h-"] {
+  background: #191923;
+  border-color: #343445;
+  color: #f8fafc;
+}
+
+.dark .marketing-home #features button[class*="min-h-"]:hover {
+  background: #20202d;
+  border-color: rgb(244 63 94 / 0.55);
+}
+
+.dark .marketing-home #features [class*="from-slate-100"][class*="to-slate-50"] {
+  background: linear-gradient(135deg, #252536, #1b1b28);
+  color: #f8fafc;
+}
+
+.dark .marketing-home #support :is(input, textarea) {
+  background: #181822;
+  border-color: #3b3b4d;
+  color: #f8fafc;
+  caret-color: #fb7185;
+}
+
+.dark .marketing-home #support :is(input, textarea)::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.dark .marketing-home #support :is(input, textarea):focus {
+  background: #1d1d29;
+  border-color: #f43f5e;
+}
+
+.dark .marketing-home #support label {
+  color: #e2e8f0;
+}
+
+.dark .marketing-home #support [class*="bg-slate-50"] {
+  background-color: #181822;
+  border-color: #3b3b4d;
+}
+
+.dark .marketing-home #support [class*="bg-slate-50"] button {
+  color: #f8fafc;
+}
+
+.dark .marketing-home header[class*="bg-white/80"] {
+  background-color: rgb(10 10 18 / 0.9);
+  border-color: rgb(244 63 94 / 0.22);
+}
+
+.dark .marketing-home header[class*="bg-white/80"] :is(nav a, a[id="navbar-login-btn"]) {
+  color: #e2e8f0;
+}
+
+.dark .marketing-home header[class*="bg-white/80"] a[href="/"] > span {
+  color: #f8fafc;
+}
+
+.dark .marketing-home #mobile-navigation {
+  background: #11111a;
+  border-color: #343445;
+}
+
+.dark .marketing-home #mobile-navigation a:not([class*="from-rose-500"]) {
+  color: #e2e8f0;
+  border-color: #475569;
+}

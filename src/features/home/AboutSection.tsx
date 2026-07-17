@@ -26,7 +26,7 @@ export function AboutSection() {
   return (
     <section
       id="about"
-      className="relative overflow-hidden py-28 bg-gradient-to-b from-white via-rose-50/20 to-white"
+      className="relative overflow-hidden py-16 sm:py-20 bg-gradient-to-b from-white via-rose-50/20 to-white"
       ref={ref}
     >
       {/* Decorative side accent blur */}
