@@ -4,6 +4,16 @@ import path from "path";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(self)" },
+        ],
+      },
+    ];
+  },
   experimental: {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-dropdown-menu", "@radix-ui/react-dialog"],
   },

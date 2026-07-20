@@ -1,24 +1,26 @@
 /* eslint-disable */
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Check, Crown, Zap, Heart, MessageCircle, Star, Shield, Sparkles, Video, Globe } from "lucide-react";
+import { isAuthenticated } from "@/lib/auth";
 
 const basicFeatures = [
   { icon: Heart, title: "Smart Matching", desc: "AI-powered compatibility algorithm based on personality & values", href: "/user/discover" },
   { icon: MessageCircle, title: "Basic Messaging", desc: "Text chat with up to 5 active matches per day", href: "/user/messages" },
   { icon: Star, title: "Profile Creation", desc: "Detailed profile with photos and personality badges", href: "/user/profile" },
-  { icon: Shield, title: "Safety Reports", desc: "Report and block suspicious profiles instantly", href: "/#support" },
+  { icon: Shield, title: "Safety Reports", desc: "Report and block suspicious profiles instantly", href: "/user/messages" },
 ];
 
 const premiumFeatures = [
-  { icon: Sparkles, title: "Unlimited Matches", desc: "No daily limit — explore as many connections as you want" },
+  { icon: Sparkles, title: "Unlimited Matches", desc: "No daily limit — explore as many connections as you want", href: "/user/discover" },
   { icon: Crown, title: "Priority Visibility", desc: "Appear at the top of discovery queues in your area", href: "/user/premium" },
   { icon: Video, title: "Video Dates", desc: "Built-in encrypted video calling before meeting in person", href: "/user/messages" },
   { icon: Globe, title: "Global Search", desc: "Connect with singles worldwide, not just your city", href: "/user/discover" },
   { icon: Zap, title: "Instant Icebreakers", desc: "AI-generated conversation starters tailored to both profiles", href: "/user/messages" },
-  { icon: Shield, title: "Verified Badge", desc: "Government ID verification — stand out as a trusted member" },
+  { icon: Shield, title: "Verified Badge", desc: "Government ID verification — stand out as a trusted member", href: "/user/profile" },
 ];
 
 const plans = [
@@ -61,13 +63,29 @@ export function FeaturesSection() {
   const [tab, setTab] = useState<"basic" | "premium">("basic");
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+  const router = useRouter();
+
+  useEffect(() => {
+    [
+      "/login",
+      "/user/discover",
+      "/user/messages",
+      "/user/profile",
+      "/user/premium",
+    ].forEach((route) => router.prefetch(route));
+  }, [router]);
 
   const openFeature = (feature: { title: string; href?: string }) => {
+    if (!isAuthenticated()) {
+      router.push("/login");
+      return;
+    }
+
     const routes: Record<string, string> = {
       "Smart Matching": "/user/discover",
       "Basic Messaging": "/user/messages",
       "Profile Creation": "/user/profile",
-      "Safety Reports": "/#support",
+      "Safety Reports": "/user/messages",
       "Unlimited Matches": "/user/discover",
       "Priority Visibility": "/user/premium",
       "Video Dates": "/user/messages",
@@ -75,7 +93,7 @@ export function FeaturesSection() {
       "Instant Icebreakers": "/user/messages",
       "Verified Badge": "/user/profile",
     };
-    window.location.href = feature.href || routes[feature.title] || "/";
+    router.push(feature.href || routes[feature.title] || "/user/messages");
   };
 
   return (

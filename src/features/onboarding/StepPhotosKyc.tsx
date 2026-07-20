@@ -99,8 +99,15 @@ export function StepVideoKyc({
   const [checking, setChecking] = useState(false);
   const [countdown, setCountdown] = useState(RECORD_SECONDS);
   const [message, setMessage] = useState("");
+  const [cameraSupported, setCameraSupported] = useState(true);
 
   useEffect(() => {
+    const supported = window.isSecureContext && Boolean(navigator.mediaDevices?.getUserMedia);
+    setCameraSupported(supported);
+    if (!supported) {
+      setMessage("Camera requires a secure HTTPS connection. Open this website with https:// and try again.");
+    }
+
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
       streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -109,6 +116,12 @@ export function StepVideoKyc({
 
   const startCamera = async () => {
     setMessage("");
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      setCameraSupported(false);
+      setMessage("Camera is blocked because this page is not secure. Use the HTTPS version of this website.");
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 900 } },
@@ -120,8 +133,17 @@ export function StepVideoKyc({
         await videoRef.current.play();
       }
       setCameraReady(true);
-    } catch {
-      setMessage("Camera permission needed for video KYC.");
+    } catch (error) {
+      const cameraError = error as DOMException;
+      if (cameraError.name === "NotAllowedError") {
+        setMessage("Camera access was blocked. Allow Camera in the browser site settings, then try again.");
+      } else if (cameraError.name === "NotFoundError") {
+        setMessage("No camera was found on this device.");
+      } else if (cameraError.name === "NotReadableError") {
+        setMessage("The camera is already in use by another app. Close it and try again.");
+      } else {
+        setMessage("Camera could not start. Check browser camera permissions and try again.");
+      }
     }
   };
 
@@ -281,7 +303,8 @@ export function StepVideoKyc({
             <button
               type="button"
               onClick={startCamera}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/15"
+              disabled={!cameraSupported}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Camera className="h-4 w-4" />
               {cameraReady ? "Camera ready" : "Start camera"}
@@ -289,7 +312,7 @@ export function StepVideoKyc({
             <button
               type="button"
               onClick={startVideoKyc}
-              disabled={recording || checking || !profile.photos?.length}
+              disabled={!cameraSupported || recording || checking || !profile.photos?.length}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}

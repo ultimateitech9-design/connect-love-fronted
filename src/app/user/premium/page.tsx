@@ -20,7 +20,7 @@ interface Plan {
 const plans: Plan[] = [
  {
  id: "basic",
- icon: <Send className="h-[24px] w-[24px] text-slate-500" />,
+ icon: <Send className="h-[24px] w-[24px] text-slate-500 dark:text-slate-400" />,
  name: "Basic Plan",
  tagline: "For getting started",
  price: 0,
@@ -84,7 +84,7 @@ const plans: Plan[] = [
 ];
 
 const btnClasses: Record<string, string> = {
- gray: "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200",
+ gray: "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700",
  blue: "text-white shadow-lg shadow-blue-500/30 hover:opacity-90",
  purple: "text-white shadow-lg shadow-purple-500/30 hover:opacity-90",
 };
@@ -96,9 +96,9 @@ const btnStyle: Record<string, React.CSSProperties> = {
 };
 
 const iconBg: Record<string, string> = {
- basic: "bg-slate-100",
- premium: "bg-blue-50",
- elite: "bg-purple-50",
+ basic: "bg-slate-100 dark:bg-slate-800",
+ premium: "bg-blue-50 dark:bg-blue-950/40",
+ elite: "bg-purple-50 dark:bg-purple-950/40",
 };
 
 export default function PremiumPage() {
@@ -115,8 +115,8 @@ export default function PremiumPage() {
  };
 
  return (
- <div className="pb-8 -mx-6 -mt-6 px-6 pt-6 rounded-none"
- style={{ background: "linear-gradient(135deg,#fff5f7 0%,#fdf2f8 40%,#f5f3ff 100%)", minHeight: "calc(100vh - 4rem)" }}
+ <div className="pb-8 -mx-6 -mt-6 px-6 pt-6 rounded-none transition-colors"
+ style={{ background: "var(--background-gradient, linear-gradient(135deg,#fff5f7 0%,#fdf2f8 40%,#f5f3ff 100%))", minHeight: "calc(100vh - 4rem)" }}
  >
  {/* ── Hero ─────────────────────────────────────────────────────────────── */}
  <div className="pt-12 pb-10 text-center px-4 relative">
@@ -133,12 +133,12 @@ export default function PremiumPage() {
  <span>🩷</span> Choose Your Plan
  </div>
 
- <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight">
+ <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white leading-tight">
  Find Your{" "}
  <span className="text-rose-500" style={{ fontStyle: "italic" }}>Perfect</span>{" "}
  Match
  </h1>
- <p className="mt-3 text-slate-500 text-base mx-auto">
+ <p className="mt-3 text-slate-500 dark:text-slate-400 text-base mx-auto">
  Upgrade your experience and connect with amazing people
  </p>
  </div>
@@ -149,7 +149,7 @@ export default function PremiumPage() {
  {plans.map((plan) => (
  <div
  key={plan.id}
- className={`relative flex flex-col rounded-3xl bg-white transition-all duration-200 ${
+ className={`relative flex flex-col rounded-3xl bg-card border border-border transition-all duration-200 ${
  plan.popular
  ? "shadow-2xl ring-2 ring-blue-400 scale-[1.03] z-10"
  : "shadow-md hover:shadow-xl"
@@ -172,11 +172,11 @@ export default function PremiumPage() {
  </div>
 
  {/* Name & price */}
- <h2 className="text-xl font-bold text-slate-900">{plan.name}</h2>
+ <h2 className="text-xl font-bold text-slate-900 dark:text-white">{plan.name}</h2>
  <p className="text-sm text-slate-400 mb-4">{plan.tagline}</p>
 
  <div className="flex items-baseline gap-1 mb-6">
- <span className="text-4xl font-extrabold text-slate-900">
+ <span className="text-4xl font-extrabold text-slate-900 dark:text-white">
  ₹{plan.price}
  </span>
  <span className="text-slate-400 text-sm">/{plan.period}</span>
@@ -187,15 +187,15 @@ export default function PremiumPage() {
  {plan.features.map((f) => (
  <li key={f.label} className="flex items-center gap-2.5 text-sm">
  {f.included ? (
- <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-emerald-100">
- <Check className="h-[12px] w-[12px] text-emerald-600" strokeWidth={3} />
+ <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/50">
+ <Check className="h-[12px] w-[12px] text-emerald-600 dark:text-emerald-400" strokeWidth={3} />
  </span>
  ) : (
- <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-slate-100">
- <X className="h-[12px] w-[12px] text-slate-400" strokeWidth={2.5} />
+ <span className="flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+ <X className="h-[12px] w-[12px] text-slate-400 dark:text-slate-500" strokeWidth={2.5} />
  </span>
  )}
- <span className={f.included ? "text-slate-700" : "text-slate-400"}>
+ <span className={f.included ? "text-slate-700 dark:text-slate-300" : "text-slate-400"}>
  {f.label}
  </span>
  </li>

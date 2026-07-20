@@ -138,8 +138,8 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
         </div>
       </div>
 
-      {/* Decorative Bottom Wave Overlay */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white/90 to-transparent dark:from-[#090910]" />
+      {/* A short, opaque finish removes the seam without creating a foggy band. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-gradient-to-b from-transparent to-white dark:to-[#090910]" />
 
       {/* Video Modal */}
       <AnimatePresence>
@@ -169,13 +169,24 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
               </div>
 
               <div className="aspect-video w-full bg-black">
-                <iframe
-                  src="https://www.youtube.com/embed/4K4wElOJjVI?autoplay=1"
+                <video
+                  src="/connect-love-story.mp4"
                   title="Connect Love Story"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="h-full w-full border-0"
-                />
+                  autoPlay
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                  onTimeUpdate={(event) => {
+                    const video = event.currentTarget;
+                    if (video.currentTime >= 18) {
+                      video.pause();
+                      video.currentTime = 0;
+                    }
+                  }}
+                >
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </motion.div>
           </motion.div>

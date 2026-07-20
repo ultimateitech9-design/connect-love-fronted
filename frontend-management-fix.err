@@ -1,0 +1,28 @@
+[browser] The final argument passed to useEffect changed size between renders. The order and size of this array must remain constant.
+
+Previous: []
+Incoming: [] 
+    at areHookInputsEqual (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4604:56)
+    at updateEffectImpl (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:5300:50)
+    at Object.useEffect (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15568:13)
+    at exports.useEffect (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:1722:36)
+    at User360Page (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/src_0r5_jm_._.js?id=%255Bproject%255D%252Fsrc%252Fapp%252Fsuper-admin%252Fuser-360%252Fpage.tsx+%255Bapp-client%255D+%2528ecmascript%2529:146:180)
+    at Object.react_stack_bottom_frame (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15037:24)
+    at renderWithHooksAgain (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4675:24)
+    at renderWithHooks (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4626:28)
+    at updateFunctionComponent (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6081:21)
+    at beginWork (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6691:24)
+    at runWithFiberInDEV (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopSync (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9061:186)
+    at performSyncWorkOnRoot (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10179:316)
+    at flushSyncWork$1 (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9230:86)
+    at Object.scheduleRefresh (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:299:13)
+    at <unknown> (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:391:33)
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:384:38)
+    at applyUpdate (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:878:31)
+    at <unknown> (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:886:13) (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4604:56)

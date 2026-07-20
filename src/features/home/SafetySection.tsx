@@ -55,7 +55,7 @@ export function SafetySection() {
  const inView = useInView(ref, { once: true, margin: "-80px" });
 
  return (
- <section id="safety" ref={ref} className="relative overflow-hidden py-16 sm:py-20"
+ <section id="safety" ref={ref} className="relative overflow-hidden py-10 sm:py-12"
  style={{ background: "linear-gradient(150deg, #0D0B2B 0%, #1F0B35 50%, #0E1940 100%)" }}
  >
  {/* BG blobs */}
@@ -76,32 +76,32 @@ export function SafetySection() {
  <ShieldCheck className="h-[14px] w-[14px] text-emerald-400" />
  Secure by Design
  </span>
- <h2 className="mt-5 text-4xl md:text-5xl font-bold text-white leading-tight">
+ <h2 className="mt-3 text-4xl md:text-5xl font-bold text-white leading-tight">
  Safe Haven{" "}
  <span className="bg-gradient-to-r from-rose-400 to-pink-300 bg-clip-text text-transparent">
  for Hearts
  </span>
  </h2>
- <p className="mt-4 text-lg text-white/55 mx-auto leading-relaxed">
+ <p className="mt-3 mx-auto max-w-5xl text-base leading-relaxed text-white/55 sm:text-lg">
  Every member is verified through our multi-stage AI authentication. We protect your privacy while ensuring the person you talk to is exactly who they claim to be.
  </p>
  </motion.div>
 
  {/* Feature grid */}
- <div className="mt-10 sm:mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+ <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:mt-8">
  {safetyFeatures.map((feat, i) => (
  <motion.div
  key={feat.title}
  initial={false}
  animate={inView ? { opacity: 1, y: 0 } : {}}
  transition={{ duration: 0.5, delay: 0.1 + i * 0.08 }}
- className="group rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm hover:bg-white/10 hover:-translate-y-1 transition-all"
+ className="group rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm hover:bg-white/10 hover:-translate-y-1 transition-all"
  >
- <div className={`flex h-[48px] w-[48px] items-center justify-center rounded-2xl bg-gradient-to-br ${feat.iconBg} shadow-lg`}>
- <feat.icon className="h-[22px] w-[22px] text-white" />
+ <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${feat.iconBg} shadow-lg`}>
+ <feat.icon className="h-5 w-5 text-white" />
  </div>
- <h3 className="mt-4 font-semibold text-white">{feat.title}</h3>
- <p className="mt-2 text-sm text-white/55 leading-relaxed">{feat.desc}</p>
+ <h3 className="mt-3 font-semibold text-white">{feat.title}</h3>
+ <p className="mt-1.5 text-sm text-white/55 leading-relaxed">{feat.desc}</p>
  </motion.div>
  ))}
  </div>
@@ -111,10 +111,10 @@ export function SafetySection() {
  initial={false}
  animate={inView ? { opacity: 1 } : {}}
  transition={{ duration: 0.7, delay: 0.6 }}
- className="mt-10 sm:mt-12 flex flex-wrap justify-center gap-4 sm:gap-6"
+ className="mt-7 flex flex-wrap justify-center gap-3 sm:mt-8 sm:gap-4"
  >
  {["GDPR Compliant", "256-bit Encryption", "ISO 27001 Certified", "No Data Selling"].map((badge) => (
- <div key={badge} className="flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-5 py-2 backdrop-blur-sm">
+ <div key={badge} className="flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-1.5 backdrop-blur-sm">
  <ShieldCheck className="h-[14px] w-[14px] text-emerald-400" />
  <span className="text-xs font-medium text-white/70">{badge}</span>
  </div>

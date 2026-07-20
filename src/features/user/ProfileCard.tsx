@@ -77,7 +77,16 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
   const [instructionVisible, setInstructionVisible] = useState(true);
   const [isSuperLiking, setIsSuperLiking] = useState(false);
   const [boostOpen, setBoostOpen] = useState(false);
+  const [showKeyboardHints, setShowKeyboardHints] = useState(true);
   const isDraggingRef = useRef(false);
+  const keyboardActionsRef = useRef({
+    pass: () => {},
+    like: () => {},
+    superLike: () => {},
+    openProfile: () => {},
+    closeProfile: () => {},
+    nextPhoto: () => {},
+  });
 
   // Photo carousel state
   const [photoIndex, setPhotoIndex] = useState(0);
@@ -100,6 +109,28 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
     const t = setTimeout(() => setInstructionVisible(false), 1800);
     return () => clearTimeout(t);
   }, [idx]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.isContentEditable || target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.tagName === "SELECT") return;
+      if (event.repeat) return;
+
+      const actions = keyboardActionsRef.current;
+      if (event.key === "ArrowLeft") actions.pass();
+      else if (event.key === "ArrowRight") actions.like();
+      else if (event.key === "ArrowUp") actions.openProfile();
+      else if (event.key === "ArrowDown") actions.closeProfile();
+      else if (event.key === "Enter") actions.superLike();
+      else if (event.code === "Space") actions.nextPhoto();
+      else return;
+
+      event.preventDefault();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -213,6 +244,18 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
     setInstructionVisible(false);
     setShowDetails(true);
     if (!detailedProfile) fetchDetails();
+  };
+
+  keyboardActionsRef.current = {
+    pass: () => triggerSwipe("pass"),
+    like: () => triggerSwipe("like"),
+    superLike: () => triggerSwipe("super"),
+    openProfile: openProfileDetails,
+    closeProfile: () => setShowDetails(false),
+    nextPhoto: () => {
+      if (showDetails || currentPhotos.length < 2) return;
+      setPhotoIndex((current) => (current + 1) % currentPhotos.length);
+    },
   };
 
   return (
@@ -607,6 +650,42 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
       <p className="mt-4 text-center text-xs text-slate-400">
         Swipe right to like · Swipe left to pass · Swipe up to super like
       </p>
+      <div className="mt-4 flex min-h-8 items-center justify-center border-t border-border/60 pt-3 text-[10px] font-semibold text-muted-foreground">
+        {showKeyboardHints ? (
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+            <button
+              type="button"
+              onClick={() => setShowKeyboardHints(false)}
+              className="rounded-full bg-foreground px-3 py-1 text-background transition-opacity hover:opacity-80"
+            >
+              Hide
+            </button>
+            {[
+              ["←", "Nope"],
+              ["→", "Like"],
+              ["↑", "Open Profile"],
+              ["↵", "Super Like"],
+              ["↓", "Close Profile"],
+              ["Space", "Next Photo"],
+            ].map(([key, label]) => (
+              <span key={label} className="inline-flex items-center gap-1 whitespace-nowrap">
+                <kbd className="grid min-h-4 min-w-4 place-items-center rounded border border-border bg-muted px-1 text-[9px] leading-none text-foreground shadow-sm">
+                  {key}
+                </kbd>
+                {label}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowKeyboardHints(true)}
+            className="rounded-full border border-border bg-muted px-3 py-1 transition-colors hover:text-foreground"
+          >
+            Show keyboard controls
+          </button>
+        )}
+      </div>
       <BoostDialog open={boostOpen} onClose={() => setBoostOpen(false)} />
     </div>
   );
