@@ -4,6 +4,13 @@ import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/SessionProvider";
 import { QueryProvider } from "@/components/QueryProvider";
 import { TranslationProvider } from "@/features/i18n/TranslationProvider";
+import {
+  createPublicMetadata,
+  HOME_DESCRIPTION,
+  HOME_TITLE,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/seo";
 import "../styles.css";
 
 const sans = Inter({
@@ -16,33 +23,58 @@ const display = Fraunces({
   variable: "--font-display",
 });
 
+const homeMetadata = createPublicMetadata({
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
+  path: "/",
+  keywords: ["online dating India", "find singles in India", "dating for long-term relationships"],
+});
+
 export const metadata: Metadata = {
-  title: "Connect Love — Find the spark that feels like home",
-  description:
-    "Connect Love is a premium, verified dating platform built for intentional connection. AI-powered matching, end-to-end encryption, and a safe community of 500K+ singles.",
-  keywords: ["dating app", "online dating", "soulmate", "relationships", "matches"],
+  ...homeMetadata,
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: HOME_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  applicationName: SITE_NAME,
   icons: {
     icon: [{ url: "/connect-love-logo.png", type: "image/png" }],
     shortcut: "/connect-love-logo.png",
     apple: "/connect-love-logo.png",
   },
-  openGraph: {
-    title: "Connect Love — Find the spark that feels like home",
-    description: "A premium sanctuary for modern connection. Verified profiles, AI compatibility, and genuine love.",
-    type: "website",
-    siteName: "Connect Love",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Connect Love",
-    description: "Find the spark that feels like home.",
-  },
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: `${SITE_URL}/`,
+      name: SITE_NAME,
+      alternateName: "ConnectLove",
+      description: HOME_DESCRIPTION,
+      inLanguage: "en-IN",
+    },
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: `${SITE_URL}/`,
+      logo: `${SITE_URL}/connect-love-logo.png`,
+    },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${sans.variable} ${display.variable} scroll-smooth`} suppressHydrationWarning>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c") }}
+        />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-LSFFV3G704" />
         <script
           dangerouslySetInnerHTML={{

@@ -1,0 +1,144 @@
+import type { Metadata } from "next";
+
+export const SITE_NAME = "Connect Love";
+export const SITE_URL = "https://connectlove.in";
+export const HOME_TITLE = "Connect Love | Safe Dating App for Serious Relationships";
+export const HOME_DESCRIPTION =
+  "Meet verified singles on Connect Love, a safe dating app for meaningful relationships in India. Find compatible matches and build genuine connections.";
+
+const coreKeywords = [
+  "dating app India",
+  "safe dating app",
+  "verified dating profiles",
+  "serious relationship dating app",
+  "meaningful relationships",
+  "genuine connections",
+];
+
+type PublicSeo = {
+  title: string;
+  description: string;
+  keywords: string[];
+};
+
+export const PUBLIC_PAGE_SEO = {
+  "/about-us": {
+    title: "About Us",
+    description:
+      "Learn how Connect Love helps adults in India build genuine connections through intentional profiles, compatibility tools, privacy controls, and dating safety.",
+    keywords: ["about Connect Love", "intentional dating India", "relationship platform"],
+  },
+  "/blog": {
+    title: "Online Dating Tips & Relationship Advice",
+    description:
+      "Read practical online dating tips for authentic profiles, respectful conversations, scam awareness, safer first dates, and meaningful relationships in India.",
+    keywords: ["online dating tips", "relationship advice India", "dating safety tips"],
+  },
+  "/careers": {
+    title: "Careers",
+    description:
+      "Explore careers at Connect Love across engineering, product, trust and safety, customer support, operations, marketing, sales, and finance.",
+    keywords: ["Connect Love careers", "dating app jobs India", "trust and safety careers"],
+  },
+  "/contact-us": {
+    title: "Contact & Support",
+    description:
+      "Contact Connect Love for account access, privacy, verification, matches, subscriptions, payments, billing, or dating safety support.",
+    keywords: ["Connect Love support", "dating app customer support", "report dating safety concern"],
+  },
+  "/discover": {
+    title: "Discover Compatible Singles",
+    description:
+      "Discover compatible singles on Connect Love using relationship goals, interests, values, location, lifestyle, and verified profile signals.",
+    keywords: ["discover singles India", "compatible matches", "verified singles India"],
+  },
+  "/features": {
+    title: "Dating App Features",
+    description:
+      "Explore Connect Love features for profile verification, compatibility-based discovery, mutual matches, private messaging, safety, and account control.",
+    keywords: ["dating app features", "compatibility matching", "safe online dating features"],
+  },
+  "/help-center": {
+    title: "Help Center",
+    description:
+      "Get help with your Connect Love account, profile, verification, discovery, matches, messaging, premium plan, payments, privacy, and safety.",
+    keywords: ["Connect Love help center", "dating account help", "dating app support India"],
+  },
+  "/privacy-policy": {
+    title: "Privacy Policy",
+    description:
+      "Read how Connect Love collects, uses, protects, shares, and retains account, profile, verification, location, message, and payment information.",
+    keywords: ["Connect Love privacy policy", "dating app data privacy", "profile privacy controls"],
+  },
+  "/safety": {
+    title: "Online Dating Safety",
+    description:
+      "Learn safer online dating practices, how to spot scams and fake profiles, protect personal information, meet safely, and report concerns on Connect Love.",
+    keywords: ["online dating safety India", "dating scam prevention", "report fake dating profile"],
+  },
+  "/terms-of-service": {
+    title: "Terms of Service",
+    description:
+      "Review the Connect Love terms covering eligibility, accounts, member conduct, subscriptions, payments, moderation, safety, content, and service access.",
+    keywords: ["Connect Love terms", "dating app terms of service", "member conduct rules"],
+  },
+} satisfies Record<string, PublicSeo>;
+
+function normalizePath(path: string) {
+  if (path === "/") return "/";
+  return `/${path.replace(/^\/+|\/+$/g, "")}`;
+}
+
+export function createPublicMetadata({
+  title,
+  description,
+  path,
+  keywords = [],
+}: PublicSeo & { path: string }): Metadata {
+  const canonicalPath = normalizePath(path);
+  const socialTitle = canonicalPath === "/" ? title : `${title} | ${SITE_NAME}`;
+
+  return {
+    title,
+    description,
+    keywords: [...new Set([...keywords, ...coreKeywords])],
+    alternates: { canonical: canonicalPath },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
+    openGraph: {
+      title: socialTitle,
+      description,
+      url: canonicalPath,
+      siteName: SITE_NAME,
+      locale: "en_IN",
+      type: "website",
+      images: [
+        {
+          url: "/connect-love-logo.png",
+          width: 512,
+          height: 512,
+          alt: "Connect Love",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: socialTitle,
+      description,
+      images: ["/connect-love-logo.png"],
+    },
+  };
+}
+
+export function metadataForPublicPage(path: keyof typeof PUBLIC_PAGE_SEO): Metadata {
+  return createPublicMetadata({ path, ...PUBLIC_PAGE_SEO[path] });
+}
