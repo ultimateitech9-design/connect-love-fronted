@@ -27,7 +27,7 @@ const homeMetadata = createPublicMetadata({
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
   path: "/",
-  keywords: ["online dating India", "find singles in India", "dating for long-term relationships"],
+  keywords: [],
 });
 
 export const metadata: Metadata = {
