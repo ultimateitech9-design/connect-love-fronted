@@ -1306,3 +1306,103 @@ html {
   color: #e2e8f0;
   border-color: #475569;
 }
+
+/* Public navigation must remain readable on every header/footer-linked page.
+   These selectors intentionally do not depend on a page-specific wrapper. */
+.site-navbar {
+  background-color: rgb(255 255 255 / 0.94) !important;
+  border-color: rgb(255 228 230 / 0.95) !important;
+}
+
+.site-navbar .site-navbar-logo {
+  color: #0f172a !important;
+}
+
+.site-navbar nav a,
+.site-navbar a[id="navbar-login-btn"] {
+  color: #475569 !important;
+}
+
+.site-navbar nav a:hover,
+.site-navbar a[id="navbar-login-btn"]:hover {
+  color: #e11d48 !important;
+}
+
+.site-navbar button[aria-label*="theme"] {
+  color: #0f172a !important;
+  background-color: rgb(255 255 255 / 0.88) !important;
+  border-color: #e2e8f0 !important;
+}
+
+.dark .site-navbar,
+.site-navbar[data-theme="dark"] {
+  background-color: rgb(9 9 16 / 0.96) !important;
+  border-color: rgb(244 63 94 / 0.28) !important;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.28) !important;
+}
+
+.dark .site-navbar .site-navbar-logo,
+.site-navbar[data-theme="dark"] .site-navbar-logo {
+  color: #ffffff !important;
+}
+
+.dark .site-navbar nav a,
+.dark .site-navbar a[id="navbar-login-btn"],
+.site-navbar[data-theme="dark"] nav a,
+.site-navbar[data-theme="dark"] a[id="navbar-login-btn"] {
+  color: #e2e8f0 !important;
+}
+
+.dark .site-navbar nav a:hover,
+.dark .site-navbar a[id="navbar-login-btn"]:hover,
+.site-navbar[data-theme="dark"] nav a:hover,
+.site-navbar[data-theme="dark"] a[id="navbar-login-btn"]:hover {
+  color: #fb7185 !important;
+}
+
+.dark .site-navbar button[aria-label*="theme"],
+.site-navbar[data-theme="dark"] button[aria-label*="theme"] {
+  color: #ffffff !important;
+  background-color: rgb(15 23 42 / 0.9) !important;
+  border-color: rgb(255 255 255 / 0.14) !important;
+}
+
+/* Contact page dark palette. */
+.dark .contact-page main {
+  background-color: #121218;
+  color: #f8fafc;
+}
+
+.dark .contact-form label,
+.dark .contact-form [class*="text-slate-800"],
+.dark .contact-form [class*="text-slate-900"],
+.dark .contact-form [class*="text-slate-950"] {
+  color: #f8fafc !important;
+}
+
+.dark .contact-form [class*="text-slate-500"],
+.dark .contact-form [class*="text-slate-600"],
+.dark .contact-form [class*="text-slate-700"] {
+  color: #cbd5e1 !important;
+}
+
+.dark .contact-form :is(input, textarea),
+.dark .contact-form [class*="border-dashed"] {
+  background-color: #15151d !important;
+  border-color: #3f3f50 !important;
+  color: #f8fafc !important;
+}
+
+.dark .contact-form :is(input, textarea)::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.dark .contact-form :is(input, textarea):focus {
+  background-color: #191922 !important;
+  border-color: #fb7185 !important;
+}
+
+.dark .contact-form [class*="bg-white"] {
+  background-color: #262631 !important;
+}

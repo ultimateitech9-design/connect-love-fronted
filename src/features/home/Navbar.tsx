@@ -1,13 +1,14 @@
 /* eslint-disable */
 "use client";
 
-import { useState, useEffect, type MouseEvent } from "react";
+import { useState, useEffect, useRef, type MouseEvent } from "react";
 import Link from "next/link";
 import { Menu, X, User } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { isAuthenticated } from "@/lib/auth";
 import { navLinks } from "./marketingPages";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
+import { getStoredTheme, type AppTheme } from "@/features/theme/theme";
 
 interface NavbarProps {
  onLoginClick: () => void;
@@ -15,20 +16,35 @@ interface NavbarProps {
 }
 
 export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
- const [scrolled, setScrolled] = useState(false);
  const [mobileOpen, setMobileOpen] = useState(false);
  const [loggedIn, setLoggedIn] = useState(false);
+ const [activeTheme, setActiveTheme] = useState<AppTheme>("light");
+ const navbarRef = useRef<HTMLElement>(null);
 
  useEffect(() => {
- const handleScroll = () => setScrolled(window.scrollY > 20 || window.location.hash.length > 0);
- handleScroll();
- window.addEventListener("scroll", handleScroll);
- window.addEventListener("hashchange", handleScroll);
  setLoggedIn(isAuthenticated());
- return () => {
- window.removeEventListener("scroll", handleScroll);
- window.removeEventListener("hashchange", handleScroll);
+ setActiveTheme(getStoredTheme());
+ const syncTheme = (event: Event) => {
+ setActiveTheme((event as CustomEvent<AppTheme>).detail || getStoredTheme());
  };
+ window.addEventListener("connect-love-theme-change", syncTheme);
+ return () => window.removeEventListener("connect-love-theme-change", syncTheme);
+ }, []);
+
+ useEffect(() => {
+ const lockHeaderTheme = () => {
+ const theme = getStoredTheme();
+ setActiveTheme((current) => current === theme ? current : theme);
+ navbarRef.current?.style.setProperty(
+ "background-color",
+ theme === "dark" ? "#090910" : "#ffffff",
+ "important",
+ );
+ };
+
+ lockHeaderTheme();
+ window.addEventListener("scroll", lockHeaderTheme, { passive: true, capture: true });
+ return () => window.removeEventListener("scroll", lockHeaderTheme, { capture: true });
  }, []);
 
  useEffect(() => {
@@ -87,17 +103,16 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
 
   return (
     <header
-      className={`pointer-events-auto fixed top-0 left-0 right-0 z-[100] border-b transition-all duration-500 ease-in-out ${
-        scrolled
-          ? "bg-white/80 border-rose-100 shadow-lg shadow-rose-500/5 backdrop-blur-xl py-0"
-          : "bg-transparent border-transparent shadow-none py-2"
-      }`}
+      ref={navbarRef}
+      data-theme={activeTheme}
+      style={{ backgroundColor: activeTheme === "dark" ? "#090910" : "#ffffff" }}
+      className="site-navbar pointer-events-auto fixed left-0 right-0 top-0 z-[100] border-b border-rose-100 py-0 shadow-lg shadow-rose-500/5 dark:border-rose-500/20 dark:shadow-black/20"
     >
       <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" onClick={(event) => handleNavClick(event, "#hero")} className="flex items-center gap-2.5 group">
           <BrandLogo className="h-11 w-11 shadow-lg shadow-rose-500/30 transition-all duration-300 group-hover:shadow-rose-500/60 group-hover:scale-105" priority />
-          <span className={`text-xl font-bold tracking-tight transition-colors duration-300 ${scrolled ? "text-slate-900" : "text-white"}`}>
+          <span className="site-navbar-logo text-xl font-bold tracking-tight text-slate-900 dark:text-white">
             Connect<span className="text-rose-500">Love</span>
           </span>
         </Link>
@@ -109,9 +124,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
               href={link.href}
               key={link.href}
               onClick={(event) => handleNavClick(event, link.href)}
-              className={`text-sm font-semibold transition-all duration-300 relative group py-1.5 ${
-                scrolled ? "text-slate-600 hover:text-rose-500" : "text-white/80 hover:text-white"
-              }`}
+              className="group relative py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:text-rose-500 dark:text-slate-200 dark:hover:text-rose-400"
             >
               {link.label}
               <span className={`absolute bottom-0 left-0 h-0.5 w-0 rounded-full bg-rose-500 transition-all duration-300 group-hover:w-full`} />
@@ -121,13 +134,11 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
 
         {/* Desktop actions */}
         <div className="hidden md:flex items-center gap-3">
-          <ThemeToggle className={scrolled ? "dark:bg-slate-900" : "border-white/20 bg-white/10 text-white hover:bg-white/20"} />
+          <ThemeToggle className="dark:bg-slate-900" />
           {loggedIn ? (
             <Link
               href="/user"
-              className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:scale-105 ${
-                scrolled ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 text-white"
-              }`}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-all duration-300 hover:scale-105 hover:bg-slate-200 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
             >
               <User className="h-5 w-5" />
             </Link>
@@ -137,9 +148,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
                 href="/login"
                 id="navbar-login-btn"
                 onClick={goToLogin}
-                className={`px-5 py-2 text-sm font-semibold transition-all duration-300 ${
-                  scrolled ? "text-slate-700 hover:text-slate-900" : "text-white/80 hover:text-white"
-                }`}
+                className="px-5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-900 dark:text-slate-200 dark:hover:text-white"
               >
                 Sign In
               </Link>
@@ -156,15 +165,13 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         </div>
 
         {/* Mobile menu button */}
-        <ThemeToggle className={`absolute right-16 md:hidden sm:right-20 ${scrolled ? "dark:bg-slate-900" : "border-white/20 bg-white/10 text-white"}`} />
+        <ThemeToggle className="absolute right-16 dark:bg-slate-900 md:hidden sm:right-20" />
         <button
           type="button"
           className={`absolute right-4 top-1/2 z-[120] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl transition-all duration-300 md:hidden sm:right-6 ${
             mobileOpen
               ? "text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
-              : scrolled
-                ? "text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
-                : "text-white hover:bg-white/10"
+              : "text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
           }`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"

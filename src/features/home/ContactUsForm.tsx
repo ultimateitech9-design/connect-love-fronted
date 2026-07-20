@@ -107,12 +107,12 @@ export function ContactUsForm() {
 
   if (sent) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-white px-6 py-12 text-center shadow-xl shadow-slate-900/5">
+      <div className="contact-form rounded-2xl border border-emerald-200 bg-white px-6 py-12 text-center shadow-xl shadow-slate-900/5 dark:border-emerald-500/25 dark:bg-[#1d1d25]">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
           <Send className="h-6 w-6" />
         </div>
-        <h1 className="mt-4 text-3xl font-bold text-slate-950">Request sent to support</h1>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+        <h1 className="mt-4 text-3xl font-bold text-slate-950 dark:text-white">Request sent to support</h1>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-300">
           Your phone number, message, and uploaded photo are now visible in the support management queue.
         </p>
         <button
@@ -127,11 +127,11 @@ export function ContactUsForm() {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5">
-      <div className="border-b border-slate-100 px-6 py-6">
+    <div className="contact-form rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5 dark:border-white/10 dark:bg-[#1d1d25]">
+      <div className="border-b border-slate-100 px-6 py-6 dark:border-white/10">
         <p className="text-xs font-bold uppercase tracking-widest text-rose-500">Contact Us</p>
-        <h1 className="mt-2 text-3xl font-bold text-slate-950">Tell support what happened</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+        <h1 className="mt-2 text-3xl font-bold text-slate-950 dark:text-white">Tell support what happened</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-300">
           Add your phone number for a callback, your email for updates, a photo if needed, and the full problem details for the support team.
         </p>
       </div>
