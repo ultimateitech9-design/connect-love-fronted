@@ -37,6 +37,7 @@ export default function RegisterPage() {
   const [otp, setOtp] = useState("");
   const [pendingSignup, setPendingSignup] = useState<SignupData | null>(null);
   const [creatingAccount, setCreatingAccount] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
   const [locationStatus, setLocationStatus] = useState("");
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -116,7 +117,22 @@ export default function RegisterPage() {
     );
   };
 
-  const createAccount = async (data: SignupData) => {
+  const apiMessage = (body: { message?: string | string[] }, fallback: string) =>
+    Array.isArray(body.message) ? body.message.join(" ") : body.message || fallback;
+
+  const requestOtp = async (email: string) => {
+    const response = await fetch(`${API_BASE}/auth/register/request-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(apiMessage(body, "Could not send the OTP. Please try again."));
+    }
+  };
+
+  const createAccount = async (data: SignupData, verificationCode: string) => {
     setError("");
     setCreatingAccount(true);
     try {
@@ -132,12 +148,13 @@ export default function RegisterPage() {
           city: data.city?.trim() || undefined,
           locationLatitude: coords?.latitude,
           locationLongitude: coords?.longitude,
+          otp: verificationCode,
         }),
       });
 
       if (!regRes.ok) {
         const body = await regRes.json();
-        setError(body.message || "Registration failed. Please try again.");
+        setError(apiMessage(body, "Registration failed. Please try again."));
         return;
       }
 
@@ -163,20 +180,39 @@ export default function RegisterPage() {
     }
   };
 
-  const onSubmit = (data: SignupData) => {
+  const onSubmit = async (data: SignupData) => {
     setError("");
     setOtp("");
-    setPendingSignup(data);
+    try {
+      await requestOtp(data.email);
+      setPendingSignup(data);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Could not send the OTP. Please try again.");
+    }
+  };
+
+  const resendOtp = async () => {
+    if (!pendingSignup || sendingOtp) return;
+    setError("");
+    setSendingOtp(true);
+    try {
+      await requestOtp(pendingSignup.email);
+      setOtp("");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Could not resend the OTP. Please try again.");
+    } finally {
+      setSendingOtp(false);
+    }
   };
 
   const verifyOtp = async (event: FormEvent) => {
     event.preventDefault();
     if (!pendingSignup) return;
-    if (!otp.trim()) {
-      setError("Please enter the OTP.");
+    if (!/^\d{6}$/.test(otp.trim())) {
+      setError("Please enter the 6-digit OTP.");
       return;
     }
-    await createAccount(pendingSignup);
+    await createAccount(pendingSignup, otp.trim());
   };
 
   return (
@@ -235,7 +271,7 @@ export default function RegisterPage() {
 
               <h2 className="text-2xl font-black tracking-tight text-slate-950">{pendingSignup ? "Verify your email" : "Create your account"}</h2>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                {pendingSignup ? `Enter the OTP sent to ${pendingSignup.email}. For now any OTP will work.` : "A clean start for real matches. No clutter, no oversized modal."}
+                {pendingSignup ? `Enter the 6-digit OTP sent from noreply@connectlove.in to ${pendingSignup.email}. It expires in 10 minutes.` : "A clean start for real matches. No clutter, no oversized modal."}
               </p>
 
               {error && <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
@@ -248,14 +284,15 @@ export default function RegisterPage() {
                   <Field label="OTP Code">
                     <input
                       value={otp}
-                      onChange={(event) => setOtp(event.target.value)}
+                      onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
                       inputMode="numeric"
                       autoComplete="one-time-code"
-                      placeholder="Enter any OTP"
+                      maxLength={6}
+                      placeholder="000000"
                       className="field-input h-12 text-center text-lg font-black tracking-[0.35em]"
                     />
                   </Field>
-                  <div className="grid gap-2 sm:grid-cols-[auto_1fr]">
+                  <div className="grid gap-2 sm:grid-cols-3">
                     <button
                       type="button"
                       onClick={() => {
@@ -265,6 +302,14 @@ export default function RegisterPage() {
                       className="h-11 rounded-xl border border-slate-200 px-5 text-xs font-black text-slate-600 transition hover:border-rose-200 hover:text-rose-600"
                     >
                       Edit details
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resendOtp}
+                      disabled={sendingOtp || creatingAccount}
+                      className="h-11 rounded-xl border border-rose-200 px-5 text-xs font-black text-rose-600 transition hover:bg-rose-50 disabled:opacity-60"
+                    >
+                      {sendingOtp ? "Sending..." : "Resend OTP"}
                     </button>
                     <button type="submit" disabled={creatingAccount} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-xs font-black text-white shadow-lg shadow-rose-500/25 transition hover:scale-[1.01] hover:from-rose-400 hover:to-pink-500 active:scale-[0.99] disabled:opacity-70">
                       {creatingAccount && <Loader2 className="h-4 w-4 animate-spin" />}
