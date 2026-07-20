@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 30
     environment:
       name: production
-      url: http://200.97.174.20/deploy-status/
+      url: https://connectlove.in/deploy-status/
     steps:
       - name: Wait for VPS auto-deployment
         env:
@@ -49,7 +49,7 @@ jobs:
             COMPONENT=backend
           fi
           for attempt in {1..120}; do
-            JSON=$(curl --fail --silent --show-error --max-time 15 "http://200.97.174.20/deploy-status/status.json?t=$RANDOM" || true)
+            JSON=$(curl --fail --silent --show-error --max-time 15 "https://connectlove.in/deploy-status/status.json?t=$RANDOM" || true)
             if [[ -z "$JSON" ]]; then
               echo "Attempt $attempt: deployment status endpoint not ready"
               sleep 10
@@ -64,7 +64,7 @@ jobs:
               echo "### ✅ Production deployment successful" >> "$GITHUB_STEP_SUMMARY"
               echo "- Component: **$COMPONENT**" >> "$GITHUB_STEP_SUMMARY"
               echo "- Commit: $EXPECTED_SHA" >> "$GITHUB_STEP_SUMMARY"
-              echo "- [Open deployment dashboard](http://200.97.174.20/deploy-status/)" >> "$GITHUB_STEP_SUMMARY"
+              echo "- [Open deployment dashboard](https://connectlove.in/deploy-status/)" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             if [[ "$STATUS" == "failed" && "$ATTEMPTED" == "$EXPECTED_SHA" ]]; then
