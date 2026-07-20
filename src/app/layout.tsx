@@ -38,6 +38,9 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   applicationName: SITE_NAME,
+  verification: {
+    google: "ECsiPPiMEGXoirGoc8st98_imhhgCH4OzFIVhuMSnhI",
+  },
   icons: {
     icon: [{ url: "/connect-love-logo.png", type: "image/png" }],
     shortcut: "/connect-love-logo.png",

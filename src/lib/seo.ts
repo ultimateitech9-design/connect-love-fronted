@@ -2,9 +2,15 @@ import type { Metadata } from "next";
 
 export const SITE_NAME = "Connect Love";
 export const SITE_URL = "https://connectlove.in";
-export const HOME_TITLE = "Connect Love | Safe Dating App for Serious Relationships";
-export const HOME_DESCRIPTION =
-  "Meet verified singles on Connect Love, a safe dating app for meaningful relationships in India. Find compatible matches and build genuine connections.";
+export const HOME_TITLE =
+  "Connect Love | Best Safe Dating Site & App -Meet New Friends & People, Connect Hearts, Create Forever";
+export const HOME_DESCRIPTION = [
+  "connectLove.in Best online Dating Site & App, whether you're searching for friendship, companionship, or your perfect life partner, ConnectLove makes the journey simple, safe, and enjoyable.",
+  "With an easy-to-use interface, secure profiles, and smart matching, finding someone special has never been easier.",
+  "Find girl, female, male, lesbian, gay partner for short- or long-term live-in relationship.",
+  "Connect with naughty & beautiful girls /women near you & your village / town/city.",
+  "Visakhapatnam, Vijayawada, Papum Pare, Guwahati, Patna, Raipur, Ponda Goa, Ahmedabad, Surat, Vadodara, Faridabad, Gurugram, Shimla, Jamshedpur, Dhanbad, Ranchi, Bangalore, Mysore, Thiruvananthapuram, Kochi, Indore, Bhopal, Gwalior, Mumbai, Pune, Nagpur, Thane, Navi Mumbai, Shillong, Aizawl, Kohima, Bhubaneswar, Cuttack, Rourkela, Ludhiana, Amritsar, Jalandhar, Patiala, Jaipur, Jodhpur, Kota, Bikaner, Gangtok, Chennai, Coimbatore, Madurai, Hyderabad, Warangal, Kanpur, Lucknow, Ghaziabad, Varanasi, Prayagraj, Gorakhpur, Noida, Dehradun, Haridwar, Kolkata, Asansol, Siliguri, Chandigarh, New Delhi.",
+].join(" ");
 
 const coreKeywords = [
   "dating app India",
@@ -29,7 +35,7 @@ const coreKeywords = [
   "verified singles India",
   "compatible singles India",
   "relationship app India",
-  "matchmaking app India",
+  "match making app India",
   "modern matchmaking India",
   "compatibility matching app",
   "compatibility based dating",
@@ -57,6 +63,74 @@ const coreKeywords = [
   "dating app with verified profiles",
   "dating for long term relationships",
   "find genuine love India",
+  "Online girls near me",
+  "Online woman near me",
+  "Online naughty girls near me",
+  "beautiful girls near me",
+  "Online model near me",
+  "online actress near me",
+  "Visakhapatnam",
+  "Vijayawada",
+  "Papum Pare",
+  "Guwahati",
+  "Patna",
+  "Raipur",
+  "Ponda Goa",
+  "Ahmedabad",
+  "Surat",
+  "Vadodara",
+  "Faridabad",
+  "Gurugram",
+  "Shimla",
+  "Jamshedpur",
+  "Dhanbad",
+  "Ranchi",
+  "Bangalore",
+  "Mysore",
+  "Thiruvananthapuram",
+  "Kochi",
+  "Indore",
+  "Bhopal",
+  "Gwalior",
+  "Mumbai",
+  "Pune",
+  "Nagpur",
+  "Thane",
+  "Navi Mumbai",
+  "Shillong",
+  "Aizawl",
+  "Kohima",
+  "Bhubaneswar",
+  "Cuttack",
+  "Rourkela",
+  "Ludhiana",
+  "Amritsar",
+  "Jalandhar",
+  "Patiala",
+  "Jaipur",
+  "Jodhpur",
+  "Kota",
+  "Bikaner",
+  "Gangtok",
+  "Chennai",
+  "Coimbatore",
+  "Madurai",
+  "Hyderabad",
+  "Warangal",
+  "Kanpur",
+  "Lucknow",
+  "Ghaziabad",
+  "Varanasi",
+  "Prayagraj",
+  "Gorakhpur",
+  "Noida",
+  "Dehradun",
+  "Haridwar",
+  "Kolkata",
+  "Asansol",
+  "Siliguri",
+  "Chandigarh",
+  "New Delhi",
 ];
 
 type PublicSeo = {
@@ -142,7 +216,7 @@ export function createPublicMetadata({
   const canonicalPath = normalizePath(path);
   const canonicalUrl = new URL(canonicalPath, SITE_URL).toString();
   const socialTitle = canonicalPath === "/" ? title : `${title} | ${SITE_NAME}`;
-  const seoKeywords = [...new Set([...keywords, ...coreKeywords])].slice(0, 50);
+  const seoKeywords = [...new Set([...keywords, ...coreKeywords])];
 
   return {
     title,
