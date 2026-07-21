@@ -17,7 +17,10 @@ type DBMatch = { id: string; senderId: string; receiverId: string; status: Match
 const API_URL = API_ORIGIN;
 
 async function readMatches(res: Response): Promise<DBMatch[]> {
- if (!res.ok) return [];
+ if (!res.ok) {
+   const body = await res.json().catch(() => null);
+   throw new Error(body?.message || `Matches request failed (${res.status})`);
+ }
  const data = await res.json().catch(() => []);
  return Array.isArray(data) ? data : [];
 }
@@ -58,6 +61,7 @@ export default function MatchesDashboard() {
  };
 
  const fetchMatches = async () => {
+   setIsLoading(true);
    setFetchError(false);
    try {
      const token = getToken();
@@ -82,6 +86,7 @@ export default function MatchesDashboard() {
      setReceivedLikes(received);
      setBlockedUsers(blocked);
    } catch (error) {
+     console.error("Failed to load matches", error);
      setFetchError(true);
    } finally {
      setIsLoading(false);
