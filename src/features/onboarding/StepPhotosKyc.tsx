@@ -97,6 +97,7 @@ export function StepVideoKyc({
   const [cameraReady, setCameraReady] = useState(false);
   const [recording, setRecording] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [skipping, setSkipping] = useState(false);
   const [countdown, setCountdown] = useState(RECORD_SECONDS);
   const [message, setMessage] = useState("");
   const [cameraSupported, setCameraSupported] = useState(true);
@@ -252,6 +253,20 @@ export function StepVideoKyc({
 
   const canFinish = Boolean(kycFrame) && matchResult?.matched;
 
+  const skipKyc = async () => {
+    if (recording || checking || skipping) return;
+    setSkipping(true);
+    setMessage("");
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    try {
+      await onNext({});
+    } catch {
+      setMessage("Could not open the dashboard. Please try again.");
+    } finally {
+      setSkipping(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px]">
@@ -274,6 +289,7 @@ export function StepVideoKyc({
               Record a 7-second live video. Keep your face visible and slowly turn your head; valid frames are compared with your profile photos.
             </p>
             <p className="mt-2 text-xs font-semibold text-slate-300">Required match: {MATCH_THRESHOLD}% or higher</p>
+            <p className="mt-2 text-xs text-slate-500">Optional — you can skip this step and verify later.</p>
 
             {recording && (
               <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-200">
@@ -339,6 +355,16 @@ export function StepVideoKyc({
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
       >
         Enter dashboard
+      </button>
+
+      <button
+        type="button"
+        onClick={skipKyc}
+        disabled={recording || checking || skipping}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {skipping && <Loader2 className="h-4 w-4 animate-spin" />}
+        {skipping ? "Opening dashboard..." : "Skip for now"}
       </button>
 
       <canvas ref={canvasRef} className="hidden" />

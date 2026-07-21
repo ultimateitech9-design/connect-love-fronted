@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 
 const MAX_INTERESTS = 5;
-const MIN_PERSONALITY_TAGS = 5;
+const MIN_PERSONALITY_TAGS = 1;
 
 const PERSONALITY_OPTIONS = [
   "Introverted", "Extroverted", "Ambivert", "Adventurous", "Confident", "Funny",
@@ -127,7 +127,7 @@ export function StepTags({
     <div className="flex h-full flex-col justify-between">
       <div>
         <p className="mb-2 text-center text-slate-400">
-          Add some tags that describe your {label}. {isInterests ? "Choose up to 5." : isPersonality ? "Choose at least 5." : "Press enter to add."}
+          Add some tags that describe your {label}. {isInterests ? "Choose up to 5." : isPersonality ? "Choose one or more." : "Press enter to add."}
         </p>
         {isInterests && (
           <p className="mb-6 text-center text-sm font-medium text-rose-400">
@@ -136,7 +136,7 @@ export function StepTags({
         )}
         {isPersonality && (
           <p className={`mb-6 text-center text-sm font-medium ${tags.length >= MIN_PERSONALITY_TAGS ? "text-emerald-400" : "text-rose-400"}`}>
-            {tags.length} selected · minimum {MIN_PERSONALITY_TAGS}
+            {tags.length} selected {tags.length === 0 && "· select at least 1"}
           </p>
         )}
 
