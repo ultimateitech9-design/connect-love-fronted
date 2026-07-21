@@ -29,7 +29,11 @@ export function AuthPromptModal() {
     const isExcludedRoute = excludedRoutes.some(
       (route) => pathname === route || pathname.startsWith(`${route}/`),
     );
-    if (shownThisPageLoad.current || isExcludedRoute || isAuthenticated()) return;
+    if (isExcludedRoute || isAuthenticated()) {
+      setOpen(false);
+      return;
+    }
+    if (shownThisPageLoad.current) return;
 
     const timer = window.setTimeout(() => {
       shownThisPageLoad.current = true;
@@ -53,12 +57,15 @@ export function AuthPromptModal() {
     };
   }, [open]);
 
-  const goToAuthPage = () => router.push(mode === "register" ? "/register" : "/login");
+  const goToAuthPage = (targetMode: AuthMode = mode) => {
+    setOpen(false);
+    router.push(targetMode === "register" ? "/register" : "/login");
+  };
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (mode === "register") {
-      router.push("/register");
+      goToAuthPage("register");
       return;
     }
 
@@ -146,7 +153,7 @@ export function AuthPromptModal() {
 
             <form onSubmit={handleLogin} className="space-y-2">
               {mode === "register" && (
-                <button type="button" onClick={goToAuthPage} className="flex w-full items-center gap-2.5 rounded-lg border border-slate-200 px-3 py-2 text-left text-[11px] text-slate-500 transition hover:border-rose-300 hover:bg-rose-50/40">
+                <button type="button" onClick={() => goToAuthPage("register")} className="flex w-full items-center gap-2.5 rounded-lg border border-slate-200 px-3 py-2 text-left text-[11px] text-slate-500 transition hover:border-rose-300 hover:bg-rose-50/40">
                   <UserRound className="h-4 w-4" /> Full Name
                 </button>
               )}
@@ -157,7 +164,7 @@ export function AuthPromptModal() {
                   required={mode === "login"}
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  onClick={() => mode === "register" && router.push("/register")}
+                  onClick={() => mode === "register" && goToAuthPage("register")}
                   placeholder="Email Address"
                   className="min-w-0 flex-1 bg-transparent text-[11px] leading-none outline-none placeholder:text-[11px] placeholder:text-slate-500"
                 />
@@ -170,7 +177,7 @@ export function AuthPromptModal() {
                   minLength={6}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  onClick={() => mode === "register" && router.push("/register")}
+                  onClick={() => mode === "register" && goToAuthPage("register")}
                   placeholder="Password"
                   className="min-w-0 flex-1 bg-transparent text-[11px] leading-none outline-none placeholder:text-[11px] placeholder:text-slate-500"
                 />
@@ -184,7 +191,7 @@ export function AuthPromptModal() {
               <button
                 type={mode === "register" ? "button" : "submit"}
                 onClick={() => {
-                  if (mode === "register") router.push("/register");
+                  if (mode === "register") goToAuthPage("register");
                 }}
                 disabled={loading}
                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-rose-500 via-pink-500 to-violet-600 py-2.5 text-[11px] font-bold text-white shadow-lg shadow-pink-500/25 transition hover:-translate-y-0.5 hover:shadow-pink-500/35 disabled:opacity-60"
@@ -194,26 +201,17 @@ export function AuthPromptModal() {
               </button>
             </form>
 
-            <div className="my-3 flex items-center gap-2 text-[10px] text-slate-400">
-              <span className="h-px flex-1 bg-slate-200" /> or continue with <span className="h-px flex-1 bg-slate-200" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button type="button" onClick={goToAuthPage} className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-50">
-                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.92h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.41Z"/><path fill="#34A853" d="M12 22c2.7 0 4.98-.9 6.63-2.36l-3.24-2.54c-.9.6-2.05.96-3.39.96-2.61 0-4.82-1.76-5.61-4.13H3.04v2.62A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.39 13.93A6.02 6.02 0 0 1 6.08 12c0-.67.12-1.32.31-1.93V7.45H3.04A10 10 0 0 0 2 12c0 1.61.39 3.14 1.04 4.55l3.35-2.62Z"/><path fill="#EA4335" d="M12 5.94c1.47 0 2.79.51 3.83 1.5l2.87-2.88A9.64 9.64 0 0 0 12 2a10 10 0 0 0-8.96 5.45l3.35 2.62C7.18 7.7 9.39 5.94 12 5.94Z"/></svg>
-                Google
-              </button>
-              <button type="button" onClick={goToAuthPage} className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-50">
-                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true"><path d="M17.05 12.54c-.03-3.05 2.49-4.53 2.6-4.6a5.58 5.58 0 0 0-4.39-2.37c-1.84-.2-3.63 1.1-4.57 1.1-.96 0-2.42-1.08-3.98-1.05a5.82 5.82 0 0 0-4.9 2.99c-2.12 3.67-.54 9.07 1.5 12.03 1.02 1.46 2.2 3.08 3.76 3.02 1.52-.06 2.09-.97 3.92-.97 1.81 0 2.35.97 3.94.93 1.64-.02 2.67-1.46 3.65-2.93a12 12 0 0 0 1.67-3.4 5.24 5.24 0 0 1-3.2-4.75ZM14.06 3.62A5.3 5.3 0 0 0 15.27 0a5.4 5.4 0 0 0-3.49 1.72 5.02 5.02 0 0 0-1.24 3.48 4.46 4.46 0 0 0 3.52-1.58Z"/></svg>
-                Apple
-              </button>
-            </div>
-
             <p className="mt-3 text-center text-[11px] text-slate-500">
               {mode === "register" ? "Already have an account?" : "New to ConnectLove?"}{" "}
               <button
                 type="button"
-                onClick={() => setMode(mode === "register" ? "login" : "register")}
+                onClick={() => {
+                  if (mode === "login") {
+                    goToAuthPage("register");
+                  } else {
+                    setMode("login");
+                  }
+                }}
                 className="font-bold text-violet-600 hover:text-violet-700"
               >
                 {mode === "register" ? "Log In" : "Register"}
