@@ -9,6 +9,7 @@ import { FeaturesSection } from "@/features/home/FeaturesSection";
 import { SafetySection } from "@/features/home/SafetySection";
 import { Footer } from "@/features/home/Footer";
 import { LoginModal } from "@/features/home/LoginModal";
+import { AuthPromptModal } from "@/features/home/AuthPromptModal";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShieldX, X } from "lucide-react";
 
@@ -77,6 +78,8 @@ export default function HomePage() {
     <AuthBanner />
     <SignupIntent />
   </Suspense>
+
+  <AuthPromptModal />
 
  <Navbar
  onLoginClick={() => { window.location.href = "/login"; }}
