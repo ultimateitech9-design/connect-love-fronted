@@ -1,5 +1,5 @@
 "use client";
-import { API_ORIGIN } from "@/config/runtime";
+import { API_ORIGIN, WEBRTC_ICE_SERVERS } from "@/config/runtime";
 
 import { cloneElement, createContext, isValidElement, useContext, useState, useEffect, useRef, useCallback, useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -1793,6 +1793,8 @@ export default function Messages() {
  const voiceChunksRef = useRef<Blob[]>([]);
  const voiceStreamRef = useRef<MediaStream | null>(null);
  const peerRef = useRef<RTCPeerConnection | null>(null);
+ const activeCallRef = useRef<ActiveCall | null>(null);
+ const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
  const queryClient = useQueryClient();
 
  useEffect(() => {
@@ -2431,6 +2433,8 @@ export default function Messages() {
  const stopCallMedia = useCallback(() => {
    peerRef.current?.close();
    peerRef.current = null;
+   activeCallRef.current = null;
+   pendingIceCandidatesRef.current = [];
    localStreamRef.current?.getTracks().forEach((track) => track.stop());
    localStreamRef.current = null;
    remoteStreamRef.current = null;
@@ -2480,7 +2484,8 @@ export default function Messages() {
  const createPeer = useCallback((otherUserId: string, callId: string) => {
    peerRef.current?.close();
    const peer = new RTCPeerConnection({
-     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+     iceServers: WEBRTC_ICE_SERVERS,
+     iceCandidatePoolSize: 10,
    });
    peerRef.current = peer;
 
@@ -2489,9 +2494,13 @@ export default function Messages() {
    });
 
    peer.ontrack = (event) => {
-     const [stream] = event.streams;
+     const stream = event.streams[0] || remoteStreamRef.current || new MediaStream();
+     if (!event.streams[0] && !stream.getTracks().some((track) => track.id === event.track.id)) {
+       stream.addTrack(event.track);
+     }
      remoteStreamRef.current = stream;
      attachVideoStreams();
+     void remoteVideoRef.current?.play().catch(() => undefined);
    };
 
    peer.onicecandidate = (event) => {
@@ -2502,6 +2511,30 @@ export default function Messages() {
          signalType: "ice",
          payload: event.candidate,
        });
+     }
+   };
+
+   peer.oniceconnectionstatechange = async () => {
+     if (peer.iceConnectionState === "connected" || peer.iceConnectionState === "completed") {
+       attachVideoStreams();
+       void remoteVideoRef.current?.play().catch(() => undefined);
+       return;
+     }
+
+     const call = activeCallRef.current;
+     if (peer.iceConnectionState === "failed" && call?.direction === "outgoing" && socket) {
+       try {
+         const restartOffer = await peer.createOffer({ iceRestart: true });
+         await peer.setLocalDescription(restartOffer);
+         socket.emit("videoSignal", {
+           receiverId: otherUserId,
+           callId,
+           signalType: "offer",
+           payload: restartOffer,
+         });
+       } catch {
+         // A later call attempt can create a fresh peer if ICE restart is unavailable.
+       }
      }
    };
 
@@ -2527,14 +2560,16 @@ export default function Messages() {
        callId: incomingCall.call.id,
        callerId: incomingCall.callerId,
      });
-     setActiveCall({
+     const acceptedCall: ActiveCall = {
        id: incomingCall.call.id,
        conversationId: incomingCall.conversationId,
        otherUserId: incomingCall.callerId,
        direction: "incoming",
        status: "active",
        callType,
-     });
+     };
+     activeCallRef.current = acceptedCall;
+     setActiveCall(acceptedCall);
      setIncomingCall(null);
    } catch {
      alert(callType === "video" ? "Camera or microphone permission is required for video calls." : "Microphone permission is required for audio calls.");
@@ -2562,14 +2597,16 @@ export default function Messages() {
    if (!socket) return;
 
    const handleStarted = (payload: any) => {
-     setActiveCall({
+     const startedCall: ActiveCall = {
        id: payload.call.id,
        conversationId: payload.conversationId,
        otherUserId: payload.call.receiverId,
        direction: "outgoing",
        status: "ringing",
        callType: payload.callType === "audio" ? "audio" : "video",
-     });
+     };
+     activeCallRef.current = startedCall;
+     setActiveCall(startedCall);
    };
 
    const handleIncoming = (payload: any) => {
@@ -2577,9 +2614,11 @@ export default function Messages() {
    };
 
    const handleAccepted = async (payload: any) => {
-     setActiveCall((current) => current ? { ...current, status: "active" } : current);
-     const current = activeCall;
+     const current = activeCallRef.current;
      if (!current || current.direction !== "outgoing") return;
+     const acceptedCall: ActiveCall = { ...current, status: "active" };
+     activeCallRef.current = acceptedCall;
+     setActiveCall(acceptedCall);
      const peer = createPeer(current.otherUserId, current.id);
      const offer = await peer.createOffer();
      await peer.setLocalDescription(offer);
@@ -2592,12 +2631,15 @@ export default function Messages() {
    };
 
    const handleSignal = async (signal: any) => {
-     const call = activeCall;
-     if (!call) return;
+     const call = activeCallRef.current;
+     if (!call || signal.callId !== call.id) return;
 
      if (signal.signalType === "offer") {
        const peer = createPeer(signal.senderId, signal.callId);
        await peer.setRemoteDescription(new RTCSessionDescription(signal.payload));
+       for (const candidate of pendingIceCandidatesRef.current.splice(0)) {
+         await peer.addIceCandidate(new RTCIceCandidate(candidate));
+       }
        const answer = await peer.createAnswer();
        await peer.setLocalDescription(answer);
        socket.emit("videoSignal", {
@@ -2610,10 +2652,18 @@ export default function Messages() {
 
      if (signal.signalType === "answer" && peerRef.current) {
        await peerRef.current.setRemoteDescription(new RTCSessionDescription(signal.payload));
+       for (const candidate of pendingIceCandidatesRef.current.splice(0)) {
+         await peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+       }
      }
 
-     if (signal.signalType === "ice" && peerRef.current) {
-       await peerRef.current.addIceCandidate(new RTCIceCandidate(signal.payload));
+     if (signal.signalType === "ice") {
+       const candidate = signal.payload as RTCIceCandidateInit;
+       if (peerRef.current?.remoteDescription) {
+         await peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+       } else {
+         pendingIceCandidatesRef.current.push(candidate);
+       }
      }
    };
 
@@ -2634,7 +2684,7 @@ export default function Messages() {
      socket.off("videoSignal", handleSignal);
      socket.off("videoCallEnded", handleEnded);
    };
- }, [activeCall, createPeer, socket, stopCallMedia]);
+ }, [createPeer, socket, stopCallMedia]);
 
   useLayoutEffect(() => {
     const messagesList = messagesListRef.current;

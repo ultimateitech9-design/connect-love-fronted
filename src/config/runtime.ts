@@ -29,6 +29,21 @@ export const API_ORIGIN = resolveBrowserOrigin(configuredApiOrigin, "5002");
 export const SOCKET_ORIGIN = resolveBrowserOrigin(configuredSocketOrigin, "5002");
 export const SITE_ORIGIN = resolveBrowserOrigin(configuredSiteOrigin, windowPort("3002"));
 
+const turnUrl = process.env.NEXT_PUBLIC_TURN_URL?.trim();
+const turnUsername = process.env.NEXT_PUBLIC_TURN_USERNAME?.trim();
+const turnCredential = process.env.NEXT_PUBLIC_TURN_CREDENTIAL?.trim();
+
+export const WEBRTC_ICE_SERVERS: RTCIceServer[] = [
+  { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
+  ...(turnUrl && turnUsername && turnCredential
+    ? [{
+        urls: turnUrl.split(",").map((url) => url.trim()).filter(Boolean),
+        username: turnUsername,
+        credential: turnCredential,
+      }]
+    : []),
+];
+
 function windowPort(fallback: string): string {
   return typeof window !== "undefined" ? window.location.port || fallback : fallback;
 }
