@@ -2545,11 +2545,19 @@ export default function Messages() {
    if (!socket || !active) return;
    try {
      await ensureLocalMedia(callType);
-     socket.emit("startVideoCall", { conversationId: active.id, receiverId: active.userId, callType });
+     socket.emit(
+       "startVideoCall",
+       { conversationId: active.id, receiverId: active.userId, callType },
+       (response: any) => {
+         if (!response?.error) return;
+         stopCallMedia();
+         toast.error(response.error || "Call could not be started.");
+       },
+     );
    } catch {
      alert(callType === "video" ? "Camera or microphone permission is required for video calls." : "Microphone permission is required for audio calls.");
    }
- }, [active, ensureLocalMedia, socket]);
+ }, [active, ensureLocalMedia, socket, stopCallMedia]);
 
  const acceptIncomingCall = useCallback(async () => {
    if (!socket || !incomingCall) return;
@@ -2685,6 +2693,38 @@ export default function Messages() {
      socket.off("videoCallEnded", handleEnded);
    };
  }, [createPeer, socket, stopCallMedia]);
+
+ useEffect(() => {
+   if (!token || activeCall || incomingCall) return;
+
+   let cancelled = false;
+   const recoverMissedIncomingCall = async () => {
+     try {
+       const response = await fetch(`${API_URL}/video-calls/incoming`, {
+         headers: { Authorization: `Bearer ${token}` },
+         cache: "no-store",
+       });
+       if (!response.ok || cancelled) return;
+       const call = await response.json();
+       if (!call?.id || cancelled) return;
+       setIncomingCall({
+         call,
+         callerId: call.callerId,
+         conversationId: call.conversationId,
+         callType: call.callType === "audio" ? "audio" : "video",
+       });
+     } catch {
+       // Socket delivery remains primary; polling recovers calls after reconnects.
+     }
+   };
+
+   void recoverMissedIncomingCall();
+   const timer = window.setInterval(recoverMissedIncomingCall, 3000);
+   return () => {
+     cancelled = true;
+     window.clearInterval(timer);
+   };
+ }, [activeCall, incomingCall, token]);
 
   useLayoutEffect(() => {
     const messagesList = messagesListRef.current;
