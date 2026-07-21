@@ -41,6 +41,7 @@ export type PublicPageData = {
   icon: LucideIcon;
   cta: { label: string; href: string };
   secondaryCta?: { label: string; href: string };
+  contactEmails?: { label: string; email: string }[];
   highlights: string[];
   metrics: { value: string; label: string }[];
   sections: { title: string; body: string; points: string[] }[];

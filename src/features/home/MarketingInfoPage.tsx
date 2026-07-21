@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, ChevronRight, HelpCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight, HelpCircle, Mail } from "lucide-react";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
 import type { PublicPageData } from "./marketingPages";
@@ -49,6 +49,26 @@ export function MarketingInfoPage({ page }: { page: PublicPageData }) {
                   </Link>
                 ) : null}
               </div>
+
+              {page.contactEmails?.length ? (
+                <div className="mt-6 flex flex-wrap gap-3" aria-label="Contact email addresses">
+                  {page.contactEmails.map((contact) => (
+                    <a
+                      key={contact.email}
+                      href={`mailto:${contact.email}`}
+                      className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-rose-200 hover:bg-rose-50/60"
+                    >
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-rose-500 shadow-sm transition group-hover:bg-rose-500 group-hover:text-white">
+                        <Mail className="h-4 w-4" />
+                      </span>
+                      <span>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">{contact.label}</span>
+                        <span className="block text-sm font-semibold text-slate-800 group-hover:text-rose-600">{contact.email}</span>
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             <div className="rounded-3xl border border-slate-100 bg-slate-50 p-6 shadow-sm">

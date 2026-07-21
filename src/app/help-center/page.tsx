@@ -11,6 +11,10 @@ export default function HelpCenterPage() {
     description: "Help for accounts, login, onboarding, discovery, messages, premium subscriptions, billing, reports, and privacy requests.",
     icon: HelpCircle,
     cta: { label: "Contact Support", href: "/contact-us" },
+    contactEmails: [
+      { label: "Info", email: "info@connectlove.in" },
+      { label: "Support", email: "support@connectlove.in" },
+    ],
     highlights: ["Contact form is connected to backend support/contact.", "Tickets can be reviewed from support dashboards.", "Billing and safety issues route to the right team."],
     metrics: [{ value: "6", label: "help areas" }, { value: "24 hr", label: "reply target" }, { value: "Urgent", label: "safety path" }],
     sections: [

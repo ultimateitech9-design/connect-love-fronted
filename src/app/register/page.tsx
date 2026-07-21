@@ -3,8 +3,8 @@
 import { API_ORIGIN } from "@/config/runtime";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
-import { ArrowLeft, Check, Eye, EyeOff, Heart, Loader2, MailCheck, MapPin, ShieldCheck, Sparkles, UserRoundPlus } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Heart, Loader2, Mail, MapPin, ShieldCheck, Sparkles, UserRoundPlus } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +37,8 @@ export default function RegisterPage() {
   const [pendingSignup, setPendingSignup] = useState<SignupData | null>(null);
   const [creatingAccount, setCreatingAccount] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
+  const [otpSecondsLeft, setOtpSecondsLeft] = useState(600);
+  const otpInputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [locationStatus, setLocationStatus] = useState("");
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -67,6 +69,14 @@ export default function RegisterPage() {
     { label: "Uppercase letter", ok: /[A-Z]/.test(password) },
     { label: "Number", ok: /[0-9]/.test(password) },
   ], [password]);
+
+  useEffect(() => {
+    if (!pendingSignup || otpSecondsLeft <= 0) return;
+    const timer = window.setInterval(() => {
+      setOtpSecondsLeft((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [pendingSignup, otpSecondsLeft]);
 
   const detectLocation = () => {
     if (!("geolocation" in navigator)) {
@@ -184,6 +194,7 @@ export default function RegisterPage() {
     setOtp("");
     try {
       await requestOtp(data.email);
+      setOtpSecondsLeft(600);
       setPendingSignup(data);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Could not send the OTP. Please try again.");
@@ -197,6 +208,8 @@ export default function RegisterPage() {
     try {
       await requestOtp(pendingSignup.email);
       setOtp("");
+      setOtpSecondsLeft(600);
+      otpInputRefs.current[0]?.focus();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Could not resend the OTP. Please try again.");
     } finally {
@@ -213,6 +226,17 @@ export default function RegisterPage() {
     }
     await createAccount(pendingSignup, otp.trim());
   };
+
+  const updateOtpDigit = (index: number, digit: string) => {
+    if (!digit) {
+      setOtp((current) => current.slice(0, index));
+      return;
+    }
+    setOtp((current) => `${current.slice(0, index)}${digit}${current.slice(index + 1)}`.slice(0, 6));
+    if (digit && index < 5) otpInputRefs.current[index + 1]?.focus();
+  };
+
+  const otpTime = `${String(Math.floor(otpSecondsLeft / 60)).padStart(2, "0")}:${String(otpSecondsLeft % 60).padStart(2, "0")}`;
 
   return (
     <main className="min-h-dvh overflow-x-hidden bg-[radial-gradient(circle_at_12%_10%,rgba(244,63,94,0.13),transparent_30%),radial-gradient(circle_at_88%_88%,rgba(168,85,247,0.12),transparent_28%),linear-gradient(135deg,#fff7fa_0%,#fff0f6_48%,#f7fbff_100%)] px-3 py-2 sm:px-5 lg:p-3">
@@ -268,7 +292,10 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <h2 className="text-2xl font-black tracking-tight text-slate-950">{pendingSignup ? "Verify your email" : "Create your account"}</h2>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-2xl font-black tracking-tight text-slate-950">{pendingSignup ? "Verify your email" : "Create your account"}</h2>
+                {pendingSignup && <span className="shrink-0 rounded-xl bg-rose-50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-rose-500">Step 2 of 3</span>}
+              </div>
               <p className="mt-1 text-xs leading-5 text-slate-500">
                 {pendingSignup ? `Enter the 6-digit OTP sent from noreply@connectlove.in to ${pendingSignup.email}. It expires in 10 minutes.` : "A clean start for real matches. No clutter, no oversized modal."}
               </p>
@@ -276,43 +303,67 @@ export default function RegisterPage() {
               {error && <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
               {pendingSignup ? (
-                <form onSubmit={verifyOtp} className="mt-6 grid gap-4">
-                  <div className="grid h-14 w-14 place-items-center rounded-2xl bg-rose-50 text-rose-500">
-                    <MailCheck className="h-7 w-7" />
+                <form onSubmit={verifyOtp} className="mt-6 grid gap-5">
+                  <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-rose-50 to-pink-50 text-rose-500 shadow-sm">
+                    <Mail className="h-7 w-7" />
                   </div>
-                  <Field label="OTP Code">
-                    <input
-                      value={otp}
-                      onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={6}
-                      placeholder="000000"
-                      className="field-input h-12 text-center text-lg font-black tracking-[0.35em]"
-                    />
-                  </Field>
-                  <div className="grid gap-2 sm:grid-cols-3">
+                  <div>
+                    <label className="mb-3 block text-xs font-black text-slate-800">Enter verification code</label>
+                    <div className="grid grid-cols-6 gap-2 sm:gap-3">
+                      {Array.from({ length: 6 }).map((_, index) => (
+                        <input
+                          key={index}
+                          ref={(element) => { otpInputRefs.current[index] = element; }}
+                          value={otp[index] || ""}
+                          onChange={(event) => updateOtpDigit(index, event.target.value.replace(/\D/g, "").slice(-1))}
+                          onKeyDown={(event) => {
+                            if (event.key === "Backspace" && !otp[index] && index > 0) {
+                              otpInputRefs.current[index - 1]?.focus();
+                            }
+                            if (event.key === "ArrowLeft" && index > 0) otpInputRefs.current[index - 1]?.focus();
+                            if (event.key === "ArrowRight" && index < 5) otpInputRefs.current[index + 1]?.focus();
+                          }}
+                          onPaste={(event) => {
+                            event.preventDefault();
+                            const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+                            if (!pasted) return;
+                            setOtp(pasted);
+                            otpInputRefs.current[Math.min(pasted.length, 6) - 1]?.focus();
+                          }}
+                          inputMode="numeric"
+                          autoComplete={index === 0 ? "one-time-code" : "off"}
+                          aria-label={`OTP digit ${index + 1}`}
+                          className="h-14 min-w-0 rounded-xl border border-slate-200 bg-white text-center text-xl font-black text-slate-800 outline-none transition focus:border-rose-500 focus:ring-4 focus:ring-rose-100 sm:h-16 sm:text-2xl"
+                        />
+                      ))}
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                      <p>Code expires in <span className="font-black text-rose-500">{otpTime}</span></p>
+                      <p>
+                        Didn&apos;t receive it?{" "}
+                        <button type="button" onClick={resendOtp} disabled={sendingOtp || creatingAccount} className="font-black text-rose-500 hover:text-rose-600 disabled:opacity-50">
+                          {sendingOtp ? "Sending..." : "Resend OTP"}
+                        </button>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button type="submit" disabled={creatingAccount || otp.length !== 6} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 via-pink-600 to-fuchsia-600 text-sm font-black text-white shadow-lg shadow-rose-500/25 transition hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60">
+                    {creatingAccount && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {creatingAccount ? "Verifying..." : "Verify & Continue"}
+                    {!creatingAccount && <ArrowRight className="ml-auto mr-5 h-5 w-5" />}
+                  </button>
+
+                  <div className="grid gap-2">
                     <button
                       type="button"
                       onClick={() => {
                         setPendingSignup(null);
                         setError("");
                       }}
-                      className="h-11 rounded-xl border border-slate-200 px-5 text-xs font-black text-slate-600 transition hover:border-rose-200 hover:text-rose-600"
+                      className="h-11 rounded-xl border border-rose-300 px-5 text-xs font-black text-rose-500 transition hover:bg-rose-50"
                     >
-                      Edit details
-                    </button>
-                    <button
-                      type="button"
-                      onClick={resendOtp}
-                      disabled={sendingOtp || creatingAccount}
-                      className="h-11 rounded-xl border border-rose-200 px-5 text-xs font-black text-rose-600 transition hover:bg-rose-50 disabled:opacity-60"
-                    >
-                      {sendingOtp ? "Sending..." : "Resend OTP"}
-                    </button>
-                    <button type="submit" disabled={creatingAccount} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-xs font-black text-white shadow-lg shadow-rose-500/25 transition hover:scale-[1.01] hover:from-rose-400 hover:to-pink-500 active:scale-[0.99] disabled:opacity-70">
-                      {creatingAccount && <Loader2 className="h-4 w-4 animate-spin" />}
-                      {creatingAccount ? "Verifying..." : "Verify OTP"}
+                      Edit email address
                     </button>
                   </div>
                 </form>
