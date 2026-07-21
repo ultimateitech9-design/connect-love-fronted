@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Eye, EyeOff, Heart, Loader2, LockKeyhole, Mail, UserRound, X } from "lucide-react";
 import { clearOnboardingRequired, isAuthenticated, setToken } from "@/lib/auth";
@@ -11,6 +11,8 @@ type AuthMode = "register" | "login";
 
 export function AuthPromptModal() {
   const router = useRouter();
+  const pathname = usePathname();
+  const shownThisPageLoad = useRef(false);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("register");
   const [email, setEmail] = useState("");
@@ -20,13 +22,21 @@ export function AuthPromptModal() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (isAuthenticated()) return;
+    const excludedRoutes = [
+      "/login", "/register", "/forgot-password", "/user", "/discover",
+      "/admin", "/super-admin", "/management", "/marketing", "/sales", "/support",
+    ];
+    const isExcludedRoute = excludedRoutes.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    );
+    if (shownThisPageLoad.current || isExcludedRoute || isAuthenticated()) return;
 
     const timer = window.setTimeout(() => {
+      shownThisPageLoad.current = true;
       setOpen(true);
-    }, 3500);
+    }, 5000);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     if (!open) return;

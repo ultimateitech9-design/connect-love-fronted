@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/SessionProvider";
 import { QueryProvider } from "@/components/QueryProvider";
 import { TranslationProvider } from "@/features/i18n/TranslationProvider";
+import { AuthPromptModal } from "@/features/home/AuthPromptModal";
 import {
   createPublicMetadata,
   HOME_DESCRIPTION,
@@ -98,6 +99,7 @@ gtag('config', 'G-LSFFV3G704');`,
           <TranslationProvider>
             <SessionProvider>
               {children}
+              <AuthPromptModal />
             </SessionProvider>
           </TranslationProvider>
         </QueryProvider>

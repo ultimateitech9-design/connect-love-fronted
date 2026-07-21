@@ -4,6 +4,25 @@ import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 
 const MAX_INTERESTS = 5;
+const MIN_PERSONALITY_TAGS = 5;
+
+const PERSONALITY_OPTIONS = [
+  "Introverted", "Extroverted", "Ambivert", "Adventurous", "Confident", "Funny",
+  "Witty", "Romantic", "Caring", "Loyal", "Honest", "Kind", "Friendly", "Creative",
+  "Calm", "Emotional", "Independent", "Optimistic", "Open-minded", "Easygoing",
+  "Respectful", "Supportive", "Understanding", "Talkative", "Shy", "Curious",
+  "Passionate", "Thoughtful", "Empathetic", "Spontaneous", "Playful", "Energetic",
+  "Mature", "Patient", "Goal-oriented", "Family-oriented", "Hardworking", "Fitness Lover",
+  "Nature Lover", "Animal Lover", "Foodie", "Traveler", "Book Lover", "Music Lover",
+  "Movie Buff", "Tech Enthusiast", "Social Butterfly", "Good Listener", "Deep Thinker",
+  "Sense of Humor", "Positive Thinker", "Straightforward", "Down to Earth", "Fun Loving",
+  "Career Focused", "Spiritual", "Health Conscious", "Night Owl", "Early Bird", "Risk Taker",
+  "Organized", "Minimalist", "Protective", "Affectionate", "Sensitive", "Polite", "Generous",
+  "Responsible", "Trustworthy", "Charming", "Intelligent", "Competitive", "Disciplined",
+  "Peaceful", "Bold", "Reserved", "Outspoken", "Laid-back", "Dreamer", "Realistic",
+  "Punctual", "Motivated", "Adaptable", "Self-aware", "Non-judgmental",
+  "Relationship-oriented", "Commitment-minded",
+];
 
 const INTEREST_OPTIONS = [
   "90s Kid", "Harry Potter", "SoundCloud", "Spa", "Self Care", "Heavy Metal",
@@ -39,6 +58,7 @@ export function StepTags({
   onNext: (val: string[]) => void;
 }) {
   const isInterests = type === "interests";
+  const isPersonality = type === "personality" || type === "personalityWords";
   const initialTags = Array.isArray(profile?.[type]) ? profile[type] : [];
   const [tags, setTags] = useState<string[]>(
     isInterests ? initialTags.slice(0, MAX_INTERESTS) : initialTags,
@@ -47,15 +67,16 @@ export function StepTags({
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const suggestions = useMemo(() => {
-    if (!isInterests || !inputValue.trim()) return [];
+    if ((!isInterests && !isPersonality) || !inputValue.trim()) return [];
     const query = inputValue.trim().toLocaleLowerCase();
     const selected = new Set(tags.map((tag) => tag.toLocaleLowerCase()));
-    return INTEREST_OPTIONS.filter(
+    const options = isPersonality ? PERSONALITY_OPTIONS : INTEREST_OPTIONS;
+    return options.filter(
       (option) =>
         option.toLocaleLowerCase().includes(query) &&
         !selected.has(option.toLocaleLowerCase()),
-    );
-  }, [inputValue, isInterests, tags]);
+    ).slice(0, 24);
+  }, [inputValue, isInterests, isPersonality, tags]);
 
   const addTag = (value: string) => {
     const val = value.trim();
@@ -68,13 +89,15 @@ export function StepTags({
 
   const handleAdd = (e?: React.FormEvent) => {
     e?.preventDefault();
-    addTag(inputValue);
+    if (isPersonality && suggestions.length === 0) return;
+    addTag(isPersonality && suggestions.length > 0 ? suggestions[0] : inputValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      addTag(inputValue);
+      if (isPersonality && suggestions.length === 0) return;
+      addTag(isPersonality && suggestions.length > 0 ? suggestions[0] : inputValue);
     }
   };
 
@@ -87,6 +110,7 @@ export function StepTags({
       !tags.some((tag) => tag.toLocaleLowerCase() === pendingValue.toLocaleLowerCase()) &&
       (!isInterests || tags.length < MAX_INTERESTS);
     const finalTags = canIncludePending ? [...tags, pendingValue] : tags;
+    if (isPersonality && finalTags.length < MIN_PERSONALITY_TAGS) return;
     if (finalTags.length > 0) onNext(finalTags);
   };
 
@@ -103,11 +127,16 @@ export function StepTags({
     <div className="flex h-full flex-col justify-between">
       <div>
         <p className="mb-2 text-center text-slate-400">
-          Add some tags that describe your {label}. {isInterests ? "Choose up to 5." : "Press enter to add."}
+          Add some tags that describe your {label}. {isInterests ? "Choose up to 5." : isPersonality ? "Choose at least 5." : "Press enter to add."}
         </p>
         {isInterests && (
           <p className="mb-6 text-center text-sm font-medium text-rose-400">
             {tags.length}/{MAX_INTERESTS} selected
+          </p>
+        )}
+        {isPersonality && (
+          <p className={`mb-6 text-center text-sm font-medium ${tags.length >= MIN_PERSONALITY_TAGS ? "text-emerald-400" : "text-rose-400"}`}>
+            {tags.length} selected · minimum {MIN_PERSONALITY_TAGS}
           </p>
         )}
 
@@ -137,7 +166,7 @@ export function StepTags({
               placeholder={limitReached ? "Maximum 5 interests selected" : placeholders[type]}
               className="h-12 rounded-xl border-white/10 bg-black/50 text-white placeholder:text-slate-500 focus-visible:ring-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
             />
-            <Button onClick={handleAdd} type="button" disabled={!inputValue.trim() || limitReached} className="h-12 rounded-xl bg-white/10 px-6 text-white hover:bg-white/20">
+            <Button onClick={handleAdd} type="button" disabled={!inputValue.trim() || limitReached || (isPersonality && suggestions.length === 0)} className="h-12 rounded-xl bg-white/10 px-6 text-white hover:bg-white/20">
               Add
             </Button>
           </div>
@@ -154,14 +183,16 @@ export function StepTags({
             </div>
           )}
 
-          {isInterests && inputValue.trim() && suggestions.length === 0 && !limitReached && (
-            <p className="mt-3 text-sm text-slate-500">No matching suggestion. Press Enter or Add to use your own interest.</p>
+          {(isInterests || isPersonality) && inputValue.trim() && suggestions.length === 0 && !limitReached && (
+            <p className="mt-3 text-sm text-slate-500">
+              {isPersonality ? "No matching personality keyword found." : "No matching suggestion. Press Enter or Add to use your own interest."}
+            </p>
           )}
         </div>
       </div>
 
       <div className="mt-8 flex justify-end">
-        <Button onClick={handleSubmit} disabled={tags.length === 0 && !inputValue.trim()} className="h-12 w-full rounded-xl bg-rose-500 px-8 text-white hover:bg-rose-600 sm:w-auto">
+        <Button onClick={handleSubmit} disabled={isPersonality ? tags.length < MIN_PERSONALITY_TAGS : tags.length === 0 && !inputValue.trim()} className="h-12 w-full rounded-xl bg-rose-500 px-8 text-white hover:bg-rose-600 sm:w-auto">
           {type === "hobbies" ? "Finish" : "Continue"}
         </Button>
       </div>
