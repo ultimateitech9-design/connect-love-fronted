@@ -219,7 +219,7 @@ export function FeaturesSection() {
                   <div
                     className={`relative flex h-full flex-1 flex-col overflow-hidden rounded-[26px] border ${
                       isFree
-                        ? "border-white/90 bg-[linear-gradient(145deg,#fffdf9_0%,#f5f0e9_48%,#fffdfa_100%)] text-slate-950"
+                        ? "pricing-free-card border-white/90 bg-[linear-gradient(145deg,#fffdf9_0%,#f5f0e9_48%,#fffdfa_100%)] text-slate-950"
                         : isGold
                           ? "border-[#8e682e] bg-[linear-gradient(145deg,#171716_0%,#090909_54%,#1b1813_100%)] text-white"
                           : "border-violet-100/70 bg-[linear-gradient(145deg,#241140_0%,#100823_50%,#1d1244_100%)] text-white shadow-[inset_0_0_0_2px_rgba(166,132,255,.24),inset_0_0_28px_rgba(131,82,231,.18)]"
@@ -253,7 +253,7 @@ export function FeaturesSection() {
                       </>
                     )}
 
-                    <header className={`relative p-6 ${isDiamond ? "min-h-[190px]" : "min-h-[176px]"} ${isGold ? "pt-8" : ""}`}>
+                    <header className={`relative p-6 ${isDiamond ? "min-h-[190px]" : "min-h-[176px]"} ${isGold ? "pt-8" : ""} ${isFree ? "pricing-free-header" : ""}`}>
                       <div className="flex items-center justify-between gap-4">
                         <p className={`text-sm font-black uppercase tracking-[0.13em] ${isFree ? "text-stone-500" : isGold ? "text-[#f2cf7d]" : "text-violet-50"}`}>
                           <span className="inline-flex items-center gap-2">
@@ -271,7 +271,7 @@ export function FeaturesSection() {
                       <div className="mt-5 flex flex-wrap items-end gap-x-2 gap-y-1">
                         <span
                           aria-label={`${plan.price} ${plan.period}`}
-                          className={`inline-flex shrink-0 items-baseline whitespace-nowrap text-[2.65rem] font-black leading-none tabular-nums ${isGold ? "bg-gradient-to-b from-[#ffe6a2] to-[#b77a27] bg-clip-text text-transparent" : isDiamond ? "text-violet-100" : "text-slate-950"}`}
+                          className={`inline-flex shrink-0 items-baseline whitespace-nowrap text-[2.65rem] font-black leading-none tabular-nums ${isGold ? "bg-gradient-to-b from-[#ffe6a2] to-[#b77a27] bg-clip-text text-transparent" : isDiamond ? "text-violet-100" : "pricing-free-price text-slate-950"}`}
                         >
                           <span className="tracking-[-0.04em]" aria-hidden="true">₹</span>
                           <span className="ml-[0.06em] tracking-[-0.03em]" aria-hidden="true">
@@ -287,7 +287,7 @@ export function FeaturesSection() {
                       </p>
                     </header>
 
-                    <div className={`relative flex flex-1 flex-col p-5 sm:p-6 ${isFree ? "border-t border-white bg-white/22" : isGold ? "border-t border-[#705326]/80 bg-white/[0.018]" : "mx-2 mb-2 rounded-[22px] border border-violet-300/20 bg-[linear-gradient(180deg,rgba(29,17,65,.84),rgba(12,7,34,.9))] shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"}`}>
+                    <div className={`relative flex flex-1 flex-col p-5 sm:p-6 ${isFree ? "pricing-free-body border-t border-white bg-[linear-gradient(180deg,rgba(255,255,255,.74),rgba(248,245,240,.92))]" : isGold ? "border-t border-[#705326]/80 bg-white/[0.018]" : "mx-2 mb-2 rounded-[22px] border border-violet-300/20 bg-[linear-gradient(180deg,rgba(29,17,65,.84),rgba(12,7,34,.9))] shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"}`}>
                       <ul className="mb-6">
                         {plan.features.map((feature) => (
                           <li key={feature} className={`flex min-h-10 items-center gap-3 border-b text-[13px] last:border-b-0 ${isFree ? "border-stone-300/45 text-slate-700" : isGold ? "border-white/[0.06] text-stone-200" : "border-violet-200/10 text-violet-50"}`}>
@@ -353,6 +353,23 @@ export function FeaturesSection() {
           .pricing-diamond-shell { animation: pricing-diamond-border 3.4s ease-in-out infinite; }
           .pricing-diamond-facets { animation: pricing-facet-drift 8s ease-in-out infinite; }
           .pricing-shard-glint { animation: pricing-shard-glint 2.6s ease-in-out infinite; }
+          .dark .marketing-home #features .pricing-free-card .pricing-free-header p,
+          .dark .marketing-home #features .pricing-free-card .pricing-free-header span {
+            color: #57534e;
+          }
+          .dark .marketing-home #features .pricing-free-card,
+          .dark .marketing-home #features .pricing-free-card .pricing-free-price,
+          .dark .marketing-home #features .pricing-free-card .pricing-free-price span {
+            color: #0f172a;
+          }
+          .dark .marketing-home #features .pricing-free-card .pricing-free-body,
+          .dark .marketing-home #features .pricing-free-card .pricing-free-body li {
+            color: #334155;
+          }
+          .dark .marketing-home #features .pricing-free-card .pricing-free-body {
+            background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(248,245,240,.94));
+            border-color: rgba(255,255,255,.9);
+          }
           @media (prefers-reduced-motion: reduce) {
             .pricing-card-shine, .pricing-gem-float, .pricing-badge-glow, .pricing-diamond-shell, .pricing-diamond-facets, .pricing-shard-glint { animation: none !important; }
           }
