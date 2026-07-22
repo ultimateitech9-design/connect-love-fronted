@@ -269,8 +269,14 @@ export function FeaturesSection() {
                       </div>
 
                       <div className="mt-5 flex flex-wrap items-end gap-x-2 gap-y-1">
-                        <span className={`text-[2.65rem] font-black leading-none tracking-[-0.06em] ${isGold ? "bg-gradient-to-b from-[#ffe6a2] to-[#b77a27] bg-clip-text text-transparent" : isDiamond ? "text-violet-100" : "text-slate-950"}`}>
-                          {plan.price}
+                        <span
+                          aria-label={`${plan.price} ${plan.period}`}
+                          className={`inline-flex shrink-0 items-baseline whitespace-nowrap text-[2.65rem] font-black leading-none tabular-nums ${isGold ? "bg-gradient-to-b from-[#ffe6a2] to-[#b77a27] bg-clip-text text-transparent" : isDiamond ? "text-violet-100" : "text-slate-950"}`}
+                        >
+                          <span className="tracking-[-0.04em]" aria-hidden="true">₹</span>
+                          <span className="ml-[0.06em] tracking-[-0.03em]" aria-hidden="true">
+                            {plan.price.replace("₹", "")}
+                          </span>
                         </span>
                         <span className={`mb-1 text-sm font-medium ${isFree ? "text-stone-500" : isGold ? "text-[#d5b26b]" : "text-violet-200"}`}>
                           /{plan.period}
