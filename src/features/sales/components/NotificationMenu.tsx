@@ -14,7 +14,7 @@ const notifications = [
   {
     id: 1,
     title: "New Subscription",
-    desc: "John just subscribed to the Platinum Plan.",
+    desc: "John just subscribed to the Diamond Plan.",
     time: "2 mins ago",
     icon: Heart,
     color: "text-brand-rose",

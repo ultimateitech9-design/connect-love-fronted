@@ -36,7 +36,7 @@ export default function FeaturesPage() {
       {
         title: "Subscription module",
         body: "Premium actions must be clear and connected to payment, subscription, invoice, refund, sales, and retention pages.",
-        points: ["Free users can start safely.", "Gold unlocks more discovery and messaging value.", "Platinum adds visibility and dedicated support."],
+        points: ["Free users can start safely.", "Gold unlocks more discovery and messaging value.", "Diamond adds visibility and dedicated support."],
       },
     ],
     longForm: [

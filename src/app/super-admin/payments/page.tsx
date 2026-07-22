@@ -288,7 +288,7 @@ export default function PaymentsPage() {
                     {tx.user}
                   </td>
                   <td className="py-4 text-sm text-foreground">
-                    {tx.plan}
+                    {tx.plan.toLowerCase() === "platinum" ? "Diamond" : tx.plan}
                   </td>
                   <td className="py-4 text-sm font-bold text-foreground">
                     ${tx.amount.toFixed(2)}

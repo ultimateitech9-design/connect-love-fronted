@@ -22,7 +22,7 @@ const API_BASE = API_ORIGIN;
 const faqs = [
   {
     q: "Is Connect Love free to use?",
-    a: "Yes! Connect Love has a free tier that lets you create a profile, browse matches, and send up to 5 messages per day. Upgrade to Gold or Platinum for unlimited access.",
+    a: "Yes! Connect Love has a free tier that lets you create a profile, browse matches, and send up to 5 messages per day. Upgrade to Gold or Diamond for unlimited access.",
   },
   {
     q: "How does the matching algorithm work?",

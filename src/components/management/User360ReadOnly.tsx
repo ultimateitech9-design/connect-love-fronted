@@ -32,7 +32,7 @@ function toDate(value?: string) {
 
 function formatPlan(plan?: string) {
   const key = String(plan || "free").toLowerCase();
-  if (key === "platinum") return "Elite / Platinum";
+  if (key === "platinum") return "Elite / Diamond";
   if (key === "gold") return "Premium / Gold";
   return "Basic / Free";
 }

@@ -38,7 +38,7 @@ export function AuthPromptModal() {
     const timer = window.setTimeout(() => {
       shownThisPageLoad.current = true;
       setOpen(true);
-    }, 5000);
+    }, 120000);
     return () => window.clearTimeout(timer);
   }, [pathname]);
 

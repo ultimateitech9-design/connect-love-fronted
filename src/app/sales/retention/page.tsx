@@ -26,7 +26,7 @@ export default function RetentionPage() {
  const planRows = [
   { key: "free", label: "Free", tone: "bg-slate-100 text-slate-700" },
   { key: "gold", label: "Gold", tone: "bg-amber-100 text-amber-700" },
-  { key: "platinum", label: "Platinum", tone: "bg-violet-100 text-violet-700" },
+  { key: "platinum", label: "Diamond", tone: "bg-violet-100 text-violet-700" },
  ].map((plan) => {
   const members = users.filter((user) => user.plan.toLowerCase() === plan.key);
   return {

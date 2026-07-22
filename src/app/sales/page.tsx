@@ -150,7 +150,7 @@ export default function Overview() {
                   </div>
                   <div>
                     <div className="text-sm font-medium">{u.name}</div>
-                    <div className="text-xs text-muted-foreground">{u.plan} · {u.t} ago</div>
+                    <div className="text-xs text-muted-foreground">{u.plan === "platinum" ? "diamond" : u.plan} · {u.t} ago</div>
                   </div>
                 </div>
                 <div className="font-display text-base font-semibold">{u.amt}</div>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const calendar = [
   { day: "Mon", title: "Verified Profiles Push", channel: "Push", owner: "Marketing", status: "Ready", note: "Highlight verified-only discovery and trust benefits." },
-  { day: "Tue", title: "Premium Upgrade Email", channel: "Email", owner: "Growth", status: "Draft", note: "Target free users with Gold/Platinum comparison." },
+  { day: "Tue", title: "Premium Upgrade Email", channel: "Email", owner: "Growth", status: "Draft", note: "Target free users with Gold/Diamond comparison." },
   { day: "Wed", title: "City Dating Tips Reel", channel: "Social", owner: "Content", status: "Ready", note: "Localised creative for top user cities." },
   { day: "Thu", title: "Referral Reminder", channel: "Push", owner: "Growth", status: "Scheduled", note: "Ask active users to invite friends." },
   { day: "Fri", title: "Weekend Match Boost", channel: "In-app", owner: "Marketing", status: "Scheduled", note: "Promote profile boost before weekend activity spike." },

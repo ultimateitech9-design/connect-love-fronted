@@ -92,7 +92,7 @@ function initials(name?: string) {
 
 function formatPlan(plan?: string) {
  const key = String(plan || "free").toLowerCase();
- if (key === "platinum") return "Elite / Platinum";
+ if (key === "platinum") return "Elite / Diamond";
  if (key === "gold") return "Premium / Gold";
  return "Basic / Free";
 }
@@ -417,7 +417,7 @@ function TextField({ label, value, onChange, type = "text" }: { label: string; v
 }
 
 function SelectField({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
- return <label className="space-y-1.5"><p className={mono}>{label}</p><select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-rose-400">{options.map((option) => <option key={option} value={option}>{option.replace("_", " ")}</option>)}</select></label>;
+ return <label className="space-y-1.5"><p className={mono}>{label}</p><select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-rose-400">{options.map((option) => <option key={option} value={option}>{option === "platinum" ? "diamond" : option.replace("_", " ")}</option>)}</select></label>;
 }
 
 function TextArea({ label, value, onChange, className = "", rows = 3 }: { label: string; value: string; onChange: (value: string) => void; className?: string; rows?: number }) {

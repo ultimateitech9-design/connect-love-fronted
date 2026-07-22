@@ -31,7 +31,7 @@ export default function FunnelPage() {
       { label: "Campaign Conversions", value: conversions || signups * 3, icon: MousePointerClick, hint: "Clicks/leads attributed to marketing campaigns." },
       { label: "New Signups", value: signups, icon: UserPlus, hint: "Users currently available in the platform database." },
       { label: "Verified Profiles", value: verified, icon: Sparkles, hint: "Users who completed profile or KYC trust steps." },
-      { label: "Paid Plan Users", value: premium, icon: WalletCards, hint: "Users on Gold or Platinum plans." },
+      { label: "Paid Plan Users", value: premium, icon: WalletCards, hint: "Users on Gold or Diamond plans." },
     ];
   }, [campaigns, users]);
 

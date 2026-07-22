@@ -47,7 +47,7 @@ const plans = [
     popular: true,
   },
   {
-    name: "Platinum",
+    name: "Diamond",
     price: "₹399",
     period: "per month",
     description: "The ultimate experience",

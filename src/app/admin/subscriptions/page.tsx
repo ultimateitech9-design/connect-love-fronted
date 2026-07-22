@@ -57,7 +57,7 @@ export default function SubscriptionsPage() {
  ) : users.map((u) => (
  <tr key={u.id} className="border-t border-border">
  <td className="px-5 py-3">{u.name}<div className="text-xs text-muted-foreground">{u.email}</div></td>
- <td className="px-5 py-3">{u.plan}</td>
+ <td className="px-5 py-3">{u.plan === "platinum" ? "diamond" : u.plan}</td>
  <td className="px-5 py-3">{new Date(u.joined).toISOString().split("T")[0]}</td>
  </tr>
  ))}

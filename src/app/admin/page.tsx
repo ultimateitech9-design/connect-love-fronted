@@ -178,7 +178,7 @@ export default function AdminOverview() {
  </td>
  <td className="px-6 py-4">
  <span className={`px-3 py-1.5 rounded-xl text-xs font-bold ${u.plan === 'Premium' ? 'bg-gradient-to-r from-rose-400 to-pink-500 text-white shadow-md shadow-rose-500/20' : 'bg-slate-100 text-slate-600'}`}>
- {u.plan}
+ {u.plan === "platinum" ? "diamond" : u.plan}
  </span>
  </td>
  <td className="px-6 py-4 font-medium text-slate-500">{u.joined}</td>
