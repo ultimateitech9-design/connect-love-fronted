@@ -237,6 +237,19 @@ export function FeaturesSection() {
                     />
 
                     <div
+                      className={`pointer-events-none absolute inset-[7px] z-[4] rounded-[21px] border ${
+                        isFree
+                          ? "border-white/80 shadow-[inset_0_0_0_1px_rgba(214,205,193,.46),inset_0_0_24px_rgba(255,255,255,.68)]"
+                          : isGold
+                            ? "border-[#d5a952]/35 shadow-[inset_0_0_0_1px_rgba(255,221,145,.09),inset_0_0_24px_rgba(217,164,66,.08)]"
+                            : "border-violet-100/55 shadow-[inset_0_0_0_1px_rgba(168,128,255,.42),inset_0_0_24px_rgba(168,128,255,.2)]"
+                      }`}
+                      aria-hidden="true"
+                    />
+
+                    {isFree && <div className="pricing-free-silk pointer-events-none absolute inset-0 z-[3]" aria-hidden="true" />}
+
+                    <div
                       className={`pricing-card-shine pointer-events-none absolute -top-1/4 z-20 h-[150%] w-20 -skew-x-[18deg] bg-gradient-to-r from-transparent via-white to-transparent ${isFree ? "opacity-30" : isGold ? "opacity-[0.09]" : "opacity-[0.16]"}`}
                       aria-hidden="true"
                     />
@@ -244,12 +257,14 @@ export function FeaturesSection() {
                     {isDiamond && (
                       <>
                         <DiamondFacetBackground />
+                        <DiamondCrystalFrame />
                         <div className="pricing-gem-float pointer-events-none absolute -right-1 top-8 z-10 h-28 w-36 opacity-100" aria-hidden="true">
                         <div className="absolute inset-2 scale-125 rounded-full bg-violet-300/35 blur-2xl" />
                         <DiamondArtwork />
                         </div>
                         <span className="pricing-shard-glint pointer-events-none absolute right-[31%] top-[31%] z-10 h-3 w-5 rotate-[-14deg] bg-gradient-to-br from-white via-violet-200 to-violet-600 [clip-path:polygon(0_45%,100%_0,70%_100%)]" aria-hidden="true" />
                         <span className="pricing-shard-glint pointer-events-none absolute right-[20%] top-[30%] z-10 h-2.5 w-4 rotate-[18deg] bg-gradient-to-br from-white via-violet-200 to-violet-600 [animation-delay:.7s] [clip-path:polygon(0_45%,100%_0,70%_100%)]" aria-hidden="true" />
+                        <span className="pricing-shard-glint pointer-events-none absolute right-[12%] top-[34%] z-10 h-2 w-3.5 rotate-[-8deg] bg-gradient-to-br from-white via-violet-200 to-violet-700 [animation-delay:1.2s] [clip-path:polygon(0_40%,100%_0,68%_100%)]" aria-hidden="true" />
                       </>
                     )}
 
@@ -287,7 +302,7 @@ export function FeaturesSection() {
                       </p>
                     </header>
 
-                    <div className={`relative flex flex-1 flex-col p-5 sm:p-6 ${isFree ? "pricing-free-body border-t border-white bg-[linear-gradient(180deg,rgba(255,255,255,.74),rgba(248,245,240,.92))]" : isGold ? "border-t border-[#705326]/80 bg-white/[0.018]" : "mx-2 mb-2 rounded-[22px] border border-violet-300/20 bg-[linear-gradient(180deg,rgba(29,17,65,.84),rgba(12,7,34,.9))] shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"}`}>
+                    <div className={`relative z-[6] mx-2 mb-2 flex flex-1 flex-col rounded-[22px] border p-5 sm:p-6 ${isFree ? "pricing-free-body border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,.78),rgba(248,245,240,.94))] shadow-[inset_0_1px_0_rgba(255,255,255,.98)]" : isGold ? "border-[#705326]/80 bg-[linear-gradient(180deg,rgba(27,27,28,.96),rgba(15,15,16,.98))] shadow-[inset_0_1px_0_rgba(255,222,153,.09)]" : "border-violet-300/20 bg-[linear-gradient(180deg,rgba(29,17,65,.84),rgba(12,7,34,.9))] shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"}`}>
                       <ul className="mb-6">
                         {plan.features.map((feature) => (
                           <li key={feature} className={`flex min-h-10 items-center gap-3 border-b text-[13px] last:border-b-0 ${isFree ? "border-stone-300/45 text-slate-700" : isGold ? "border-white/[0.06] text-stone-200" : "border-violet-200/10 text-violet-50"}`}>
@@ -353,6 +368,14 @@ export function FeaturesSection() {
           .pricing-diamond-shell { animation: pricing-diamond-border 3.4s ease-in-out infinite; }
           .pricing-diamond-facets { animation: pricing-facet-drift 8s ease-in-out infinite; }
           .pricing-shard-glint { animation: pricing-shard-glint 2.6s ease-in-out infinite; }
+          .pricing-free-silk {
+            opacity: .72;
+            background:
+              radial-gradient(ellipse at 108% -8%, rgba(255,255,255,.98) 0 23%, transparent 48%),
+              linear-gradient(124deg, transparent 6%, rgba(255,255,255,.88) 21%, rgba(221,211,199,.2) 22%, transparent 37%),
+              linear-gradient(140deg, transparent 18%, rgba(255,255,255,.74) 31%, transparent 49%);
+            mask-image: linear-gradient(to bottom, #000 0 43%, transparent 62%);
+          }
           .dark .marketing-home #features .pricing-free-card .pricing-free-header p,
           .dark .marketing-home #features .pricing-free-card .pricing-free-header span {
             color: #57534e;
@@ -431,6 +454,33 @@ function DiamondFacetBackground() {
       </g>
       <path d="M0 485 92 401 119 421 75 540H0Z" fill="#7445cb" opacity=".16" />
       <path d="M0 118 53 84 87 166 0 206Z" fill="#9a70e1" opacity=".08" />
+    </svg>
+  );
+}
+
+function DiamondCrystalFrame() {
+  return (
+    <svg className="pointer-events-none absolute inset-0 z-[5] h-full w-full" viewBox="0 0 360 540" preserveAspectRatio="none" role="presentation">
+      <defs>
+        <linearGradient id="crystal-edge" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity=".92" />
+          <stop offset=".35" stopColor="#c9b4ff" stopOpacity=".52" />
+          <stop offset=".7" stopColor="#7244d1" stopOpacity=".72" />
+          <stop offset="1" stopColor="#f2ebff" stopOpacity=".9" />
+        </linearGradient>
+      </defs>
+      <g fill="none" stroke="url(#crystal-edge)" strokeWidth="2.2">
+        <path d="M28 5 7 27v486l22 22h302l22-22V27L331 5Z" />
+        <path d="M31 11 14 31v476l18 19h296l18-19V31l-18-20Z" opacity=".55" />
+      </g>
+      <g opacity=".58">
+        <path d="M7 27 28 5h42L42 18Z" fill="#eee8ff" />
+        <path d="m290 5 41 0 22 22-38-10Z" fill="#9b72ee" />
+        <path d="m7 453 16 35-16 25Z" fill="#ad83ff" />
+        <path d="m353 431-18 49 18 33Z" fill="#d7c5ff" />
+        <path d="m29 535 45-15 35 15Z" fill="#8c60e6" />
+        <path d="m251 535 38-16 42 16Z" fill="#d5c2ff" />
+      </g>
     </svg>
   );
 }

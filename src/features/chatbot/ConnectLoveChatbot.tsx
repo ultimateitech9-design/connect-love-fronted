@@ -38,7 +38,7 @@ export function ConnectLoveChatbot() {
   ]);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  const visible = pathname === "/user" || pathname.startsWith("/user/");
+  const visible = pathname === "/user";
   const text = copy[language];
 
   useEffect(() => {
