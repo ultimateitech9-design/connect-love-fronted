@@ -83,56 +83,56 @@ export function ConnectLoveChatbot() {
   return (
     <div className="fixed bottom-5 right-4 z-[70] sm:bottom-7 sm:right-7">
       {open && (
-        <section className="mb-4 flex h-[min(620px,calc(100vh-110px))] w-[calc(100vw-32px)] max-w-[380px] flex-col overflow-hidden rounded-[28px] border border-rose-200 bg-white shadow-[0_24px_70px_rgba(244,63,94,0.24)]">
-          <header className="bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 px-5 pb-4 pt-5 text-white">
+        <section className="mb-3 flex h-[min(500px,calc(100vh-125px))] w-[calc(100vw-38px)] max-w-[340px] flex-col overflow-hidden rounded-[24px] border border-rose-200 bg-white shadow-[0_20px_55px_rgba(244,63,94,0.22)]">
+          <header className="bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 px-4 pb-3 pt-4 text-white">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/95 text-rose-500 shadow-lg">
-                  <Heart className="h-5 w-5 fill-current" />
-                  <Sparkles className="absolute -right-1 -top-1 h-4 w-4 text-yellow-300" />
+                <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/95 text-rose-500 shadow-lg">
+                  <Heart className="h-4 w-4 fill-current" />
+                  <Sparkles className="absolute -right-1 -top-1 h-3.5 w-3.5 text-yellow-300" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="truncate text-base font-black">{text.title}</h2>
-                  <p className="text-xs font-medium text-rose-50">{text.online}</p>
+                  <h2 className="truncate text-sm font-black">{text.title}</h2>
+                  <p className="text-[11px] font-medium text-rose-50">{text.online}</p>
                 </div>
               </div>
               <button type="button" onClick={() => setOpen(false)} aria-label="Close chatbot" className="rounded-full p-2 transition hover:bg-white/15">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="mt-4 grid grid-cols-2 rounded-xl bg-white/15 p-1 text-xs font-bold backdrop-blur-sm">
-              <button type="button" onClick={() => changeLanguage("en")} className={`rounded-lg py-2 transition ${language === "en" ? "bg-white text-rose-600 shadow" : "text-white"}`}>English</button>
-              <button type="button" onClick={() => changeLanguage("hi")} className={`rounded-lg py-2 transition ${language === "hi" ? "bg-white text-rose-600 shadow" : "text-white"}`}>हिन्दी</button>
+            <div className="mt-3 grid grid-cols-2 rounded-lg bg-white/15 p-1 text-[11px] font-bold backdrop-blur-sm">
+              <button type="button" onClick={() => changeLanguage("en")} className={`rounded-md py-1.5 transition ${language === "en" ? "bg-white text-rose-600 shadow" : "text-white"}`}>English</button>
+              <button type="button" onClick={() => changeLanguage("hi")} className={`rounded-md py-1.5 transition ${language === "hi" ? "bg-white text-rose-600 shadow" : "text-white"}`}>हिन्दी</button>
             </div>
           </header>
 
-          <div className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-rose-50/70 to-white p-4">
+          <div className="flex-1 space-y-2.5 overflow-y-auto bg-gradient-to-b from-rose-50/70 to-white p-3">
             {messages.map((message) => (
               <div key={message.id} className={`flex items-end gap-2 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                 {message.sender === "bot" && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-500"><Bot className="h-4 w-4" /></span>}
-                <p className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${message.sender === "user" ? "rounded-br-md bg-gradient-to-r from-rose-500 to-pink-500 text-white" : "rounded-bl-md border border-rose-100 bg-white text-slate-700"}`}>{message.text}</p>
+                <p className={`max-w-[84%] rounded-2xl px-3 py-2.5 text-[13px] leading-relaxed shadow-sm ${message.sender === "user" ? "rounded-br-md bg-gradient-to-r from-rose-500 to-pink-500 text-white" : "rounded-bl-md border border-rose-100 bg-white text-slate-700"}`}>{message.text}</p>
               </div>
             ))}
             {messages.length === 1 && (
               <div className="flex flex-wrap gap-2 pl-9">
-                {text.suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => void sendMessage(suggestion)} className="rounded-full border border-rose-200 bg-white px-3 py-2 text-left text-xs font-semibold text-rose-600 transition hover:bg-rose-50">{suggestion}</button>)}
+                {text.suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => void sendMessage(suggestion)} className="rounded-full border border-rose-200 bg-white px-2.5 py-1.5 text-left text-[11px] font-semibold text-rose-600 transition hover:bg-rose-50">{suggestion}</button>)}
               </div>
             )}
             {sending && <div className="flex items-center gap-2 pl-9 text-xs font-semibold text-rose-500"><Loader2 className="h-4 w-4 animate-spin" /> Typing...</div>}
             <div ref={endRef} />
           </div>
 
-          <form onSubmit={submit} className="flex items-center gap-2 border-t border-rose-100 bg-white p-3">
-            <input value={input} onChange={(event) => setInput(event.target.value)} maxLength={500} placeholder={text.placeholder} className="h-12 min-w-0 flex-1 rounded-full border border-rose-200 bg-rose-50/60 px-4 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100" />
-            <button type="submit" disabled={!input.trim() || sending} aria-label="Send message" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-200 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50">
-              <Send className="h-5 w-5" />
+          <form onSubmit={submit} className="flex items-center gap-2 border-t border-rose-100 bg-white p-2.5">
+            <input value={input} onChange={(event) => setInput(event.target.value)} maxLength={500} placeholder={text.placeholder} className="h-10 min-w-0 flex-1 rounded-full border border-rose-200 bg-rose-50/60 px-3 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100" />
+            <button type="submit" disabled={!input.trim() || sending} aria-label="Send message" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-200 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50">
+              <Send className="h-4 w-4" />
             </button>
           </form>
         </section>
       )}
 
-      <button type="button" onClick={() => setOpen((current) => !current)} aria-label={open ? "Close chatbot" : "Open chatbot"} className="ml-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 text-white shadow-[0_12px_35px_rgba(244,63,94,0.42)] transition hover:scale-105 active:scale-95">
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-7 w-7 fill-white/20" />}
+      <button type="button" onClick={() => setOpen((current) => !current)} aria-label={open ? "Close chatbot" : "Open chatbot"} className="ml-auto flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-white bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 text-white shadow-[0_10px_30px_rgba(244,63,94,0.38)] transition hover:scale-105 active:scale-95">
+        {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-6 w-6 fill-white/20" />}
       </button>
     </div>
   );
