@@ -205,7 +205,7 @@ export function FeaturesSection() {
                       ? "bg-gradient-to-br from-white via-stone-200 to-white shadow-[0_18px_48px_rgba(71,58,42,0.16)]"
                       : isGold
                         ? "z-10 bg-gradient-to-br from-[#f9dc99] via-[#8a6127] to-[#f6d17c] shadow-[0_20px_56px_rgba(120,79,20,0.34)] md:-translate-y-2 md:hover:-translate-y-3"
-                        : "bg-gradient-to-br from-violet-100 via-violet-500 to-indigo-200 shadow-[0_20px_56px_rgba(105,60,220,0.36)]"
+                        : "pricing-diamond-shell bg-[conic-gradient(from_210deg,#d9caff,#7144d5,#c8b8ff,#5f38b8,#eee9ff,#7144d5,#d9caff)] shadow-[0_20px_58px_rgba(105,60,220,0.48)]"
                   }`}
                 >
                   {plan.popular && (
@@ -222,7 +222,7 @@ export function FeaturesSection() {
                         ? "border-white/90 bg-[linear-gradient(145deg,#fffdf9_0%,#f5f0e9_48%,#fffdfa_100%)] text-slate-950"
                         : isGold
                           ? "border-[#8e682e] bg-[linear-gradient(145deg,#171716_0%,#090909_54%,#1b1813_100%)] text-white"
-                          : "border-violet-300/55 bg-[linear-gradient(145deg,#24113f_0%,#13092c_54%,#21134a_100%)] text-white"
+                          : "border-violet-100/70 bg-[linear-gradient(145deg,#241140_0%,#100823_50%,#1d1244_100%)] text-white shadow-[inset_0_0_0_2px_rgba(166,132,255,.24),inset_0_0_28px_rgba(131,82,231,.18)]"
                     }`}
                   >
                     <div
@@ -231,7 +231,7 @@ export function FeaturesSection() {
                           ? "bg-[radial-gradient(circle_at_82%_8%,rgba(255,255,255,1),transparent_26%),linear-gradient(120deg,transparent_15%,rgba(255,255,255,.9)_28%,transparent_42%)]"
                           : isGold
                             ? "bg-[radial-gradient(circle_at_82%_3%,rgba(255,211,124,.15),transparent_30%),repeating-linear-gradient(155deg,transparent_0,transparent_8px,rgba(255,220,147,.025)_9px)]"
-                            : "bg-[radial-gradient(circle_at_78%_8%,rgba(178,135,255,.35),transparent_30%),linear-gradient(125deg,transparent_12%,rgba(255,255,255,.08)_25%,transparent_40%)]"
+                            : "bg-[radial-gradient(circle_at_80%_10%,rgba(194,160,255,.38),transparent_32%),radial-gradient(circle_at_5%_82%,rgba(123,77,210,.25),transparent_28%),linear-gradient(125deg,transparent_12%,rgba(255,255,255,.08)_25%,transparent_40%)]"
                       }`}
                       aria-hidden="true"
                     />
@@ -242,16 +242,24 @@ export function FeaturesSection() {
                     />
 
                     {isDiamond && (
-                      <div className="pricing-gem-float pointer-events-none absolute right-3 top-12 z-10 h-24 w-28 opacity-95" aria-hidden="true">
-                        <div className="absolute inset-2 scale-125 rounded-full bg-violet-400/30 blur-2xl" />
+                      <>
+                        <DiamondFacetBackground />
+                        <div className="pricing-gem-float pointer-events-none absolute -right-1 top-8 z-10 h-28 w-36 opacity-100" aria-hidden="true">
+                        <div className="absolute inset-2 scale-125 rounded-full bg-violet-300/35 blur-2xl" />
                         <DiamondArtwork />
-                      </div>
+                        </div>
+                        <span className="pricing-shard-glint pointer-events-none absolute right-[31%] top-[31%] z-10 h-3 w-5 rotate-[-14deg] bg-gradient-to-br from-white via-violet-200 to-violet-600 [clip-path:polygon(0_45%,100%_0,70%_100%)]" aria-hidden="true" />
+                        <span className="pricing-shard-glint pointer-events-none absolute right-[20%] top-[30%] z-10 h-2.5 w-4 rotate-[18deg] bg-gradient-to-br from-white via-violet-200 to-violet-600 [animation-delay:.7s] [clip-path:polygon(0_45%,100%_0,70%_100%)]" aria-hidden="true" />
+                      </>
                     )}
 
-                    <header className={`relative min-h-[176px] p-6 ${isGold ? "pt-8" : ""}`}>
+                    <header className={`relative p-6 ${isDiamond ? "min-h-[190px]" : "min-h-[176px]"} ${isGold ? "pt-8" : ""}`}>
                       <div className="flex items-center justify-between gap-4">
-                        <p className={`text-sm font-black uppercase tracking-[0.13em] ${isFree ? "text-stone-500" : isGold ? "text-[#f2cf7d]" : "text-violet-100"}`}>
-                          {plan.name}
+                        <p className={`text-sm font-black uppercase tracking-[0.13em] ${isFree ? "text-stone-500" : isGold ? "text-[#f2cf7d]" : "text-violet-50"}`}>
+                          <span className="inline-flex items-center gap-2">
+                            {plan.name}
+                            {isDiamond && <Gem className="h-4 w-4 fill-violet-200/50 text-violet-100 drop-shadow-[0_0_7px_rgba(220,200,255,.9)]" aria-hidden="true" />}
+                          </span>
                         </p>
                         {isGold && (
                           <span className="grid h-10 w-10 place-items-center rounded-full border border-[#9e7538] bg-black/50 text-[#f0c76c] shadow-[inset_0_0_18px_rgba(224,175,78,.15)]">
@@ -273,7 +281,7 @@ export function FeaturesSection() {
                       </p>
                     </header>
 
-                    <div className={`relative flex flex-1 flex-col border-t p-5 sm:p-6 ${isFree ? "border-white bg-white/22" : isGold ? "border-[#705326]/80 bg-white/[0.018]" : "border-violet-400/25 bg-white/[0.025]"}`}>
+                    <div className={`relative flex flex-1 flex-col p-5 sm:p-6 ${isFree ? "border-t border-white bg-white/22" : isGold ? "border-t border-[#705326]/80 bg-white/[0.018]" : "mx-2 mb-2 rounded-[22px] border border-violet-300/20 bg-[linear-gradient(180deg,rgba(29,17,65,.84),rgba(12,7,34,.9))] shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"}`}>
                       <ul className="mb-6">
                         {plan.features.map((feature) => (
                           <li key={feature} className={`flex min-h-10 items-center gap-3 border-b text-[13px] last:border-b-0 ${isFree ? "border-stone-300/45 text-slate-700" : isGold ? "border-white/[0.06] text-stone-200" : "border-violet-200/10 text-violet-50"}`}>
@@ -295,7 +303,7 @@ export function FeaturesSection() {
                             ? "border-slate-800 bg-gradient-to-b from-[#292929] to-[#090909] text-white shadow-black/20"
                             : isGold
                               ? "border-[#ffe0a0] bg-gradient-to-r from-[#b77a2e] via-[#f4d28a] to-[#b77a2e] text-[#171108] shadow-[#d9a850]/25"
-                              : "border-violet-200/80 bg-gradient-to-r from-[#7b4dcc] via-[#d0b7ff] to-[#7250ca] text-[#1d1035] shadow-violet-500/35"
+                            : "border-violet-100/90 bg-[linear-gradient(100deg,#6f49bd_0%,#c9b2f7_48%,#8d68d9_100%)] text-[#1d1035] shadow-[0_8px_24px_rgba(147,101,229,.42),inset_0_1px_0_rgba(255,255,255,.72)]"
                         }`}
                       >
                         {isFree ? "Get Started Free" : `Buy ${plan.name}`}
@@ -321,11 +329,26 @@ export function FeaturesSection() {
             0%, 100% { box-shadow: 0 8px 24px rgba(225,170,77,.32); }
             50% { box-shadow: 0 8px 32px rgba(255,205,110,.68); }
           }
+          @keyframes pricing-diamond-border {
+            0%, 100% { filter: brightness(1) saturate(1); }
+            50% { filter: brightness(1.2) saturate(1.16); }
+          }
+          @keyframes pricing-facet-drift {
+            0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: .72; }
+            50% { transform: translate3d(-3px,4px,0) scale(1.015); opacity: .9; }
+          }
+          @keyframes pricing-shard-glint {
+            0%, 100% { filter: brightness(.85); transform: translateY(0) rotate(var(--shard-rotation, 0deg)); }
+            50% { filter: brightness(1.7) drop-shadow(0 0 6px rgba(221,205,255,.9)); transform: translateY(-3px) rotate(var(--shard-rotation, 0deg)); }
+          }
           .pricing-card-shine { animation: pricing-card-shine 5.8s ease-in-out infinite; }
           .pricing-gem-float { animation: pricing-gem-float 3.8s ease-in-out infinite; }
           .pricing-badge-glow { animation: pricing-badge-glow 2.8s ease-in-out infinite; }
+          .pricing-diamond-shell { animation: pricing-diamond-border 3.4s ease-in-out infinite; }
+          .pricing-diamond-facets { animation: pricing-facet-drift 8s ease-in-out infinite; }
+          .pricing-shard-glint { animation: pricing-shard-glint 2.6s ease-in-out infinite; }
           @media (prefers-reduced-motion: reduce) {
-            .pricing-card-shine, .pricing-gem-float, .pricing-badge-glow { animation: none !important; }
+            .pricing-card-shine, .pricing-gem-float, .pricing-badge-glow, .pricing-diamond-shell, .pricing-diamond-facets, .pricing-shard-glint { animation: none !important; }
           }
         `}</style>
 
@@ -336,23 +359,55 @@ export function FeaturesSection() {
 
 function DiamondArtwork() {
   return (
-    <svg viewBox="0 0 140 110" className="relative h-full w-full drop-shadow-[0_0_16px_rgba(204,178,255,.95)]" role="presentation">
+    <svg viewBox="0 0 180 130" className="relative h-full w-full drop-shadow-[0_0_18px_rgba(215,193,255,1)]" role="presentation">
       <defs>
         <linearGradient id="diamond-top" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.45" stopColor="#c4a7ff" />
-          <stop offset="1" stopColor="#7047d4" />
+          <stop offset="0.38" stopColor="#d7c5ff" />
+          <stop offset="1" stopColor="#7651d8" />
         </linearGradient>
         <linearGradient id="diamond-low" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#b89aff" />
-          <stop offset="1" stopColor="#4d2798" />
+          <stop offset="0" stopColor="#d1baff" />
+          <stop offset="0.48" stopColor="#9671ed" />
+          <stop offset="1" stopColor="#4b248d" />
         </linearGradient>
+        <radialGradient id="diamond-flare">
+          <stop offset="0" stopColor="#fff" stopOpacity="1" />
+          <stop offset=".3" stopColor="#e9ddff" stopOpacity=".82" />
+          <stop offset="1" stopColor="#a777ff" stopOpacity="0" />
+        </radialGradient>
       </defs>
-      <path d="M17 35 39 12h61l23 23-53 64Z" fill="url(#diamond-low)" stroke="#e9ddff" strokeWidth="2" />
-      <path d="m17 35 22-23 15 23Zm37 0 16-23 16 23Zm32 0 14-23 23 23Z" fill="url(#diamond-top)" />
-      <path d="m17 35 37 0 16 64Zm37 0h32L70 99Zm32 0h37L70 99Z" fill="none" stroke="#d8c4ff" strokeOpacity=".72" strokeWidth="1.5" />
-      <path d="M39 12 54 35 70 12 86 35l14-23" fill="none" stroke="#fff" strokeOpacity=".75" strokeWidth="1.4" />
-      <path d="M42 19 31 32M95 18l15 14" stroke="#fff" strokeLinecap="round" strokeOpacity=".9" strokeWidth="2" />
+      <path d="M22 38 49 10h80l29 28-68 77Z" fill="url(#diamond-low)" stroke="#f2ebff" strokeWidth="2.2" />
+      <path d="m22 38 27-28 20 28Zm47 0 21-28 20 28Zm41 0 19-28 29 28Z" fill="url(#diamond-top)" />
+      <path d="M22 38h47l21 77Zm47 0h41l-20 77Zm41 0h48l-68 77Z" fill="none" stroke="#e1d1ff" strokeOpacity=".76" strokeWidth="1.6" />
+      <path d="M49 10 69 38 90 10l20 28 19-28" fill="none" stroke="#fff" strokeOpacity=".78" strokeWidth="1.5" />
+      <path d="M32 35 57 15m68 1 22 20M49 38l41 77m20-77-20 77" stroke="#fff" strokeLinecap="round" strokeOpacity=".56" strokeWidth="1.4" />
+      <ellipse cx="91" cy="114" rx="42" ry="5" fill="url(#diamond-flare)" opacity=".82" />
+      <circle cx="45" cy="20" r="13" fill="url(#diamond-flare)" />
+      <path d="M45 6v28M31 20h28" stroke="#fff" strokeLinecap="round" strokeOpacity=".8" />
+    </svg>
+  );
+}
+
+function DiamondFacetBackground() {
+  return (
+    <svg className="pricing-diamond-facets pointer-events-none absolute inset-0 h-full w-full opacity-75" viewBox="0 0 360 540" preserveAspectRatio="none" role="presentation">
+      <g fill="none" stroke="#b18bf5" strokeOpacity=".12" strokeWidth="1">
+        <path d="M208 0 360 0 304 91 360 150 267 191 360 260" />
+        <path d="M360 150 304 91 252 128 267 191 186 238 245 306 360 260" />
+        <path d="M186 238 109 289 181 345 119 421 205 470 168 540" />
+        <path d="M245 306 360 260 322 382 360 467 250 445 168 540" />
+      </g>
+      <g opacity=".22">
+        <path d="m208 0 152 0-56 91Z" fill="#9c69ef" />
+        <path d="m304 91 56 59-93 41Z" fill="#6f45c5" />
+        <path d="m267 191 93 69-115 46Z" fill="#8d5cde" />
+        <path d="m245 306 77 76-117 88Z" fill="#5c37ad" />
+        <path d="m322 382 38 85-110-22Z" fill="#a779ed" />
+        <path d="m205 470 45-25-82 95Z" fill="#7146c9" />
+      </g>
+      <path d="M0 485 92 401 119 421 75 540H0Z" fill="#7445cb" opacity=".16" />
+      <path d="M0 118 53 84 87 166 0 206Z" fill="#9a70e1" opacity=".08" />
     </svg>
   );
 }
