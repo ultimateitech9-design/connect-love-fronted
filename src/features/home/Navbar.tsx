@@ -106,7 +106,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
       ref={navbarRef}
       data-theme={activeTheme}
       style={{ backgroundColor: activeTheme === "dark" ? "#090910" : "#ffffff" }}
-      className="site-navbar pointer-events-auto fixed left-0 right-0 top-0 z-[100] border-b border-rose-100 py-0 shadow-lg shadow-rose-500/5 dark:border-rose-500/20 dark:shadow-black/20"
+      className="site-navbar pointer-events-auto fixed left-0 right-0 top-0 z-[100] border-b border-[#e5e7eb] py-0 shadow-sm dark:border-slate-700 dark:shadow-black/20"
     >
       <div className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
@@ -124,7 +124,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
               href={link.href}
               key={link.href}
               onClick={(event) => handleNavClick(event, link.href)}
-              className="group relative py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:text-rose-500 dark:text-slate-200 dark:hover:text-rose-400"
+              className="group relative py-1.5 text-sm font-medium text-[#111827] transition-colors hover:text-rose-600 dark:text-[#f8fafc] dark:hover:text-rose-400"
             >
               {link.label}
               <span className={`absolute bottom-0 left-0 h-0.5 w-0 rounded-full bg-rose-500 transition-all duration-300 group-hover:w-full`} />
@@ -148,7 +148,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
                 href="/login"
                 id="navbar-login-btn"
                 onClick={goToLogin}
-                className="px-5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-900 dark:text-slate-200 dark:hover:text-white"
+                className="px-5 py-2 text-sm font-medium text-[#111827] transition-colors hover:text-rose-600 dark:text-[#f8fafc] dark:hover:text-rose-400"
               >
                 Sign In
               </Link>
@@ -210,7 +210,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
                 href={link.href}
                 key={link.href}
                 onClick={(event) => handleNavClick(event, link.href)}
-                className="block w-full rounded-xl px-4 py-3 text-left text-sm font-semibold text-slate-700 transition-all hover:bg-rose-50 hover:text-rose-600 dark:text-slate-200 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
+                className="block w-full rounded-xl px-4 py-3 text-left text-sm font-medium text-[#111827] transition-all hover:bg-rose-50 hover:text-rose-600 dark:text-[#f8fafc] dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
               >
                 {link.label}
               </Link>

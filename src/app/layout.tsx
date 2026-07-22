@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Fraunces } from "next/font/google";
+import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/SessionProvider";
 import { QueryProvider } from "@/components/QueryProvider";
@@ -15,14 +15,11 @@ import {
 } from "@/lib/seo";
 import "../styles.css";
 
-const sans = Inter({
+const poppins = Poppins({
   subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-const display = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-poppins",
+  display: "swap",
 });
 
 const homeMetadata = createPublicMetadata({
@@ -74,7 +71,7 @@ const websiteJsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable} scroll-smooth`} suppressHydrationWarning>
+    <html lang="en" className={`${poppins.variable} scroll-smooth`} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"

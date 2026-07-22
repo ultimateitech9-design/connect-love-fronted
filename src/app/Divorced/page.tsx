@@ -61,7 +61,7 @@ export default function DivorcedPage() {
               Connect<span className="text-rose-600">Love</span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-9 text-sm font-semibold text-[#5d4a52] lg:flex">
+          <nav className="hidden items-center gap-9 text-sm font-medium text-[#111827] lg:flex">
             <a href="#home" className="transition hover:text-[#831b50]">Home</a>
             <a href="#home" className="border-b-2 border-[#831b50] pb-2 text-[#5a1638]">Divorced Dating</a>
             <a href="#stories" className="transition hover:text-[#831b50]">Success Stories</a>
