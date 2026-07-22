@@ -1406,3 +1406,60 @@ html {
 .dark .contact-form [class*="bg-white"] {
   background-color: #262631 !important;
 }
+@keyframes diamond-label-shine {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6));
+    background-position: 180% center;
+  }
+  50% {
+    filter: drop-shadow(0 0 11px rgba(251, 207, 232, 1));
+    background-position: -80% center;
+  }
+}
+
+@keyframes diamond-plan-sparkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.72) rotate(0deg); }
+  45% { opacity: 1; transform: scale(1.25) rotate(22deg); }
+}
+
+@keyframes diamond-heartbeat {
+  0%, 100% { transform: scale(0.88); filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4)); }
+  18% { transform: scale(1.25); }
+  34% { transform: scale(1); }
+  48% { transform: scale(1.18); filter: drop-shadow(0 0 7px rgba(251, 207, 232, 1)); }
+  68% { transform: scale(0.92); }
+}
+
+.diamond-plan-label {
+  color: #fff;
+}
+
+.diamond-plan-text {
+  color: transparent;
+  background-image: linear-gradient(110deg, #fff 0%, #fce7f3 22%, #f9a8d4 40%, #fef3c7 52%, #fff 68%, #fbcfe8 100%);
+  background-size: 240% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: diamond-label-shine 2.4s ease-in-out infinite;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.16);
+}
+
+.diamond-plan-sparkle {
+  color: #fef3c7;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 1));
+  animation: diamond-plan-sparkle 1.6s ease-in-out infinite;
+}
+
+.diamond-plan-heart {
+  color: #fbcfe8;
+  animation: diamond-heartbeat 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diamond-plan-label,
+  .diamond-plan-sparkle,
+  .diamond-plan-heart,
+  .diamond-plan-text {
+    animation: none;
+  }
+}

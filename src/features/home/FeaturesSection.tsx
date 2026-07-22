@@ -216,7 +216,15 @@ export function FeaturesSection() {
                 {/* Plan Header */}
                 <div className={`min-h-[144px] bg-gradient-to-br ${plan.color} p-7 ${plan.popular ? "pt-10" : ""} text-${plan.popular ? "white" : "slate-900"}`}>
                   <p className={`text-xs font-extrabold tracking-wider uppercase ${plan.popular ? "text-rose-100" : "text-slate-400"}`}>
-                    {plan.name}
+                    {plan.name === "Diamond" ? (
+                      <span className="diamond-plan-label relative inline-flex items-center gap-1.5 px-1 py-0.5">
+                        <Sparkles className="diamond-plan-sparkle h-3.5 w-3.5" aria-hidden="true" />
+                        <span className="diamond-plan-text">Diamond</span>
+                        <Heart className="diamond-plan-heart h-3 w-3 fill-current" aria-hidden="true" />
+                        <Sparkles className="diamond-plan-sparkle absolute -right-2.5 -top-2 h-3 w-3 [animation-delay:0.8s]" aria-hidden="true" />
+                        <span className="absolute -right-1 top-1/2 h-1.5 w-1.5 animate-ping rounded-full bg-pink-200" aria-hidden="true" />
+                      </span>
+                    ) : plan.name}
                   </p>
                   <div className="mt-3 flex items-end gap-1">
                     <span className="text-[2rem] font-black tracking-tight leading-none sm:text-4xl">{plan.price}</span>

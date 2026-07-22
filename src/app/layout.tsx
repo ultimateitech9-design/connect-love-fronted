@@ -5,6 +5,7 @@ import { SessionProvider } from "@/components/SessionProvider";
 import { QueryProvider } from "@/components/QueryProvider";
 import { TranslationProvider } from "@/features/i18n/TranslationProvider";
 import { AuthPromptModal } from "@/features/home/AuthPromptModal";
+import { ConnectLoveChatbot } from "@/features/chatbot/ConnectLoveChatbot";
 import {
   createPublicMetadata,
   HOME_DESCRIPTION,
@@ -100,6 +101,7 @@ gtag('config', 'G-LSFFV3G704');`,
             <SessionProvider>
               {children}
               <AuthPromptModal />
+              <ConnectLoveChatbot />
             </SessionProvider>
           </TranslationProvider>
         </QueryProvider>
