@@ -65,7 +65,13 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
     const language = findLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
     document.documentElement.lang = language.code;
     document.documentElement.dir = language.direction || "ltr";
-    setEnabled(language.translationCode !== "en");
+    const shouldTranslate = language.translationCode !== "en";
+    setEnabled(shouldTranslate);
+    if (!shouldTranslate) {
+      window.googleTranslateElementInit = undefined;
+      return;
+    }
+
     window.googleTranslateElementInit = () => {
       if (!window.google?.translate?.TranslateElement) return;
       const includedLanguages = [...new Set(APP_LANGUAGES.map((item) => item.translationCode))].join(",");

@@ -7,7 +7,6 @@ import Link from "next/link";
 import { Instagram, Facebook, Linkedin, Youtube, ArrowRight, Heart } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { footerLinkGroups } from "./marketingPages";
-import { motion } from "framer-motion";
 
 const API_BASE = API_ORIGIN;
 
@@ -118,9 +117,9 @@ export function Footer() {
         <div className="grid min-w-0 grid-cols-1 gap-10 sm:grid-cols-3 sm:gap-8 lg:col-span-3 lg:gap-12">
           {footerLinkGroups.map(({ category, links }) => (
             <div key={category} className="min-w-0 text-left">
-              <h4 className="mb-5 text-xs font-bold uppercase tracking-widest text-white/50">
+              <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/70">
                 {category}
-              </h4>
+              </p>
               <ul className="space-y-3.5">
                 {links.map((link) => (
                   <li key={link.href} className="leading-5">

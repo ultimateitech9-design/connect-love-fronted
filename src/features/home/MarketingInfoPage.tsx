@@ -1,16 +1,69 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ArrowRight, CheckCircle2, ChevronRight, HelpCircle, Mail } from "lucide-react";
+import { SITE_NAME, SITE_URL } from "@/lib/seo";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
 import type { PublicPageData } from "./marketingPages";
 
 export function MarketingInfoPage({ page }: { page: PublicPageData }) {
   const Icon = page.icon;
+  const pathname = usePathname();
+  const canonicalUrl = new URL(pathname, SITE_URL).toString();
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: page.title,
+      description: page.description,
+      url: canonicalUrl,
+      isPartOf: {
+        "@type": "WebSite",
+        name: SITE_NAME,
+        url: SITE_URL,
+      },
+      ...(page.lastUpdated ? { dateModified: page.lastUpdated } : {}),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: SITE_URL,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: page.title,
+          item: canonicalUrl,
+        },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: page.faq.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
+      />
       <Navbar
         onLoginClick={() => {
           window.location.href = "/login";
@@ -24,6 +77,11 @@ export function MarketingInfoPage({ page }: { page: PublicPageData }) {
         <section className="bg-white">
           <div className="mx-auto grid min-h-[560px] w-[90vw] max-w-7xl items-center gap-10 py-16 md:grid-cols-[1.08fr_0.92fr] md:py-20">
             <div>
+              <nav aria-label="Breadcrumb" className="mb-5 flex items-center gap-2 text-sm text-slate-500">
+                <Link href="/" className="hover:text-rose-600">Home</Link>
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                <span aria-current="page" className="truncate text-slate-700">{page.title}</span>
+              </nav>
               <span className="inline-flex items-center rounded-full bg-rose-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-rose-500">
                 {page.eyebrow}
               </span>
@@ -31,6 +89,11 @@ export function MarketingInfoPage({ page }: { page: PublicPageData }) {
                 {page.title}
               </h1>
               <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">{page.description}</p>
+              {page.lastUpdated ? (
+                <p className="mt-3 text-xs font-semibold text-slate-400">
+                  Last reviewed {new Intl.DateTimeFormat("en-IN", { dateStyle: "long" }).format(new Date(page.lastUpdated))}
+                </p>
+              ) : null}
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link

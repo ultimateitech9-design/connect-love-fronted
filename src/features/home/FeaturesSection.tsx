@@ -1,9 +1,8 @@
 /* eslint-disable */
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Check, Crown, Zap, Heart, MessageCircle, Star, Shield, Sparkles, Video, Globe, Gem } from "lucide-react";
 import { isAuthenticated } from "@/lib/auth";
 
@@ -55,8 +54,6 @@ const plans = [
 
 export function FeaturesSection() {
   const [tab, setTab] = useState<"basic" | "premium">("basic");
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
   const router = useRouter();
 
   useEffect(() => {
@@ -91,17 +88,12 @@ export function FeaturesSection() {
   };
 
   return (
-    <section id="features" className="bg-slate-50/70 py-16 sm:py-20 border-y border-slate-100" ref={ref}>
+    <section id="features" className="bg-slate-50/70 py-16 sm:py-20 border-y border-slate-100">
       <div className="mx-auto w-[90vw] max-w-7xl">
         
         {/* Header */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto"
-        >
-          <span className="text-xs font-bold tracking-widest text-rose-500 uppercase">Features</span>
+        <div className="text-center max-w-3xl mx-auto">
+          <span className="text-xs font-bold tracking-widest text-rose-700 uppercase dark:text-rose-300">Features</span>
           <h2 className="mt-3 text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight font-display">
             Everything you need to find{" "}
             <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 bg-clip-text text-transparent text-glow-rose">
@@ -111,7 +103,7 @@ export function FeaturesSection() {
           <p className="mt-4 text-base text-slate-500 max-w-xl mx-auto">
             From smart matching to video dates, we have every tool to help you build a genuine connection.
           </p>
-        </motion.div>
+        </div>
 
         {/* Tab Toggle */}
         <div className="mt-10 flex justify-center">
@@ -123,10 +115,8 @@ export function FeaturesSection() {
               }`}
             >
               {tab === "basic" && (
-                <motion.div
-                  layoutId="activeTab"
+                <div
                   className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-500 to-pink-600"
-                  transition={{ type: "spring", stiffness: 350, damping: 28 }}
                 />
               )}
               <span className="relative z-20">Basic Features</span>
@@ -138,10 +128,8 @@ export function FeaturesSection() {
               }`}
             >
               {tab === "premium" && (
-                <motion.div
-                  layoutId="activeTab"
+                <div
                   className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-500 to-pink-600"
-                  transition={{ type: "spring", stiffness: 350, damping: 28 }}
                 />
               )}
               <span className="relative z-20">Premium Features</span>
@@ -150,18 +138,9 @@ export function FeaturesSection() {
         </div>
 
         {/* Feature Cards Grid */}
-        <motion.div 
-          layout
-          className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          <AnimatePresence mode="popLayout">
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {(tab === "basic" ? basicFeatures : premiumFeatures).map((feature) => (
-              <motion.button
-                layout
-                initial={false}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
+              <button
                 type="button"
                 key={feature.title}
                 onClick={() => openFeature(feature)}
@@ -174,18 +153,12 @@ export function FeaturesSection() {
                   <h3 className="mt-5 font-bold text-slate-800 text-lg leading-snug">{feature.title}</h3>
                   <p className="mt-2 text-sm text-slate-500 leading-relaxed">{feature.desc}</p>
                 </div>
-              </motion.button>
+              </button>
             ))}
-          </AnimatePresence>
-        </motion.div>
+        </div>
 
         {/* Pricing section */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-16 sm:mt-20"
-        >
+        <div className="mt-16 sm:mt-20">
           <div className="text-center max-w-3xl mx-auto mb-9">
             <h3 className="text-3xl font-bold text-slate-900 font-display">Choose your plan</h3>
             <p className="mt-2 text-sm text-slate-500">Start free. Upgrade anytime. Cancel whenever.</p>
@@ -285,7 +258,6 @@ export function FeaturesSection() {
 
                       <div className="mt-5 flex flex-wrap items-end gap-x-2 gap-y-1">
                         <span
-                          aria-label={`${plan.price} ${plan.period}`}
                           className={`inline-flex shrink-0 items-baseline whitespace-nowrap text-[2.65rem] font-black leading-none tabular-nums ${isGold ? "bg-gradient-to-b from-[#ffe6a2] to-[#b77a27] bg-clip-text text-transparent" : isDiamond ? "text-violet-100" : "pricing-free-price text-slate-950"}`}
                         >
                           <span className="tracking-[-0.04em]" aria-hidden="true">₹</span>
@@ -335,7 +307,7 @@ export function FeaturesSection() {
               );
             })}
           </div>
-        </motion.div>
+        </div>
 
         <style jsx global>{`
           @keyframes pricing-card-shine {

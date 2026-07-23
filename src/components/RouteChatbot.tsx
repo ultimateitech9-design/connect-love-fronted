@@ -1,0 +1,14 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
+
+const ConnectLoveChatbot = dynamic(
+  () => import("@/features/chatbot/ConnectLoveChatbot").then((module) => module.ConnectLoveChatbot),
+  { ssr: false },
+);
+
+export function RouteChatbot() {
+  const pathname = usePathname();
+  return pathname === "/user" ? <ConnectLoveChatbot /> : null;
+}

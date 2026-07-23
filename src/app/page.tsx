@@ -6,10 +6,9 @@ import { Navbar } from "@/features/home/Navbar";
 import { HeroSection } from "@/features/home/HeroSection";
 import { AboutSection } from "@/features/home/AboutSection";
 import { FeaturesSection } from "@/features/home/FeaturesSection";
+import { HomeSeoContent } from "@/features/home/HomeSeoContent";
 import { SafetySection } from "@/features/home/SafetySection";
 import { Footer } from "@/features/home/Footer";
-import { LoginModal } from "@/features/home/LoginModal";
-import { AnimatePresence, motion } from "framer-motion";
 import { ShieldX, X } from "lucide-react";
 
 function AuthBanner() {
@@ -26,13 +25,8 @@ function AuthBanner() {
   }, [searchParams]);
 
   return (
-    <AnimatePresence>
-      {authBanner && (
-        <motion.div
-          initial={{ opacity: 0, y: -60 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -60 }}
-          transition={{ type: "spring", stiffness: 300, damping: 28 }}
+      authBanner ? (
+        <div
           className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex w-[calc(100vw-2rem)] max-w-xl items-center gap-3 rounded-2xl bg-slate-900 px-5 py-3.5 text-white shadow-2xl shadow-slate-900/40"
         >
           <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-rose-500/20">
@@ -49,9 +43,8 @@ function AuthBanner() {
           >
             <X className="h-[16px] w-[16px] text-white/60" />
           </button>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        </div>
+      ) : null
   );
 }
 
@@ -68,8 +61,6 @@ function SignupIntent() {
 }
 
 export default function HomePage() {
-  const [loginOpen, setLoginOpen] = useState(false);
-
   return (
   <div className="marketing-home min-h-screen bg-white text-slate-900 transition-colors dark:bg-[#090910] dark:text-slate-100">
   {/* ── Unauthenticated banner ───────────────────────────────────────── */}
@@ -87,16 +78,12 @@ export default function HomePage() {
  <HeroSection onSignupClick={() => { window.location.href = "/register"; }} />
  <AboutSection />
  <FeaturesSection />
+ <HomeSeoContent />
  <SafetySection />
  </main>
 
  <Footer />
 
- <LoginModal
- open={loginOpen}
- onClose={() => setLoginOpen(false)}
- onSwitchToSignup={() => { window.location.href = "/register"; }}
- />
  </div>
  );
 }

@@ -29,6 +29,7 @@ export const footerLinkGroups = [
     links: [
       { label: "Help Center", href: "/help-center" },
       { label: "Contact Us", href: "/contact-us" },
+      { label: "Refund Policy", href: "/refund-policy" },
       { label: "Terms of Service", href: "/terms-of-service" },
     ],
   },
@@ -49,4 +50,5 @@ export type PublicPageData = {
   actions: { title: string; body: string }[];
   roleAccess?: { role: string; access: string }[];
   faq: { question: string; answer: string }[];
+  lastUpdated?: string;
 };

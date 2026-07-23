@@ -1,48 +1,23 @@
 /* eslint-disable */
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
 import { Heart, Sparkles, ShieldCheck } from "lucide-react";
 
 export function AboutSection() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.12,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
-  } as const;
-
   return (
     <section
       id="about"
       className="relative overflow-hidden py-16 sm:py-20 bg-gradient-to-b from-white via-rose-50/20 to-white"
-      ref={ref}
     >
       {/* Decorative side accent blur */}
       <div className="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-rose-200/20 blur-[100px] pointer-events-none" />
       <div className="absolute left-0 bottom-1/4 h-72 w-72 rounded-full bg-purple-200/20 blur-[90px] pointer-events-none" />
 
       <div className="mx-auto w-[90vw] max-w-7xl">
-        <motion.div
-          variants={containerVariants}
-          initial="visible"
-          animate="visible"
-          className="grid gap-16 lg:grid-cols-2 lg:items-center"
-        >
+        <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
           {/* Left Block */}
-          <motion.div variants={itemVariants} className="min-w-0">
-            <span className="text-xs font-bold tracking-widest text-rose-500 uppercase">
+          <div className="min-w-0">
+            <span className="text-xs font-bold tracking-widest text-rose-700 uppercase dark:text-rose-300">
               Our Philosophy
             </span>
             <h2 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl font-display">
@@ -77,9 +52,8 @@ export function AboutSection() {
                   desc: "Every member is verified through multi-stage AI authentication to protect your privacy while ensuring you meet real people.",
                 },
               ].map((item) => (
-                <motion.div
+                <div
                   key={item.title}
-                  variants={itemVariants}
                   className="flex items-start gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-rose-50/30"
                 >
                   <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${item.color}`}>
@@ -89,13 +63,13 @@ export function AboutSection() {
                     <h3 className="font-semibold text-slate-800 text-base">{item.title}</h3>
                     <p className="mt-1 text-sm text-slate-500 leading-relaxed">{item.desc}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Right Block — Stats and Testimonial Card */}
-          <motion.div variants={itemVariants} className="relative">
+          <div className="relative">
             
             {/* Stats Card Container */}
             <div className="relative rounded-3xl border border-rose-100 bg-white/70 p-6 sm:p-8 shadow-[0_15px_40px_-15px_rgba(244,63,94,0.08)] backdrop-blur-md">
@@ -140,8 +114,8 @@ export function AboutSection() {
 
             {/* Glowing bubble accents */}
             <div className="absolute -top-6 -right-6 h-20 w-20 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 opacity-20 blur-xl pointer-events-none" />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </section>
   );

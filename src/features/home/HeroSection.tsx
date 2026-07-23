@@ -4,7 +4,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Play, Star, X, Heart } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface HeroSectionProps {
   onSignupClick: () => void;
@@ -24,13 +23,24 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
     >
       {/* Background Video */}
       <div className="absolute inset-0 z-0 overflow-hidden">
+        <Image
+          src="/hero-couple.webp"
+          alt="Indian singles building a meaningful connection on ConnectLove"
+          fill
+          priority
+          quality={72}
+          sizes="100vw"
+          className="object-cover object-center"
+        />
         <video
           autoPlay
           loop
           muted
           playsInline
+          poster="/hero-couple.webp"
+          preload="metadata"
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 max-w-none opacity-85"
+          className="pointer-events-none absolute inset-0 hidden max-w-none opacity-85 md:block"
           style={{
             width: "100%",
             height: "100%",
@@ -41,6 +51,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
           <source
             src="/hero-bg.mp4"
             type="video/mp4"
+            media="(min-width: 768px)"
           />
         </video>
         {/* A directional veil keeps the copy readable without hiding the video. */}
@@ -51,43 +62,32 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
       {/* Floating Sparkles & Hearts */}
       <div className="absolute inset-0 pointer-events-none z-10">
         {/* Floating Heart 1 */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: [0, -25, 0], opacity: [0.4, 0.8, 0.4] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute left-[8%] top-[25%] text-rose-500/30"
+        <div
+          className="absolute left-[8%] top-[25%] animate-pulse text-rose-500/30"
         >
           <Heart className="h-8 w-8 fill-rose-500/10" />
-        </motion.div>
+        </div>
 
         {/* Floating Heart 2 */}
-        <motion.div
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: [0, 20, 0], opacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute right-[8%] top-[20%] text-pink-400/30"
+        <div
+          className="absolute right-[8%] top-[20%] animate-pulse text-pink-400/30"
         >
           <Heart className="h-6 w-6 fill-pink-400/10" />
-        </motion.div>
+        </div>
 
         {/* Floating Heart 3 */}
-        <motion.div
-          animate={{ y: [0, -15, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute left-[38%] bottom-[15%] text-purple-400/30"
+        <div
+          className="absolute bottom-[15%] left-[38%] animate-pulse text-purple-400/30"
         >
           <Heart className="h-5 w-5 fill-purple-400/10" />
-        </motion.div>
+        </div>
       </div>
 
       <div className="relative z-20 mx-auto box-border w-full max-w-7xl px-5 py-8 sm:px-8 lg:px-12 xl:px-16">
         <div className="flex justify-start">
           
           {/* Left-aligned hero content */}
-          <motion.div 
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+          <div
             className="flex w-full min-w-0 max-w-3xl flex-col items-start text-left lg:max-w-[760px]"
           >
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-400/25 bg-[#16091f]/55 px-4 py-2 shadow-lg shadow-black/10 backdrop-blur-md">
@@ -133,7 +133,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
                 Watch our Story
               </button>
             </div>
-          </motion.div>
+          </div>
 
         </div>
       </div>
@@ -142,27 +142,24 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-gradient-to-b from-transparent to-white dark:to-[#090910]" />
 
       {/* Video Modal */}
-      <AnimatePresence>
-        {showVideo && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+      {showVideo && (
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center px-4 pb-5 pt-24 bg-slate-950/85 backdrop-blur-md"
             onClick={() => setShowVideo(false)}
           >
-            <motion.div
-              initial={{ scale: 0.95, y: 15 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 15 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative w-[min(76vw,280px)] overflow-hidden rounded-[24px] border border-white/10 bg-black shadow-2xl"
+            <div
+              className="relative overflow-hidden rounded-[28px] border border-white/15 bg-black shadow-[0_28px_90px_rgba(0,0,0,.58)]"
+              style={{ width: "min(92vw, calc((100dvh - 7rem) * 9 / 16), 460px)" }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="ConnectLove story video"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="absolute right-4 top-4 z-10">
                 <button
                   onClick={() => setShowVideo(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-950/60 text-white/80 hover:bg-slate-950/90 hover:text-white transition-colors backdrop-blur-sm"
+                  aria-label="Close story video"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-950/70 text-white/90 hover:bg-slate-950 hover:text-white transition-colors backdrop-blur-sm"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -175,13 +172,13 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
+                  loading="lazy"
                   className="h-full w-full"
                 />
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+      )}
     </section>
   );
 }

@@ -89,7 +89,7 @@ export function SupportSection() {
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto"
         >
-          <span className="text-xs font-bold tracking-widest text-rose-500 uppercase">Support</span>
+          <span className="text-xs font-bold tracking-widest text-rose-700 uppercase dark:text-rose-300">Support</span>
           <h2 className="mt-3 text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight font-display">
             We&apos;re here to{" "}
             <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 bg-clip-text text-transparent text-glow-rose">

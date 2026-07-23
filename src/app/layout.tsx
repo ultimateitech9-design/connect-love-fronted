@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import Script from "next/script";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/components/SessionProvider";
-import { QueryProvider } from "@/components/QueryProvider";
+import { RouteQueryProvider } from "@/components/RouteQueryProvider";
 import { TranslationProvider } from "@/features/i18n/TranslationProvider";
-import { AuthPromptModal } from "@/features/home/AuthPromptModal";
-import { ConnectLoveChatbot } from "@/features/chatbot/ConnectLoveChatbot";
+import { DeferredAuthPrompt } from "@/components/DeferredAuthPrompt";
+import { RouteChatbot } from "@/components/RouteChatbot";
 import {
   createPublicMetadata,
   HOME_DESCRIPTION,
@@ -41,9 +42,12 @@ export const metadata: Metadata = {
     google: "ECsiPPiMEGXoirGoc8st98_imhhgCH4OzFIVhuMSnhI",
   },
   icons: {
-    icon: [{ url: "/connect-love-logo.png", type: "image/png", sizes: "1024x1024" }],
-    shortcut: "/connect-love-logo.png",
-    apple: [{ url: "/connect-love-logo.png", type: "image/png", sizes: "1024x1024" }],
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "96x96" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
   },
 };
 
@@ -65,6 +69,40 @@ const websiteJsonLd = {
       name: SITE_NAME,
       url: `${SITE_URL}/`,
       logo: `${SITE_URL}/connect-love-logo.png`,
+      email: "info@connectlove.in",
+      areaServed: {
+        "@type": "Country",
+        name: "India",
+      },
+      contactPoint: [
+        {
+          "@type": "ContactPoint",
+          contactType: "customer support",
+          email: "support@connectlove.in",
+          availableLanguage: ["English", "Hindi"],
+        },
+      ],
+      sameAs: [
+        "https://www.instagram.com/connectloveofficial/",
+        "https://www.facebook.com/connectloveofficial/",
+        "https://www.linkedin.com/company/connect-love-official/",
+        "https://www.youtube.com/@ConnectLove-Official",
+      ],
+    },
+    {
+      "@type": "Service",
+      "@id": `${SITE_URL}/#dating-service`,
+      name: "ConnectLove Online Dating and Matchmaking",
+      serviceType: "Online dating and matchmaking platform",
+      provider: { "@id": `${SITE_URL}/#organization` },
+      areaServed: {
+        "@type": "Country",
+        name: "India",
+      },
+      audience: {
+        "@type": "Audience",
+        audienceType: "Adults aged 18 and older seeking meaningful relationships",
+      },
     },
   ],
 };
@@ -77,15 +115,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c") }}
         />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LSFFV3G704" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-LSFFV3G704');`,
-          }}
-        />
+        <Script id="connectlove-google-analytics" strategy="afterInteractive">
+          {`window.setTimeout(function () {
+  var analyticsScript = document.createElement('script');
+  analyticsScript.async = true;
+  analyticsScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-LSFFV3G704';
+  document.head.appendChild(analyticsScript);
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  window.gtag = gtag;
+  gtag('js', new Date());
+  gtag('config', 'G-LSFFV3G704');
+}, 5000);`}
+        </Script>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('connect-love-theme')||'light';document.documentElement.classList.toggle('dark',t==='dark');document.documentElement.style.colorScheme=t}catch(e){}})();`,
@@ -93,15 +135,15 @@ gtag('config', 'G-LSFFV3G704');`,
         />
       </head>
       <body>
-        <QueryProvider>
+        <RouteQueryProvider>
           <TranslationProvider>
             <SessionProvider>
               {children}
-              <AuthPromptModal />
-              <ConnectLoveChatbot />
+              <DeferredAuthPrompt />
+              <RouteChatbot />
             </SessionProvider>
           </TranslationProvider>
-        </QueryProvider>
+        </RouteQueryProvider>
         <Toaster />
       </body>
     </html>
