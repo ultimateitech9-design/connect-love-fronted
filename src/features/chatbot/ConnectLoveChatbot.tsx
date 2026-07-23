@@ -183,7 +183,7 @@ export function ConnectLoveChatbot() {
   };
 
   return (
-    <div className="fixed bottom-5 right-4 z-[70] sm:bottom-7 sm:right-7">
+    <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-3 z-[9999] md:bottom-7 md:right-7">
       {open && (
         <section className="mb-3 flex h-[min(500px,calc(100vh-125px))] w-[calc(100vw-38px)] max-w-[340px] flex-col overflow-hidden rounded-[24px] border border-rose-200 bg-white shadow-[0_20px_55px_rgba(244,63,94,0.22)]">
           <header className="bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 px-4 pb-3 pt-4 text-white">
@@ -277,7 +277,9 @@ export function ConnectLoveChatbot() {
         </section>
       )}
 
-      <button type="button" onClick={() => setOpen((current) => !current)} aria-label={open ? "Close chatbot" : "Open chatbot"} className="ml-auto flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-white bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 text-white shadow-[0_10px_30px_rgba(244,63,94,0.38)] transition hover:scale-105 active:scale-95">
+      <button type="button" onClick={() => setOpen((current) => !current)} aria-label={open ? "Close chatbot" : "Open chatbot"} className="group relative ml-auto flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-white bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 text-white shadow-[0_12px_34px_rgba(244,63,94,0.48)] transition hover:scale-105 active:scale-95">
+        {!open && <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-rose-400/45" aria-hidden="true" />}
+        {!open && <span className="absolute right-[calc(100%+0.5rem)] whitespace-nowrap rounded-full bg-slate-950 px-3 py-1.5 text-[11px] font-black text-white shadow-lg dark:bg-white dark:text-slate-950">Need help?</span>}
         {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-6 w-6 fill-white/20" />}
       </button>
     </div>

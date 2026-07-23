@@ -6,7 +6,6 @@ import { SessionProvider } from "@/components/SessionProvider";
 import { RouteQueryProvider } from "@/components/RouteQueryProvider";
 import { TranslationProvider } from "@/features/i18n/TranslationProvider";
 import { DeferredAuthPrompt } from "@/components/DeferredAuthPrompt";
-import { RouteChatbot } from "@/components/RouteChatbot";
 import {
   createPublicMetadata,
   HOME_DESCRIPTION,
@@ -149,7 +148,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SessionProvider>
               {children}
               <DeferredAuthPrompt />
-              <RouteChatbot />
             </SessionProvider>
           </TranslationProvider>
         </RouteQueryProvider>

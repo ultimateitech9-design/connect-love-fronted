@@ -11,6 +11,7 @@ import { formatDistance } from "@/lib/distance";
 import { INTERESTED_IN_OPTIONS } from "@/features/discovery/gender-options";
 import { AgeRangeSlider } from "@/features/discovery/AgeRangeSlider";
 import { CampaignOfferCard } from "@/features/user/CampaignOfferCard";
+import { ConnectLoveChatbot } from "@/features/chatbot/ConnectLoveChatbot";
 
 const DISTANCE_STEP_KM = 100;
 const defaultFilters: DiscoverFilters = {
@@ -417,6 +418,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  </div>
  </div>
  )}
+ <ConnectLoveChatbot />
  </>
  );
 }
