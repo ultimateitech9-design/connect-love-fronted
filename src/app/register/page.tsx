@@ -436,7 +436,25 @@ export default function RegisterPage() {
                 <div>
                   <label className="flex items-start gap-3 rounded-xl bg-slate-50 px-3 py-2.5 text-[11px] leading-5 text-slate-500">
                     <input {...register("agreeTerms")} id="signup-agree-terms" type="checkbox" className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-rose-600 focus:ring-rose-400" />
-                    <span className="min-w-0">I agree to the Terms of Service and Privacy Policy. I confirm I am 18+.</span>
+                    <span className="min-w-0">
+                      I agree to the{" "}
+                      <Link
+                        href="/terms-of-service"
+                        onClick={(event) => event.stopPropagation()}
+                        className="font-semibold text-rose-600 underline underline-offset-2 hover:text-rose-700"
+                      >
+                        Terms of Service
+                      </Link>{" "}
+                      and{" "}
+                      <Link
+                        href="/privacy-policy"
+                        onClick={(event) => event.stopPropagation()}
+                        className="font-semibold text-rose-600 underline underline-offset-2 hover:text-rose-700"
+                      >
+                        Privacy Policy
+                      </Link>
+                      . I confirm I am 18+.
+                    </span>
                   </label>
                   {errors.agreeTerms && <p className="mt-1.5 text-xs text-rose-500">{errors.agreeTerms.message}</p>}
                 </div>
