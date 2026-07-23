@@ -148,7 +148,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center px-4 pb-5 pt-24 bg-slate-950/85 backdrop-blur-md"
             onClick={() => setShowVideo(false)}
           >
             <motion.div
@@ -156,7 +156,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative w-full max-w-4xl overflow-hidden rounded-[28px] border border-white/10 bg-slate-900 shadow-2xl"
+              className="relative w-[min(76vw,280px)] overflow-hidden rounded-[24px] border border-white/10 bg-black shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="absolute right-4 top-4 z-10">
@@ -168,25 +168,15 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
                 </button>
               </div>
 
-              <div className="aspect-video w-full bg-black">
-                <video
-                  src="/connect-love-story.mp4"
+              <div className="aspect-[9/16] w-full bg-black">
+                <iframe
+                  src="https://www.youtube.com/embed/Gtgttp1MCGg?autoplay=1&rel=0&modestbranding=1&playsinline=1"
                   title="Connect Love Story"
-                  autoPlay
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="h-full w-full object-cover"
-                  onTimeUpdate={(event) => {
-                    const video = event.currentTarget;
-                    if (video.currentTime >= 18) {
-                      video.pause();
-                      video.currentTime = 0;
-                    }
-                  }}
-                >
-                  Your browser does not support the video tag.
-                </video>
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
               </div>
             </motion.div>
           </motion.div>
