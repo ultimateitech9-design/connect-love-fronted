@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Play, Star, X, Heart } from "lucide-react";
 
 interface HeroSectionProps {
-  onSignupClick: () => void;
+  onSignupClick?: () => void;
 }
 
 export function HeroSection({ onSignupClick }: HeroSectionProps) {
@@ -118,7 +118,10 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
             <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
               <button
                 id="hero-getstarted-btn"
-                onClick={onSignupClick}
+                onClick={() => {
+                  if (onSignupClick) onSignupClick();
+                  else window.location.href = "/register";
+                }}
                 className="box-border w-full max-w-full sm:w-auto min-h-12 rounded-full bg-gradient-to-r from-rose-50 via-pink-500 to-rose-600 px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-rose-500/30 transition-all duration-300 hover:scale-105 hover:shadow-rose-500/50 hover:brightness-110 active:scale-95 cursor-pointer"
               >
                 Start Your Journey

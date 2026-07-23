@@ -11,8 +11,8 @@ import { ThemeToggle } from "@/features/theme/ThemeToggle";
 import { getStoredTheme, type AppTheme } from "@/features/theme/theme";
 
 interface NavbarProps {
- onLoginClick: () => void;
- onSignupClick: () => void;
+ onLoginClick?: () => void;
+ onSignupClick?: () => void;
 }
 
 export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
@@ -66,12 +66,14 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
 
  const goToLogin = () => {
  setMobileOpen(false);
- onLoginClick?.();
+ if (onLoginClick) onLoginClick();
+ else window.location.href = "/login";
  };
 
  const goToSignup = () => {
  setMobileOpen(false);
- onSignupClick?.();
+ if (onSignupClick) onSignupClick();
+ else window.location.href = "/register";
  };
 
  const handleNavClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {

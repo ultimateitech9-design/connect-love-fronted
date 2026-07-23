@@ -65,7 +65,7 @@ export function HomeSeoContent() {
   return (
     <section
       aria-labelledby="dating-guide-title"
-      className="border-b border-slate-100 bg-white py-16 dark:border-white/10 dark:bg-[#0d0d15] sm:py-20"
+      className="marketing-deferred-section border-b border-slate-100 bg-white py-16 dark:border-white/10 dark:bg-[#0d0d15] sm:py-20"
     >
       <script
         type="application/ld+json"

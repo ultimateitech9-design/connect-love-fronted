@@ -1090,6 +1090,12 @@ button:hover .react-cry .cinematic-reaction-emoji {
   }
 }
 
+/* Skip layout and paint work for long marketing sections until they approach the viewport. */
+.marketing-deferred-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
 /* --- Premium Redesign Overlays and Keyframes --- */
 @keyframes pulse-ring {
   0% { transform: scale(0.95); opacity: 0.5; }

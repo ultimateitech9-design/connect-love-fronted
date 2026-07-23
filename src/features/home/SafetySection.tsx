@@ -1,6 +1,4 @@
 /* eslint-disable */
-"use client";
-
 import { ShieldCheck, Lock, Eye, BadgeCheck, Fingerprint, UserCheck } from "lucide-react";
 
 const safetyFeatures = [
@@ -50,7 +48,7 @@ const safetyFeatures = [
 
 export function SafetySection() {
  return (
- <section id="safety" className="relative overflow-hidden py-10 sm:py-12"
+ <section id="safety" className="marketing-deferred-section relative overflow-hidden py-10 sm:py-12"
  style={{ background: "linear-gradient(150deg, #0D0B2B 0%, #1F0B35 50%, #0E1940 100%)" }}
  >
  {/* BG blobs */}

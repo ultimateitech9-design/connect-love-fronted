@@ -1,13 +1,11 @@
 /* eslint-disable */
-"use client";
-
 import { Heart, Sparkles, ShieldCheck } from "lucide-react";
 
 export function AboutSection() {
   return (
     <section
       id="about"
-      className="relative overflow-hidden py-16 sm:py-20 bg-gradient-to-b from-white via-rose-50/20 to-white"
+      className="marketing-deferred-section relative overflow-hidden py-16 sm:py-20 bg-gradient-to-b from-white via-rose-50/20 to-white"
     >
       {/* Decorative side accent blur */}
       <div className="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-rose-200/20 blur-[100px] pointer-events-none" />

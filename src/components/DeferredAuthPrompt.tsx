@@ -12,7 +12,7 @@ export function DeferredAuthPrompt() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setReady(true), 8000);
+    const timer = window.setTimeout(() => setReady(true), 30000);
     return () => window.clearTimeout(timer);
   }, []);
 

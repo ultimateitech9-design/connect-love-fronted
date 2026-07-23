@@ -88,7 +88,7 @@ export function FeaturesSection() {
   };
 
   return (
-    <section id="features" className="bg-slate-50/70 py-16 sm:py-20 border-y border-slate-100">
+    <section id="features" className="marketing-deferred-section bg-slate-50/70 py-16 sm:py-20 border-y border-slate-100">
       <div className="mx-auto w-[90vw] max-w-7xl">
         
         {/* Header */}
