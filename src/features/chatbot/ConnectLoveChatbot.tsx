@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { AlertCircle, Bot, ChevronLeft, Heart, Headphones, Loader2, MessageCircle, Send, Sparkles, TicketCheck, X } from "lucide-react";
 import { API_ORIGIN } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
@@ -65,7 +64,6 @@ const copy = {
 } as const;
 
 export function ConnectLoveChatbot() {
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [language, setLanguage] = useState<Language>("en");
   const [input, setInput] = useState("");
@@ -83,7 +81,6 @@ export function ConnectLoveChatbot() {
   ]);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  const visible = pathname === "/user";
   const text = copy[language];
 
   useEffect(() => {
@@ -184,8 +181,6 @@ export function ConnectLoveChatbot() {
       setSupportSubmitting(false);
     }
   };
-
-  if (!visible) return null;
 
   return (
     <div className="fixed bottom-5 right-4 z-[70] sm:bottom-7 sm:right-7">

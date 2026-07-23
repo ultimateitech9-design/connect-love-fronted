@@ -10,5 +10,7 @@ const ConnectLoveChatbot = dynamic(
 
 export function RouteChatbot() {
   const pathname = usePathname();
-  return pathname === "/user" ? <ConnectLoveChatbot /> : null;
+  const isUserDashboard = pathname === "/user" || pathname === "/user/discover";
+
+  return isUserDashboard ? <ConnectLoveChatbot /> : null;
 }
