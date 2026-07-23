@@ -183,7 +183,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
         onChange={handleFileChange}
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-5">
+      <div className="grid min-w-0 grid-cols-2 gap-2 min-[380px]:gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-5">
         <Reorder.Group
           axis="x"
           values={uniquePhotos}
@@ -195,7 +195,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
               key={photo}
               value={photo}
               dragListener={!disabled}
-              className="relative aspect-[3/4] w-full cursor-grab overflow-hidden rounded-2xl border border-rose-100 shadow-md active:cursor-grabbing"
+              className="relative aspect-[3/4] min-w-0 w-full cursor-grab overflow-hidden rounded-xl border border-rose-100 shadow-md active:cursor-grabbing sm:rounded-2xl"
               style={{ touchAction: "none" }}
             >
               <img
@@ -204,13 +204,13 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
                 draggable={false}
                 className="h-full w-full object-cover"
               />
-              <div className="absolute right-2 top-2 z-10 flex gap-1">
+              <div className="absolute right-1.5 top-1.5 z-10 flex gap-1 sm:right-2 sm:top-2">
                 {index > 0 && (
                   <button
                     type="button"
                     onClick={() => makePrimary(index)}
                     disabled={disabled}
-                    className="grid h-7 w-7 place-items-center rounded-full bg-white/90 text-rose-500 shadow-lg transition hover:scale-105"
+                    className="grid h-6 w-6 place-items-center rounded-full bg-white/90 text-rose-500 shadow-lg transition hover:scale-105 sm:h-7 sm:w-7"
                     title="Make primary"
                   >
                     <Star className="h-3.5 w-3.5" />
@@ -220,7 +220,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
                   type="button"
                   onClick={() => removePhoto(index)}
                   disabled={disabled}
-                  className="grid h-7 w-7 place-items-center rounded-full bg-rose-500 text-white shadow-lg transition hover:scale-105"
+                  className="grid h-6 w-6 place-items-center rounded-full bg-rose-500 text-white shadow-lg transition hover:scale-105 sm:h-7 sm:w-7"
                   title={index === 0 ? "Remove profile picture" : "Remove photo"}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -239,7 +239,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
           <div
             key={`empty-${slotIndex}`}
             onClick={() => !disabled && !uploading && fileInputRef.current?.click()}
-            className={`relative flex aspect-[3/4] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/50 transition-colors ${
+            className={`relative flex aspect-[3/4] min-w-0 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-rose-200 bg-rose-50/50 transition-colors sm:rounded-2xl ${
               disabled || uploading ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:border-rose-300 hover:bg-rose-50"
             }`}
           >
@@ -249,8 +249,8 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
               </span>
             ) : (
               <div className="flex flex-col items-center text-rose-400">
-                <span className="mb-2 rounded-full bg-rose-100 p-2">
-                  <Plus className="h-5 w-5" />
+                <span className="mb-1.5 rounded-full bg-rose-100 p-1.5 sm:mb-2 sm:p-2">
+                  <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                 </span>
                 <span className="text-[10px] font-medium tracking-wide">ADD PHOTO</span>
               </div>
@@ -259,7 +259,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
         ))}
       </div>
 
-      <p className="mt-3 text-center text-xs text-slate-500">
+      <p className="mt-3 hidden text-center text-xs text-slate-500 min-[380px]:block">
         Drag to reorder. The first photo will be your main profile picture.
       </p>
 

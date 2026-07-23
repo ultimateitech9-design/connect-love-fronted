@@ -166,10 +166,10 @@ export function TopNav() {
       boxShadow: "0 2px 20px rgba(236, 72, 153, 0.08)",
     }}
   >
- <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
+ <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-2.5 min-[380px]:px-3 sm:h-16 sm:px-6 lg:px-8">
  {/* Logo */}
- <Link href="/user/discover" className="flex items-center gap-2.5 group">
- <BrandLogo className="h-9 w-9 shadow-lg shadow-rose-500/30" priority />
+ <Link href="/user/discover" className="flex shrink-0 items-center gap-2.5 group">
+ <BrandLogo className="h-8 w-8 shadow-lg shadow-rose-500/30 sm:h-9 sm:w-9" priority />
         <span className="hidden text-xl font-bold tracking-tight text-foreground sm:inline">
           Connect<span className="text-rose-700">Love</span>
         </span>
@@ -207,14 +207,14 @@ export function TopNav() {
  </nav>
 
  {/* Right icons */}
- <div className="flex items-center gap-3">
- <ThemeToggle className="h-9 w-9" />
+ <div className="flex min-w-0 items-center gap-1 min-[380px]:gap-2 sm:gap-3">
+ <ThemeToggle className="h-8 w-8 sm:h-9 sm:w-9" />
  {/* Notification Bell */}
  <div className="relative" ref={notifRef}>
  <button
  id="notif-btn"
  onClick={handleNotificationToggle}
-            className="relative flex h-[36px] w-[36px] items-center justify-center rounded-full transition-all hover:bg-rose-50 dark:hover:bg-rose-950/30 text-muted-foreground hover:text-rose-700"
+            className="relative flex h-8 w-8 items-center justify-center rounded-full transition-all hover:bg-rose-50 dark:hover:bg-rose-950/30 text-muted-foreground hover:text-rose-700 sm:h-9 sm:w-9"
             aria-label="Notifications"
             aria-expanded={notifOpen}
             aria-controls="notifications-panel"
@@ -293,19 +293,19 @@ export function TopNav() {
  </div>
 
  {/* Profile menu */}
- <div className="ml-1 flex h-8 items-center border-l border-border pl-2 sm:ml-2 sm:pl-4">
+ <div className="ml-0 flex h-8 min-w-0 items-center border-l border-border pl-1 min-[380px]:pl-2 sm:ml-2 sm:pl-4">
  <Link
  href="/user/profile"
  className="flex items-center gap-2 rounded-full py-1 pl-1 sm:pr-3 hover:bg-muted/60 transition-colors"
  >
- <Avatar className="h-[32px] w-[32px] ring-2 ring-white shadow-sm">
+ <Avatar className="h-7 w-7 ring-2 ring-white shadow-sm sm:h-8 sm:w-8">
  {avatarUrl ? <AvatarImage src={avatarUrl} alt="User" className="object-cover" /> : <AvatarFallback className="bg-rose-100 text-rose-700"><UserRound className="h-4 w-4" /></AvatarFallback>}
  </Avatar>
  <span className="hidden text-sm font-medium sm:inline">{userName}</span>
  </Link>
  <Link
  href="/user/settings"
- className="ml-1 p-2 text-muted-foreground hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors"
+ className="ml-1 hidden p-2 text-muted-foreground hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors sm:inline-flex"
  title="Settings"
  aria-label="Settings"
  >
@@ -313,7 +313,7 @@ export function TopNav() {
  </Link>
  <button
  onClick={handleLogout}
- className="ml-1 p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+ className="ml-1 hidden p-2 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-full transition-colors sm:inline-flex"
  title="Logout"
  aria-label="Logout"
  >

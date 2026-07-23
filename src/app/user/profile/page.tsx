@@ -134,7 +134,13 @@ export default function ProfilePage() {
         if (merged.photos?.[0]) localStorage.setItem(AVATAR_KEY, merged.photos[0]);
  }
  })
- .catch(console.error)
+ .catch((error: unknown) => {
+   const message = error instanceof Error ? error.message : "Unable to connect to the server";
+   setSaveMsg({
+     ok: false,
+     text: `${message}. Please check that the API is running and refresh the page.`,
+   });
+ })
  .finally(() => setLoading(false));
  // eslint-disable-next-line react-hooks/exhaustive-deps
  }, []);
@@ -301,14 +307,14 @@ export default function ProfilePage() {
  }
 
  return (
- <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+ <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
  {/* ── Main profile card ───────────────────────────────────────────── */}
- <section className="space-y-6 rounded-2xl bg-white p-6 shadow-lg" style={{ border: "1px solid rgba(236,72,153,0.15)" }}>
-  <header className="flex flex-col gap-6 mb-8">
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">
+ <section className="min-w-0 space-y-5 overflow-hidden rounded-2xl bg-white p-3 shadow-lg min-[380px]:p-4 sm:space-y-6 sm:p-6" style={{ border: "1px solid rgba(236,72,153,0.15)" }}>
+  <header className="mb-6 flex min-w-0 flex-col gap-4 sm:mb-8 sm:gap-6">
+    <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="w-full min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <h1 className="min-w-0 whitespace-normal break-normal text-xl font-semibold leading-tight text-slate-800 tracking-tight sm:text-2xl">
             {profile.name || "Your Name"}
             {profile.dob ? `, ${new Date().getFullYear() - new Date(profile.dob).getFullYear()}` : ""}
           </h1>
@@ -320,7 +326,7 @@ export default function ProfilePage() {
       </div>
       <button
         onClick={() => setIsLocked(!isLocked)}
-        className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold border transition-all active:scale-95 ${
+        className={`flex w-full shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-all active:scale-95 sm:w-auto sm:px-4 sm:text-sm ${
           isLocked
             ? "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
             : "bg-rose-50 border-rose-200 text-rose-500 hover:bg-rose-100/70"
@@ -341,7 +347,7 @@ export default function ProfilePage() {
     </div>
 
     {/* Photo Grid Section */}
-    <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
+    <div className="min-w-0 rounded-xl border border-slate-100 bg-slate-50 p-2.5 min-[380px]:p-3 sm:p-4">
       <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
         Profile Photos
         {photoSaving && <Loader2 className="h-4 w-4 animate-spin text-rose-500" />}
@@ -536,15 +542,15 @@ export default function ProfilePage() {
   />
 
  {/* Actions */}
- <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4 border-border">
- <div className="flex gap-2">
- <Button variant="outline" className="text-rose-500 border-rose-200 bg-rose-50 hover:bg-rose-100 hover:text-rose-600">
+ <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+ <div className="grid grid-cols-2 gap-2 sm:flex">
+ <Button variant="outline" className="w-full px-2 text-xs text-rose-500 border-rose-200 bg-rose-50 hover:bg-rose-100 hover:text-rose-600 sm:w-auto sm:px-4 sm:text-sm">
  Delete account
  </Button>
  <Button
  id="profile-logout-btn"
  variant="outline"
- className="gap-2 text-foreground border-border bg-card hover:bg-muted transition-colors"
+ className="w-full gap-2 px-2 text-xs text-foreground border-border bg-card hover:bg-muted transition-colors sm:w-auto sm:px-4 sm:text-sm"
  onClick={() => logout("/")}
  >
  <LogOut className="h-[16px] w-[16px]" />
@@ -552,7 +558,7 @@ export default function ProfilePage() {
  </Button>
  </div>
  <Button
- className="bg-gradient-to-r from-rose-500 to-pink-600 text-white gap-2 border-0"
+ className="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white gap-2 border-0 sm:w-auto"
  onClick={handleSave}
  disabled={saving || isLocked}
  >

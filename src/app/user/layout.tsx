@@ -15,7 +15,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     ? ""
     : isMessages
       ? "mx-auto h-full w-full max-w-[1440px] overflow-hidden px-3 py-3 pb-[calc(4.75rem+env(safe-area-inset-bottom))] sm:px-6 md:px-8 md:py-4 md:pb-4"
-      : "mx-auto w-full max-w-[1440px] px-3 py-4 pb-24 sm:px-6 sm:py-7 md:pb-7 lg:px-8";
+      : "mx-auto w-full max-w-[1440px] px-2 py-3 pb-24 min-[380px]:px-3 sm:px-6 sm:py-7 md:pb-7 lg:px-8";
 
   return (
     <OnboardingGuard>
