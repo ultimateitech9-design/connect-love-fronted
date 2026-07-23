@@ -41,8 +41,8 @@ export const metadata: Metadata = {
     google: "ECsiPPiMEGXoirGoc8st98_imhhgCH4OzFIVhuMSnhI",
   },
   icons: {
-    icon: [{ url: "/connect-love-logo.png", type: "image/png" }],
-    shortcut: "/connect-love-logo.png",
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml", sizes: "any" }],
+    shortcut: "/favicon.svg",
     apple: "/connect-love-logo.png",
   },
 };

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 
 export const SITE_NAME = "Connect Love";
 export const SITE_URL = "https://connectlove.in";
-export const HOME_TITLE =
-  "Connect Love | Best Safe Dating Site & App -Meet New Friends & People, Connect Hearts, Create Forever";
+// Keep the homepage title concise and brand-first so search engines do not
+// replace it with a fragment from the page copy.
+export const HOME_TITLE = "Connect Love | Best Safe Dating Site & App";
 export const HOME_DESCRIPTION = [
   "connectLove.in Best online Dating Site & App, whether you're searching for friendship, companionship, or your perfect life partner, ConnectLove makes the journey simple, safe, and enjoyable.",
   "With an easy-to-use interface, secure profiles, and smart matching, finding someone special has never been easier.",
