@@ -339,7 +339,7 @@ export default function User360Page() {
  <div className="grid gap-4 md:grid-cols-2">
  <TextField label="Name" value={form.name} onChange={(value) => updateField("name", value)} />
  <TextField label="Email" value={form.email} onChange={(value) => updateField("email", value)} type="email" />
- <SelectField label="Role" value={form.role} onChange={(value) => updateField("role", value)} options={["user", "admin", "super_admin", "marketing", "sales", "support"]} />
+ <SelectField label="Role" value={form.role} onChange={(value) => updateField("role", value)} options={["user", "admin", "super_admin", "sales", "support"]} />
  <SelectField label="Plan" value={form.plan} onChange={(value) => updateField("plan", value)} options={["free", "gold", "platinum"]} />
  <SelectField label="Status" value={form.status} onChange={(value) => updateField("status", value)} options={["active", "suspended", "banned", "pending_verification"]} />
  <TextField label="Birth Date" value={form.birthDate} onChange={(value) => updateField("birthDate", value)} type="date" />

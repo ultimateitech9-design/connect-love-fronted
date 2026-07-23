@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const protectedManagementPaths = ["/admin", "/super-admin", "/marketing", "/sales", "/support"];
+const protectedManagementPaths = ["/admin", "/super-admin", "/sales", "/support"];
 
 const managementRoleAccess: Record<string, string[]> = {
   "/admin": ["admin", "super_admin"],
   "/super-admin": ["super_admin"],
-  "/marketing": ["marketing", "super_admin"],
   "/sales": ["sales", "super_admin"],
   "/support": ["support", "admin", "super_admin"],
 };
@@ -51,5 +50,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/user/:path*", "/admin/:path*", "/super-admin/:path*", "/marketing/:path*", "/sales/:path*", "/support/:path*"],
+  matcher: ["/user/:path*", "/admin/:path*", "/super-admin/:path*", "/sales/:path*", "/support/:path*"],
 };

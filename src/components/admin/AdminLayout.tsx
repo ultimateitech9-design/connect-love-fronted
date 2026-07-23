@@ -32,7 +32,7 @@ const nav = [
   { to: "/super-admin/verification", label: "Verification", icon: ShieldCheck },
   { to: "/super-admin/payments", label: "Payments", icon: CreditCard },
   { to: "/super-admin/reports", label: "Reports", icon: Flag },
-  { to: "/super-admin/notifications", label: "Notifications", icon: Bell },
+  { to: "/super-admin/notifications", label: "Campaigns", icon: Bell },
   { to: "/super-admin/security", label: "Security", icon: Lock },
   { to: "/super-admin/settings", label: "Settings", icon: Settings },
   { to: "/super-admin/roles", label: "Roles & Permissions", icon: KeyRound },

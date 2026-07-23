@@ -30,7 +30,7 @@ export default function AboutUsPage() {
       },
       {
         title: "How the platform runs",
-        body: "Connect Love has separate user, admin, support, finance, sales, marketing, and super-admin areas so each team works with the right data and the right actions.",
+        body: "Connect Love has separate user, admin, support, sales, and super-admin areas so each team works with only the data and actions required for its role.",
         points: ["Support handles tickets and safety reports.", "Administrators handle billing, payments, and subscriptions.", "Super-admin controls roles, settings, security, and logs."],
       },
       {

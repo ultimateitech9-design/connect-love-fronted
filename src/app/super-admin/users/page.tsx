@@ -334,7 +334,6 @@ export default function UsersPage() {
           <option value="Admin">Admin</option>
           <option value="Sales">Sales</option>
           <option value="Support">Support</option>
-          <option value="Marketing">Marketing</option>
           <option value="User">User</option>
         </select>
         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">

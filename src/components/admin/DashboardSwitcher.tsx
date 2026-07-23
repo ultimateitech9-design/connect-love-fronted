@@ -44,7 +44,7 @@ export function DashboardSwitcher() {
   }, []);
 
   // Check if current path is a management path
-  const managementPaths = ["/super-admin", "/admin", "/marketing", "/sales", "/support"];
+  const managementPaths = ["/super-admin", "/admin", "/sales", "/support"];
   const isManagementPath = managementPaths.some(
     (path) => pathname === path || pathname?.startsWith(`${path}/`)
   );

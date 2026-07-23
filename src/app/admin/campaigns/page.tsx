@@ -2,6 +2,6 @@
 
 import { CampaignManagement } from "@/components/management/CampaignManagement";
 
-export default function SalesCampaignsPage() {
-  return <CampaignManagement role="sales" />;
+export default function AdminCampaignsPage() {
+  return <CampaignManagement role="admin" />;
 }

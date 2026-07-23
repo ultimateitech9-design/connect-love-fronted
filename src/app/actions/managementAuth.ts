@@ -3,7 +3,7 @@ import { API_ORIGIN } from "@/config/runtime";
 
 import { cookies, headers } from "next/headers";
 
-type Role = "admin" | "super-admin" | "marketing" | "sales" | "support";
+type Role = "admin" | "super-admin" | "sales" | "support";
 
 export async function loginManagement(email: string, password: string, role: Role) {
   const apiBase = API_ORIGIN;

@@ -24,12 +24,11 @@ type AdminUser = {
 };
 
 type CreatableRole = "sales" | "support";
-type DashboardRole = CreatableRole | "marketing" | "admin" | "super_admin";
+type DashboardRole = CreatableRole | "admin" | "super_admin";
 
 const roleLabels: Record<DashboardRole, string> = {
  admin: "Admin",
  super_admin: "Super Admin",
- marketing: "Marketing",
  sales: "Sales",
  support: "Support",
 };
@@ -37,7 +36,6 @@ const roleLabels: Record<DashboardRole, string> = {
 const roleLoginPaths: Partial<Record<DashboardRole, string>> = {
  admin: "/management/admin",
  super_admin: "/management/super-admin",
- marketing: "/management/marketing",
  sales: "/management/sales",
  support: "/management/support",
 };

@@ -10,6 +10,7 @@ import { getToken } from "@/lib/auth";
 import { formatDistance } from "@/lib/distance";
 import { INTERESTED_IN_OPTIONS } from "@/features/discovery/gender-options";
 import { AgeRangeSlider } from "@/features/discovery/AgeRangeSlider";
+import { CampaignOfferCard } from "@/features/user/CampaignOfferCard";
 
 const DISTANCE_STEP_KM = 100;
 const defaultFilters: DiscoverFilters = {
@@ -393,6 +394,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
 
  return (
  <>
+ <CampaignOfferCard />
  {!isDesktop ? (
  <div className="space-y-4">
  <MobileFilters filters={filters} onChange={setFilters} effectiveMaxDistance={effectiveMaxDistance} />

@@ -13,7 +13,6 @@ const dataRoutes = [
   "/admin",
   "/super-admin",
   "/management",
-  "/marketing",
   "/sales",
   "/support",
 ];

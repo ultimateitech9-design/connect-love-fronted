@@ -6,7 +6,7 @@ export default function AdminUser360Page() {
   return (
     <User360ReadOnly
       title="User 360"
-      subtitle="Read-only profile, plan, status, and photo visibility for Admin dashboard."
+      subtitle="Operational account, plan, verification and status data. Private profile media is Super Admin only."
     />
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, BadgeCheck, Camera, Search, UserRoundSearch } from "lucide-react";
+import { AlertCircle, BadgeCheck, Search, ShieldCheck, UserRoundSearch } from "lucide-react";
 import { api } from "@/lib/api";
 
 type UserRow = {
@@ -98,7 +98,6 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
     return () => { alive = false; };
   }, [selectedId]);
 
-  const photos = Array.isArray(details?.photos) ? details.photos : [];
   const contactNumber = details?.mobile || details?.phone || users.find((user) => user.id === selectedId)?.mobile || users.find((user) => user.id === selectedId)?.phone || "";
 
   return (
@@ -163,11 +162,7 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
             <div className="space-y-6">
               <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
                 <div className="flex flex-wrap items-center gap-5">
-                  {details.avatarUrl ? (
-                    <img src={details.avatarUrl} alt={details.name} className="h-24 w-24 rounded-2xl object-cover ring-1 ring-border" />
-                  ) : (
-                    <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 text-2xl font-black text-white">{initials(details.name)}</div>
-                  )}
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 text-xl font-black text-white">{initials(details.name)}</div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="truncate text-2xl font-black text-foreground">{details.name}</h2>
@@ -177,7 +172,6 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
                     {contactNumber && <p className="mt-1 text-sm font-medium text-muted-foreground">{contactNumber}</p>}
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Pill label="Plan" value={formatPlan(details.plan)} />
-                      <Pill label="Role" value={details.role || "user"} />
                       <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ring-1 ${pillTone(details.status)}`}>{details.status || "active"}</span>
                       <Pill label="Joined" value={toDate(details.joined)} />
                     </div>
@@ -185,41 +179,18 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
                 </div>
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+              <div className="grid gap-6">
                 <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
-                  <h3 className="mb-4 text-lg font-bold text-foreground">Profile Details</h3>
+                  <h3 className="mb-1 flex items-center gap-2 text-lg font-bold text-foreground"><ShieldCheck className="h-5 w-5 text-emerald-600" /> Role-appropriate account data</h3>
+                  <p className="mb-4 text-xs text-muted-foreground">Private photos, date of birth, bio and dating preferences are restricted to Super Admin.</p>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Info label="City" value={details.city || "-"} />
-                    <Info label="Profession" value={details.profession || "-"} />
-                    <Info label="Height" value={details.height || "-"} />
-                    <Info label="Gender" value={details.gender || "-"} />
-                    <Info label="Age" value={details.age ? String(details.age) : "-"} />
-                    <Info label="Birth Date" value={toDate(details.birthDate)} />
                     <Info label="Last Active" value={toDate(details.lastActive)} />
                     <Info label="Account Plan" value={formatPlan(details.plan)} />
+                    <Info label="Verification" value={details.isVerified ? "Verified" : "Not verified"} />
+                    <Info label="Account Status" value={details.status || "-"} />
                   </div>
-                  {details.bio && (
-                    <div className="mt-5 rounded-xl border border-border bg-background p-4 text-sm leading-relaxed text-foreground">
-                      {details.bio}
-                    </div>
-                  )}
-                  <TagGroup title="Interests" items={details.interests} />
-                  <TagGroup title="Hobbies" items={details.hobbies} />
-                  <TagGroup title="Personality" items={details.personality} />
                 </div>
-
-                <aside className="rounded-2xl border border-border bg-card p-5 shadow-card">
-                  <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-foreground"><Camera className="h-5 w-5 text-rose-500" /> Photos</h3>
-                  {photos.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">No photos added.</div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-3">
-                      {photos.map((photo: string, index: number) => (
-                        <img key={`${photo}-${index}`} src={photo} alt={`${details.name} ${index + 1}`} className="aspect-square rounded-xl border border-border object-cover" />
-                      ))}
-                    </div>
-                  )}
-                </aside>
               </div>
             </div>
           ) : null}
@@ -235,16 +206,4 @@ function Pill({ label, value }: { label: string; value: string }) {
 
 function Info({ label, value }: { label: string; value: string }) {
   return <div className="rounded-xl border border-border bg-background p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p><p className="mt-1 text-sm font-bold text-foreground">{value}</p></div>;
-}
-
-function TagGroup({ title, items }: { title: string; items?: string[] }) {
-  if (!Array.isArray(items) || items.length === 0) return null;
-  return (
-    <div className="mt-5">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {items.map((item) => <span key={item} className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-600 ring-1 ring-rose-100">{item}</span>)}
-      </div>
-    </div>
-  );
 }

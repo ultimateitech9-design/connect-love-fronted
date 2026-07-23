@@ -14,14 +14,6 @@ const RevenueChart = dynamic(() => import("@/features/admin/AdminRevenueChart"),
 });
 
 const API = API_ORIGIN;
-const demoRevenueMonthly = [
- { m: "Mar", rev: 6200 },
- { m: "Apr", rev: 8400 },
- { m: "May", rev: 7800 },
- { m: "Jun", rev: 11200 },
- { m: "Jul", rev: 13600 },
-];
-
 export default function AdminOverview() {
  const reportStatusClass = (status?: string) => {
  const normalized = String(status || "").toLowerCase();
@@ -41,7 +33,6 @@ export default function AdminOverview() {
  const [recentUsers, setRecentUsers] = useState<any[]>([]);
  const [recentReports, setRecentReports] = useState<any[]>([]);
  const [revenueMonthly, setRevenueMonthly] = useState<any[]>([]);
- const chartData = revenueMonthly.length > 0 ? revenueMonthly : demoRevenueMonthly;
 
  useEffect(() => {
  const fetchAdminData = async () => {
@@ -118,10 +109,10 @@ export default function AdminOverview() {
  </header>
 
  <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:gap-4 xl:grid-cols-4">
- <StatCard label="Total users" value={stats.users.toLocaleString()} delta="+4.2% this month" tone="positive" icon={Users} />
- <StatCard label="Premium subscribers" value={stats.premium.toLocaleString()} delta="+118 this week" tone="positive" icon={Crown} />
- <StatCard label="Revenue (MTD)" value={`$${stats.revenueMtd.toLocaleString()}`} delta="+11.6% vs last month" tone="positive" icon={DollarSign} />
- <StatCard label="Open reports" value={String(stats.reportsOpen)} delta="3 awaiting action" tone="negative" icon={Flag} />
+ <StatCard label="Total users" value={stats.users.toLocaleString()} delta="Live database" tone="positive" icon={Users} />
+ <StatCard label="Premium subscribers" value={stats.premium.toLocaleString()} delta="Current plans" tone="positive" icon={Crown} />
+ <StatCard label="Revenue (MTD)" value={`₹${stats.revenueMtd.toLocaleString()}`} delta="Successful payments" tone="positive" icon={DollarSign} />
+ <StatCard label="Open reports" value={String(stats.reportsOpen)} delta="Awaiting action" tone="negative" icon={Flag} />
  </div>
 
  <div className="grid gap-6 lg:grid-cols-3">
@@ -131,12 +122,9 @@ export default function AdminOverview() {
  <h3 className="text-lg font-bold text-slate-900">Revenue trend</h3>
  <p className="text-xs font-medium text-slate-500">Last 5 months</p>
  </div>
- {revenueMonthly.length === 0 && (
- <span className="rounded-full bg-rose-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-600 ring-1 ring-rose-100">Demo</span>
- )}
  </div>
  <div className="mt-4 h-[220px] min-h-[200px] sm:h-[260px]">
- <RevenueChart data={chartData} />
+ {revenueMonthly.length > 0 ? <RevenueChart data={revenueMonthly} /> : <div className="flex h-full items-center justify-center text-sm font-medium text-slate-400">No successful payment data yet.</div>}
  </div>
  </div>
 

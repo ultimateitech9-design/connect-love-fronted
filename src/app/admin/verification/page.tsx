@@ -30,7 +30,7 @@ export default function VerificationPage() {
  <div className="space-y-6">
  <header>
  <h1 className="text-2xl font-semibold">Profile verification</h1>
- <p className="text-sm text-muted-foreground">Approve government-ID submissions to issue the verified badge.</p>
+ <p className="text-sm text-muted-foreground">Review verification request status. Private profile and KYC images remain restricted to Super Admin.</p>
  </header>
  <div className="grid gap-4 md:grid-cols-2">
  {loading && <div className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">Loading verification queue from database...</div>}
@@ -46,9 +46,8 @@ export default function VerificationPage() {
  </div>
  <ShieldAlert className="h-[20px] w-[20px] text-amber-500" />
  </div>
- <div className="mt-4 grid grid-cols-2 gap-2">
- <PreviewImage src={u.photo} label="Profile photo" />
- <PreviewImage src={u.documents?.[0]} label="KYC frame" />
+ <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+ Request ID: {u.id} · Submitted {u.date ? new Date(u.date).toLocaleString() : "date unavailable"}
  </div>
  <div className="mt-4 flex gap-2">
  <Button className="flex-1 bg-primary" onClick={() => updateVerification(u.id, "approved")}><BadgeCheck className="mr-2 h-[16px] w-[16px]" />Approve</Button>
@@ -57,20 +56,6 @@ export default function VerificationPage() {
  </div>
  ))}
  </div>
- </div>
- );
-}
-
-function PreviewImage({ src, label }: { src?: string | null; label: string }) {
- return (
- <div className="aspect-[3/2] overflow-hidden rounded-lg bg-muted">
- {src ? (
- <img src={src} alt={label} className="h-full w-full object-cover" />
- ) : (
- <div className="flex h-full w-full items-center justify-center px-3 text-center text-xs text-muted-foreground">
- {label} not available
- </div>
- )}
  </div>
  );
 }

@@ -28,8 +28,43 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 }
 
 export async function directFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
- return request<T>(`${API_BASE.replace(/\/$/, "")}${path}`, init, false);
+ return request<T>(`${API_BASE.replace(/\/$/, "")}${path}`, init, true);
 }
+
+export type CampaignRecord = {
+ id: string;
+ campaign: string;
+ description: string;
+ type: string;
+ audience: string;
+ discountPercent?: number | null;
+ ctaLabel: string;
+ ctaUrl: string;
+ status: "draft" | "pending_approval" | "active" | "scheduled" | "sent" | "paused" | "rejected" | "expired";
+ createdByRole?: string | null;
+ rejectionReason?: string | null;
+ startsAt?: string | null;
+ endsAt?: string | null;
+ impressions: number;
+ clicks: number;
+ dismissals: number;
+ ctr: number;
+ createdAt: string;
+ updatedAt: string;
+};
+
+export type CampaignInput = {
+ campaign: string;
+ description: string;
+ type?: string;
+ audience: string;
+ discountPercent?: number;
+ ctaLabel?: string;
+ ctaUrl?: string;
+ startsAt?: string;
+ endsAt?: string;
+ status?: "draft" | "active";
+};
 
 export const api = {
  dashboard: () => apiFetch<{ stats: { label: string; value: string; delta: string }[]; growth?: { m: string; users: number; matches: number }[] }>("/dashboard"),
@@ -44,7 +79,7 @@ export const api = {
  transactions?: { id: string; user: string; plan: string; amount: number; status: string; date: string }[];
  }>("/payments"),
  reports: () => apiFetch<{ reports: { type: string; count: number }[] }>("/reports"),
- notifications: () => apiFetch<{ notifications: { id?: string; campaign: string; type: string; audience: string; status: string }[] }>("/notifications"),
+ notifications: () => apiFetch<{ notifications: CampaignRecord[] }>("/notifications"),
  security: () => apiFetch<{ loginActivity: { day: string; success: number; failed: number }[]; blockedAccounts: number }>("/security"),
  settings: () => apiFetch<{ settings: { maintenanceMode: boolean; userRegistrations: boolean; matchingSystem: boolean; premiumMemberships: boolean } }>("/settings"),
  roles: () => apiFetch<{ roles: { role: string; assignedUsers: number; permissions: number; status: string }[] }>("/roles"),
@@ -61,13 +96,6 @@ export const api = {
  activityLog: { action: string; time: string; module: string }[];
  };
  }>("/super-admin"),
- marketingOverview: () => apiFetch<{
- kpis: { label: string; value: string; delta: string }[];
- spendTrend: { day: string; spend: number; users: number }[];
- channelData: { channel: string; value: number }[];
- }>("/marketing/overview"),
- marketingCampaigns: () => apiFetch<{ campaigns: { id: string; name: string; channel: string; status: string; audience: string; spend: number; conversions: number; roi: number }[] }>("/marketing/campaigns"),
- marketingReports: () => apiFetch<{ reports: { title: string; desc: string; meta: string; type: string }[] }>("/marketing/reports"),
  salesOverview: () => apiFetch<{
  kpis: { label: string; value: string; delta: number }[];
  revenueData: { day: string; revenue: number; signups: number }[];
@@ -94,13 +122,19 @@ export const api = {
  updateSettings: (settings: Record<string, boolean>) => apiFetch<{ settings: Record<string, boolean> }>("/settings", { method: "PATCH", body: JSON.stringify(settings) }),
  createRole: (body: { role: string; permissions?: number; status?: string }) => apiFetch("/roles", { method: "POST", body: JSON.stringify(body) }),
  createUser: (body: { name: string; email: string; password: string; role: string }) => apiFetch<{ user: unknown; message?: string }>("/users", { method: "POST", body: JSON.stringify(body) }),
- createManagementUser: (body: { name: string; email: string; password: string; role: "admin" | "marketing" | "sales" | "support" }) => directFetch<{ user: unknown; message: string }>("/admin/management-users", { method: "POST", body: JSON.stringify(body) }),
+ createManagementUser: (body: { name: string; email: string; password: string; role: "admin" | "sales" | "support" }) => directFetch<{ user: unknown; message: string }>("/admin/management-users", { method: "POST", body: JSON.stringify(body) }),
  banUser: (id: string, banned: boolean) => apiFetch<{ success: boolean }>(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: banned ? "banned" : "active" }) }),
  deleteUser: (id: string) => apiFetch<{ success: boolean }>(`/users/${id}`, { method: "DELETE" }),
  userDetails: (id: string) => apiFetch<{ user: any }>(`/users/${id}`),
  updateUser: (id: string, body: Record<string, unknown>) => apiFetch<{ success: boolean; user: any; message?: string }>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
  updateVerification: (id: string, status: "approved" | "rejected" | "under_review" | "pending") => apiFetch(`/verification/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
- createNotification: (body: { campaign: string; type: string; audience: string; status?: string }) => apiFetch("/notifications", { method: "POST", body: JSON.stringify(body) }),
+ createNotification: (body: CampaignInput) => apiFetch<CampaignRecord>("/notifications", { method: "POST", body: JSON.stringify(body) }),
+ updateNotification: (id: string, body: Partial<CampaignInput>) => apiFetch<CampaignRecord>(`/notifications/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+ submitNotification: (id: string) => apiFetch<CampaignRecord>(`/notifications/${id}/submit`, { method: "POST" }),
+ approveNotification: (id: string) => apiFetch<CampaignRecord>(`/notifications/${id}/approve`, { method: "POST" }),
+ rejectNotification: (id: string, reason: string) => apiFetch<CampaignRecord>(`/notifications/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) }),
  updateNotificationStatus: (id: string, status: string) => apiFetch(`/notifications/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
  deleteNotification: (id: string) => apiFetch(`/notifications/${id}`, { method: "DELETE" }),
+ activeCampaigns: () => request<{ campaigns: { id: string; title: string; description: string; discountPercent?: number | null; ctaLabel: string; ctaUrl: string; startsAt?: string | null; endsAt?: string | null }[] }>(`${BASE}/campaigns/active`, {}, false),
+ recordCampaignEvent: (id: string, event: "impression" | "click" | "dismiss") => request(`${BASE}/campaigns/${id}/${event}`, { method: "POST" }, false),
 };

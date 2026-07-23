@@ -14,7 +14,7 @@ export default function FeaturesPage() {
     cta: { label: "Explore Features", href: "/register" },
     highlights: [
       "User features include onboarding, profile, discovery, matches, messages, premium, and settings.",
-      "Management features include admin, support, finance, sales, marketing, and super-admin dashboards.",
+      "Management features include role-limited admin, support, sales, and super-admin dashboards.",
       "Safety and subscription actions connect to backend-supported support and billing flows.",
     ],
     metrics: [

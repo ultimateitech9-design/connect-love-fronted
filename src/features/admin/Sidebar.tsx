@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
- LayoutDashboard, Users, Flag, BarChart3, CreditCard,
+ LayoutDashboard, Users, Flag, BarChart3, CreditCard, Megaphone,
  Receipt, LifeBuoy, ShieldCheck, LogOut, UserRoundSearch, Menu, X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -14,6 +14,7 @@ const items = [
  { to: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
  { to: "/admin/users", label: "Users", icon: Users },
  { to: "/admin/user-360", label: "User 360", icon: UserRoundSearch },
+ { to: "/admin/campaigns", label: "Campaigns", icon: Megaphone },
  { to: "/admin/reports", label: "Reports", icon: Flag },
  { to: "/admin/verification", label: "Verification", icon: ShieldCheck },
  { to: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
