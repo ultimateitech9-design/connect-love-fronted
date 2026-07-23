@@ -25,10 +25,10 @@ const contents = [
 
 function PolicySection({ id, number, title, children }: { id: string; number: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-28 border-b border-slate-200 py-9 last:border-b-0">
+    <section id={id} className="scroll-mt-28 border-b border-slate-200 py-9 last:border-b-0 dark:border-slate-800">
       <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-500">Section {number}</p>
-      <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950">{title}</h2>
-      <div className="mt-4 space-y-4 text-sm leading-7 text-slate-600">{children}</div>
+      <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 dark:text-slate-50">{title}</h2>
+      <div className="mt-4 space-y-4 text-sm leading-7 text-slate-600 dark:text-slate-300">{children}</div>
     </section>
   );
 }
@@ -48,20 +48,20 @@ function BulletList({ items }: { items: React.ReactNode[] }) {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#090910] dark:[&_h3]:text-slate-100 dark:[&_strong]:text-slate-100">
       <Navbar onLoginClick={() => { window.location.href = "/login"; }} onSignupClick={() => { window.location.href = "/register"; }} />
 
       <main className="pt-20">
-        <section className="border-b border-rose-100 bg-gradient-to-b from-rose-50 via-white to-slate-50 pb-16 pt-4 md:pb-24 md:pt-4">
+        <section className="border-b border-rose-100 bg-gradient-to-b from-rose-50 via-white to-slate-50 pb-16 pt-4 dark:border-slate-800 dark:from-[#160b18] dark:via-[#0f0b12] dark:to-[#090910] md:pb-24 md:pt-4">
           <div className="mx-auto w-[90vw] max-w-5xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold uppercase tracking-widest text-rose-600 shadow-sm ring-1 ring-rose-100">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold uppercase tracking-widest text-rose-600 shadow-sm ring-1 ring-rose-100 dark:bg-slate-900 dark:text-rose-400 dark:ring-slate-700">
               <ShieldCheck className="h-4 w-4" /> Privacy & data protection
             </span>
-            <h1 className="mt-6 max-w-4xl text-4xl font-black tracking-tight text-slate-950 md:text-6xl">ConnectLove Privacy Policy</h1>
-            <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
+            <h1 className="mt-6 max-w-4xl text-4xl font-black tracking-tight text-slate-950 dark:text-white md:text-6xl">ConnectLove Privacy Policy</h1>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600 dark:text-slate-300">
               This policy explains what personal information ConnectLove collects, why we use it, when it may be shared, how long it may be kept, and the controls available to you.
             </p>
-            <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-slate-500">
+            <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
               <span>Effective: {EFFECTIVE_DATE}</span>
               <span>Applies to the ConnectLove website, app, and support services</span>
             </div>
@@ -82,18 +82,18 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <div className="mx-auto grid w-[90vw] max-w-6xl gap-10 py-12 lg:grid-cols-[260px_minmax(0,1fr)] lg:py-16">
-          <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-24">
+          <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:sticky lg:top-24">
             <p className="text-xs font-black uppercase tracking-widest text-slate-400">Contents</p>
             <nav className="mt-4 space-y-1" aria-label="Privacy policy contents">
-              {contents.map(([id, label]) => <a key={id} href={`#${id}`} className="block rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-rose-50 hover:text-rose-700">{label}</a>)}
+              {contents.map(([id, label]) => <a key={id} href={`#${id}`} className="block rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-rose-50 hover:text-rose-700 dark:text-slate-300 dark:hover:bg-rose-950/40 dark:hover:text-rose-300">{label}</a>)}
             </nav>
           </aside>
 
-          <article className="rounded-3xl border border-slate-200 bg-white px-6 shadow-sm md:px-10">
-            <div className="border-b border-slate-200 py-9">
+          <article className="rounded-3xl border border-slate-200 bg-white px-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-10">
+            <div className="border-b border-slate-200 py-9 dark:border-slate-800">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600"><FileText className="h-6 w-6" /></div>
-              <h2 className="mt-4 text-2xl font-black text-slate-950">Please read this policy carefully</h2>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
+              <h2 className="mt-4 text-2xl font-black text-slate-950 dark:text-slate-50">Please read this policy carefully</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
                 “ConnectLove”, “we”, “us”, and “our” refer to the operator of the ConnectLove service. “You” means a visitor, registered member, or another person whose information we process. This policy should be read with our <Link href="/terms-of-service" className="font-semibold text-rose-600 hover:underline">Terms of Service</Link>.
               </p>
             </div>
@@ -206,7 +206,7 @@ export default function PrivacyPolicyPage() {
 
             <PolicySection id="contact" number="13" title="Contact, privacy requests, and grievances">
               <p>For questions, corrections, deletion requests, consent withdrawal, safety concerns, or privacy grievances, contact the ConnectLove privacy/support team through the form below. Include the email linked to your account and enough detail to identify the request, but do not include your password, OTP, payment PIN, or unnecessary identification documents.</p>
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5">
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 dark:border-rose-900/60 dark:bg-rose-950/30">
                 <div className="flex items-center gap-3"><Mail className="h-5 w-5 text-rose-600" /><h3 className="font-bold text-slate-900">Submit a privacy request</h3></div>
                 <p className="mt-2 text-sm leading-6">Open the support form and select or enter <strong>Privacy Request</strong> as the problem type. We will acknowledge and handle the request under the process and timeframe required by applicable law.</p>
                 <Link href="/contact-us" className="mt-4 inline-flex rounded-full bg-rose-600 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-rose-500">Contact privacy team</Link>
@@ -214,7 +214,7 @@ export default function PrivacyPolicyPage() {
               <p>If you are not satisfied with our response, you may use any escalation or regulatory remedy available under applicable law. Please give us a reasonable opportunity to address the grievance first where the law requires that step.</p>
             </PolicySection>
 
-            <div className="py-9 text-xs leading-6 text-slate-500">
+            <div className="py-9 text-xs leading-6 text-slate-500 dark:text-slate-400">
               This policy is intended to provide transparent information about ConnectLove’s data practices. It does not create rights beyond applicable law or reduce any non-waivable legal right.
             </div>
           </article>

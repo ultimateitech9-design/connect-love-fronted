@@ -67,6 +67,12 @@ interface UserProfile {
  onboardingCompleted: boolean;
 }
 
+interface ProfileInsights {
+ profileViews7d: number;
+ likesReceived: number;
+ compatibilityAverage: number | null;
+}
+
 function calcCompletion(p: Partial<UserProfile>): number {
  const filled = COMPLETION_FIELDS.filter((f) => {
  const v = Reflect.get(p, f);
@@ -77,6 +83,7 @@ function calcCompletion(p: Partial<UserProfile>): number {
 
 export default function ProfilePage() {
  const [profile, setProfile] = useState<Partial<UserProfile>>({});
+ const [insights, setInsights] = useState<ProfileInsights | null>(null);
  const [loading, setLoading] = useState(true);
  const [saving, setSaving] = useState(false);
   const [isLocked, setIsLocked] = useState(true);
@@ -130,6 +137,23 @@ export default function ProfilePage() {
  .catch(console.error)
  .finally(() => setLoading(false));
  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, []);
+
+ useEffect(() => {
+ const token = getToken();
+ if (!token) return;
+ fetch(`${API}/users/me/insights`, {
+ headers: { Authorization: `Bearer ${token}` },
+ })
+ .then((response) => {
+ if (!response.ok) throw new Error("Failed to load profile insights");
+ return response.json();
+ })
+ .then(setInsights)
+ .catch(() => {
+ // Keep the profile usable if insights are temporarily unavailable.
+ setInsights({ profileViews7d: 0, likesReceived: 0, compatibilityAverage: null });
+ });
  }, []);
 
 
@@ -510,6 +534,7 @@ export default function ProfilePage() {
     color="blue"
     onChange={(v) => set("interests", v)}
   />
+
  {/* Actions */}
  <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4 border-border">
  <div className="flex gap-2">
@@ -589,9 +614,13 @@ export default function ProfilePage() {
  <div className="rounded-2xl bg-card p-5 shadow-lg border border-border">
  <h3 className="text-base font-semibold text-foreground">Profile insights</h3>
  <div className="mt-4 space-y-3">
- <Stat icon={Eye} label="Profile views (7d)" value="248" />
- <Stat icon={HeartIcon} label="Likes received" value="36" />
- <Stat icon={Sparkles} label="Compatibility avg." value="82%" />
+ <Stat icon={Eye} label="Profile views (7d)" value={insights ? String(insights.profileViews7d) : "—"} />
+ <Stat icon={HeartIcon} label="Likes received" value={insights ? String(insights.likesReceived) : "—"} />
+ <Stat
+ icon={Sparkles}
+ label="Compatibility avg."
+ value={insights ? (insights.compatibilityAverage === null ? "N/A" : `${insights.compatibilityAverage}%`) : "—"}
+ />
  </div>
  </div>
 
