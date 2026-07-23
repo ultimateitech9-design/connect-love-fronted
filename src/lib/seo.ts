@@ -8,6 +8,10 @@ export const HOME_DESCRIPTION =
   "connectLove.in Best online Dating Site & App, whether you're searching for friendship, companionship, or your perfect life partner, ConnectLove makes the journey simple, safe, and enjoyable. With an easy-to-use interface, secure profiles, and smart matching, finding someone special has never been easier. Find girl, female, male, lesbian, gay partner for short- or long-term live-in relationship. Connect with naughty & beautiful girls /women near you & your village / town/city. Visakhapatnam, Vijayawada, Papum Pare, Guwahati, Patna, Raipur, Ponda Goa, Ahmedabad, Surat, Vadodara, Faridabad, Gurugram, Shimla, Jamshedpur, Dhanbad, Ranchi, Bangalore, Mysore, Thiruvananthapuram, Kochi, Indore, Bhopal, Gwalior, Mumbai, Pune, Nagpur, Thane, Navi Mumbai, Shillong, Aizawl, Kohima, Bhubaneswar, Cuttack, Rourkela, Ludhiana, Amritsar, Jalandhar, Patiala, Jaipur, Jodhpur, Kota, Bikaner, Gangtok, Chennai, Coimbatore, Madurai, Hyderabad, Warangal, Kanpur, Lucknow, Ghaziabad, Varanasi, Prayagraj, Gorakhpur, Noida, Dehradun, Haridwar, Kolkata, Asansol, Siliguri, Chandigarh, New Delhi.";
 
 export const HOME_KEYWORDS = [
+  "love connection",
+  "lover near me",
+  "love connection near me",
+  "find lover near me",
   "dating app India",
   "online dating India",
   "best dating app in India",

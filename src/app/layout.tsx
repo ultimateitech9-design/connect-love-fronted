@@ -39,16 +39,25 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   applicationName: SITE_NAME,
+  manifest: "/manifest.webmanifest",
   verification: {
     google: "ECsiPPiMEGXoirGoc8st98_imhhgCH4OzFIVhuMSnhI",
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
-      { url: "/favicon.png", type: "image/png", sizes: "96x96" },
+      { url: "/favicon.ico?v=3", type: "image/x-icon", sizes: "any" },
+      { url: "/favicon.png?v=3", type: "image/png", sizes: "96x96" },
+      { url: "/connect-love-logo.png?v=3", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/favicon.ico",
-    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
+    shortcut: "/favicon.ico?v=3",
+    apple: [{ url: "/apple-touch-icon.png?v=3", type: "image/png", sizes: "180x180" }],
+    other: [
+      {
+        rel: "mask-icon",
+        url: "/connect-love-icon.svg",
+        color: "#e11d48",
+      },
+    ],
   },
 };
 

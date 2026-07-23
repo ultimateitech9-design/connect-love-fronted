@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
+import {
+  datingLocationPath,
+  INDIA_DATING_LOCATIONS,
+} from "@/lib/indiaLocations";
 import { SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-static";
@@ -40,10 +44,29 @@ function discoverPublicRoutes(directory: string, segments: string[] = []): strin
 export default function sitemap(): MetadataRoute.Sitemap {
   const appDirectory = join(process.cwd(), "src", "app");
   const publicRoutes = [...new Set(discoverPublicRoutes(appDirectory))].sort();
+  const locationRoutes = [
+    "/dating/city",
+    "/dating/state",
+    ...INDIA_DATING_LOCATIONS.map(datingLocationPath),
+  ];
+  const routes = [...new Set([...publicRoutes, ...locationRoutes])].sort();
 
-  return publicRoutes.map((route) => ({
+  return routes.map((route) => ({
     url: new URL(route, SITE_URL).toString(),
-    changeFrequency: route === "/" || route === "/blog" ? "weekly" : "monthly",
-    priority: route === "/" ? 1 : route === "/features" || route === "/discover" || route === "/safety" ? 0.8 : 0.6,
+    changeFrequency:
+      route === "/" || route === "/blog" || route.startsWith("/dating/")
+        ? "weekly"
+        : "monthly",
+    priority:
+      route === "/"
+        ? 1
+        : route === "/features" ||
+            route === "/discover" ||
+            route === "/safety" ||
+            route === "/dating"
+          ? 0.8
+          : route.startsWith("/dating/")
+            ? 0.7
+            : 0.6,
   }));
 }
