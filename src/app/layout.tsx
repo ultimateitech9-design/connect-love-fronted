@@ -45,12 +45,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico?v=3", type: "image/x-icon", sizes: "any" },
-      { url: "/favicon.png?v=3", type: "image/png", sizes: "96x96" },
-      { url: "/connect-love-logo.png?v=3", type: "image/png", sizes: "512x512" },
+      { url: "/connect-love-logo-96.webp?v=4", type: "image/webp", sizes: "96x96" },
+      { url: "/connect-love-logo.png?v=4", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/favicon.ico?v=3",
-    apple: [{ url: "/apple-touch-icon.png?v=3", type: "image/png", sizes: "180x180" }],
+    shortcut: "/connect-love-logo-96.webp?v=4",
+    apple: [{ url: "/connect-love-logo.png?v=4", type: "image/png", sizes: "512x512" }],
     other: [
       {
         rel: "mask-icon",
