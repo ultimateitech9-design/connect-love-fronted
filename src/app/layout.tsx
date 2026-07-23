@@ -10,6 +10,7 @@ import { RouteChatbot } from "@/components/RouteChatbot";
 import {
   createPublicMetadata,
   HOME_DESCRIPTION,
+  HOME_KEYWORDS,
   HOME_TITLE,
   SITE_NAME,
   SITE_URL,
@@ -27,7 +28,7 @@ const homeMetadata = createPublicMetadata({
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
   path: "/",
-  keywords: [],
+  keywords: HOME_KEYWORDS,
 });
 
 export const metadata: Metadata = {
