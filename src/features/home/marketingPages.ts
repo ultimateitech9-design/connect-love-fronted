@@ -14,6 +14,8 @@ export const footerLinkGroups = [
       { label: "Discover", href: "/discover" },
       { label: "Features", href: "/features" },
       { label: "Safety", href: "/safety" },
+      { label: "Dating Locations", href: "/dating" },
+      { label: "Worldwide Dating", href: "/dating/world" },
     ],
   },
   {

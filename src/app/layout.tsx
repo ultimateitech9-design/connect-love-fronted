@@ -81,8 +81,8 @@ const websiteJsonLd = {
       logo: `${SITE_URL}/connect-love-logo.png`,
       email: "info@connectlove.in",
       areaServed: {
-        "@type": "Country",
-        name: "India",
+        "@type": "Place",
+        name: "Worldwide",
       },
       contactPoint: [
         {
@@ -106,12 +106,12 @@ const websiteJsonLd = {
       serviceType: "Online dating and matchmaking platform",
       provider: { "@id": `${SITE_URL}/#organization` },
       areaServed: {
-        "@type": "Country",
-        name: "India",
+        "@type": "Place",
+        name: "Worldwide",
       },
       audience: {
         "@type": "Audience",
-        audienceType: "Adults aged 18 and older seeking meaningful relationships",
+        audienceType: "Adults aged 18 and older worldwide seeking meaningful relationships",
       },
     },
   ],

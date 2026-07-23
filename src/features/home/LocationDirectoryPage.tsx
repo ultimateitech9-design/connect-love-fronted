@@ -57,6 +57,12 @@ export function LocationDirectoryPage({
               >
                 Browse cities
               </Link>
+              <Link
+                href="/dating/world"
+                className="rounded-full border border-violet-200 px-5 py-2.5 text-sm font-bold text-violet-600 hover:bg-violet-50 dark:border-violet-400/30 dark:text-violet-300 dark:hover:bg-violet-400/10"
+              >
+                Worldwide cities
+              </Link>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

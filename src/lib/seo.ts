@@ -147,6 +147,21 @@ const coreKeywords = [
   "genuine dating website",
 ];
 
+const globalCoreKeywords = [
+  "worldwide dating app",
+  "international dating",
+  "global singles",
+  "safe online dating",
+  "verified dating profiles",
+  "serious relationships",
+  "meaningful relationships",
+  "compatibility matching",
+  "love connection",
+  "lover near me",
+  "find a partner online",
+  "authentic connections",
+];
+
 type PublicSeo = {
   title: string;
   description: string;
@@ -238,14 +253,24 @@ export function createPublicMetadata({
   description,
   path,
   keywords = [],
-}: PublicSeo & { path: string }): Metadata {
+  keywordScope = "india",
+}: PublicSeo & {
+  path: string;
+  keywordScope?: "india" | "global" | "none";
+}): Metadata {
   const canonicalPath = normalizePath(path);
   const canonicalUrl = new URL(canonicalPath, SITE_URL).toString();
   const socialTitle = canonicalPath === "/" ? title : `${title} | ${SITE_NAME}`;
+  const supportingKeywords =
+    keywordScope === "global"
+      ? globalCoreKeywords
+      : keywordScope === "none"
+        ? []
+        : coreKeywords;
   const seoKeywords =
     canonicalPath === "/"
       ? [...new Set(keywords)]
-      : [...new Set([...keywords, ...coreKeywords])];
+      : [...new Set([...keywords, ...supportingKeywords])];
 
   return {
     title,

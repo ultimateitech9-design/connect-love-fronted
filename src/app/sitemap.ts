@@ -6,6 +6,13 @@ import {
   INDIA_DATING_LOCATIONS,
 } from "@/lib/indiaLocations";
 import { SITE_URL } from "@/lib/seo";
+import {
+  isWorldCityIndexable,
+  WORLD_CITIES,
+  WORLD_COUNTRIES,
+  worldCityPath,
+  worldCountryPath,
+} from "@/lib/worldCities";
 
 export const dynamic = "force-static";
 
@@ -49,7 +56,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/dating/state",
     ...INDIA_DATING_LOCATIONS.map(datingLocationPath),
   ];
-  const routes = [...new Set([...publicRoutes, ...locationRoutes])].sort();
+  const globalRoutes = [
+    ...WORLD_COUNTRIES.map(worldCountryPath),
+    ...WORLD_CITIES.filter(isWorldCityIndexable).map(worldCityPath),
+  ];
+  const routes = [
+    ...new Set([...publicRoutes, ...locationRoutes, ...globalRoutes]),
+  ].sort();
 
   return routes.map((route) => ({
     url: new URL(route, SITE_URL).toString(),
