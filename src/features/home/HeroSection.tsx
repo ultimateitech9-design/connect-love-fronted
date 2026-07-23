@@ -152,7 +152,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
           >
             <div
               className="relative overflow-hidden rounded-[28px] border border-white/15 bg-black shadow-[0_28px_90px_rgba(0,0,0,.58)]"
-              style={{ width: "min(92vw, calc((100dvh - 7rem) * 5 / 8), 500px)" }}
+              style={{ width: "min(94vw, calc((100dvh - 7rem) * 3 / 4), 620px)" }}
               role="dialog"
               aria-modal="true"
               aria-label="ConnectLove story video"
@@ -168,7 +168,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
                 </button>
               </div>
 
-              <div className="aspect-[5/8] w-full bg-black">
+              <div className="aspect-[3/4] w-full bg-black">
                 <iframe
                   src="https://www.youtube.com/embed/Gtgttp1MCGg?autoplay=1&rel=0&modestbranding=1&playsinline=1"
                   title="Connect Love Story"
