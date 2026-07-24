@@ -253,31 +253,6 @@ export function MarketingInfoPage({ page }: { page: PublicPageData }) {
           </div>
         </section>
 
-        {page.roleAccess ? (
-          <section className="bg-white py-16 md:py-20">
-            <div className="mx-auto w-[90vw] max-w-7xl">
-              <div className="max-w-3xl">
-                <p className="text-xs font-bold uppercase tracking-widest text-rose-500">Roles and permissions</p>
-                <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
-                  Who can use this information
-                </h2>
-                <p className="mt-4 text-base leading-7 text-slate-600">
-                  Role-specific access keeps user, subscription, report, and dashboard data aligned with the work each team performs.
-                </p>
-              </div>
-
-              <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200">
-                {page.roleAccess.map((item, index) => (
-                  <div key={`${item.role}-${index}`} className="grid gap-2 border-b border-slate-200 bg-white p-5 last:border-b-0 md:grid-cols-[220px_1fr]">
-                    <p className="font-bold text-slate-950">{item.role}</p>
-                    <p className="text-sm leading-6 text-slate-600">{item.access}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        ) : null}
-
         <section className="bg-slate-950 py-16 text-white md:py-20">
           <div className="mx-auto grid w-[90vw] max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
