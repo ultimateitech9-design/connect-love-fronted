@@ -127,13 +127,13 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
                 Start Your Journey
               </button>
               <button
-                id="hero-signin-btn"
+                id="hero-register-btn"
                 onClick={() => {
-                  window.location.href = "/login";
+                  window.location.href = "/register";
                 }}
                 className="box-border flex min-h-14 w-full cursor-pointer items-center justify-center rounded-full border border-fuchsia-300/60 bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-fuchsia-950/30 transition-all duration-300 hover:scale-105 hover:from-violet-500 hover:to-pink-500 hover:shadow-fuchsia-500/30 active:scale-95 sm:w-[210px]"
               >
-                Sign In
+                Get Started
               </button>
               <button
                 onClick={() => setShowVideo(true)}
