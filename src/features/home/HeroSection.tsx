@@ -119,21 +119,21 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
               <button
                 id="hero-getstarted-btn"
                 onClick={() => {
-                  if (onSignupClick) onSignupClick();
-                  else window.location.href = "/register";
+                  window.location.href = "/login";
                 }}
                 className="box-border flex min-h-14 w-full max-w-full cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-rose-50 via-pink-500 to-rose-600 px-5 py-3 text-sm font-bold text-white shadow-xl shadow-rose-500/30 transition-all duration-300 hover:scale-105 hover:shadow-rose-500/50 hover:brightness-110 active:scale-95 sm:w-[210px]"
               >
-                Start Your Journey
+                Login
               </button>
               <button
                 id="hero-register-btn"
                 onClick={() => {
-                  window.location.href = "/register";
+                  if (onSignupClick) onSignupClick();
+                  else window.location.href = "/register";
                 }}
                 className="box-border flex min-h-14 w-full cursor-pointer items-center justify-center rounded-full border border-fuchsia-300/60 bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-fuchsia-950/30 transition-all duration-300 hover:scale-105 hover:from-violet-500 hover:to-pink-500 hover:shadow-fuchsia-500/30 active:scale-95 sm:w-[210px]"
               >
-                Get Started
+                Sign Up
               </button>
               <button
                 onClick={() => setShowVideo(true)}
@@ -179,7 +179,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
 
               <div className="aspect-[3/4] w-full bg-black">
                 <iframe
-                  src="https://www.youtube.com/embed/Gtgttp1MCGg?autoplay=1&rel=0&modestbranding=1&playsinline=1"
+                  src="https://www.youtube.com/embed/TeWJPITVtS8?autoplay=1&rel=0&modestbranding=1&playsinline=1"
                   title="Connect Love Story"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
