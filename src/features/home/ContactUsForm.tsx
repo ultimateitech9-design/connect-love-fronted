@@ -155,7 +155,7 @@ export function ContactUsForm() {
                 type="email"
                 value={form.email}
                 onChange={(event) => updateField("email", event.target.value)}
-                placeholder="you@email.com"
+                placeholder="abcs@gmail.com"
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm font-normal text-slate-900 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
               />
             </div>
@@ -171,7 +171,7 @@ export function ContactUsForm() {
                 type="tel"
                 value={form.phone}
                 onChange={(event) => updateField("phone", event.target.value)}
-                placeholder="+91 98765 43210"
+                placeholder="0000000"
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm font-normal text-slate-900 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
               />
             </div>
