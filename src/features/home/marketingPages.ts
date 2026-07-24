@@ -29,7 +29,7 @@ export const footerLinkGroups = [
   {
     category: "Support",
     links: [
-      { label: "Help Center", href: "/help-center" },
+      { label: "Support", href: "/help-center" },
       { label: "Contact Us", href: "/contact-us" },
       { label: "Refund Policy", href: "/refund-policy" },
       { label: "Terms of Service", href: "/terms-of-service" },

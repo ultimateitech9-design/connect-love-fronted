@@ -122,15 +122,24 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
                   if (onSignupClick) onSignupClick();
                   else window.location.href = "/register";
                 }}
-                className="box-border w-full max-w-full sm:w-auto min-h-12 rounded-full bg-gradient-to-r from-rose-50 via-pink-500 to-rose-600 px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-rose-500/30 transition-all duration-300 hover:scale-105 hover:shadow-rose-500/50 hover:brightness-110 active:scale-95 cursor-pointer"
+                className="box-border flex min-h-14 w-full max-w-full cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-rose-50 via-pink-500 to-rose-600 px-5 py-3 text-sm font-bold text-white shadow-xl shadow-rose-500/30 transition-all duration-300 hover:scale-105 hover:shadow-rose-500/50 hover:brightness-110 active:scale-95 sm:w-[210px]"
               >
                 Start Your Journey
               </button>
               <button
-                onClick={() => setShowVideo(true)}
-                className="group flex min-h-12 items-center justify-center gap-3 px-6 py-3.5 text-sm font-semibold text-white/90 hover:text-white transition-all duration-300 cursor-pointer"
+                id="hero-signin-btn"
+                onClick={() => {
+                  window.location.href = "/login";
+                }}
+                className="box-border flex min-h-14 w-full cursor-pointer items-center justify-center rounded-full border border-fuchsia-300/60 bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-fuchsia-950/30 transition-all duration-300 hover:scale-105 hover:from-violet-500 hover:to-pink-500 hover:shadow-fuchsia-500/30 active:scale-95 sm:w-[210px]"
               >
-                <span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 transition-all duration-300 group-hover:bg-white/15 group-hover:scale-110 group-hover:border-white/30">
+                Sign In
+              </button>
+              <button
+                onClick={() => setShowVideo(true)}
+                className="group flex min-h-14 w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-rose-200/50 bg-gradient-to-r from-rose-50 to-pink-100 px-5 py-3 text-sm font-extrabold text-rose-700 shadow-lg shadow-rose-950/20 transition-all duration-300 hover:scale-105 hover:from-white hover:to-rose-100 hover:text-rose-800 active:scale-95 sm:w-[210px]"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-md shadow-rose-500/30 transition-all duration-300 group-hover:scale-110">
                   <Play className="ml-0.5 h-4 w-4 fill-white text-white" />
                 </span>
                 Watch our Story
