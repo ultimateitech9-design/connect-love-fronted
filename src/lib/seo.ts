@@ -44,6 +44,7 @@ export const HOME_KEYWORDS = [
   "dating app for Indian singles",
   "South Indian dating app website",
   "Asian dating app website",
+  "Guajarati dating app website",
   "Gujarati dating app website",
   "Marathi dating app website",
   "Bhojpuri dating app website",
