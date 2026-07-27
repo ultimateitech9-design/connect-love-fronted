@@ -286,16 +286,74 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  }, [conversationId, queryClient, socket, token]);
 
  const editMessage = useCallback((messageId: string, receiverId: string, content: string) => {
-   if (socket && conversationId) {
-     socket.emit('editMessage', { messageId, receiverId, content });
+   if (!conversationId) return;
+   const applyUpdatedMessage = (message: Message) => {
+     queryClient.setQueryData(['messages', message.conversationId], (old: Message[] | undefined) => {
+       if (!old) return old;
+       return old.map((current) => current.id === message.id ? { ...current, ...message } : current);
+     });
+   };
+
+   const saveViaRest = () => fetch(`${API_URL}/messages/${messageId}`, {
+     method: 'PATCH',
+     headers: {
+       'Content-Type': 'application/json',
+       Authorization: `Bearer ${token}`,
+     },
+     body: JSON.stringify({ content }),
+   })
+     .then(async (response) => {
+       if (!response.ok) throw new Error('Message edit failed');
+       applyUpdatedMessage(await response.json() as Message);
+     })
+     .catch(() => {});
+
+   if (socket?.connected) {
+     socket.timeout(4000).emit('editMessage', { messageId, receiverId, content }, (error: Error | null, response: any) => {
+       if (error || response?.error) saveViaRest();
+     });
+     return;
    }
- }, [conversationId, socket]);
+
+   saveViaRest();
+ }, [conversationId, queryClient, socket, token]);
 
  const deleteMessage = useCallback((messageId: string, receiverId: string, scope: 'me' | 'everyone' = 'me') => {
-   if (socket && conversationId) {
-     socket.emit('deleteMessage', { messageId, receiverId, scope });
+   if (!conversationId) return;
+   const applyDeletedMessage = (payload: { message: Message; scope: 'me' | 'everyone'; userId: string }) => {
+     queryClient.setQueryData(['messages', payload.message.conversationId], (old: Message[] | undefined) => {
+       if (!old) return old;
+       if (payload.scope === 'me' && String(payload.userId) === currentUserIdRef.current) {
+         return old.filter((message) => message.id !== payload.message.id);
+       }
+       return old.map((current) => current.id === payload.message.id ? { ...current, ...payload.message } : current);
+     });
+   };
+
+   const deleteViaRest = () => fetch(`${API_URL}/messages/${messageId}`, {
+     method: 'DELETE',
+     headers: {
+       'Content-Type': 'application/json',
+       Authorization: `Bearer ${token}`,
+     },
+     body: JSON.stringify({ scope }),
+   })
+     .then(async (response) => {
+       if (!response.ok) throw new Error('Message delete failed');
+       const message = await response.json() as Message;
+       applyDeletedMessage({ message, scope, userId: currentUserIdRef.current });
+     })
+     .catch(() => {});
+
+   if (socket?.connected) {
+     socket.timeout(4000).emit('deleteMessage', { messageId, receiverId, scope }, (error: Error | null, response: any) => {
+       if (error || response?.error) deleteViaRest();
+     });
+     return;
    }
- }, [conversationId, socket]);
+
+   deleteViaRest();
+ }, [conversationId, queryClient, socket, token]);
 
  const togglePin = useCallback((messageId: string, receiverId: string) => {
    if (socket && conversationId) {
@@ -328,15 +386,42 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  }, [conversationId, socket]);
 
  const toggleReaction = useCallback((messageId: string, receiverId: string, emoji: string) => {
-   if (socket && conversationId) {
-     socket.emit('toggleReaction', {
+   if (!conversationId) return;
+   const applyReactions = (reactions: Record<string, string[]>) => {
+     queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) => {
+       if (!old) return old;
+       return old.map((message) => message.id === messageId ? { ...message, reactions: JSON.stringify(reactions) } : message);
+     });
+   };
+
+   const reactViaRest = () => fetch(`${API_URL}/messages/${messageId}/reaction`, {
+     method: 'PATCH',
+     headers: {
+       'Content-Type': 'application/json',
+       Authorization: `Bearer ${token}`,
+     },
+     body: JSON.stringify({ emoji }),
+   })
+     .then(async (response) => {
+       if (!response.ok) throw new Error('Message reaction failed');
+       applyReactions(await response.json() as Record<string, string[]>);
+     })
+     .catch(() => {});
+
+   if (socket?.connected) {
+     socket.timeout(4000).emit('toggleReaction', {
        messageId,
        conversationId,
        receiverId,
        emoji
+     }, (error: Error | null, response: any) => {
+       if (error || response?.error) reactViaRest();
      });
+     return;
    }
- }, [conversationId, socket]);
+
+   reactViaRest();
+ }, [conversationId, queryClient, socket, token]);
 
  return {
  socket,
