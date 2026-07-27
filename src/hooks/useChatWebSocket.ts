@@ -1,12 +1,11 @@
 "use client";
-import { API_ORIGIN, SOCKET_ORIGIN } from "@/config/runtime";
+import { SOCKET_ORIGIN, apiFetch } from "@/config/runtime";
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const SOCKET_URL = SOCKET_ORIGIN;
-const API_URL = API_ORIGIN;
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
 const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
 const VIDEO_MESSAGE_PREFIX = "__video_message__:";
@@ -115,7 +114,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  // If we are actively viewing this conversation, mark the message as read immediately
  if (activeConversationRef.current === message.conversationId && String(message.senderId) !== userId) {
  newSocket.emit('markMessagesRead', { conversationId: message.conversationId });
- fetch(`${API_URL}/messages/${message.conversationId}/read`, {
+ apiFetch(`/messages/${message.conversationId}/read`, {
  method: 'PATCH',
  headers: { Authorization: `Bearer ${token}` }
  }).catch(() => {});
@@ -214,7 +213,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  queryKey: ['messages', conversationId],
  queryFn: async () => {
  if (!conversationId || !token) return [];
- const res = await fetch(`${API_URL}/messages/${conversationId}`, {
+ const res = await apiFetch(`/messages/${conversationId}`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (!res.ok) throw new Error('Failed to fetch messages');
@@ -261,7 +260,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
 
  // Keep sending responsive while the websocket is still connecting or briefly
  // reconnecting. The REST endpoint persists the same message immediately.
- fetch(`${API_URL}/messages/${conversationId}`, {
+ apiFetch(`/messages/${conversationId}`, {
   method: 'POST',
   headers: {
    'Content-Type': 'application/json',
@@ -294,7 +293,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
      });
    };
 
-   const saveViaRest = () => fetch(`${API_URL}/messages/${messageId}`, {
+   const saveViaRest = () => apiFetch(`/messages/${messageId}`, {
      method: 'PATCH',
      headers: {
        'Content-Type': 'application/json',
@@ -330,8 +329,8 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
      });
    };
 
-   const deleteViaRest = () => fetch(`${API_URL}/messages/${messageId}`, {
-     method: 'DELETE',
+   const deleteViaRest = () => apiFetch(`/messages/${messageId}/delete`, {
+     method: 'POST',
      headers: {
        'Content-Type': 'application/json',
        Authorization: `Bearer ${token}`,
@@ -394,7 +393,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
      });
    };
 
-   const reactViaRest = () => fetch(`${API_URL}/messages/${messageId}/reaction`, {
+   const reactViaRest = () => apiFetch(`/messages/${messageId}/reaction`, {
      method: 'PATCH',
      headers: {
        'Content-Type': 'application/json',

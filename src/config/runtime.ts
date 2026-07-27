@@ -10,6 +10,9 @@ function resolveBrowserOrigin(configuredOrigin: string, port: string): string {
 
     // A phone opening the LAN URL must call the host computer, not its own localhost.
     if (isLoopback && pageIsOnLan) {
+      if (window.location.protocol === "https:") {
+        return window.location.origin;
+      }
       url.hostname = window.location.hostname;
       url.port = port;
       return url.origin;
@@ -28,6 +31,38 @@ const configuredSiteOrigin = process.env.NEXT_PUBLIC_SITE_URL || "http://localho
 export const API_ORIGIN = resolveBrowserOrigin(configuredApiOrigin, "5002");
 export const SOCKET_ORIGIN = resolveBrowserOrigin(configuredSocketOrigin, "5002");
 export const SITE_ORIGIN = resolveBrowserOrigin(configuredSiteOrigin, windowPort("3002"));
+
+export function apiOriginCandidates(): string[] {
+  const candidates = [API_ORIGIN];
+
+  if (typeof window !== "undefined") {
+    const currentOrigin = window.location.origin;
+    if (window.location.protocol === "https:") {
+      candidates.push(currentOrigin);
+      candidates.push(`https://api.${window.location.hostname.replace(/^www\./, "")}`);
+    }
+  }
+
+  return [...new Set(candidates.map((origin) => origin.replace(/\/$/, "")))];
+}
+
+export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const origins = apiOriginCandidates();
+  let lastError: unknown = null;
+
+  for (const origin of origins) {
+    try {
+      const response = await fetch(`${origin}${normalizedPath}`, init);
+      if (response.status !== 404 || origin === origins[origins.length - 1]) return response;
+      lastError = new Error(`API route not found at ${origin}${normalizedPath}`);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("API request failed");
+}
 
 const turnUrl = process.env.NEXT_PUBLIC_TURN_URL?.trim();
 const turnUsername = process.env.NEXT_PUBLIC_TURN_USERNAME?.trim();

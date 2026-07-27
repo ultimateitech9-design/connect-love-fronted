@@ -1,5 +1,5 @@
 "use client";
-import { API_ORIGIN, WEBRTC_ICE_SERVERS } from "@/config/runtime";
+import { API_ORIGIN, WEBRTC_ICE_SERVERS, apiFetch } from "@/config/runtime";
 
 import { cloneElement, createContext, isValidElement, useContext, useState, useEffect, useRef, useCallback, useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -1928,7 +1928,7 @@ export default function Messages() {
  useEffect(() => {
    if (activeId && token) {
      markMessagesRead();
-     fetch(`${API_URL}/messages/${activeId}/read`, {
+     apiFetch(`/messages/${activeId}/read`, {
        method: 'PATCH',
        headers: { Authorization: `Bearer ${token}` }
      }).then(() => {
@@ -2048,8 +2048,8 @@ export default function Messages() {
      }
 
      if (shouldDelete) {
-       fetch(API_URL + "/messages/" + m.id, {
-         method: 'DELETE',
+       apiFetch(`/messages/${m.id}/delete`, {
+         method: 'POST',
          headers: {
            "Content-Type": "application/json",
            Authorization: "Bearer " + token,
@@ -2234,7 +2234,7 @@ export default function Messages() {
    if (!confirm(`Delete ${count} selected message${count > 1 ? "s" : ""} for you?`)) return;
    const ids = Array.from(selectedMessageIds);
    try {
-     const res = await fetch(`${API_URL}/messages/batch-delete`, {
+     const res = await apiFetch("/messages/batch-delete", {
        method: "POST",
        headers: {
          "Content-Type": "application/json",
@@ -2287,7 +2287,7 @@ export default function Messages() {
    if (!activeId || !active || !token) return;
    if (!confirm(`Delete chat with ${active.name}? The messages will be removed only for you.`)) return;
    try {
-     const res = await fetch(`${API_URL}/messages/conversation/${activeId}`, {
+     const res = await apiFetch(`/messages/conversation/${activeId}`, {
        method: "DELETE",
        headers: { Authorization: `Bearer ${token}` },
      });
@@ -2306,7 +2306,7 @@ export default function Messages() {
    if (!token) return;
    if (!confirm(`Delete chat with ${name}? The messages will be removed only for you.`)) return;
    try {
-     const res = await fetch(`${API_URL}/messages/conversation/${conversationId}`, {
+     const res = await apiFetch(`/messages/conversation/${conversationId}`, {
        method: "DELETE",
        headers: { Authorization: `Bearer ${token}` },
      });
@@ -2900,8 +2900,8 @@ export default function Messages() {
  const handleUnsend = async (msgId: string) => {
    if (!activeId) return;
    try {
-     await fetch(`${API_URL}/messages/${msgId}`, {
-       method: 'DELETE',
+     await apiFetch(`/messages/${msgId}/delete`, {
+       method: 'POST',
        headers: {
          "Content-Type": "application/json",
          Authorization: `Bearer ${token}`,
