@@ -413,13 +413,13 @@ function Info({ label, value }: { label: string; value: string }) {
 }
 
 function TextField({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (value: string) => void; type?: string }) {
- return <label className="space-y-1.5"><p className={mono}>{label}</p><input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-rose-400" /></label>;
+ return <label className="space-y-1.5"><p className={mono}>{label}</p><input type={type} value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground caret-foreground outline-none focus:border-rose-400" /></label>;
 }
 
 function SelectField({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
- return <label className="space-y-1.5"><p className={mono}>{label}</p><select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-rose-400">{options.map((option) => <option key={option} value={option}>{option === "platinum" ? "diamond" : option.replace("_", " ")}</option>)}</select></label>;
+ return <label className="space-y-1.5"><p className={mono}>{label}</p><select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-rose-400">{options.map((option) => <option key={option} value={option}>{option === "platinum" ? "diamond" : option.replace("_", " ")}</option>)}</select></label>;
 }
 
 function TextArea({ label, value, onChange, className = "", rows = 3 }: { label: string; value: string; onChange: (value: string) => void; className?: string; rows?: number }) {
- return <label className={`space-y-1.5 ${className}`}><p className={mono}>{label}</p><textarea value={value} onChange={(event) => onChange(event.target.value)} rows={rows} className="w-full resize-y rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-rose-400" /></label>;
+ return <label className={`space-y-1.5 ${className}`}><p className={mono}>{label}</p><textarea value={value} onChange={(event) => onChange(event.target.value)} rows={rows} className="w-full resize-y rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground caret-foreground outline-none focus:border-rose-400" /></label>;
 }

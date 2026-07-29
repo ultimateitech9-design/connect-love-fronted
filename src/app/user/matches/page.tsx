@@ -31,9 +31,11 @@ export default function MatchesDashboard() {
  const [receivedLikes, setReceivedLikes] = useState<DBMatch[]>([]);
  const [blockedUsers, setBlockedUsers] = useState<DBMatch[]>([]);
  const [isLoading, setIsLoading] = useState(true);
+ const [mainTab, setMainTab] = useState<"active" | "pending" | "blocked">("active");
  const [pendingTab, setPendingTab] = useState<"sent" | "received" | "super">("sent");
  const [myId, setMyId] = useState<string | null>(null);
  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
+ const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
  const [fetchError, setFetchError] = useState(false);
 
  useEffect(() => {
@@ -60,8 +62,8 @@ export default function MatchesDashboard() {
    };
  };
 
- const fetchMatches = async () => {
-   setIsLoading(true);
+ const fetchMatches = async (showLoading = true) => {
+   if (showLoading) setIsLoading(true);
    setFetchError(false);
    try {
      const token = getToken();
@@ -89,7 +91,7 @@ export default function MatchesDashboard() {
      console.error("Failed to load matches", error);
      setFetchError(true);
    } finally {
-     setIsLoading(false);
+     if (showLoading) setIsLoading(false);
    }
  };
 
@@ -146,16 +148,26 @@ export default function MatchesDashboard() {
  };
 
  const handleAcceptMatch = async (matchId: string, profileName: string) => {
+   if (acceptingRequestId) return;
+   setAcceptingRequestId(matchId);
    try {
-     await fetch(`${API_URL}/matches/respond`, {
+     const response = await fetch(`${API_URL}/matches/respond`, {
        method: "POST",
        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
        body: JSON.stringify({ matchId, action: "accept" }),
      });
+     if (!response.ok) {
+       const data = await response.json().catch(() => null);
+       throw new Error(data?.message || "Could not accept this match request.");
+     }
+     setReceivedLikes(prev => prev.filter(m => m.id !== matchId));
      toast.success(`It's a Match! You and ${profileName} are now connected.`);
-     fetchMatches();
+     await fetchMatches(false);
    } catch (error) {
      console.error("Failed to accept match", error);
+     toast.error(error instanceof Error ? error.message : "Could not accept this match request.");
+   } finally {
+     setAcceptingRequestId(null);
    }
  };
 
@@ -186,7 +198,7 @@ export default function MatchesDashboard() {
    {fetchError && (
      <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:flex-row sm:items-center sm:justify-between">
        <span>Matches could not be loaded. Please check the connection and try again.</span>
-       <Button variant="outline" size="sm" onClick={fetchMatches} className="shrink-0 border-amber-300 bg-white text-amber-800 hover:bg-amber-100">
+       <Button variant="outline" size="sm" onClick={() => fetchMatches()} className="shrink-0 border-amber-300 bg-white text-amber-800 hover:bg-amber-100">
          <RefreshCw className="mr-2 h-4 w-4" /> Retry
        </Button>
      </div>
@@ -198,7 +210,7 @@ export default function MatchesDashboard() {
      </div>
    </div>
 
-   <Tabs defaultValue="active" className="w-full">
+   <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as "active" | "pending" | "blocked")} className="w-full">
      <TabsList className="mb-6 inline-flex h-auto rounded-full bg-slate-100 p-1 text-slate-500">
        <TabsTrigger value="active" className="rounded-full px-5 py-2 text-sm data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm transition-all">
          Active Matches ({activeMatches.length})
@@ -336,8 +348,8 @@ export default function MatchesDashboard() {
                  </div>
                  <p className="relative z-10 mt-4 line-clamp-2 text-sm text-slate-500">{profile.bio}</p>
                  <div className="relative z-10 mt-5 flex gap-2">
-                   <Button className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" : "bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90")} onClick={() => handleAcceptMatch(m.id, profile.name)}>
-                     Match
+                   <Button disabled={acceptingRequestId !== null} className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" : "bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90")} onClick={() => handleAcceptMatch(m.id, profile.name)}>
+                     {acceptingRequestId === m.id ? "Matching..." : "Match"}
                    </Button>
                    <Button variant="outline" className="rounded-full border-slate-200 text-slate-400 hover:text-red-500 shrink-0" onClick={() => handlePassMatch(m.id)}>
                      Pass
