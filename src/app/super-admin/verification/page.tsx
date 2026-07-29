@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, Check, ChevronRight, FileText, X } from "lucide-react";
+import { AlertCircle, Check, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 import { api } from "@/lib/api";
 
 const mono = "font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground";
 const colors = ["bg-rose-400", "bg-slate-500", "bg-indigo-400", "bg-emerald-500", "bg-amber-500"];
+const PAGE_SIZE = 10;
 
 interface QueueRow {
  id: string;
@@ -41,6 +42,7 @@ export default function VerificationPage() {
  const [approved, setApproved] = useState<string[]>([]);
  const [rejected, setRejected] = useState<string[]>([]);
  const [error, setError] = useState("");
+ const [page, setPage] = useState(1);
 
  const fetchQueue = async () => {
  setLoading(true);
@@ -76,7 +78,20 @@ export default function VerificationPage() {
  () => filter === "High Priority" ? queue.filter((r) => r.priority === "High") : queue,
  [filter, queue],
  );
+ const pageCount = Math.max(1, Math.ceil(filteredQueue.length / PAGE_SIZE));
+ const paginatedQueue = useMemo(
+  () => filteredQueue.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+  [filteredQueue, page],
+ );
  const rejectionRate = queue.length ? Math.round((rejected.length / queue.length) * 100) : 0;
+
+ useEffect(() => {
+  setPage(1);
+ }, [filter]);
+
+ useEffect(() => {
+  setPage((current) => Math.min(current, pageCount));
+ }, [pageCount]);
 
  const moveNext = (current: QueueRow, approvedIds = approved, rejectedIds = rejected) => {
  const next = queue.find((r) => r.id !== current.id && !approvedIds.includes(r.id) && !rejectedIds.includes(r.id))
@@ -201,7 +216,7 @@ export default function VerificationPage() {
  <tr><td colSpan={5} className="py-10 text-center text-muted-foreground text-sm">Loading verification requests...</td></tr>
  ) : filteredQueue.length === 0 ? (
  <tr><td colSpan={5} className="py-10 text-center text-muted-foreground text-sm">No verification requests found.</td></tr>
- ) : filteredQueue.map((r) => {
+ ) : paginatedQueue.map((r) => {
  const isApproved = approved.includes(r.id) || r.status.toLowerCase() === "approved";
  const isRejected = rejected.includes(r.id) || r.status.toLowerCase() === "rejected";
  const isActive = activeUser?.id === r.id;
@@ -236,6 +251,32 @@ export default function VerificationPage() {
  })}
  </tbody>
  </table>
+ {!loading && filteredQueue.length > 0 && (
+  <div className="flex flex-col gap-3 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+  <p className="text-xs font-medium text-muted-foreground">
+  Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, filteredQueue.length)} of {filteredQueue.length}
+  </p>
+  <div className="flex items-center gap-2">
+  <button
+  type="button"
+  onClick={() => setPage((current) => Math.max(1, current - 1))}
+  disabled={page === 1}
+  className="inline-flex h-9 items-center gap-1 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+  >
+  <ChevronLeft className="h-4 w-4" /> Previous
+  </button>
+  <span className="min-w-20 text-center text-xs font-semibold text-foreground">Page {page} of {pageCount}</span>
+  <button
+  type="button"
+  onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+  disabled={page === pageCount}
+  className="inline-flex h-9 items-center gap-1 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+  >
+  Next <ChevronRight className="h-4 w-4" />
+  </button>
+  </div>
+  </div>
+ )}
  </div>
  </div>
  );

@@ -308,10 +308,11 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
      })
      .catch(() => {});
 
-   if (socket?.connected) {
-     socket.timeout(4000).emit('editMessage', { messageId, receiverId, content }, (error: Error | null, response: any) => {
-       if (error || response?.error) saveViaRest();
-     });
+    if (socket?.connected) {
+      socket.timeout(4000).emit('editMessage', { messageId, receiverId, content }, (error: Error | null, response: any) => {
+        if (error || response?.error) saveViaRest();
+        else if (response?.data) applyUpdatedMessage(response.data as Message);
+      });
      return;
    }
 
@@ -345,10 +346,11 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
      })
      .catch(() => {});
 
-   if (socket?.connected) {
-     socket.timeout(4000).emit('deleteMessage', { messageId, receiverId, scope }, (error: Error | null, response: any) => {
-       if (error || response?.error) deleteViaRest();
-     });
+    if (socket?.connected) {
+      socket.timeout(4000).emit('deleteMessage', { messageId, receiverId, scope }, (error: Error | null, response: any) => {
+        if (error || response?.error) deleteViaRest();
+        else if (response?.data) applyDeletedMessage(response.data as { message: Message; scope: 'me' | 'everyone'; userId: string });
+      });
      return;
    }
 
@@ -356,16 +358,54 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  }, [conversationId, queryClient, socket, token]);
 
  const togglePin = useCallback((messageId: string, receiverId: string) => {
-   if (socket && conversationId) {
-     socket.emit('togglePin', { messageId, receiverId });
+   if (!conversationId) return;
+   const applyMessage = (message: Message) => {
+     queryClient.setQueryData(['messages', message.conversationId], (old: Message[] | undefined) =>
+       old?.map((current) => current.id === message.id ? { ...current, ...message } : current),
+     );
+   };
+   const saveViaRest = () => apiFetch(`/messages/${messageId}/pin`, {
+     method: 'PATCH',
+     headers: { Authorization: `Bearer ${token}` },
+   }).then(async (response) => {
+     if (!response.ok) throw new Error('Message pin failed');
+     applyMessage(await response.json() as Message);
+   }).catch(() => {});
+
+   if (socket?.connected) {
+     socket.timeout(4000).emit('togglePin', { messageId, receiverId }, (error: Error | null, response: any) => {
+       if (error || response?.error) saveViaRest();
+       else if (response?.data) applyMessage(response.data as Message);
+     });
+   } else {
+     saveViaRest();
    }
- }, [conversationId, socket]);
+ }, [conversationId, queryClient, socket, token]);
 
  const toggleStar = useCallback((messageId: string, receiverId: string) => {
-   if (socket && conversationId) {
-     socket.emit('toggleStar', { messageId, receiverId });
+   if (!conversationId) return;
+   const applyMessage = (message: Message) => {
+     queryClient.setQueryData(['messages', message.conversationId], (old: Message[] | undefined) =>
+       old?.map((current) => current.id === message.id ? { ...current, ...message } : current),
+     );
+   };
+   const saveViaRest = () => apiFetch(`/messages/${messageId}/star`, {
+     method: 'PATCH',
+     headers: { Authorization: `Bearer ${token}` },
+   }).then(async (response) => {
+     if (!response.ok) throw new Error('Message star failed');
+     applyMessage(await response.json() as Message);
+   }).catch(() => {});
+
+   if (socket?.connected) {
+     socket.timeout(4000).emit('toggleStar', { messageId, receiverId }, (error: Error | null, response: any) => {
+       if (error || response?.error) saveViaRest();
+       else if (response?.data) applyMessage(response.data as Message);
+     });
+   } else {
+     saveViaRest();
    }
- }, [conversationId, socket]);
+ }, [conversationId, queryClient, socket, token]);
 
  const sendTypingStatus = useCallback((receiverId: string, isTyping: boolean) => {
    if (socket && conversationId) {
@@ -414,9 +454,10 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
        conversationId,
        receiverId,
        emoji
-     }, (error: Error | null, response: any) => {
-       if (error || response?.error) reactViaRest();
-     });
+      }, (error: Error | null, response: any) => {
+        if (error || response?.error) reactViaRest();
+        else if (response?.data?.reactions) applyReactions(response.data.reactions as Record<string, string[]>);
+      });
      return;
    }
 
