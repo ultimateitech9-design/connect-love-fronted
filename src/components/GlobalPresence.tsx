@@ -26,7 +26,16 @@ export function GlobalPresence() {
     }
 
     socket = io(SOCKET_URL, {
+      auth: { token },
       query: { userId, token },
+    });
+
+    socket.on("connect", () => {
+      queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
+    });
+
+    socket.on("receiveMessage", () => {
+      queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
     });
 
     socket.on("USER_STATUS_CHANGED", (payload: { userId: string; isOnline: boolean; lastSeen?: string }) => {

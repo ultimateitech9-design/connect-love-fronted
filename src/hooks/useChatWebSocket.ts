@@ -76,6 +76,7 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
 
  newSocket.on('connect', () => {
  console.log('Connected to chat server');
+ queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
  });
 
  newSocket.on('receiveMessage', (message: Message) => {

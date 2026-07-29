@@ -2097,7 +2097,7 @@ export default function Messages() {
           name: realProfile.name || "Unknown",
           age: realProfile.age || "",
           photo: (realProfile.photos && realProfile.photos.length > 0) ? realProfile.photos[0] : (realProfile.avatarUrl || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop"),
-          online: realProfile.showOnlineStatus === false ? false : !!realProfile.isOnline,
+          online: !!realProfile.isOnline,
           lastSeen: realProfile.lastSeen
         } : {};
       return {

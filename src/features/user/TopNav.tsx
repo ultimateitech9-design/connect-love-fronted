@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
+import { useQueryClient } from "@tanstack/react-query";
 
 const API = API_ORIGIN;
 
@@ -38,6 +39,7 @@ const notifColor = {
 export function TopNav() {
  const pathname = usePathname();
  const router = useRouter();
+ const queryClient = useQueryClient();
  const token = getToken() || "";
 
  const [notifOpen, setNotifOpen] = useState(false);
@@ -45,21 +47,26 @@ export function TopNav() {
  const [userName, setUserName] = useState<string>("You");
  const [loadNavData, setLoadNavData] = useState(false);
  const [seenNotificationIds, setSeenNotificationIds] = useState<Set<string>>(new Set());
+ const [seenMatchIds, setSeenMatchIds] = useState<Set<string>>(new Set());
+ const [seenMatchesReady, setSeenMatchesReady] = useState(false);
 
  const notifRef = useRef<HTMLDivElement>(null);
 
- const { matches: activeMatches } = useMatches(token, "active", { enabled: loadNavData });
+ const { matches: activeMatches, loading: activeMatchesLoading } = useMatches(token, "active", { enabled: loadNavData });
  const { matches: receivedMatches } = useMatches(token, "received", { enabled: loadNavData });
  const { data: navUser } = useCurrentUser(token, loadNavData);
 
  const unreadMessagesCount = activeMatches.reduce((sum: number, m: any) => sum + (m.unreadCount || 0), 0);
- const newMatchesCount = receivedMatches.length;
  let sessionUserId = "user";
  try {
   const payload = JSON.parse(atob(token.split('.')[1] || ''));
   sessionUserId = String(payload.sub || payload.userId || "user");
  } catch {}
  const seenStorageKey = `cl_seen_notifications:${sessionUserId}`;
+ const seenMatchesStorageKey = `cl_seen_matches:${sessionUserId}`;
+ const newMatchesCount = seenMatchesReady && !pathname.startsWith("/user/matches")
+   ? activeMatches.filter((match: any) => !seenMatchIds.has(String(match.id))).length
+   : 0;
 
  const realNotifications = [
    ...receivedMatches.map((m: any) => ({
@@ -109,6 +116,56 @@ export function TopNav() {
    setSeenNotificationIds(new Set());
   }
  }, [seenStorageKey]);
+
+ useEffect(() => {
+  setSeenMatchesReady(false);
+  try {
+   const stored = localStorage.getItem(seenMatchesStorageKey);
+   if (stored === null) {
+    setSeenMatchIds(new Set());
+    return;
+   }
+   const saved = JSON.parse(stored);
+   setSeenMatchIds(new Set(Array.isArray(saved) ? saved.map(String) : []));
+   setSeenMatchesReady(true);
+  } catch {
+   setSeenMatchIds(new Set());
+   setSeenMatchesReady(true);
+  }
+ }, [seenMatchesStorageKey]);
+
+ useEffect(() => {
+  if (!loadNavData || activeMatchesLoading || seenMatchesReady) return;
+  const baseline = activeMatches.map((match: any) => String(match.id)).slice(-500);
+  setSeenMatchIds(new Set(baseline));
+  localStorage.setItem(seenMatchesStorageKey, JSON.stringify(baseline));
+  setSeenMatchesReady(true);
+ }, [activeMatches, activeMatchesLoading, loadNavData, seenMatchesReady, seenMatchesStorageKey]);
+
+ useEffect(() => {
+  if (!seenMatchesReady || !pathname.startsWith("/user/matches") || activeMatches.length === 0) return;
+  const next = new Set(seenMatchIds);
+  activeMatches.forEach((match: any) => next.add(String(match.id)));
+  if (next.size === seenMatchIds.size) return;
+  const trimmed = [...next].slice(-500);
+  setSeenMatchIds(new Set(trimmed));
+  localStorage.setItem(seenMatchesStorageKey, JSON.stringify(trimmed));
+ }, [activeMatches, pathname, seenMatchIds, seenMatchesReady, seenMatchesStorageKey]);
+
+ useEffect(() => {
+  if (!loadNavData) return;
+  const refreshNavIndicators = () => {
+   queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
+   queryClient.invalidateQueries({ queryKey: ["matches", "received"] });
+  };
+  const interval = window.setInterval(refreshNavIndicators, 5_000);
+  const handleFocus = () => refreshNavIndicators();
+  window.addEventListener("focus", handleFocus);
+  return () => {
+   window.clearInterval(interval);
+   window.removeEventListener("focus", handleFocus);
+  };
+ }, [loadNavData, queryClient]);
 
  // Fetch user avatar for the nav
  useEffect(() => {
