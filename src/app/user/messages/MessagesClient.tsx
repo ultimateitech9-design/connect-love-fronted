@@ -2430,6 +2430,15 @@ export default function Messages() {
    attachVideoStreams();
  }, [activeCall, isCameraOn, attachVideoStreams]);
 
+ useEffect(() => {
+   if (!activeCall) return;
+   const previousOverflow = document.body.style.overflow;
+   document.body.style.overflow = "hidden";
+   return () => {
+     document.body.style.overflow = previousOverflow;
+   };
+ }, [activeCall]);
+
  const stopCallMedia = useCallback(() => {
    peerRef.current?.close();
    peerRef.current = null;
@@ -4047,12 +4056,12 @@ export default function Messages() {
  </div>
  </div>
  )}
- {activeCall && (
- <div className="fixed inset-0 z-50 bg-slate-950 text-white">
- <video ref={remoteVideoRef} autoPlay playsInline className={activeCall.callType === "video" ? "h-full w-full bg-black object-cover" : "hidden"} />
+ {activeCall && typeof document !== "undefined" && createPortal((
+ <div className="fixed inset-0 z-[100] h-[100dvh] w-screen overflow-hidden bg-slate-950 text-white">
+ <video ref={remoteVideoRef} autoPlay playsInline className={activeCall.callType === "video" ? "absolute inset-0 block h-full w-full object-cover object-center" : "hidden"} />
  {activeCall.callType === "audio" && (
- <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-slate-950">
- <Avatar className="h-28 w-28 border border-white/20">
+ <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[radial-gradient(circle_at_center,_#334155_0%,_#0f172a_55%,_#020617_100%)] px-5">
+ <Avatar className="h-24 w-24 border border-white/20 sm:h-28 sm:w-28">
  <AvatarImage src={active?.photo} />
  <AvatarFallback>{active?.name?.[0] || "U"}</AvatarFallback>
  </Avatar>
@@ -4063,26 +4072,26 @@ export default function Messages() {
  </div>
  )}
  {activeCall.callType === "video" && (
- <div className="absolute right-5 top-5 h-36 w-24 overflow-hidden rounded-2xl border border-white/20 bg-black shadow-2xl md:h-48 md:w-32">
+ <div className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] aspect-[4/3] w-32 overflow-hidden rounded-2xl border border-white/30 bg-slate-900 shadow-2xl sm:right-5 sm:top-[max(1.25rem,env(safe-area-inset-top))] sm:w-44 lg:w-52">
  {isCameraOn ? (
- <video ref={localVideoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+ <video ref={localVideoRef} autoPlay playsInline muted className="absolute inset-0 block h-full w-full object-cover object-center" />
  ) : (
  <div className="flex h-full w-full items-center justify-center bg-slate-900 text-white">
- <VideoOff className="h-8 w-8 opacity-80" />
+ <VideoOff className="h-7 w-7 opacity-80 sm:h-8 sm:w-8" />
  </div>
  )}
  </div>
  )}
- <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 bg-gradient-to-t from-black/80 to-transparent px-4 py-8">
- <div className="rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur">
+ <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-16 sm:gap-4 sm:px-4 sm:pb-[max(2rem,env(safe-area-inset-bottom))] sm:pt-24">
+ <div className="rounded-full bg-black/35 px-3 py-1.5 text-xs backdrop-blur-md sm:px-4 sm:py-2 sm:text-sm">
  {activeCall.status === "ringing" ? "Ringing..." : `${activeCall.callType === "audio" ? "Audio" : "Video"} call active`}
  </div>
- <div className="flex items-center gap-3 rounded-full bg-black/30 p-2 backdrop-blur">
+ <div className="flex items-center gap-2 rounded-full bg-black/40 p-1.5 backdrop-blur-md sm:gap-3 sm:p-2">
  <Button
  type="button"
  onClick={toggleMicrophone}
  className={cn(
- "h-12 w-12 rounded-full p-0 text-white",
+ "h-10 w-10 rounded-full p-0 text-white sm:h-12 sm:w-12",
  isMicOn ? "bg-white/15 hover:bg-white/25" : "bg-white text-slate-950 hover:bg-white/90"
  )}
  title={isMicOn ? "Mute microphone" : "Unmute microphone"}
@@ -4093,7 +4102,7 @@ export default function Messages() {
  type="button"
  onClick={toggleCamera}
  className={cn(
- "h-12 w-12 rounded-full p-0 text-white",
+ "h-10 w-10 rounded-full p-0 text-white sm:h-12 sm:w-12",
  isCameraOn ? "bg-white/15 hover:bg-white/25" : "bg-white text-slate-950 hover:bg-white/90"
  )}
  title={isCameraOn ? "Turn camera off" : "Turn camera on"}
@@ -4104,20 +4113,20 @@ export default function Messages() {
  type="button"
  onClick={toggleSpeaker}
  className={cn(
- "h-12 w-12 rounded-full p-0 text-white",
+ "h-10 w-10 rounded-full p-0 text-white sm:h-12 sm:w-12",
  isSpeakerOn ? "bg-white/15 hover:bg-white/25" : "bg-white text-slate-950 hover:bg-white/90"
  )}
  title={isSpeakerOn ? "Mute speaker" : "Turn speaker on"}
  >
  {isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
  </Button>
- <Button onClick={() => endVideoCall("ended")} className="h-12 w-12 rounded-full bg-red-600 p-0 text-white hover:bg-red-700" title="End call">
- <PhoneOff className="h-6 w-6" />
+ <Button onClick={() => endVideoCall("ended")} className="h-10 w-10 rounded-full bg-red-600 p-0 text-white hover:bg-red-700 sm:h-12 sm:w-12" title="End call">
+ <PhoneOff className="h-5 w-5 sm:h-6 sm:w-6" />
  </Button>
  </div>
  </div>
  </div>
- )}
+ ), document.body)}
  {profileModal && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
  <div className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-card p-5 shadow-2xl">
