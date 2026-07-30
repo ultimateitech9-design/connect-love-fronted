@@ -18,25 +18,32 @@ export default function ForgotPasswordPage() {
   const [step, setStep] = useState<"email" | "otp" | "reset" | "done">("email");
   const [error, setError] = useState("");
 
+  const responseMessage = async (response: Response, fallback: string) => {
+    try {
+      const data = await response.json();
+      const message = Array.isArray(data?.message) ? data.message[0] : data?.message;
+      return typeof message === "string" ? message : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const response = await fetch(`${API_BASE}/support/contact`, {
+      const normalizedEmail = email.trim().toLowerCase();
+      const response = await fetch(`${API_BASE}/auth/forgot-password/request-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: "Password recovery request",
-          email,
-          subject: "Password recovery",
-          message: "I cannot access my ConnectLove account and need help resetting my password.",
-        }),
+        body: JSON.stringify({ email: normalizedEmail }),
       });
-      if (!response.ok) throw new Error("Request failed");
+      if (!response.ok) throw new Error(await responseMessage(response, "Could not send the OTP. Please try again."));
+      setEmail(normalizedEmail);
       setStep("otp");
-    } catch {
-      setError("Could not send your request. Please try again.");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Could not send the OTP. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -45,14 +52,14 @@ export default function ForgotPasswordPage() {
   const verifyOtp = (event: FormEvent) => {
     event.preventDefault();
     setError("");
-    if (!otp.trim()) {
-      setError("Please enter the OTP.");
+    if (!/^\d{6}$/.test(otp.trim())) {
+      setError("Please enter the 6-digit OTP.");
       return;
     }
     setStep("reset");
   };
 
-  const resetPassword = (event: FormEvent) => {
+  const resetPassword = async (event: FormEvent) => {
     event.preventDefault();
     setError("");
     if (newPassword.length < 8) {
@@ -63,7 +70,20 @@ export default function ForgotPasswordPage() {
       setError("New password and confirm password do not match.");
       return;
     }
-    setStep("done");
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/auth/forgot-password/reset`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp: otp.trim(), newPassword }),
+      });
+      if (!response.ok) throw new Error(await responseMessage(response, "Could not reset your password. Please try again."));
+      setStep("done");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Could not reset your password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -88,9 +108,9 @@ export default function ForgotPasswordPage() {
           <form onSubmit={verifyOtp} className="mt-8">
             <MailCheck className="h-10 w-10 text-rose-500" />
             <h1 className="mt-4 text-2xl font-black text-slate-950">Enter OTP</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-500">We sent an OTP to {email}. For now any OTP will work.</p>
+            <p className="mt-2 text-sm leading-6 text-slate-500">We sent a 6-digit OTP to {email}. It expires in 10 minutes.</p>
             <label htmlFor="recovery-otp" className="mt-6 block text-sm font-bold text-slate-700">OTP code</label>
-            <input id="recovery-otp" value={otp} onChange={(e) => setOtp(e.target.value)} inputMode="numeric" autoComplete="one-time-code" required className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-center text-lg font-black tracking-[0.35em] outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-100" placeholder="000000" />
+            <input id="recovery-otp" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" required minLength={6} maxLength={6} className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-center text-lg font-black tracking-[0.35em] outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-100" placeholder="000000" />
             {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
             <button type="submit" className="mt-5 flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-black text-white">
               Verify OTP
@@ -114,8 +134,8 @@ export default function ForgotPasswordPage() {
             <label htmlFor="confirm-new-password" className="mt-4 block text-sm font-bold text-slate-700">Confirm password</label>
             <input id="confirm-new-password" type="password" required minLength={8} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-100" placeholder="Confirm password" />
             {error && <p className="mt-3 text-sm text-rose-600">{error}</p>}
-            <button type="submit" className="mt-5 flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-black text-white">
-              Update password
+            <button type="submit" disabled={loading} className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-black text-white disabled:opacity-60">
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}{loading ? "Updating..." : "Update password"}
             </button>
           </form>
         ) : (
