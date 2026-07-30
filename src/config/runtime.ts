@@ -11,7 +11,7 @@ function resolveBrowserOrigin(configuredOrigin: string, port: string): string {
     // A phone opening the LAN URL must call the host computer, not its own localhost.
     if (isLoopback && pageIsOnLan) {
       if (window.location.protocol === "https:") {
-        return window.location.origin;
+        return `${window.location.origin}/backend-api`;
       }
       url.hostname = window.location.hostname;
       url.port = port;

@@ -4,6 +4,14 @@ import path from "path";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  async rewrites() {
+    return [
+      {
+        source: "/backend-api/:path*",
+        destination: `${process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5002"}/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {
