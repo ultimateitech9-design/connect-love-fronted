@@ -3033,10 +3033,10 @@ export default function Messages() {
  return (
  <>
  <div
- className={cn("chat-theme-surface grid h-full min-h-0 gap-4 rounded-2xl p-0 lg:grid-cols-[320px_1fr]", selectedTheme.is3d && "chat-theme-3d")}
+ className={cn("chat-theme-surface grid h-full min-h-0 gap-4 rounded-none p-0 sm:rounded-2xl lg:grid-cols-[320px_1fr]", selectedTheme.is3d && "chat-theme-3d")}
  style={chatThemeStyle}
  >
- <aside className={cn("flex min-h-0 flex-col overflow-hidden rounded-2xl bg-[var(--chat-panel)] shadow-sm backdrop-blur", active && "hidden lg:flex")}>
+ <aside className={cn("flex min-h-0 flex-col overflow-hidden rounded-none bg-[var(--chat-panel)] shadow-none backdrop-blur sm:rounded-2xl sm:shadow-sm", active && "hidden lg:flex")}>
  <div className="flex flex-col gap-3 border-b border-black/10 p-4 dark:border-white/10">
  <h2 className="text-lg font-semibold text-[var(--chat-text)]">Messages</h2>
  <div className="relative">
@@ -3101,7 +3101,7 @@ export default function Messages() {
  </aside>
 
  {active ? (
-  <section className="relative flex min-h-0 flex-col overflow-hidden rounded-2xl bg-[var(--chat-panel)] shadow-sm backdrop-blur">
+  <section className="relative flex min-h-0 flex-col overflow-hidden rounded-none bg-[var(--chat-panel)] shadow-none backdrop-blur sm:rounded-2xl sm:shadow-sm">
     {selectedTheme.is3d && (
       <ChatThemeParticles themeId={selectedTheme.id} />
     )}
