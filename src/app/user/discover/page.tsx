@@ -362,7 +362,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  const token = getToken() || "";
   const locationSyncStarted = useRef(false);
   const requestFilters = useMemo(
-    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, limit: 500 }),
+    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, limit: 12 }),
     [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance],
   );
   const { profiles, loading, swipeLeft, swipeRight, swipeSuper, refreshProfiles } = useDiscovery(token, requestFilters);
