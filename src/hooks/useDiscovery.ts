@@ -145,6 +145,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     profiles,
     loading,
     error,
+    refreshProfiles: () => fetchProfiles(undefined, true),
     swipeRight: (id: string) => swipe(id, "like"),
     swipeLeft: (id: string) => swipe(id, "pass"),
     swipeSuper: (id: string) => swipe(id, "superlike"),

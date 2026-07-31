@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useEffect, useMemo, useState, useDeferredValue } from "react";
+import { useEffect, useMemo, useRef, useState, useDeferredValue } from "react";
 import { BadgeCheck, Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
 import type { DiscoverFilters } from "@/features/user/FiltersPanel";
 import { useDiscovery } from "@/hooks/useDiscovery";
@@ -12,6 +12,7 @@ import { INTERESTED_IN_OPTIONS } from "@/features/discovery/gender-options";
 import { AgeRangeSlider } from "@/features/discovery/AgeRangeSlider";
 import { CampaignOfferCard } from "@/features/user/CampaignOfferCard";
 import { ConnectLoveChatbot } from "@/features/chatbot/ConnectLoveChatbot";
+import { apiFetch } from "@/config/runtime";
 
 const DISTANCE_STEP_KM = 100;
 const defaultFilters: DiscoverFilters = {
@@ -356,12 +357,47 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
   const isDesktop = useDesktopLayout();
   const loadSecondaryPanels = useSecondaryPanels();
   const deferredSearch = useDeferredValue(filters.search);
-  const token = getToken() || "";
+ const token = getToken() || "";
+  const locationSyncStarted = useRef(false);
   const requestFilters = useMemo(
     () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, limit: 8 }),
     [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals],
   );
-  const { profiles, loading, swipeLeft, swipeRight, swipeSuper } = useDiscovery(token, requestFilters);
+  const { profiles, loading, swipeLeft, swipeRight, swipeSuper, refreshProfiles } = useDiscovery(token, requestFilters);
+
+  useEffect(() => {
+    if (!token || locationSyncStarted.current || !("geolocation" in navigator)) return;
+    locationSyncStarted.current = true;
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const response = await apiFetch("/users/me", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              locationLatitude: Number(coords.latitude.toFixed(7)),
+              locationLongitude: Number(coords.longitude.toFixed(7)),
+            }),
+          });
+          if (!response.ok) return;
+
+          for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+            const key = localStorage.key(index);
+            if (key?.startsWith("connect-love:discovery:")) localStorage.removeItem(key);
+          }
+          await refreshProfiles();
+        } catch {
+          // Keep the last saved location when GPS or the API is temporarily unavailable.
+        }
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 },
+    );
+  }, [refreshProfiles, token]);
 
   const effectiveMaxDistance = useMemo(
     () => getEffectiveMaxDistance(profiles, filters, false),
