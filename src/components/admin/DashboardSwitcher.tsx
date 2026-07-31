@@ -61,10 +61,10 @@ export function DashboardSwitcher() {
   ];
 
   return (
-    <div ref={dropdownRef} className="fixed bottom-6 right-6 z-[9999] font-[Inter,sans-serif]">
+    <div ref={dropdownRef} className="fixed bottom-4 right-4 z-[9999] max-w-[calc(100vw-2rem)] font-[Inter,sans-serif] sm:bottom-6 sm:right-6">
       {/* Expanded Menu */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-80 rounded-2xl border border-border bg-card text-foreground shadow-2xl backdrop-blur-xl overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="absolute bottom-16 right-0 w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-bottom-5 duration-200">
           <div className="px-5 py-4 border-b border-white/10 bg-white/5 flex items-center gap-2">
             <FolderSync className="h-5 w-5 text-rose-500 animate-spin" />
             <div>

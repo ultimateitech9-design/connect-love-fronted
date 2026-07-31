@@ -71,7 +71,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
  if (loading) {
  return (
- <div className="flex h-screen w-full items-center justify-center bg-background">
+ <div className="flex min-h-dvh w-full items-center justify-center bg-background">
  <div className="h-[32px] w-[32px] animate-spin rounded-full border-4 border-rose-500 border-t-transparent" />
  </div>
  );

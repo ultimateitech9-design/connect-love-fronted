@@ -88,12 +88,12 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  animate={{ opacity: 1, scale: 1, y: 0 }}
  exit={{ opacity: 0, scale: 0.92, y: 20 }}
  transition={{ type: "spring", stiffness: 300, damping: 28 }}
- className="fixed inset-0 z-50 flex items-center justify-center p-4"
+ className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4"
  onClick={(e: React.MouseEvent) => e.stopPropagation()}
  >
- <div className="relative w-full rounded-3xl bg-white shadow-2xl overflow-hidden">
+ <div className="relative my-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl sm:max-h-[calc(100dvh-2rem)]">
  {/* Header gradient */}
- <div className="bg-gradient-to-br from-rose-500 to-pink-600 px-8 py-7 text-white">
+ <div className="shrink-0 bg-gradient-to-br from-rose-500 to-pink-600 px-5 py-5 text-white sm:px-8 sm:py-7">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2.5">
  <BrandLogo className="h-8 w-8" />
@@ -108,7 +108,7 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  </div>
 
  {/* Form */}
- <div className="px-8 py-7">
+ <div className="overflow-y-auto px-5 py-5 sm:px-8 sm:py-7">
  {error && (
  <div className="mb-4 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-600">
  {error}

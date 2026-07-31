@@ -228,7 +228,7 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
     <div className="mx-auto w-full max-w-[min(92vw,420px)]">
       <button
         type="button"
-        onClick={() => setPhotoIndex((value) => Math.min(value + 1, Math.max(photos.length - 1, 0)))}
+        onClick={() => setPhotoIndex((value) => photos.length > 1 ? (value + 1) % photos.length : 0)}
         className="relative block aspect-[4/5] w-full overflow-hidden rounded-3xl border border-white/10 bg-slate-900 text-left shadow-xl"
         aria-label="Next profile photo"
       >

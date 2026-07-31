@@ -22,7 +22,7 @@ const API = API_ORIGIN;
 const STEPS = [
   { id: "age", title: "How old are you?" },
   { id: "religion", title: "What's your religion?" },
-  { id: "height", title: "How tall are you?" },
+  { id: "height", title: "How tall are you? (Height)" },
   { id: "profession", title: "What do you do?" },
   { id: "city", title: "Where do you live?" },
   { id: "bio", title: "Write your bio" },
@@ -113,7 +113,7 @@ export default function OnboardingPage() {
 
   if (loading || !profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-dvh items-center justify-center bg-background">
         <Loader2 className="h-[32px] w-[32px] animate-spin text-rose-500" />
       </div>
     );
@@ -122,18 +122,18 @@ export default function OnboardingPage() {
   const step = STEPS[currentStepIndex];
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-x-hidden bg-slate-950 px-3 py-5 min-[380px]:px-4 sm:py-8">
       {/* Creative Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
         <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[21.528vw] w-[21.528vw] rounded-full bg-rose-500 opacity-20 blur-[100px]" />
       </div>
 
-      <div className="z-10 w-full ">
+      <div className="z-10 w-full max-w-5xl">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <BrandLogo className="mx-auto mb-6 h-14 w-14 shadow-xl shadow-rose-500/20" />
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+        <div className="mb-5 text-center sm:mb-8">
+          <BrandLogo className="mx-auto mb-4 h-12 w-12 shadow-xl shadow-rose-500/20 sm:mb-6 sm:h-14 sm:w-14" />
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
             {step.title}
           </h1>
           <div className="mt-4 flex items-center justify-center gap-2">
@@ -153,7 +153,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Wizard Card */}
-        <div className={`relative overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-xl ${currentStepIndex > 0 ? "pt-16" : ""}`}>
+        <div className={`relative overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur-xl min-[380px]:p-5 sm:p-8 ${currentStepIndex > 0 ? "pt-14 sm:pt-16" : ""}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStepIndex}
@@ -161,7 +161,7 @@ export default function OnboardingPage() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -40, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="min-h-[13.889vw]"
+              className="min-h-[12rem] sm:min-h-[13.889vw]"
             >
               {currentStepIndex === 0 && (
                 <StepAge profile={profile} onNext={(val) => handleNext({ birthDate: val })} />
@@ -221,14 +221,14 @@ export default function OnboardingPage() {
             <button
               onClick={handleBack}
               disabled={saving}
-              className="absolute left-6 top-6 text-sm font-medium text-slate-400 hover:text-white transition-colors disabled:opacity-50"
+              className="absolute left-4 top-4 text-sm font-medium text-slate-400 transition-colors hover:text-white disabled:opacity-50 sm:left-6 sm:top-6"
             >
               Back
             </button>
           )}
 
           {saving && (
-            <div className="absolute bottom-6 left-6 flex items-center gap-2 text-sm text-slate-400">
+            <div className="absolute bottom-4 left-4 flex items-center gap-2 text-sm text-slate-400 sm:bottom-6 sm:left-6">
               <Loader2 className="h-[16px] w-[16px] animate-spin text-rose-500" />
               Saving...
             </div>

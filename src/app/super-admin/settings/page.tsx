@@ -133,7 +133,7 @@ export default function SettingsPage() {
  })}
  </div>
 
- <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+ <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-5">
  {links.map((l) => {
  const Icon = l.icon;
  return (

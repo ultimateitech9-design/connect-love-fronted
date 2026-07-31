@@ -364,7 +364,7 @@ export default function UsersPage() {
  </div>
  </div>
 
- <div className="rounded-xl bg-card border border-border overflow-hidden">
+ <div className="overflow-x-auto rounded-xl border border-border bg-card">
  <table className="w-full table-fixed">
  <thead>
  <tr className={`border-b border-border ${monoLabel}`}>
@@ -636,7 +636,7 @@ function UserDetailsModal({ user, loading, onClose }: { user: any; loading: bool
               </div>
 
               {/* Quick Metrics / Details */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 sm:grid-cols-3">
                 <div className="p-3 rounded-lg border border-border bg-card">
                   <span className="text-[10px] font-semibold text-muted-foreground uppercase">City</span>
                   <p className="text-sm font-semibold text-foreground mt-0.5">{user.city || "-"}</p>
@@ -723,7 +723,7 @@ function UserDetailsModal({ user, loading, onClose }: { user: any; loading: bool
               {user.photos && user.photos.length > 0 && (
                 <div className="space-y-1.5">
                   <span className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Profile Photos ({user.photos.length})</span>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
                     {user.photos.map((photo: string, index: number) => (
                       <div key={index} className="aspect-square rounded-xl border border-border bg-muted overflow-hidden">
                         <img src={photo} alt={`${user.name} profile ${index}`} className="h-full w-full object-cover hover:scale-105 transition-transform duration-300" />

@@ -73,7 +73,7 @@ export function AdminSidebar() {
   </header>
 
   <button type="button" aria-label="Close admin menu" onClick={() => setOpen(false)} className={cn("fixed inset-0 z-40 bg-slate-950/35 backdrop-blur-sm transition-opacity lg:hidden", open ? "opacity-100" : "pointer-events-none opacity-0")} />
-  <aside className={cn("fixed inset-y-0 left-0 z-50 flex w-[min(82vw,19rem)] flex-col border-r border-slate-100 bg-white shadow-2xl transition-transform duration-300 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:w-64 lg:shrink-0 lg:translate-x-0 lg:bg-white/60 lg:shadow-none lg:backdrop-blur-xl", open ? "translate-x-0" : "-translate-x-full")}>
+  <aside className={cn("fixed inset-y-0 left-0 z-50 flex w-[min(82vw,19rem)] flex-col border-r border-slate-100 bg-white shadow-2xl transition-transform duration-300 lg:sticky lg:top-0 lg:z-20 lg:h-dvh lg:w-64 lg:shrink-0 lg:translate-x-0 lg:bg-white/60 lg:shadow-none lg:backdrop-blur-xl", open ? "translate-x-0" : "-translate-x-full")}>
    <div className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-100 px-5">
     <BrandLogo className="h-8 w-8 shadow-md shadow-rose-500/20" />
     <div className="min-w-0 flex-1"><p className="text-sm font-bold leading-none text-slate-900">ConnectLove</p><p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-rose-500">Admin</p></div>

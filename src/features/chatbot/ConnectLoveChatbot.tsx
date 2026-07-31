@@ -185,7 +185,7 @@ export function ConnectLoveChatbot() {
   return (
     <div className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] right-3 z-[9999] md:bottom-7 md:right-7">
       {open && (
-        <section className="mb-3 flex h-[min(500px,calc(100vh-125px))] w-[calc(100vw-38px)] max-w-[340px] flex-col overflow-hidden rounded-[24px] border border-rose-200 bg-white shadow-[0_20px_55px_rgba(244,63,94,0.22)]">
+        <section className="mb-3 flex h-[min(500px,calc(100dvh-125px))] w-[calc(100vw-38px)] max-w-[340px] flex-col overflow-hidden rounded-[24px] border border-rose-200 bg-white shadow-[0_20px_55px_rgba(244,63,94,0.22)]">
           <header className="bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 px-4 pb-3 pt-4 text-white">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">

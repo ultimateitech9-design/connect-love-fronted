@@ -192,10 +192,10 @@ export default function VerificationPage() {
  </aside>
  </div>
 
- <div className="rounded-xl bg-card border border-border overflow-hidden">
- <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+ <div className="overflow-x-auto rounded-xl border border-border bg-card">
+ <div className="flex flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
  <h2 className="font-semibold text-foreground">Next in Queue</h2>
- <div className="flex items-center gap-2 text-xs">
+ <div className="flex flex-wrap items-center gap-2 text-xs">
  {(["All Types", "High Priority"] as const).map((f) => (
  <button key={f} onClick={() => setFilter(f)} className={"px-3 py-1 rounded-full font-medium border transition-all " + (filter === f ? "bg-primary/10 text-primary border-primary/30" : "bg-card text-muted-foreground border-border hover:bg-muted")}>{f}</button>
  ))}

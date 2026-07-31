@@ -225,9 +225,9 @@ export function TopNav() {
   >
  <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-2.5 min-[380px]:px-3 sm:h-16 sm:px-6 lg:px-8">
  {/* Logo */}
- <Link href="/user/discover" className="flex shrink-0 items-center gap-2.5 group">
+ <Link href="/user/discover" className="group flex min-w-0 shrink items-center gap-1.5 min-[380px]:gap-2 sm:shrink-0 sm:gap-2.5">
  <BrandLogo className="h-8 w-8 shadow-lg shadow-rose-500/30 sm:h-9 sm:w-9" priority />
-        <span className="hidden text-xl font-bold tracking-tight text-foreground sm:inline">
+        <span className="truncate text-sm font-bold tracking-tight text-foreground min-[380px]:text-base sm:text-xl">
           Connect<span className="text-rose-700">Love</span>
         </span>
       </Link>

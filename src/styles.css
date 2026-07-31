@@ -177,7 +177,6 @@ video {
   h1 { font-size: clamp(1.5rem, 6.5vw, 2rem); line-height: 1.12; }
   h2 { font-size: clamp(1.25rem, 5.5vw, 1.65rem); line-height: 1.16; }
   p, a, button, input, select, textarea, label, span { overflow-wrap: anywhere; }
-  table { min-width: 42rem; }
   .overflow-x-auto table { min-width: 42rem; }
   input, select, textarea { max-width: 100%; }
   button, [role="button"] { max-width: 100%; }
@@ -187,7 +186,6 @@ video {
 }
 
 @media (max-width: 480px) {
-  table { min-width: 38rem; }
   .overflow-x-auto table { min-width: 38rem; }
 }
 

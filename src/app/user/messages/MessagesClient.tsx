@@ -204,7 +204,7 @@ function ContextMenuContent({ children, className }: { children: ReactNode; clas
   return createPortal(
     <div
       ref={menuRef}
-      className={cn("fixed z-[100] max-h-[calc(100vh-16px)] overflow-y-auto border border-slate-200 bg-white p-1 text-slate-800 shadow-xl", className)}
+      className={cn("fixed z-[100] max-h-[calc(100dvh-16px)] overflow-y-auto border border-slate-200 bg-white p-1 text-slate-800 shadow-xl", className)}
       style={{
         left: position.left,
         top: position.top,
@@ -3571,7 +3571,7 @@ export default function Messages() {
  <SmilePlus className="h-[16px] w-[16px]" />
  </Button>
   {showEmojiPicker && (
-    <div ref={emojiPickerRef} className="absolute bottom-14 left-0 z-30 flex h-[430px] w-80 flex-col overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl transition-all duration-300">
+    <div ref={emojiPickerRef} className="absolute bottom-14 left-0 z-30 flex h-[min(430px,calc(100dvh-8rem))] w-[min(20rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-2xl transition-all duration-300">
       <div className="grid grid-cols-2 border-b border-rose-100 bg-rose-50/40 p-1.5">
         <button
           type="button"
@@ -3884,7 +3884,7 @@ export default function Messages() {
  )}
  </section>
  ) : (
- <section className="flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-2xl bg-[var(--chat-panel)] p-8 text-center text-muted-foreground shadow-sm backdrop-blur">
+ <section className="hidden min-h-0 flex-col items-center justify-center overflow-hidden rounded-2xl bg-[var(--chat-panel)] p-8 text-center text-muted-foreground shadow-sm backdrop-blur lg:flex">
  <div className="h-[80px] w-[80px] rounded-full bg-muted flex items-center justify-center mb-4">
  <Search className="h-[32px] w-[32px] text-muted-foreground/50" />
  </div>
@@ -4057,8 +4057,8 @@ export default function Messages() {
  </div>
  )}
  {activeCall && typeof document !== "undefined" && createPortal((
- <div className="fixed inset-0 z-[100] h-[100dvh] w-screen overflow-hidden bg-slate-950 text-white">
- <video ref={remoteVideoRef} autoPlay playsInline className={activeCall.callType === "video" ? "absolute inset-0 block h-full w-full object-cover object-center" : "hidden"} />
+ <div className="fixed inset-0 z-[100] h-dvh min-h-dvh w-screen overflow-hidden bg-slate-950 text-white">
+ <video ref={remoteVideoRef} autoPlay playsInline className={activeCall.callType === "video" ? "absolute inset-0 block !h-full !w-full object-cover object-center" : "hidden"} />
  {activeCall.callType === "audio" && (
  <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[radial-gradient(circle_at_center,_#334155_0%,_#0f172a_55%,_#020617_100%)] px-5">
  <Avatar className="h-24 w-24 border border-white/20 sm:h-28 sm:w-28">
@@ -4074,7 +4074,7 @@ export default function Messages() {
  {activeCall.callType === "video" && (
  <div className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] aspect-[4/3] w-32 overflow-hidden rounded-2xl border border-white/30 bg-slate-900 shadow-2xl sm:right-5 sm:top-[max(1.25rem,env(safe-area-inset-top))] sm:w-44 lg:w-52">
  {isCameraOn ? (
- <video ref={localVideoRef} autoPlay playsInline muted className="absolute inset-0 block h-full w-full object-cover object-center" />
+ <video ref={localVideoRef} autoPlay playsInline muted className="absolute inset-0 block !h-full !w-full object-cover object-center" />
  ) : (
  <div className="flex h-full w-full items-center justify-center bg-slate-900 text-white">
  <VideoOff className="h-7 w-7 opacity-80 sm:h-8 sm:w-8" />

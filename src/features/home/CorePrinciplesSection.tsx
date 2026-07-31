@@ -131,7 +131,7 @@ export function CorePrinciplesSection() {
       id="principles"
       className="relative h-[460svh] bg-[#f7f3eb] text-[#0b0908] dark:bg-[#090910] dark:text-white"
     >
-      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-4">
+      <div className="sticky top-0 flex h-dvh items-center justify-center overflow-hidden px-4">
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden px-4">
           <div className="select-none whitespace-nowrap font-display text-[clamp(4rem,12vw,10rem)] font-black leading-none tracking-[-0.07em] text-[#0b0908] dark:text-white">
             Core <span className="italic">principles</span>

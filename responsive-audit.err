@@ -1,0 +1,30 @@
+Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
+⚠ Blocked cross-origin request to Next.js dev resource /_next/webpack-hmr from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
+Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
+[browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
+[browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)

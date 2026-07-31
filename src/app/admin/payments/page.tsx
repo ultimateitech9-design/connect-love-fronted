@@ -28,7 +28,7 @@ export default function PaymentsPage() {
  <h1 className="text-2xl font-semibold">Payment monitoring</h1>
  <p className="text-sm text-muted-foreground">Track payment status across plans.</p>
  </header>
- <div className="overflow-hidden rounded-2xl border border-border bg-card">
+ <div className="overflow-x-auto rounded-2xl border border-border bg-card">
  <table className="w-full text-sm">
  <thead className="bg-muted text-left text-xs uppercase tracking-wider text-muted-foreground">
  <tr>

@@ -300,7 +300,7 @@ export default function ProfilePage() {
 
  if (loading) {
  return (
- <div className="flex h-[17.778vw] items-center justify-center">
+ <div className="flex min-h-[16rem] items-center justify-center">
  <Loader2 className="h-[32px] w-[32px] animate-spin text-rose-500" />
  </div>
  );

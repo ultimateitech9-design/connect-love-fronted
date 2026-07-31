@@ -43,7 +43,7 @@ export default function AnalyticsPage() {
  <div className="grid gap-6 lg:grid-cols-2">
  <div className="rounded-2xl border border-border bg-card p-5">
  <h3 className="text-base font-semibold">Gender ratio</h3>
- <div className="mt-4 h-[20vw]">
+ <div className="mt-4 h-[clamp(16rem,20vw,24rem)]">
  <ResponsiveContainer width="100%" height="100%">
  <PieChart>
  <Pie data={analytics.genderRatio} dataKey="value" nameKey="name" innerRadius={60} outerRadius={100} paddingAngle={2}>
@@ -58,7 +58,7 @@ export default function AnalyticsPage() {
 
  <div className="rounded-2xl border border-border bg-card p-5">
  <h3 className="text-base font-semibold">Geographic insights</h3>
- <div className="mt-4 h-[20vw]">
+ <div className="mt-4 h-[clamp(16rem,20vw,24rem)]">
  <ResponsiveContainer width="100%" height="100%">
  <BarChart data={analytics.geo}>
  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -74,7 +74,7 @@ export default function AnalyticsPage() {
 
  <div className="rounded-2xl border border-border bg-card p-5">
  <h3 className="text-base font-semibold">Revenue (last 5 months)</h3>
- <div className="mt-4 h-[20vw]">
+ <div className="mt-4 h-[clamp(16rem,20vw,24rem)]">
  <ResponsiveContainer width="100%" height="100%">
  <BarChart data={analytics.revenueMonthly}>
  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />

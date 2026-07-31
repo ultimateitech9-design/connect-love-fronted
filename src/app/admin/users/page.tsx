@@ -176,17 +176,17 @@ export default function UsersPage() {
  <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">User management</h1>
  <p className="text-sm font-medium text-slate-500 mt-1">View, suspend, ban, or delete platform users.</p>
  </div>
- <div className="flex items-center gap-3">
+ <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
  <Button onClick={() => setShowCreateForm((open) => !open)} className="h-[44px] min-h-10 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 px-5 text-white shadow-lg shadow-rose-500/20 hover:opacity-90">
  {showCreateForm ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}{showCreateForm ? "Close" : "Create ID"}
  </Button>
- <div className="relative">
+ <div className="relative w-full sm:w-auto">
  <Search className="absolute left-3.5 top-1/2 h-[16px] w-[16px] -translate-y-1/2 text-slate-400" />
  <Input
  value={q}
  onChange={(e) => setQ(e.target.value)}
  placeholder="Search users…"
- className="w-[20vw] pl-10 h-[44px] rounded-full border-slate-200 bg-white/60 backdrop-blur-sm shadow-sm focus-visible:ring-rose-500/30 transition-all"
+ className="h-[44px] w-full rounded-full border-slate-200 bg-white/60 pl-10 shadow-sm backdrop-blur-sm transition-all focus-visible:ring-rose-500/30 sm:w-[clamp(14rem,20vw,20rem)]"
  />
  </div>
  </div>
@@ -219,7 +219,7 @@ export default function UsersPage() {
  )}
 
  <section className="overflow-hidden rounded-3xl bg-white/70 shadow-xl shadow-rose-500/5 ring-1 ring-white/60 backdrop-blur-md">
- <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+ <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
  <div><h2 className="font-bold text-slate-900">Created Dashboard IDs</h2><p className="text-xs text-slate-500">All management login accounts in one place.</p></div>
  <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-600">{managementIds.length} IDs</span>
  </div>
@@ -237,8 +237,8 @@ export default function UsersPage() {
  </div>
  </section>
 
- <div className="overflow-hidden rounded-3xl bg-white/60 backdrop-blur-md shadow-xl shadow-rose-500/5 ring-1 ring-white/50">
- <div className="border-b border-slate-100 px-6 py-4"><h2 className="font-bold text-slate-900">All Platform Accounts</h2><p className="text-xs text-slate-500">Dating users and management IDs.</p></div>
+ <div className="overflow-x-auto rounded-3xl bg-white/60 shadow-xl shadow-rose-500/5 ring-1 ring-white/50 backdrop-blur-md">
+ <div className="border-b border-slate-100 px-4 py-4 sm:px-6"><h2 className="font-bold text-slate-900">All Platform Accounts</h2><p className="text-xs text-slate-500">Dating users and management IDs.</p></div>
  <table className="w-full table-fixed text-sm text-slate-600">
  <colgroup>
  <col className="w-[31%]" />

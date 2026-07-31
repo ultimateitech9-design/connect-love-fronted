@@ -1,0 +1,19 @@
+
+> dev
+> echo Frontend dev server: http://localhost:3002 && set NODE_OPTIONS=--max-old-space-size=4096 && next dev --turbopack --port 3002
+
+Frontend dev server: http://localhost:3002 
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://192.168.168.134:3002
+- Environments: .env.local
+✓ Ready in 1403ms
+Creating turbopack project {
+  dir: 'C:\\Users\\User\\Desktop\\Dating App\\connect-love-fronted',
+  testMode: true
+}
+- Experiments (use with caution):
+  · optimizePackageImports
+
+ GET / 200 in 1362ms (next.js: 481ms, application-code: 881ms)
+ GET /manifest.webmanifest 200 in 272ms (next.js: 248ms, application-code: 24ms)

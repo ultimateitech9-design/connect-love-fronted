@@ -33,7 +33,7 @@ export default function DivorcedPage() {
         <motion.div initial={{ opacity: 0, x: -35 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} className="relative z-10 mx-auto max-w-[1480px] px-6 py-20 lg:px-14 lg:py-24">
           <div className="max-w-[650px]">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#e5c8bd] bg-white/75 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-[#8b2454] backdrop-blur-sm"><Sparkles className="h-4 w-4 text-[#ce9235]" /> A thoughtful new chapter</p>
-            <h1 className="font-display text-5xl font-medium leading-[0.98] tracking-tight text-[#3d102a] sm:text-6xl lg:text-7xl">Dating After Divorce<br />Starts Here</h1>
+            <h1 className="font-display text-4xl font-medium leading-[0.98] tracking-tight text-[#3d102a] min-[380px]:text-5xl sm:text-6xl lg:text-7xl">Dating After Divorce<br />Starts Here</h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-[#65575b] sm:text-xl">Connect with divorced singles who understand your journey and are ready for a meaningful new relationship.</p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <Link href="/register?journey=divorced" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#72163f] to-[#922052] px-7 py-4 font-bold text-white shadow-xl shadow-[#71183f]/20 transition hover:-translate-y-1">Meet Divorced Singles <ArrowRight className="h-4 w-4" /></Link>

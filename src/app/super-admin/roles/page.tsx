@@ -117,7 +117,7 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
  {/* Access Level */}
  <div>
  <label className="block text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Access Level</label>
- <div className="grid grid-cols-3 gap-2">
+ <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
  {["Restricted", "Standard", "Elevated"].map((level) => (
  <button
  key={level}
@@ -141,7 +141,7 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (ro
  Module Access
  <span className="ml-2 text-muted-foreground font-normal normal-case tracking-normal">({selectedModules.length} selected)</span>
  </label>
- <div className="grid grid-cols-2 gap-2">
+ <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
  {MODULE_LIST.map((mod) => {
  const active = selectedModules.includes(mod);
  return (
@@ -276,7 +276,7 @@ export default function RolesPage() {
  )}
 
  {/* Stat Cards — without Perm Changes */}
- <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+ <div className="mb-6 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4">
  <StatCard label="Total Roles" value={String(allRows.length)} icon={KeyRound} tone="pink" />
  <StatCard label="Active Roles" value={String(allRows.filter((row) => row[3] === "Active").length)} icon={Shield} tone="blue" />
  <StatCard label="Assigned Users" value={String(allRows.reduce((sum, row) => sum + Number(row[1] || 0), 0))} icon={UserCog} tone="violet" />

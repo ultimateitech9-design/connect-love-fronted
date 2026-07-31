@@ -14,12 +14,26 @@ import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options
 
 const API_BASE = API_ORIGIN;
 
+const minimumAgeDate = () => {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - 18);
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+};
+
+const isAtLeast18 = (birthDate: string) => Boolean(birthDate) && birthDate <= minimumAgeDate();
+
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters").regex(/[A-Z]/, "Must contain an uppercase letter").regex(/[0-9]/, "Must contain a number"),
   confirmPassword: z.string(),
-  birthDate: z.string().min(1, "Date of birth is required"),
+  birthDate: z.string()
+    .min(1, "Date of birth is required")
+    .refine(isAtLeast18, "You must be at least 18 years old to create an account"),
   gender: z.string().min(1, "Please select a gender"),
   city: z.string().max(150, "City name is too long").optional(),
   agreeTerms: z.boolean().refine(Boolean, "You must accept the terms"),
@@ -383,7 +397,7 @@ export default function RegisterPage() {
                     <input {...register("name")} id="signup-name" placeholder="Jane Doe" className="field-input" />
                   </Field>
                   <Field label="Date of Birth" error={errors.birthDate?.message}>
-                    <input {...register("birthDate")} id="signup-dob" type="date" className="field-input" />
+                    <input {...register("birthDate")} id="signup-dob" type="date" max={minimumAgeDate()} className="field-input" />
                   </Field>
                 </div>
 

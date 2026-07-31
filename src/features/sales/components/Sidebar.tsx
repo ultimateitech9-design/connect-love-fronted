@@ -37,7 +37,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const userName = "My Profile"; // Simulated user name from login
   return (
-    <aside className="fixed left-0 top-0 hidden h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar p-6 text-sidebar-foreground lg:flex">
+    <aside className="fixed left-0 top-0 hidden h-dvh w-64 flex-col border-r border-sidebar-border bg-sidebar p-6 text-sidebar-foreground lg:flex">
       <Link href="/sales" className="mb-6 flex items-center gap-2 border-b border-sidebar-border pb-6">
         <BrandLogo className="h-10 w-10" />
         <div>

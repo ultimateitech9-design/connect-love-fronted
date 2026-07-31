@@ -15,6 +15,16 @@ import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options
 
 const API_BASE = API_ORIGIN;
 
+const minimumAgeDate = () => {
+ const date = new Date();
+ date.setFullYear(date.getFullYear() - 18);
+ return [
+ date.getFullYear(),
+ String(date.getMonth() + 1).padStart(2, "0"),
+ String(date.getDate()).padStart(2, "0"),
+ ].join("-");
+};
+
 const signupSchema = z.object({
  name: z.string().min(2, "Name must be at least 2 characters"),
  email: z.string().email("Enter a valid email address"),
@@ -24,7 +34,9 @@ const signupSchema = z.object({
  .regex(/[A-Z]/, "Must contain an uppercase letter")
  .regex(/[0-9]/, "Must contain a number"),
  confirmPassword: z.string(),
- birthDate: z.string().min(1, "Date of birth is required"),
+ birthDate: z.string()
+ .min(1, "Date of birth is required")
+ .refine((value) => Boolean(value) && value <= minimumAgeDate(), "You must be at least 18 years old to create an account"),
  gender: z.string().min(1, "Please select a gender"),
  agreeTerms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms" }) }),
 }).refine((d) => d.password === d.confirmPassword, {
@@ -122,12 +134,12 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  animate={{ opacity: 1, scale: 1, y: 0 }}
  exit={{ opacity: 0, scale: 0.92, y: 20 }}
  transition={{ type: "spring", stiffness: 300, damping: 28 }}
- className="fixed inset-0 z-50 flex items-center justify-center p-4"
+ className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4"
  onClick={(e: React.MouseEvent) => e.stopPropagation()}
  >
- <div className="relative w-full rounded-3xl bg-white shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+ <div className="relative my-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl sm:max-h-[calc(100dvh-2rem)]">
  {/* Header */}
- <div className="bg-gradient-to-br from-violet-600 to-purple-700 px-8 py-7 text-white shrink-0">
+ <div className="shrink-0 bg-gradient-to-br from-violet-600 to-purple-700 px-5 py-5 text-white sm:px-8 sm:py-7">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2.5">
  <BrandLogo className="h-8 w-8" />
@@ -142,7 +154,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  </div>
 
  {/* Body */}
- <div className="px-8 py-6 overflow-y-auto">
+ <div className="overflow-y-auto px-5 py-5 sm:px-8 sm:py-6">
  {done ? (
  <div className="py-8 text-center">
  <div className="mx-auto flex h-[64px] w-[64px] items-center justify-center rounded-full bg-emerald-100">
@@ -186,6 +198,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  ref={register("birthDate").ref}
  id="signup-dob"
  type="date"
+ max={minimumAgeDate()}
  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
  />
  {errors.birthDate && <p className="mt-1 text-xs text-rose-500">{errors.birthDate.message}</p>}

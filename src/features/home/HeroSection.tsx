@@ -38,9 +38,9 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
           muted
           playsInline
           poster="/hero-couple.webp"
-          preload="metadata"
+          preload="auto"
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 hidden max-w-none opacity-85 md:block"
+          className="pointer-events-none absolute inset-0 block max-w-none opacity-85"
           style={{
             width: "100%",
             height: "100%",
@@ -48,11 +48,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
             objectPosition: "center center",
           }}
         >
-          <source
-            src="/hero-bg.mp4"
-            type="video/mp4"
-            media="(min-width: 768px)"
-          />
+          <source src="/hero-bg.mp4" type="video/mp4" />
         </video>
         {/* A directional veil keeps the copy readable without hiding the video. */}
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(9,2,20,0.84)_0%,rgba(9,2,20,0.66)_38%,rgba(21,5,41,0.24)_68%,rgba(9,2,20,0.12)_100%)]" />

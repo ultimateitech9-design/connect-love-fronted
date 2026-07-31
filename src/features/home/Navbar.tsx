@@ -120,7 +120,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden items-center gap-8 lg:flex">
           {navLinks.map((link) => (
             <Link
               href={link.href}
@@ -135,7 +135,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         </nav>
 
         {/* Desktop actions */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle className="dark:bg-slate-900" />
           {loggedIn ? (
             <Link
@@ -167,10 +167,10 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         </div>
 
         {/* Mobile menu button */}
-        <ThemeToggle className="absolute right-16 dark:bg-slate-900 md:hidden sm:right-20" />
+        <ThemeToggle className="absolute right-16 dark:bg-slate-900 sm:right-20 lg:hidden" />
         <button
           type="button"
-          className={`absolute right-4 top-1/2 z-[120] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl transition-all duration-300 md:hidden sm:right-6 ${
+          className={`absolute right-4 top-1/2 z-[120] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl transition-all duration-300 sm:right-6 lg:hidden ${
             mobileOpen
               ? "text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
               : "text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
@@ -188,7 +188,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
       <div
         aria-hidden={!mobileOpen}
         onClick={() => setMobileOpen(false)}
-        className={`fixed inset-0 z-[105] bg-slate-950/45 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 z-[105] bg-slate-950/45 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden ${
           mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       />
@@ -197,7 +197,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         aria-label="Mobile navigation"
         aria-hidden={!mobileOpen}
         inert={!mobileOpen}
-        className={`fixed right-0 top-0 z-[110] flex h-dvh w-[min(84vw,22rem)] flex-col border-l border-slate-200 bg-white text-slate-900 shadow-2xl transition-transform duration-300 ease-out dark:border-white/10 dark:bg-slate-950 dark:text-white md:hidden ${
+        className={`fixed right-0 top-0 z-[110] flex h-dvh w-[min(84vw,22rem)] flex-col border-l border-slate-200 bg-white text-slate-900 shadow-2xl transition-transform duration-300 ease-out dark:border-white/10 dark:bg-slate-950 dark:text-white lg:hidden ${
           mobileOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
