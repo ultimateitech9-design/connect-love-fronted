@@ -15,11 +15,12 @@ import { ConnectLoveChatbot } from "@/features/chatbot/ConnectLoveChatbot";
 import { apiFetch } from "@/config/runtime";
 
 const DISTANCE_STEP_KM = 100;
+const DISTANCE_OPTIONS_KM = [1, 5, 10, 25, 50, 100, 250, 500, 10000];
 const defaultFilters: DiscoverFilters = {
   search: "",
   ageMin: 18,
   ageMax: 90,
-  maxDistance: 100,
+  maxDistance: 10000,
   interestedIn: "everyone",
   interests: [],
   goals: [],
@@ -158,10 +159,11 @@ function MobileFilters({
           Distance: <span className="text-rose-600">{formatDistanceLabel(filters.maxDistance)}</span>
           <input
             type="range"
-            value={filters.maxDistance}
-            onChange={(event) => update("maxDistance", Number(event.target.value))}
-            min={1}
-            max={10000}
+            value={Math.max(0, DISTANCE_OPTIONS_KM.indexOf(filters.maxDistance))}
+            onChange={(event) => update("maxDistance", DISTANCE_OPTIONS_KM[Number(event.target.value)])}
+            min={0}
+            max={DISTANCE_OPTIONS_KM.length - 1}
+            step={1}
             className="mt-2 h-2 w-full accent-rose-600"
           />
         </label>
@@ -360,8 +362,8 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  const token = getToken() || "";
   const locationSyncStarted = useRef(false);
   const requestFilters = useMemo(
-    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, limit: 8 }),
-    [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals],
+    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, limit: 500 }),
+    [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance],
   );
   const { profiles, loading, swipeLeft, swipeRight, swipeSuper, refreshProfiles } = useDiscovery(token, requestFilters);
 
@@ -399,10 +401,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
     );
   }, [refreshProfiles, token]);
 
-  const effectiveMaxDistance = useMemo(
-    () => getEffectiveMaxDistance(profiles, filters, false),
-    [profiles, filters],
-  );
+  const effectiveMaxDistance = filters.maxDistance;
   const filtered = useMemo(
     () => applyFilters(profiles, filters, false, effectiveMaxDistance),
     [profiles, filters, effectiveMaxDistance],

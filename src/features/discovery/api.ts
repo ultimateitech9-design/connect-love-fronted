@@ -6,6 +6,7 @@ export type DiscoveryFilters = {
   ageMin?: number;
   ageMax?: number;
   goals?: string[];
+  maxDistance?: number;
   page?: number;
   limit?: number;
 };

@@ -20,7 +20,7 @@ export const defaultFilters: DiscoverFilters = {
   search: "",
   ageMin: 18,
   ageMax: 90,
-  maxDistance: 100,
+  maxDistance: 10000,
   interestedIn: "everyone",
   interests: [],
   goals: [],
@@ -28,6 +28,7 @@ export const defaultFilters: DiscoverFilters = {
 };
 
 const ANYWHERE_DISTANCE_KM = 10000;
+const DISTANCE_OPTIONS_KM = [1, 5, 10, 25, 50, 100, 250, 500, 10000];
 const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"];
 
 function formatDistanceLabel(distance: number) {
@@ -141,25 +142,22 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
         {active === "distance" && (
           <div className="space-y-4">
             <p className="text-sm font-semibold text-foreground">Max Distance</p>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
               <span>1 km</span>
               <span className="font-semibold text-rose-500">{formatDistanceLabel(filters.maxDistance)}</span>
-              <span>Anywhere</span>
             </div>
             <input
               type="range"
               aria-label="Maximum distance"
-              value={filters.maxDistance}
-              onChange={(e) => update("maxDistance", Number(e.target.value))}
-              min={1}
-              max={ANYWHERE_DISTANCE_KM}
+              value={Math.max(0, DISTANCE_OPTIONS_KM.indexOf(filters.maxDistance))}
+              onChange={(e) => update("maxDistance", DISTANCE_OPTIONS_KM[Number(e.target.value)])}
+              min={0}
+              max={DISTANCE_OPTIONS_KM.length - 1}
               step={1}
               className="h-2 w-full accent-rose-600"
             />
             <p className="text-[10px] text-muted-foreground">
-              {effectiveMaxDistance > filters.maxDistance
-                ? `No one found nearby, auto-expanded to ${formatDistanceLabel(effectiveMaxDistance)}.`
-                : `Showing profiles within ${formatDistanceLabel(filters.maxDistance)}.`}
+              Showing profiles within {formatDistanceLabel(filters.maxDistance)}.
             </p>
           </div>
         )}

@@ -9,11 +9,12 @@ type DiscoveryRequestFilters = {
   ageMin?: number;
   ageMax?: number;
   goals?: string[];
+  maxDistance?: number;
   limit?: number;
 };
 
 export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
-  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}:${filters.interestedIn || "everyone"}:${(filters.goals || []).join(",")}:${filters.limit || ""}`;
+  const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}:${filters.interestedIn || "everyone"}:${(filters.goals || []).join(",")}:${filters.maxDistance ?? ""}:${filters.limit || ""}`;
   const storageKey = `connect-love:discovery:${filterKey}`;
   const [profiles, setProfiles] = useState<any[]>(() => {
     if (typeof window === "undefined") return [];
@@ -101,7 +102,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [filterKey, filters.ageMax, filters.ageMin, filters.goals, filters.interestedIn, filters.limit, filters.search, profiles.length, storageKey, token]);
+  }, [filterKey, filters.ageMax, filters.ageMin, filters.goals, filters.interestedIn, filters.limit, filters.maxDistance, filters.search, profiles.length, storageKey, token]);
 
   useEffect(() => {
     const controller = new AbortController();
