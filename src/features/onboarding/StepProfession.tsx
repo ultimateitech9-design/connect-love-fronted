@@ -40,8 +40,15 @@ export function StepProfession({ profile, onNext }: { profile: any; onNext: (val
 
   const suggestions = useMemo(() => {
     const query = value.trim().toLocaleLowerCase();
-    if (!query) return [];
-    return PROFESSION_OPTIONS.filter((option) => option.toLocaleLowerCase().includes(query)).slice(0, 16);
+    if (!query) return PROFESSION_OPTIONS;
+    return PROFESSION_OPTIONS
+      .filter((option) => option.toLocaleLowerCase().includes(query))
+      .sort((left, right) => {
+        const leftStartsWith = left.toLocaleLowerCase().startsWith(query);
+        const rightStartsWith = right.toLocaleLowerCase().startsWith(query);
+        if (leftStartsWith !== rightStartsWith) return leftStartsWith ? -1 : 1;
+        return left.localeCompare(right);
+      });
   }, [value]);
 
   const selectProfession = (profession: string) => {
@@ -95,8 +102,8 @@ export function StepProfession({ profile, onNext }: { profile: any; onNext: (val
             <Check className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-emerald-400" />
           )}
 
-          {showSuggestions && value.trim() && suggestions.length > 0 && !selectedProfession && (
-            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30 max-h-60 overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-xl">
+          {showSuggestions && suggestions.length > 0 && !selectedProfession && (
+            <div className="relative z-30 mt-2 max-h-[min(45dvh,22rem)] overscroll-contain overflow-y-auto rounded-2xl border border-white/10 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-xl sm:absolute sm:left-0 sm:right-0 sm:top-[calc(100%+0.5rem)] sm:mt-0 sm:max-h-60">
               {suggestions.map((option) => (
                 <button
                   key={option}

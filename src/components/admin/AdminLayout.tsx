@@ -98,7 +98,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <BrandLogo className="h-10 w-10" />
           <div className={cn("flex flex-col min-w-[0px] transition-all duration-200", sidebarOpen ? "opacity-100" : "w-0 overflow-hidden opacity-0")}>
             <h1 className="font-extrabold text-xl leading-none tracking-tight truncate">
-              <span className="text-slate-950">Connect</span><span className="text-rose-500">Love</span>
+              <span className="text-black">Connect</span><span className="text-rose-500">Love</span>
             </h1>
             <p className="text-[11px] text-muted-foreground uppercase tracking-wider mt-1 truncate">Super Admin Panel</p>
           </div>
@@ -188,7 +188,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <div className="flex min-w-0 items-center gap-2 lg:hidden">
             <BrandLogo className="h-8 w-8" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-black text-slate-950">Connect<span className="text-rose-500">Love</span></p>
+              <p className="truncate text-sm font-black text-black">Connect<span className="text-rose-500">Love</span></p>
               <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Super Admin</p>
             </div>
           </div>
@@ -220,7 +220,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex min-w-0 items-center gap-3">
                   <BrandLogo className="h-10 w-10" />
                   <div className="min-w-0">
-                    <p className="truncate text-lg font-black text-slate-950">Connect<span className="text-rose-500">Love</span></p>
+                    <p className="truncate text-lg font-black text-black">Connect<span className="text-rose-500">Love</span></p>
                     <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Super Admin Panel</p>
                   </div>
                 </div>

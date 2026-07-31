@@ -28,3 +28,30 @@ Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
 Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
 [browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
 [browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
+[browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Uncaught Error: Internal Next.js error: Router action dispatched before initialization.
+    at dispatchAppRouterAction (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:916:37)
+    at <unknown> (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:11823:61)
+    at startTransition (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:1279:31)
+    at Object.hmrRefresh (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:11822:40)
+    at <unknown> (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13990:64)
+    at startTransition (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:1279:31)
+    at processMessage (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13989:44)
+    at WebSocket.handleMessage (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13358:52)
+Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
+[browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
+Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)

@@ -6,6 +6,7 @@ import { SessionProvider } from "@/components/SessionProvider";
 import { RouteQueryProvider } from "@/components/RouteQueryProvider";
 import { TranslationProvider } from "@/features/i18n/TranslationProvider";
 import { DeferredAuthPrompt } from "@/components/DeferredAuthPrompt";
+import { MaintenanceGuard } from "@/components/MaintenanceGuard";
 import {
   createPublicMetadata,
   HOME_DESCRIPTION,
@@ -146,8 +147,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <RouteQueryProvider>
           <TranslationProvider>
             <SessionProvider>
-              {children}
-              <DeferredAuthPrompt />
+              <MaintenanceGuard>
+                {children}
+                <DeferredAuthPrompt />
+              </MaintenanceGuard>
             </SessionProvider>
           </TranslationProvider>
         </RouteQueryProvider>

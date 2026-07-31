@@ -26,6 +26,57 @@ const minimumAgeDate = () => {
 
 const isAtLeast18 = (birthDate: string) => Boolean(birthDate) && birthDate <= minimumAgeDate();
 
+const uniqueLocationParts = (parts: unknown[]) => {
+  const seen = new Set<string>();
+  return parts
+    .map((part) => String(part || "").trim())
+    .filter((part) => {
+      const key = part.toLocaleLowerCase();
+      if (!part || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+};
+
+async function reverseGeocodeExact(latitude: number, longitude: number) {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=en`,
+      { headers: { Accept: "application/json" } },
+    );
+    if (response.ok) {
+      const place = await response.json();
+      const address = place?.address || {};
+      const parts = uniqueLocationParts([
+        address.neighbourhood,
+        address.suburb,
+        address.quarter,
+        address.residential,
+        address.city_district,
+        address.village,
+        address.town,
+        address.city,
+        address.county,
+        address.state,
+      ]);
+      if (parts.length) return parts.join(", ").slice(0, 150);
+    }
+  } catch {}
+
+  const response = await fetch(
+    `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
+  );
+  if (!response.ok) throw new Error("Could not resolve GPS locality.");
+  const place = await response.json();
+  const parts = uniqueLocationParts([
+    place.locality,
+    place.city,
+    place.localityInfo?.informative?.[0]?.name,
+    place.principalSubdivision,
+  ]);
+  return (parts.join(", ") || String(place.countryName || "").trim()).slice(0, 150);
+}
+
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Enter a valid email address"),
@@ -109,25 +160,16 @@ export default function RegisterPage() {
         setCoords(nextCoords);
 
         try {
-          const res = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${nextCoords.latitude}&longitude=${nextCoords.longitude}&localityLanguage=en`,
-          );
-          const place = await res.json();
-          const locationParts = [
-            place.locality,
-            place.city,
-            place.principalSubdivision,
-          ].filter((part, index, parts) => part && parts.indexOf(part) === index);
-          const locationName = locationParts.join(", ") || place.countryName;
+          const locationName = await reverseGeocodeExact(nextCoords.latitude, nextCoords.longitude);
 
           if (locationName) {
             setValue("city", locationName, { shouldDirty: true, shouldValidate: true });
-            setLocationStatus("Location saved with this signup.");
+            setLocationStatus(`Exact GPS locality saved (accuracy ±${Math.round(position.coords.accuracy)} m).`);
           } else {
-            setLocationStatus("Location saved. Please enter your city.");
+            setLocationStatus("GPS coordinates saved. Please confirm your locality.");
           }
         } catch {
-          setLocationStatus("Location saved. Please enter your city.");
+          setLocationStatus("GPS coordinates saved. Please confirm your locality.");
         } finally {
           setDetectingLocation(false);
         }
@@ -136,7 +178,7 @@ export default function RegisterPage() {
         setDetectingLocation(false);
         setLocationStatus("Location permission was not allowed. You can still enter your city.");
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
     );
   };
 

@@ -211,15 +211,18 @@ export default function MatchesDashboard() {
    </div>
 
    <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as "active" | "pending" | "blocked")} className="w-full">
-     <TabsList className="mb-6 inline-flex h-auto rounded-full bg-slate-100 p-1 text-slate-500">
-       <TabsTrigger value="active" className="rounded-full px-5 py-2 text-sm data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm transition-all">
-         Active Matches ({activeMatches.length})
+     <TabsList className="mb-6 grid h-auto w-full grid-cols-3 rounded-2xl bg-slate-100 p-1 text-slate-500 sm:inline-grid sm:w-auto sm:rounded-full">
+       <TabsTrigger value="active" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
+         <span className="sm:hidden">Active ({activeMatches.length})</span>
+         <span className="hidden sm:inline">Active Matches ({activeMatches.length})</span>
        </TabsTrigger>
-       <TabsTrigger value="pending" className="rounded-full px-5 py-2 text-sm data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm transition-all">
-         Pending Requests ({totalPending})
+       <TabsTrigger value="pending" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
+         <span className="sm:hidden">Pending ({totalPending})</span>
+         <span className="hidden sm:inline">Pending Requests ({totalPending})</span>
        </TabsTrigger>
-       <TabsTrigger value="blocked" className="rounded-full px-5 py-2 text-sm data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm transition-all">
-         Blocked Users ({blockedUsers.length})
+       <TabsTrigger value="blocked" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
+         <span className="sm:hidden">Blocked ({blockedUsers.length})</span>
+         <span className="hidden sm:inline">Blocked Users ({blockedUsers.length})</span>
        </TabsTrigger>
      </TabsList>
 

@@ -89,15 +89,13 @@ export function StepTags({
 
   const handleAdd = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (isPersonality && suggestions.length === 0) return;
-    addTag(isPersonality && suggestions.length > 0 ? suggestions[0] : inputValue);
+    addTag(inputValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      if (isPersonality && suggestions.length === 0) return;
-      addTag(isPersonality && suggestions.length > 0 ? suggestions[0] : inputValue);
+      addTag(inputValue);
     }
   };
 
@@ -166,7 +164,7 @@ export function StepTags({
               placeholder={limitReached ? "Maximum 5 interests selected" : placeholders[type]}
               className="h-12 rounded-xl border-white/10 bg-black/50 text-white placeholder:text-slate-500 focus-visible:ring-rose-500 disabled:cursor-not-allowed disabled:opacity-60"
             />
-            <Button onClick={handleAdd} type="button" disabled={!inputValue.trim() || limitReached || (isPersonality && suggestions.length === 0)} className="h-12 rounded-xl bg-white/10 px-6 text-white hover:bg-white/20">
+            <Button onClick={handleAdd} type="button" disabled={!inputValue.trim() || limitReached} className="h-12 rounded-xl bg-white/10 px-6 text-white hover:bg-white/20">
               Add
             </Button>
           </div>
@@ -185,7 +183,7 @@ export function StepTags({
 
           {(isInterests || isPersonality) && inputValue.trim() && suggestions.length === 0 && !limitReached && (
             <p className="mt-3 text-sm text-slate-500">
-              {isPersonality ? "No matching personality keyword found." : "No matching suggestion. Press Enter or Add to use your own interest."}
+              No matching suggestion. Press Enter or Add to use your own {isPersonality ? "personality tag" : "interest"}.
             </p>
           )}
         </div>
