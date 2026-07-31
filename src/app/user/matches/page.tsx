@@ -164,8 +164,12 @@ export default function MatchesDashboard() {
      toast.success(`It's a Match! You and ${profileName} are now connected.`);
      await fetchMatches(false);
    } catch (error) {
-     console.error("Failed to accept match", error);
-     toast.error(error instanceof Error ? error.message : "Could not accept this match request.");
+     const message = error instanceof TypeError
+       ? "Server se connection nahi ho pa raha. Please try again."
+       : error instanceof Error
+         ? error.message
+         : "Could not accept this match request.";
+     toast.error(message);
    } finally {
      setAcceptingRequestId(null);
    }

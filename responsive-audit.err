@@ -55,3 +55,15 @@ Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (f
 [browser] Image with src "/hero-couple.webp" is using quality "72" which is not configured in images.qualities [75]. Please update your config to [72, 75].
 Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
 [browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2477:13)
+[browser] Failed to accept match TypeError: Failed to fetch
+    at handleAcceptMatch (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/src_0zb_bpv._.js:326:36)
+    at onClick (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/src_0zb_bpv._.js:1110:74)
+    at executeDispatch (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at <unknown> (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13)
+    at batchedUpdates$1 (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64) (file://C:/Users/User/Desktop/Dating App/connect-love-fronted/.next/dev/static/chunks/src_0zb_bpv._.js:345:21)

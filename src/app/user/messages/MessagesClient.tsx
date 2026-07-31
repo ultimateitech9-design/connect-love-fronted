@@ -101,7 +101,8 @@ function ContextMenuTrigger({ children, openOnClick = true }: { asChild?: boolea
 
   if (!context || !isValidElement(children)) return <>{children}</>;
   const child = children as any;
-  const openMenu = (x: number, y: number, element: HTMLElement) => {
+  const openMenu = (x: number, y: number, element: HTMLElement | null) => {
+    if (!element?.isConnected) return;
     const rect = element.getBoundingClientRect();
     context.setMenu({
       open: true,
@@ -122,10 +123,12 @@ function ContextMenuTrigger({ children, openOnClick = true }: { asChild?: boolea
       child.props.onPointerDown?.(event);
       if (event.button !== 0) return;
       cancelLongPress();
-      pressStartRef.current = { x: event.clientX, y: event.clientY };
+      const { clientX, clientY } = event;
+      const element = event.currentTarget as HTMLElement;
+      pressStartRef.current = { x: clientX, y: clientY };
       longPressTimerRef.current = setTimeout(() => {
         suppressNextClickRef.current = true;
-        openMenu(event.clientX, event.clientY, event.currentTarget as HTMLElement);
+        openMenu(clientX, clientY, element);
         if (navigator.vibrate) navigator.vibrate(25);
         longPressTimerRef.current = null;
       }, 500);
