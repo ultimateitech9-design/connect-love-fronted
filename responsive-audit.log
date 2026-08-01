@@ -188,3 +188,46 @@ Creating turbopack project {
  GET /user/matches 200 in 4.0s (next.js: 1563ms, proxy.ts: 1183ms, application-code: 1235ms)
  GET /manifest.webmanifest 200 in 308ms (next.js: 220ms, application-code: 88ms)
 ✓ Compiled in 4.6s
+ GET /manifest.webmanifest 200 in 555ms (next.js: 530ms, application-code: 25ms)
+ GET / 200 in 3.1s (next.js: 1059ms, application-code: 2.0s)
+ GET /login 200 in 355ms (next.js: 294ms, application-code: 62ms)
+ GET /login 200 in 368ms (next.js: 45ms, application-code: 323ms)
+ GET /manifest.webmanifest 200 in 13ms (next.js: 4ms, application-code: 9ms)
+ GET / 200 in 262ms (next.js: 14ms, application-code: 247ms)
+ GET /manifest.webmanifest 200 in 15ms (next.js: 4ms, application-code: 11ms)
+○ Compiling /user ...
+ GET /user 200 in 17.5s (next.js: 17.4s, proxy.ts: 66ms, application-code: 70ms)
+ GET /manifest.webmanifest 200 in 19ms (next.js: 9ms, application-code: 10ms)
+ GET /user/messages 200 in 321ms (next.js: 214ms, proxy.ts: 10ms, application-code: 98ms)
+ GET /manifest.webmanifest 200 in 36ms (next.js: 13ms, application-code: 23ms)
+ GET /user/discover 200 in 430ms (next.js: 325ms, proxy.ts: 16ms, application-code: 90ms)
+ GET /manifest.webmanifest 200 in 28ms (next.js: 16ms, application-code: 12ms)
+ GET /manifest.webmanifest 200 in 24ms (next.js: 13ms, application-code: 11ms)
+ GET /user/matches 200 in 268ms (next.js: 190ms, proxy.ts: 9ms, application-code: 69ms)
+ GET /manifest.webmanifest 200 in 29ms (next.js: 9ms, application-code: 20ms)
+ GET /user/messages 200 in 239ms (next.js: 14ms, proxy.ts: 6ms, application-code: 219ms)
+ GET /manifest.webmanifest 200 in 39ms (next.js: 19ms, application-code: 20ms)
+✓ Compiled in 8.2s
+ GET /user/messages 200 in 1497ms (next.js: 677ms, proxy.ts: 205ms, application-code: 614ms)
+ GET /manifest.webmanifest 200 in 214ms (next.js: 177ms, application-code: 38ms)
+✓ Compiled in 5.5s
+ GET /user/messages 200 in 3.7s (next.js: 1867ms, proxy.ts: 455ms, application-code: 1417ms)
+ GET /manifest.webmanifest 200 in 679ms (next.js: 483ms, application-code: 196ms)
+✓ Compiled in 548ms
+ GET /user/messages 200 in 762ms (next.js: 334ms, proxy.ts: 138ms, application-code: 290ms)
+ GET /manifest.webmanifest 200 in 80ms (next.js: 65ms, application-code: 15ms)
+✓ Compiled in 489ms
+✓ Compiled in 540ms
+ GET /user/messages 200 in 2.6s (next.js: 907ms, proxy.ts: 604ms, application-code: 1081ms)
+ GET /manifest.webmanifest 200 in 564ms (next.js: 504ms, application-code: 60ms)
+ GET /user/discover 200 in 309ms (next.js: 244ms, proxy.ts: 9ms, application-code: 56ms)
+ GET /manifest.webmanifest 200 in 41ms (next.js: 9ms, application-code: 32ms)
+ GET /user/discover 200 in 397ms (next.js: 7ms, proxy.ts: 5ms, application-code: 385ms)
+ GET /user/discover 200 in 158ms (next.js: 13ms, proxy.ts: 6ms, application-code: 140ms)
+ GET /manifest.webmanifest 200 in 17ms (next.js: 9ms, application-code: 8ms)
+✓ Compiled in 2.9s
+ GET /user/discover 200 in 5.3s (next.js: 2.8s, proxy.ts: 1538ms, application-code: 945ms)
+ GET /manifest.webmanifest 200 in 653ms (next.js: 508ms, application-code: 145ms)
+✓ Compiled in 688ms
+ GET /user/discover 200 in 1942ms (next.js: 1473ms, proxy.ts: 233ms, application-code: 236ms)
+ GET /manifest.webmanifest 200 in 1844ms (next.js: 1715ms, application-code: 130ms)
