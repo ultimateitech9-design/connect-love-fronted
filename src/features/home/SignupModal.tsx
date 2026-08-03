@@ -15,16 +15,6 @@ import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options
 
 const API_BASE = API_ORIGIN;
 
-const minimumAgeDate = () => {
- const date = new Date();
- date.setFullYear(date.getFullYear() - 18);
- return [
- date.getFullYear(),
- String(date.getMonth() + 1).padStart(2, "0"),
- String(date.getDate()).padStart(2, "0"),
- ].join("-");
-};
-
 const signupSchema = z.object({
  name: z.string().min(2, "Name must be at least 2 characters"),
  email: z.string().email("Enter a valid email address"),
@@ -33,9 +23,6 @@ const signupSchema = z.object({
  .min(8, "Password must be at least 8 characters")
  .regex(/[A-Z]/, "Must contain an uppercase letter")
  .regex(/[0-9]/, "Must contain a number"),
- birthDate: z.string()
- .min(1, "Date of birth is required")
- .refine((value) => Boolean(value) && value <= minimumAgeDate(), "You must be at least 18 years old to create an account"),
  gender: z.string().min(1, "Please select a gender"),
  agreeTerms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms" }) }),
 });
@@ -76,7 +63,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  const regRes = await fetch(`${API_BASE}/auth/register`, {
  method: "POST",
  headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ name: data.name, email: data.email, password: data.password, birthDate: data.birthDate, gender: data.gender }),
+ body: JSON.stringify({ name: data.name, email: data.email, password: data.password, gender: data.gender }),
  });
  if (!regRes.ok) {
  const body = await regRes.json();
@@ -171,7 +158,6 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  <div className="mb-4 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-600">{error}</div>
  )}
  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
- <div className="grid sm:grid-cols-2 gap-4">
  <div>
  <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
  <input
@@ -184,21 +170,6 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
  />
  {errors.name && <p className="mt-1 text-xs text-rose-500">{errors.name.message}</p>}
- </div>
- <div>
- <label className="block text-sm font-medium text-slate-700 mb-1.5">Date of Birth</label>
- <input
- name={register("birthDate").name}
- onChange={register("birthDate").onChange}
- onBlur={register("birthDate").onBlur}
- ref={register("birthDate").ref}
- id="signup-dob"
- type="date"
- max={minimumAgeDate()}
- className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
- />
- {errors.birthDate && <p className="mt-1 text-xs text-rose-500">{errors.birthDate.message}</p>}
- </div>
  </div>
 
  <div>
