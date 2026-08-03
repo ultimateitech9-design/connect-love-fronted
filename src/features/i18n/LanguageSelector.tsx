@@ -41,7 +41,7 @@ export function LanguageSelector() {
             <Globe2 className="h-5 w-5" />
           </span>
           <span className="min-w-0">
-            <span className="block text-sm font-semibold text-foreground">Language: {selected.nativeName}</span>
+            <span translate="no" className="notranslate block text-sm font-semibold text-foreground">Language: {selected.nativeName}</span>
             <span className="mt-0.5 block text-xs text-muted-foreground">Change the language across ConnectLove.</span>
           </span>
         </span>
@@ -81,8 +81,9 @@ export function LanguageSelector() {
                   <button
                     type="button"
                     key={language.code}
+                    translate="no"
                     onClick={() => chooseLanguage(language.code)}
-                    className={`flex min-h-14 items-center justify-between rounded-xl border px-4 py-3 text-left transition ${active ? "border-rose-400 bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-950/30" : "border-border bg-card text-foreground hover:border-rose-200 hover:bg-rose-50/50 dark:hover:bg-rose-950/20"}`}
+                    className={`notranslate flex min-h-14 items-center justify-between rounded-xl border px-4 py-3 text-left transition ${active ? "border-rose-400 bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-950/30" : "border-border bg-card text-foreground hover:border-rose-200 hover:bg-rose-50/50 dark:hover:bg-rose-950/20"}`}
                   >
                     <span>
                       <span className="block text-sm font-semibold">{language.nativeName}</span>

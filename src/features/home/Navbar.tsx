@@ -9,6 +9,7 @@ import { isAuthenticated } from "@/lib/auth";
 import { navLinks } from "./marketingPages";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
 import { getStoredTheme, type AppTheme } from "@/features/theme/theme";
+import { HeaderLanguageDropdown } from "@/features/i18n/HeaderLanguageDropdown";
 
 interface NavbarProps {
  onLoginClick?: () => void;
@@ -136,6 +137,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
 
         {/* Desktop actions */}
         <div className="hidden items-center gap-3 lg:flex">
+          <HeaderLanguageDropdown />
           <ThemeToggle className="dark:bg-slate-900" />
           {loggedIn ? (
             <Link
@@ -219,6 +221,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
             ))}
           </nav>
             <div className="flex shrink-0 flex-col gap-3 border-t border-slate-100 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 dark:border-white/10">
+              <HeaderLanguageDropdown mobile />
               {loggedIn ? (
                 <Link
                   href="/user"

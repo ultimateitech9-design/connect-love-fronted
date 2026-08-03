@@ -154,9 +154,17 @@ export default function MatchesDashboard() {
     }
  };
 
- const handleAcceptMatch = async (matchId: string, profileName: string) => {
+ const handleAcceptMatch = async (match: DBMatch, profileName: string) => {
    if (acceptingRequestId) return;
+   const matchId = match.id;
+   const activeMatch = { ...match, status: "MATCHED" as MatchStatus };
    setAcceptingRequestId(matchId);
+   // Make the interaction instant. Roll back below only if the server rejects it.
+   setReceivedLikes(prev => prev.filter(item => item.id !== matchId));
+   setActiveMatches(prev => prev.some(item => item.id === matchId) ? prev : [activeMatch, ...prev]);
+   if (matchesMemoryCache) {
+     matchesMemoryCache = matchesMemoryCache.map(item => item.id === matchId ? activeMatch : item);
+   }
    try {
      const response = await apiFetch("/matches/respond", {
        method: "POST",
@@ -167,10 +175,13 @@ export default function MatchesDashboard() {
        const data = await response.json().catch(() => null);
        throw new Error(data?.message || "Could not accept this match request.");
      }
-     setReceivedLikes(prev => prev.filter(m => m.id !== matchId));
      toast.success(`It's a Match! You and ${profileName} are now connected.`);
-     await fetchMatches(false);
    } catch (error) {
+     setActiveMatches(prev => prev.filter(item => item.id !== matchId));
+     setReceivedLikes(prev => prev.some(item => item.id === matchId) ? prev : [match, ...prev]);
+     if (matchesMemoryCache) {
+       matchesMemoryCache = matchesMemoryCache.map(item => item.id === matchId ? match : item);
+     }
      const message = error instanceof TypeError
        ? "Server se connection nahi ho pa raha. Please try again."
        : error instanceof Error
@@ -370,7 +381,7 @@ export default function MatchesDashboard() {
                  </div>
                  <p className="relative z-10 mt-4 line-clamp-2 text-sm text-slate-500">{profile.bio}</p>
                  <div className="relative z-10 mt-5 flex gap-2">
-                   <Button disabled={acceptingRequestId !== null} className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" : "bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90")} onClick={() => handleAcceptMatch(m.id, profile.name)}>
+                   <Button disabled={acceptingRequestId !== null} className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" : "bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90")} onClick={() => handleAcceptMatch(m, profile.name)}>
                      {acceptingRequestId === m.id ? "Matching..." : "Match"}
                    </Button>
                    <Button variant="outline" className="rounded-full border-slate-200 text-slate-400 hover:text-red-500 shrink-0" onClick={() => handlePassMatch(m.id)}>

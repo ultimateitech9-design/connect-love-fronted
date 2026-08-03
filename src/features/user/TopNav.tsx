@@ -14,6 +14,7 @@ import { useMatches } from "@/hooks/useMatches";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
 import { useQueryClient } from "@tanstack/react-query";
+import { HeaderLanguageDropdown } from "@/features/i18n/HeaderLanguageDropdown";
 
 const API = API_ORIGIN;
 
@@ -265,6 +266,8 @@ export function TopNav() {
 
  {/* Right icons */}
  <div className="flex min-w-0 items-center gap-1 min-[380px]:gap-2 sm:gap-3">
+ <div className="sm:hidden"><HeaderLanguageDropdown compact /></div>
+ <div className="hidden sm:block"><HeaderLanguageDropdown /></div>
  <ThemeToggle className="h-8 w-8 sm:h-9 sm:w-9" />
  {/* Notification Bell */}
  <div className="relative" ref={notifRef}>
