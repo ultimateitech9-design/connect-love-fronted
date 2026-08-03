@@ -280,7 +280,7 @@ export default function User360Page() {
  <div className="border-b border-border p-4">
  <div className="relative">
  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
- <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search ID, name or email..." className="h-10 w-full rounded-full border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-rose-400" />
+ <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search ID, name or email..." className="h-10 w-full rounded-full border border-border bg-background pl-9 pr-3 text-sm text-slate-900 caret-rose-500 outline-none placeholder:text-slate-400 focus:border-rose-400" />
  </div>
  <p className="mt-3 text-xs font-semibold text-muted-foreground">{totalUsers} users</p>
  </div>
