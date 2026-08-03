@@ -54,8 +54,9 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
   for (const origin of origins) {
     try {
       const response = await fetch(`${origin}${normalizedPath}`, init);
-      if (response.status !== 404 || origin === origins[origins.length - 1]) return response;
-      lastError = new Error(`API route not found at ${origin}${normalizedPath}`);
+      const retryableGatewayError = [404, 502, 503, 504].includes(response.status);
+      if (!retryableGatewayError || origin === origins[origins.length - 1]) return response;
+      lastError = new Error(`API unavailable at ${origin}${normalizedPath} (${response.status})`);
     } catch (error) {
       lastError = error;
     }

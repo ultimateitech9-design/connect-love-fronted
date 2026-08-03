@@ -1,5 +1,5 @@
 "use client";
-import { API_ORIGIN } from "@/config/runtime";
+import { apiFetch } from "@/config/runtime";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -14,7 +14,6 @@ import { motion } from "framer-motion";
 
 type MatchStatus = "PENDING" | "MATCHED" | "DECLINED" | "BLOCKED";
 type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; createdAt?: string };
-const API_URL = API_ORIGIN;
 const MATCHES_CACHE_KEY = "connectlove:matches";
 
 async function readMatches(res: Response): Promise<DBMatch[]> {
@@ -94,7 +93,7 @@ export default function MatchesDashboard() {
    setFetchError(false);
    try {
      if (!token) return;
-     const response = await fetch(`${API_URL}/matches`, { headers: { Authorization: `Bearer ${token}` } });
+     const response = await apiFetch("/matches", { headers: { Authorization: `Bearer ${token}` } });
      const matches = await readMatches(response);
      applyMatches(matches, currentUserId);
      sessionStorage.setItem(MATCHES_CACHE_KEY, JSON.stringify(matches));
@@ -112,7 +111,7 @@ export default function MatchesDashboard() {
 
  const handleBlock = async (id: string) => {
    try {
-     await fetch(`${API_URL}/matches/block/${id}`, {
+     await apiFetch(`/matches/block/${id}`, {
        method: "PATCH",
        headers: { "Authorization": `Bearer ${getToken()}` },
      });
@@ -125,7 +124,7 @@ export default function MatchesDashboard() {
 
  const handleUnblock = async (id: string) => {
    try {
-     await fetch(`${API_URL}/matches/unblock/${id}`, {
+     await apiFetch(`/matches/unblock/${id}`, {
        method: "PATCH",
        headers: { "Authorization": `Bearer ${getToken()}` },
      });
@@ -140,7 +139,7 @@ export default function MatchesDashboard() {
     if (deletingRequestId) return;
     setDeletingRequestId(id);
     try {
-      const response = await fetch(`${API_URL}/matches/pending/${id}`, {
+      const response = await apiFetch(`/matches/pending/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${getToken()}` },
       });
@@ -162,7 +161,7 @@ export default function MatchesDashboard() {
    if (acceptingRequestId) return;
    setAcceptingRequestId(matchId);
    try {
-     const response = await fetch(`${API_URL}/matches/respond`, {
+     const response = await apiFetch("/matches/respond", {
        method: "POST",
        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
        body: JSON.stringify({ matchId, action: "accept" }),
@@ -188,7 +187,7 @@ export default function MatchesDashboard() {
 
  const handlePassMatch = async (matchId: string) => {
    try {
-     await fetch(`${API_URL}/matches/respond`, {
+     await apiFetch("/matches/respond", {
        method: "POST",
        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
        body: JSON.stringify({ matchId, action: "decline" }),

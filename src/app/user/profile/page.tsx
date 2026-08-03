@@ -1,5 +1,5 @@
 "use client";
-import { API_ORIGIN } from "@/config/runtime";
+import { apiFetch } from "@/config/runtime";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
 
-const API = API_ORIGIN;
 const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"] as const;
 const ZODIAC_SIGNS = [
  { sign: "Capricorn", emoji: "♑", from: 1222 }, { sign: "Aquarius", emoji: "♒", from: 120 },
@@ -106,7 +105,7 @@ export default function ProfilePage() {
  // Load cached avatar immediately so UI doesn't flash
  const cachedAvatar = localStorage.getItem(AVATAR_KEY);
 
- fetch(`${API}/users/me`, {
+ apiFetch("/users/me", {
  headers: { Authorization: `Bearer ${token}` },
  })
  .then((r) => {
@@ -148,7 +147,7 @@ export default function ProfilePage() {
  useEffect(() => {
  const token = getToken();
  if (!token) return;
- fetch(`${API}/users/me/insights`, {
+ apiFetch("/users/me/insights", {
  headers: { Authorization: `Bearer ${token}` },
  })
  .then((response) => {
@@ -212,7 +211,7 @@ export default function ProfilePage() {
         bio: profile.bio,
       };
 
- const res = await fetch(`${API}/users/me`, {
+ const res = await apiFetch("/users/me", {
  method: "PATCH",
  headers: {
  "Content-Type": "application/json",
@@ -264,7 +263,7 @@ export default function ProfilePage() {
     if (token) {
       setPhotoSaving(true);
       try {
-        const res = await fetch(`${API}/user/profile/photos`, {
+        const res = await apiFetch("/user/profile/photos", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
