@@ -33,15 +33,11 @@ const signupSchema = z.object({
  .min(8, "Password must be at least 8 characters")
  .regex(/[A-Z]/, "Must contain an uppercase letter")
  .regex(/[0-9]/, "Must contain a number"),
- confirmPassword: z.string(),
  birthDate: z.string()
  .min(1, "Date of birth is required")
  .refine((value) => Boolean(value) && value <= minimumAgeDate(), "You must be at least 18 years old to create an account"),
  gender: z.string().min(1, "Please select a gender"),
  agreeTerms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms" }) }),
-}).refine((d) => d.password === d.confirmPassword, {
- message: "Passwords do not match",
- path: ["confirmPassword"],
 });
 
 type SignupData = z.infer<typeof signupSchema>;
@@ -267,21 +263,6 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  </div>
  )}
  {errors.password && <p className="mt-1 text-xs text-rose-500">{errors.password.message}</p>}
- </div>
-
- <div>
- <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password</label>
- <input
- name={register("confirmPassword").name}
- onChange={register("confirmPassword").onChange}
- onBlur={register("confirmPassword").onBlur}
- ref={register("confirmPassword").ref}
- id="signup-confirm-password"
- type="password"
- placeholder="Re-enter password"
- className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
- />
- {errors.confirmPassword && <p className="mt-1 text-xs text-rose-500">{errors.confirmPassword.message}</p>}
  </div>
 
  <div className="flex items-start gap-3 pt-1">
