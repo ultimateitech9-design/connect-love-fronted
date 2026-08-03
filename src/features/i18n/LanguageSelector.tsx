@@ -2,16 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { Check, ChevronRight, Globe2, Search, X } from "lucide-react";
-import { useSettings } from "@/features/user/SettingsContext";
+import { useOptionalSettings } from "@/features/user/SettingsContext";
 import { APP_LANGUAGES, findLanguage } from "./languages";
 import { LANGUAGE_STORAGE_KEY, setPreferredLanguage } from "./TranslationProvider";
 
-export function LanguageSelector() {
-  const { settings, updateSetting } = useSettings();
+export function LanguageSelector({ variant = "settings" }: { variant?: "settings" | "hero" }) {
+  const settingsContext = useOptionalSettings();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const storedCode = typeof window === "undefined" ? null : localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  const selected = findLanguage(storedCode || settings.language);
+  const selected = findLanguage(storedCode || settingsContext?.settings.language || "en");
   const filtered = useMemo(() => {
     const term = query.trim().toLocaleLowerCase();
     if (!term) return APP_LANGUAGES;
@@ -25,28 +25,39 @@ export function LanguageSelector() {
       setOpen(false);
       return;
     }
-    await updateSetting("language", code);
+    await settingsContext?.updateSetting("language", code);
     setPreferredLanguage(code);
   };
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="group flex w-full items-center justify-between rounded-2xl border border-border bg-card px-5 py-4 text-left shadow-sm transition hover:border-rose-300 hover:shadow-md"
-      >
-        <span className="flex min-w-0 items-center gap-4">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/20">
-            <Globe2 className="h-5 w-5" />
+      {variant === "hero" ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="group flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-pink-300/60 bg-gradient-to-r from-rose-500 to-fuchsia-600 px-4 py-2 text-xs font-extrabold text-white shadow-lg shadow-pink-950/30 transition-all duration-300 hover:scale-105 hover:from-rose-400 hover:to-fuchsia-500 active:scale-95 sm:w-[180px]"
+        >
+          <Globe2 className="h-4 w-4 shrink-0 text-white" />
+          Choose Your Language
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="group flex w-full items-center justify-between rounded-2xl border border-border bg-card px-5 py-4 text-left shadow-sm transition hover:border-rose-300 hover:shadow-md"
+        >
+          <span className="flex min-w-0 items-center gap-4">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-500 text-white shadow-lg shadow-rose-500/20">
+              <Globe2 className="h-5 w-5" />
+            </span>
+            <span className="min-w-0">
+              <span translate="no" className="notranslate block text-sm font-semibold text-foreground">Language: {selected.nativeName}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">Change the language across ConnectLove.</span>
+            </span>
           </span>
-          <span className="min-w-0">
-            <span translate="no" className="notranslate block text-sm font-semibold text-foreground">Language: {selected.nativeName}</span>
-            <span className="mt-0.5 block text-xs text-muted-foreground">Change the language across ConnectLove.</span>
-          </span>
-        </span>
-        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-rose-500" />
-      </button>
+          <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-rose-500" />
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-[200] flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label="Select language">

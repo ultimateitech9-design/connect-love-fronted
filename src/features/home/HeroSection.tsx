@@ -4,6 +4,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Play, Star, X, Heart } from "lucide-react";
+import { LanguageSelector } from "@/features/i18n/LanguageSelector";
 
 interface HeroSectionProps {
   onSignupClick?: () => void;
@@ -111,7 +112,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
               and safety over superficial swiping.
             </p>
 
-            <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
+            <div className="mt-8 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
               <button
                 id="hero-getstarted-btn"
                 onClick={() => {
@@ -140,6 +141,7 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
                 </span>
                 Watch our Story
               </button>
+              <LanguageSelector variant="hero" />
             </div>
           </div>
 

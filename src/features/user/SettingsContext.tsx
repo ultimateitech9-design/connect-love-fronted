@@ -125,3 +125,7 @@ export function useSettings() {
  if (!ctx) throw new Error("useSettings must be used within SettingsProvider");
  return ctx;
 }
+
+export function useOptionalSettings() {
+ return useContext(SettingsContext);
+}
