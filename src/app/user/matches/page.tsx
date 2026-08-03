@@ -90,10 +90,25 @@ export default function MatchesDashboard() {
    setFetchError(false);
    try {
      if (!token) return;
-     const response = await apiFetch("/matches", { headers: { Authorization: `Bearer ${token}` } });
-     const matches = await readMatches(response);
-     applyMatches(matches, currentUserId);
-     matchesMemoryCache = matches;
+     // Active matches are the default view, so render them first instead of
+     // blocking the page on every pending/blocked profile and its photo.
+     const activeResponse = await apiFetch("/matches?filter=active", { headers: { Authorization: `Bearer ${token}` } });
+     const active = await readMatches(activeResponse);
+     setActiveMatches(active);
+     if (showLoading) setIsLoading(false);
+
+     void Promise.all([
+       apiFetch("/matches?filter=sent", { headers: { Authorization: `Bearer ${token}` } }).then(readMatches),
+       apiFetch("/matches?filter=received", { headers: { Authorization: `Bearer ${token}` } }).then(readMatches),
+       apiFetch("/matches?filter=blocked", { headers: { Authorization: `Bearer ${token}` } }).then(readMatches),
+     ]).then(([sent, received, blocked]) => {
+       setSentLikes(sent);
+       setReceivedLikes(received);
+       setBlockedUsers(blocked);
+       matchesMemoryCache = [...active, ...sent, ...received, ...blocked];
+     }).catch((error) => {
+       console.error("Failed to load secondary match lists", error);
+     });
    } catch (error) {
      console.error("Failed to load matches", error);
      setFetchError(true);
