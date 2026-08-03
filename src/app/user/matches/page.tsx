@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 type MatchStatus = "PENDING" | "MATCHED" | "DECLINED" | "BLOCKED";
 type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; createdAt?: string };
 const API_URL = API_ORIGIN;
+const MATCHES_CACHE_KEY = "connectlove:matches";
 
 async function readMatches(res: Response): Promise<DBMatch[]> {
  if (!res.ok) {
@@ -37,6 +38,13 @@ export default function MatchesDashboard() {
  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
  const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
  const [fetchError, setFetchError] = useState(false);
+
+ const applyMatches = (matches: DBMatch[], userId: string | null) => {
+   setActiveMatches(matches.filter((match) => match.status === "MATCHED"));
+   setSentLikes(matches.filter((match) => match.status === "PENDING" && match.senderId === userId));
+   setReceivedLikes(matches.filter((match) => match.status === "PENDING" && match.receiverId === userId));
+   setBlockedUsers(matches.filter((match) => match.status === "BLOCKED" && match.senderId === userId));
+ };
 
  useEffect(() => {
    const token = getToken();
@@ -63,30 +71,33 @@ export default function MatchesDashboard() {
  };
 
  const fetchMatches = async (showLoading = true) => {
-   if (showLoading) setIsLoading(true);
+   let currentUserId: string | null = myId;
+   const token = getToken();
+   if (token && !currentUserId) {
+     try {
+       const payload = JSON.parse(atob(token.split('.')[1]));
+       currentUserId = payload.userId || payload.sub || null;
+     } catch {}
+   }
+
+   let hasCachedMatches = false;
+   if (showLoading) {
+     try {
+       const cached = JSON.parse(sessionStorage.getItem(MATCHES_CACHE_KEY) || "null");
+       if (Array.isArray(cached)) {
+         applyMatches(cached, currentUserId);
+         hasCachedMatches = true;
+       }
+     } catch {}
+     setIsLoading(!hasCachedMatches);
+   }
    setFetchError(false);
    try {
-     const token = getToken();
      if (!token) return;
-     
-     const [activeRes, sentRes, receivedRes, blockedRes] = await Promise.all([
-       fetch(`${API_URL}/matches?filter=active`, { headers: { Authorization: `Bearer ${token}` } }),
-       fetch(`${API_URL}/matches?filter=sent`, { headers: { Authorization: `Bearer ${token}` } }),
-       fetch(`${API_URL}/matches?filter=received`, { headers: { Authorization: `Bearer ${token}` } }),
-       fetch(`${API_URL}/matches?filter=blocked`, { headers: { Authorization: `Bearer ${token}` } })
-     ]);
-
-     const [active, sent, received, blocked] = await Promise.all([
-       readMatches(activeRes),
-       readMatches(sentRes),
-       readMatches(receivedRes),
-       readMatches(blockedRes)
-     ]);
-
-     setActiveMatches(active);
-     setSentLikes(sent);
-     setReceivedLikes(received);
-     setBlockedUsers(blocked);
+     const response = await fetch(`${API_URL}/matches`, { headers: { Authorization: `Bearer ${token}` } });
+     const matches = await readMatches(response);
+     applyMatches(matches, currentUserId);
+     sessionStorage.setItem(MATCHES_CACHE_KEY, JSON.stringify(matches));
    } catch (error) {
      console.error("Failed to load matches", error);
      setFetchError(true);
@@ -195,7 +206,15 @@ export default function MatchesDashboard() {
  const superLikes = safeSentLikes.filter(m => m.isSuperLike);
  const normalSentLikes = safeSentLikes.filter(m => !m.isSuperLike);
 
- if (isLoading) return <div className="p-8 flex items-center justify-center min-h-[50vh]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500"></div></div>;
+ if (isLoading) return (
+   <div className="space-y-6" aria-busy="true" aria-label="Loading matches">
+     <div><h1 className="text-2xl font-semibold text-slate-800">Your Matches</h1><p className="mt-1 text-sm text-muted-foreground">Loading your connections...</p></div>
+     <div className="h-11 w-full animate-pulse rounded-2xl bg-slate-100 sm:w-96" />
+     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+       {[0, 1, 2].map((item) => <div key={item} className="h-44 animate-pulse rounded-2xl border border-slate-100 bg-white shadow-sm" />)}
+     </div>
+   </div>
+ );
 
  return (
  <div className="space-y-6">
