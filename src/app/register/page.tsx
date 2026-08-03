@@ -71,7 +71,7 @@ const signupSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters").regex(/[A-Z]/, "Must contain an uppercase letter").regex(/[0-9]/, "Must contain a number"),
   gender: z.string().min(1, "Please select a gender"),
   city: z.string().max(150, "City name is too long").optional(),
-  agreeTerms: z.boolean().refine(Boolean, "You must confirm you are 18+ and accept the terms"),
+  agreeTerms: z.boolean().refine(Boolean, "You must accept the terms"),
 });
 
 type SignupData = z.infer<typeof signupSchema>;
@@ -187,7 +187,6 @@ export default function RegisterPage() {
           name: data.name,
           email: data.email,
           password: data.password,
-          ageConfirmed: data.agreeTerms,
           gender: data.gender,
           city: data.city?.trim() || undefined,
           locationLatitude: coords?.latitude,
@@ -472,7 +471,7 @@ export default function RegisterPage() {
                   <label className="flex items-start gap-3 rounded-xl bg-slate-50 px-3 py-2.5 text-[11px] leading-5 text-slate-500">
                     <input {...register("agreeTerms")} id="signup-agree-terms" type="checkbox" className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-rose-600 focus:ring-rose-400" />
                     <span className="min-w-0">
-                      I confirm that I am at least 18 years old and agree to the{" "}
+                      I agree to the{" "}
                       <Link
                         href="/terms-of-service"
                         onClick={(event) => event.stopPropagation()}
