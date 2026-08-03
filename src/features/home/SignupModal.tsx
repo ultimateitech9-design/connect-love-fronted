@@ -24,7 +24,7 @@ const signupSchema = z.object({
  .regex(/[A-Z]/, "Must contain an uppercase letter")
  .regex(/[0-9]/, "Must contain a number"),
  gender: z.string().min(1, "Please select a gender"),
- agreeTerms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms" }) }),
+ agreeTerms: z.literal(true, { errorMap: () => ({ message: "You must confirm you are 18+ and accept the terms" }) }),
 });
 
 type SignupData = z.infer<typeof signupSchema>;
@@ -63,7 +63,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  const regRes = await fetch(`${API_BASE}/auth/register`, {
  method: "POST",
  headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ name: data.name, email: data.email, password: data.password, gender: data.gender }),
+ body: JSON.stringify({ name: data.name, email: data.email, password: data.password, gender: data.gender, ageConfirmed: data.agreeTerms }),
  });
  if (!regRes.ok) {
  const body = await regRes.json();
@@ -247,7 +247,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  className="mt-0.5 h-[16px] w-[16px] rounded border-slate-300 text-violet-600 focus:ring-violet-400"
  />
  <label htmlFor="signup-agree-terms" className="text-xs text-slate-500 leading-relaxed">
- I agree to the{" "}
+ I confirm that I am at least 18 years old and agree to the{" "}
  <Link href="/terms-of-service" className="text-violet-600 hover:underline font-medium">Terms of Service</Link>{" "}
  and{" "}
  <Link href="/privacy-policy" className="text-violet-600 hover:underline font-medium">Privacy Policy</Link>. I confirm I am 18+.
