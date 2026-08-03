@@ -5,7 +5,7 @@ import { API_ORIGIN } from "@/config/runtime";
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Eye, EyeOff, Loader2, Heart, Check } from "lucide-react";
+import { X, Eye, EyeOff, Loader2, Heart, Check, MapPin } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +37,7 @@ const signupSchema = z.object({
  .min(1, "Date of birth is required")
  .refine((value) => Boolean(value) && value <= minimumAgeDate(), "You must be at least 18 years old to create an account"),
  gender: z.string().min(1, "Please select a gender"),
+ city: z.string().max(150, "City name is too long").optional(),
  agreeTerms: z.literal(true, { errorMap: () => ({ message: "You must accept the terms" }) }),
 });
 
@@ -52,6 +53,9 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  const [showPass, setShowPass] = useState(false);
  const [done, setDone] = useState(false);
  const [error, setError] = useState("");
+ const [detectingLocation, setDetectingLocation] = useState(false);
+ const [locationStatus, setLocationStatus] = useState("");
+ const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
 
  const {
  register,
@@ -69,6 +73,24 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  { label: "Number", ok: /[0-9]/.test(password) },
  ];
 
+ const detectLocation = () => {
+ if (!("geolocation" in navigator)) {
+ setLocationStatus("Location is not supported in this browser.");
+ return;
+ }
+ setDetectingLocation(true);
+ setLocationStatus("Detecting your current location...");
+ navigator.geolocation.getCurrentPosition(({ coords: position }) => {
+ const nextCoords = { latitude: position.latitude, longitude: position.longitude };
+ setCoords(nextCoords);
+ setLocationStatus(`Current GPS location saved (accuracy ±${Math.round(position.accuracy)} m).`);
+ setDetectingLocation(false);
+ }, (locationError) => {
+ setDetectingLocation(false);
+ setLocationStatus(locationError.code === 1 ? "Please allow location permission and try again." : "Current location could not be detected. Please try again.");
+ }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+ };
+
  const onSubmit = async (data: SignupData) => {
  setError("");
  try {
@@ -76,7 +98,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  const regRes = await fetch(`${API_BASE}/auth/register`, {
  method: "POST",
  headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ name: data.name, email: data.email, password: data.password, birthDate: data.birthDate, gender: data.gender }),
+ body: JSON.stringify({ name: data.name, email: data.email, password: data.password, birthDate: data.birthDate, gender: data.gender, city: data.city?.trim() || undefined, locationLatitude: coords?.latitude, locationLongitude: coords?.longitude }),
  });
  if (!regRes.ok) {
  const body = await regRes.json();
@@ -110,7 +132,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  };
 
 
- const handleClose = () => { reset(); setError(""); setDone(false); onClose(); };
+ const handleClose = () => { reset(); setError(""); setDone(false); setCoords(null); setLocationStatus(""); onClose(); };
 
  return (
  <AnimatePresence>
@@ -232,6 +254,19 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  ))}
  </select>
  {errors.gender && <p className="mt-1 text-xs text-rose-500">{errors.gender.message}</p>}
+ </div>
+
+ <div>
+ <label className="block text-sm font-medium text-slate-700 mb-1.5">Location</label>
+ <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+ <input {...register("city")} id="signup-city" placeholder="Your current locality" className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+ <button type="button" onClick={detectLocation} disabled={detectingLocation} className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 text-xs font-bold text-rose-600 disabled:opacity-60">
+ {detectingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+ {detectingLocation ? "Finding..." : "Use GPS"}
+ </button>
+ </div>
+ {locationStatus && <p className="mt-1.5 text-xs text-slate-500">{locationStatus}</p>}
+ {errors.city && <p className="mt-1 text-xs text-rose-500">{errors.city.message}</p>}
  </div>
 
  <div>
