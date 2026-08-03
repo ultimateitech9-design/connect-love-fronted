@@ -10,7 +10,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { requireOnboarding, setToken } from "@/lib/auth";
+import { requireOnboarding, scheduleProfileReminder, setToken } from "@/lib/auth";
 import { getAccurateCurrentPosition } from "@/lib/geolocation";
 import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options";
 
@@ -114,6 +114,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  if (loginRes.ok) {
  const { access_token } = await loginRes.json();
  setToken(access_token);
+ scheduleProfileReminder();
  requireOnboarding();
  reset();
  onClose();

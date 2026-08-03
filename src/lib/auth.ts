@@ -1,6 +1,7 @@
 import { API_ORIGIN } from "@/config/runtime";
 const TOKEN_KEY = "sm_token";
 const ONBOARDING_REQUIRED_KEY = "cl_onboarding_required";
+const PROFILE_REMINDER_KEY = "cl_profile_reminder_at";
 // Short-lived cookie used by Edge Middleware to protect /user/* routes.
 // Value is just "1" — actual JWT validation is done server-side.
 const COOKIE_NAME = "sm_auth";
@@ -54,6 +55,20 @@ export function requireOnboarding(): void {
  storage()?.setItem(ONBOARDING_REQUIRED_KEY, "1");
 }
 
+export function scheduleProfileReminder(delayMs = 120_000): void {
+ storage()?.setItem(PROFILE_REMINDER_KEY, String(Date.now() + delayMs));
+}
+
+export function getProfileReminderAt(): number | null {
+ const value = storage()?.getItem(PROFILE_REMINDER_KEY);
+ const timestamp = value ? Number(value) : NaN;
+ return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+export function clearProfileReminder(): void {
+ storage()?.removeItem(PROFILE_REMINDER_KEY);
+}
+
 export function clearOnboardingRequired(): void {
  storage()?.removeItem(ONBOARDING_REQUIRED_KEY);
 }
@@ -68,6 +83,7 @@ export function isOnboardingRequired(): boolean {
  */
 export function clearToken(): void {
  storage()?.removeItem(TOKEN_KEY);
+ clearProfileReminder();
  clearOnboardingRequired();
  deleteCookie(COOKIE_NAME);
 }

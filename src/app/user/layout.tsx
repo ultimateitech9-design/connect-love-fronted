@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { OnboardingGuard } from "@/components/OnboardingGuard";
 import UserProviders from "./UserProviders";
+import { ProfileUpdateReminder } from "@/components/ProfileUpdateReminder";
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -20,6 +21,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   return (
     <OnboardingGuard>
       <UserProviders showNav={!isOnboarding} enablePresence={!isMessages}>
+        <ProfileUpdateReminder />
         <div
           className={shellClassName}
           style={{
