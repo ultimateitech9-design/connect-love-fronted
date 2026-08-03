@@ -89,8 +89,10 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const outputWidth = 900;
-        const outputHeight = 1200;
+        // Keep profile photos sharp while avoiding multi-megabyte base64 values
+        // that slow down matches on mobile networks.
+        const outputWidth = 720;
+        const outputHeight = 960;
         canvas.width = outputWidth;
         canvas.height = outputHeight;
 
@@ -118,7 +120,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
           img.height * scale,
         );
 
-        resolve(canvas.toDataURL("image/jpeg", 0.88));
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
       };
       img.onerror = () => reject(new Error("Could not load this photo."));
       img.src = editor.source;

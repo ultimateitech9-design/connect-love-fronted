@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 
 type MatchStatus = "PENDING" | "MATCHED" | "DECLINED" | "BLOCKED";
 type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; createdAt?: string };
-const MATCHES_CACHE_KEY = "connectlove:matches";
+let matchesMemoryCache: DBMatch[] | null = null;
 
 async function readMatches(res: Response): Promise<DBMatch[]> {
  if (!res.ok) {
@@ -46,6 +46,9 @@ export default function MatchesDashboard() {
  };
 
  useEffect(() => {
+   // Remove the old full-response cache; embedded profile photos can exceed
+   // mobile browsers' small sessionStorage quota.
+   try { sessionStorage.removeItem("connectlove:matches"); } catch {}
    const token = getToken();
    if (token) {
      try {
@@ -79,15 +82,9 @@ export default function MatchesDashboard() {
      } catch {}
    }
 
-   let hasCachedMatches = false;
+   const hasCachedMatches = Array.isArray(matchesMemoryCache);
    if (showLoading) {
-     try {
-       const cached = JSON.parse(sessionStorage.getItem(MATCHES_CACHE_KEY) || "null");
-       if (Array.isArray(cached)) {
-         applyMatches(cached, currentUserId);
-         hasCachedMatches = true;
-       }
-     } catch {}
+     if (matchesMemoryCache) applyMatches(matchesMemoryCache, currentUserId);
      setIsLoading(!hasCachedMatches);
    }
    setFetchError(false);
@@ -96,7 +93,7 @@ export default function MatchesDashboard() {
      const response = await apiFetch("/matches", { headers: { Authorization: `Bearer ${token}` } });
      const matches = await readMatches(response);
      applyMatches(matches, currentUserId);
-     sessionStorage.setItem(MATCHES_CACHE_KEY, JSON.stringify(matches));
+     matchesMemoryCache = matches;
    } catch (error) {
      console.error("Failed to load matches", error);
      setFetchError(true);
