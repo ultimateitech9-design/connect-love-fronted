@@ -38,8 +38,8 @@ export function ProfileUpdateReminder() {
         <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-rose-100 text-rose-500">
           <Sparkles className="h-7 w-7" />
         </span>
-        <h2 id="profile-reminder-title" className="mt-5 text-2xl font-bold text-slate-900">अपना profile update करें</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500">Profile details पूरी करने से आपको बेहतर और relevant matches मिलेंगे।</p>
+        <h2 id="profile-reminder-title" className="mt-5 text-2xl font-bold text-slate-900">Update your profile</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-500">Complete your profile details to get better and more relevant matches.</p>
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
           <button type="button" onClick={close} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50">Later</button>
           <button type="button" onClick={updateProfile} className="rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-500/20">
