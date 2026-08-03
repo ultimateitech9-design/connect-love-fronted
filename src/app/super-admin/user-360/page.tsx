@@ -284,8 +284,8 @@ export default function User360Page() {
  value={query}
  onChange={(event) => setQuery(event.target.value)}
  placeholder="Search ID, name or email..."
- className="h-10 w-full rounded-full border border-border bg-background pl-9 pr-3 text-sm font-medium caret-rose-500 outline-none placeholder:text-slate-400 focus:border-rose-400"
- style={{ color: "#0f172a", WebkitTextFillColor: "#0f172a" }}
+ className="h-10 w-full rounded-full border border-border bg-background pl-9 pr-3 text-sm font-medium !text-black caret-rose-500 outline-none placeholder:text-slate-400 focus:border-rose-400"
+ style={{ color: "#000000", WebkitTextFillColor: "#000000" }}
  />
  </div>
  <p className="mt-3 text-xs font-semibold text-muted-foreground">{totalUsers} users</p>
