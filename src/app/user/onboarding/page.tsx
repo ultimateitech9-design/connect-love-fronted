@@ -7,28 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { clearOnboardingRequired, getToken, clearToken } from "@/lib/auth";
-import { StepHeight } from "@/features/onboarding/StepHeight";
-import { StepProfession } from "@/features/onboarding/StepProfession";
-import { StepCity } from "@/features/onboarding/StepCity";
-import { StepBio } from "@/features/onboarding/StepBio";
-import { StepTags } from "@/features/onboarding/StepTags";
 import { StepProfilePhotos, StepVideoKyc } from "@/features/onboarding/StepPhotosKyc";
-import { StepAge } from "@/features/onboarding/StepAge";
-import { StepReligion } from "@/features/onboarding/StepReligion";
-import { StepRelationshipGoal } from "@/features/onboarding/StepRelationshipGoal";
 
 const API = API_ORIGIN;
 
 const STEPS = [
-  { id: "age", title: "How old are you?" },
-  { id: "religion", title: "What's your religion?" },
-  { id: "height", title: "How tall are you? (Height)" },
-  { id: "profession", title: "What do you do?" },
-  { id: "city", title: "Where do you live?" },
-  { id: "bio", title: "Write your bio" },
-  { id: "personality", title: "Your personality" },
-  { id: "interests", title: "Your interests" },
-  { id: "relationship-goal", title: "Relationship Goal" },
   { id: "photos", title: "Add profile photos" },
   { id: "video-kyc", title: "Video KYC verification" },
 ];
@@ -164,50 +147,12 @@ export default function OnboardingPage() {
               className="min-h-[12rem] sm:min-h-[13.889vw]"
             >
               {currentStepIndex === 0 && (
-                <StepAge profile={profile} onNext={(val) => handleNext({ birthDate: val })} />
-              )}
-              {currentStepIndex === 1 && (
-                <StepReligion profile={profile} onNext={(val) => handleNext({ religion: val })} />
-              )}
-              {currentStepIndex === 2 && (
-                <StepHeight profile={profile} onNext={(val) => handleNext({ height: val })} />
-              )}
-              {currentStepIndex === 3 && (
-                <StepProfession profile={profile} onNext={(val) => handleNext({ profession: val })} />
-              )}
-              {currentStepIndex === 4 && (
-                <StepCity profile={profile} onNext={(val) => handleNext({ city: val })} />
-              )}
-              {currentStepIndex === 5 && (
-                <StepBio profile={profile} onNext={(val) => handleNext({ bio: val })} />
-              )}
-              {currentStepIndex === 6 && (
-                <StepTags
-                  type="personalityWords"
-                  profile={profile}
-                  onNext={(val) => handleNext({ personalityWords: val })}
-                />
-              )}
-              {currentStepIndex === 7 && (
-                <StepTags
-                  type="interests"
-                  profile={profile}
-                  onNext={(val) => handleNext({ interests: val })}
-                />
-              )}
-              {currentStepIndex === 8 && (
-                <StepRelationshipGoal
-                  profile={profile}
-                  onNext={(val) => handleNext({ relationshipGoal: val })}
-                />
-              )}
-              {currentStepIndex === 9 && (
                 <StepProfilePhotos
                   profile={profile}
                   onNext={(val) => handleNext(val)}
                 />
               )}
-              {currentStepIndex === 10 && (
+              {currentStepIndex === 1 && (
                 <StepVideoKyc
                   profile={profile}
                   onNext={(val) => handleNext(val, true)}

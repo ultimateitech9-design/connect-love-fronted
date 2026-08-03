@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Reorder } from "framer-motion";
 import {
   Camera,
@@ -279,7 +280,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
         </div>
       )}
 
-      {editor && (
+      {editor && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-4">
           <div className="grid max-h-[calc(100dvh-1.5rem)] w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl lg:grid-cols-[1.1fr_0.9fr]">
             <div className="flex min-h-0 items-center justify-center bg-slate-950 p-4 sm:p-6">
@@ -331,13 +332,20 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
                 </div>
               </div>
 
-              <div className="sticky bottom-0 flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-white pt-4">
+              <div className="sticky bottom-0 grid shrink-0 grid-cols-3 gap-2 border-t border-slate-100 bg-white pt-4">
                 <button
                   type="button"
                   onClick={resetEditorTools}
                   className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                 >
                   Reset
+                </button>
+                <button
+                  type="button"
+                  onClick={closeEditor}
+                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                >
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -351,7 +359,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
               </div>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
     </div>
   );

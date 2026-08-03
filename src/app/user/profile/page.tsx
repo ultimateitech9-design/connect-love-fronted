@@ -17,6 +17,15 @@ import {
 import { logout, getToken, clearToken } from "@/lib/auth";
 
 const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"] as const;
+const PERSONALITY_SUGGESTIONS = ["Adventurous", "Ambitious", "Calm", "Caring", "Confident", "Creative", "Funny", "Honest", "Introverted", "Kind", "Loyal", "Romantic", "Witty"];
+const INTEREST_SUGGESTIONS = ["Travel", "Music", "Movies", "Fitness", "Photography", "Cooking", "Reading", "Gaming", "Dancing", "Cricket", "Coffee", "Nature", "Technology", "Self Care"];
+const BIO_SUGGESTIONS = [
+ "I enjoy meaningful conversations, good food, and exploring new places.",
+ "Family-oriented, ambitious, and always ready for a new adventure.",
+ "Looking for a genuine connection built on trust, laughter, and respect.",
+];
+const PROFESSION_SUGGESTIONS = ["Software Engineer", "Business Owner", "Government Employee", "Doctor", "Teacher", "Lawyer", "Accountant", "Banker", "Designer", "Photographer", "Student", "Self Employed", "Freelancer", "Homemaker"];
+const HEIGHT_SUGGESTIONS = ["4'10\"", "5'0\"", "5'2\"", "5'4\"", "5'6\"", "5'8\"", "5'10\"", "6'0\"", "6'2\""];
 const ZODIAC_SIGNS = [
  { sign: "Capricorn", emoji: "♑", from: 1222 }, { sign: "Aquarius", emoji: "♒", from: 120 },
  { sign: "Pisces", emoji: "♓", from: 219 }, { sign: "Aries", emoji: "♈", from: 321 },
@@ -462,6 +471,7 @@ export default function ProfilePage() {
  label="Profession"
   disabled={isLocked}
  placeholder="e.g. Software Engineer"
+ suggestions={PROFESSION_SUGGESTIONS}
  value={profile.profession ?? ""}
  required={isEmpty("profession")}
  onChange={(v) => set("profession", v)}
@@ -470,6 +480,7 @@ export default function ProfilePage() {
  label="Height"
   disabled={isLocked}
  placeholder={`e.g. 5'10"`}
+ suggestions={HEIGHT_SUGGESTIONS}
  value={profile.height ?? ""}
  required={isEmpty("height")}
  onChange={(v) => set("height", v)}
@@ -515,6 +526,15 @@ export default function ProfilePage() {
  isEmpty("bio") && !isLocked ? "border-rose-400 focus:ring-rose-300" : "border-slate-200 focus:ring-rose-200"
  }`}
  />
+ {!isLocked && (
+ <div className="flex flex-wrap gap-2">
+ {BIO_SUGGESTIONS.map((suggestion, index) => (
+ <button key={suggestion} type="button" onClick={() => set("bio", suggestion)} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-600 transition hover:border-rose-300 hover:bg-rose-50">
+ Bio idea {index + 1}
+ </button>
+ ))}
+ </div>
+ )}
  <p className="text-right text-xs text-slate-500">{(profile.bio ?? "").length}/250</p>
  </div>
 
@@ -526,6 +546,7 @@ export default function ProfilePage() {
  value={profile.personality ?? ""}
  required={isEmpty("personality")}
  color="brand"
+ suggestions={PERSONALITY_SUGGESTIONS}
  onChange={(v) => set("personality", v)}
  />
 
@@ -537,6 +558,7 @@ export default function ProfilePage() {
     required={isEmpty("interests")}
     disabled={isLocked}
     color="blue"
+    suggestions={INTEREST_SUGGESTIONS}
     onChange={(v) => set("interests", v)}
   />
 
@@ -651,7 +673,7 @@ export default function ProfilePage() {
 // ── Helper components ────────────────────────────────────────────────────────
 
 function RequiredField({
- label, value, required, onChange, type = "text", placeholder, disabled,
+ label, value, required, onChange, type = "text", placeholder, disabled, suggestions,
 }: {
  label: string;
  value: string;
@@ -660,7 +682,9 @@ function RequiredField({
  type?: string;
  placeholder?: string;
  disabled?: boolean;
+ suggestions?: string[];
 }) {
+ const listId = suggestions?.length ? `suggestions-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` : undefined;
  return (
  <div className="space-y-2">
  <Label className={required && !disabled ? "text-rose-500" : "text-foreground"}>
@@ -669,6 +693,7 @@ function RequiredField({
  </Label>
  <Input
  type={type}
+ list={listId}
  value={value}
  placeholder={placeholder}
  disabled={disabled}
@@ -677,12 +702,13 @@ function RequiredField({
  required && !disabled ? "border-rose-400 focus:ring-rose-300" : "border-border focus:ring-rose-200"
  }`}
  />
+ {listId && <datalist id={listId}>{suggestions?.map((suggestion) => <option key={suggestion} value={suggestion} />)}</datalist>}
  </div>
  );
 }
 
 function TagField({
-  label, hint, value, required, color, onChange, disabled,
+  label, hint, value, required, color, onChange, disabled, suggestions,
 }: {
   label: string;
   hint: string;
@@ -691,6 +717,7 @@ function TagField({
   color: "brand" | "blue";
   onChange: (v: string) => void;
   disabled?: boolean;
+  suggestions: string[];
 }) {
   const [inputValue, setInputValue] = useState("");
   const strValue = Array.isArray(value) ? value.join(", ") : (value ?? "");
@@ -714,6 +741,11 @@ function TagField({
   const removeTag = (tagToRemove: string) => {
     const newTags = tags.filter(t => t !== tagToRemove);
     onChange(newTags.join(", "));
+  };
+
+  const addTag = (newTag: string) => {
+    if (disabled || tags.includes(newTag)) return;
+    onChange([...tags, newTag].join(", "));
   };
 
   return (
@@ -750,6 +782,15 @@ function TagField({
           required && !disabled ? "border-rose-400 focus:ring-rose-300" : "border-border focus:ring-rose-200"
         }`}
       />
+      {!disabled && (
+        <div className="flex flex-wrap gap-2 pt-1">
+          {suggestions.filter((suggestion) => !tags.includes(suggestion)).slice(0, 12).map((suggestion) => (
+            <button key={suggestion} type="button" onClick={() => addTag(suggestion)} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-600 transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600">
+              + {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
