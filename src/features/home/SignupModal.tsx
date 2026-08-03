@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { requireOnboarding, setToken } from "@/lib/auth";
+import { getAccurateCurrentPosition } from "@/lib/geolocation";
 import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options";
 
 const API_BASE = API_ORIGIN;
@@ -55,7 +56,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  const [error, setError] = useState("");
  const [detectingLocation, setDetectingLocation] = useState(false);
  const [locationStatus, setLocationStatus] = useState("");
- const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+ const [coords, setCoords] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null);
 
  const {
  register,
@@ -73,22 +74,20 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  { label: "Number", ok: /[0-9]/.test(password) },
  ];
 
- const detectLocation = () => {
- if (!("geolocation" in navigator)) {
- setLocationStatus("Location is not supported in this browser.");
- return;
- }
+ const detectLocation = async () => {
  setDetectingLocation(true);
- setLocationStatus("Detecting your current location...");
- navigator.geolocation.getCurrentPosition(({ coords: position }) => {
- const nextCoords = { latitude: position.latitude, longitude: position.longitude };
+ setLocationStatus("Getting a precise GPS fix...");
+ try {
+ const { coords: position } = await getAccurateCurrentPosition();
+ const nextCoords = { latitude: position.latitude, longitude: position.longitude, accuracy: position.accuracy };
  setCoords(nextCoords);
  setLocationStatus(`Current GPS location saved (accuracy ±${Math.round(position.accuracy)} m).`);
+ } catch (locationError) {
+ setCoords(null);
+ setLocationStatus(locationError instanceof Error ? locationError.message : "Current GPS location could not be detected.");
+ } finally {
  setDetectingLocation(false);
- }, (locationError) => {
- setDetectingLocation(false);
- setLocationStatus(locationError.code === 1 ? "Please allow location permission and try again." : "Current location could not be detected. Please try again.");
- }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+ }
  };
 
  const onSubmit = async (data: SignupData) => {
@@ -98,7 +97,7 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  const regRes = await fetch(`${API_BASE}/auth/register`, {
  method: "POST",
  headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ name: data.name, email: data.email, password: data.password, birthDate: data.birthDate, gender: data.gender, city: data.city?.trim() || undefined, locationLatitude: coords?.latitude, locationLongitude: coords?.longitude }),
+ body: JSON.stringify({ name: data.name, email: data.email, password: data.password, birthDate: data.birthDate, gender: data.gender, city: data.city?.trim() || undefined, locationLatitude: coords?.latitude, locationLongitude: coords?.longitude, locationAccuracy: coords?.accuracy }),
  });
  if (!regRes.ok) {
  const body = await regRes.json();

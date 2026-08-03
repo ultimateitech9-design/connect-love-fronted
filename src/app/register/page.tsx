@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { requireOnboarding, setToken } from "@/lib/auth";
+import { getAccurateCurrentPosition } from "@/lib/geolocation";
 import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options";
 
 const API_BASE = API_ORIGIN;
@@ -102,7 +103,7 @@ export default function RegisterPage() {
   const otpInputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [locationStatus, setLocationStatus] = useState("");
   const [detectingLocation, setDetectingLocation] = useState(false);
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number; accuracy: number } | null>(null);
 
   const {
     register,
@@ -138,19 +139,15 @@ export default function RegisterPage() {
     return () => window.clearInterval(timer);
   }, [pendingSignup, otpSecondsLeft]);
 
-  const detectLocation = () => {
-    if (!("geolocation" in navigator)) {
-      setLocationStatus("Location is not supported in this browser.");
-      return;
-    }
-
+  const detectLocation = async () => {
     setDetectingLocation(true);
-    setLocationStatus("Detecting your location...");
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
+    setLocationStatus("Getting a precise GPS fix...");
+    try {
+        const position = await getAccurateCurrentPosition();
         const nextCoords = {
           latitude: Number(position.coords.latitude.toFixed(7)),
           longitude: Number(position.coords.longitude.toFixed(7)),
+          accuracy: position.coords.accuracy,
         };
         setCoords(nextCoords);
 
@@ -159,22 +156,19 @@ export default function RegisterPage() {
 
           if (locationName) {
             setValue("city", locationName, { shouldDirty: true, shouldValidate: true });
-            setLocationStatus(`Exact GPS locality saved (accuracy ±${Math.round(position.coords.accuracy)} m).`);
+            setLocationStatus(`Current GPS locality saved (accuracy ±${Math.round(position.coords.accuracy)} m).`);
           } else {
             setLocationStatus("GPS coordinates saved. Please confirm your locality.");
           }
         } catch {
           setLocationStatus("GPS coordinates saved. Please confirm your locality.");
-        } finally {
-          setDetectingLocation(false);
         }
-      },
-      () => {
-        setDetectingLocation(false);
-        setLocationStatus("Location permission was not allowed. You can still enter your city.");
-      },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
-    );
+    } catch (locationError) {
+      setCoords(null);
+      setLocationStatus(locationError instanceof Error ? locationError.message : "Current GPS location could not be detected.");
+    } finally {
+      setDetectingLocation(false);
+    }
   };
 
   const apiMessage = (body: { message?: string | string[] }, fallback: string) =>
@@ -208,6 +202,7 @@ export default function RegisterPage() {
           city: data.city?.trim() || undefined,
           locationLatitude: coords?.latitude,
           locationLongitude: coords?.longitude,
+          locationAccuracy: coords?.accuracy,
           otp: verificationCode,
         }),
       });
