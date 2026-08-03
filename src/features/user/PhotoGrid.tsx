@@ -13,7 +13,6 @@ import {
   Save,
   Star,
   Sun,
-  Trash2,
   X,
   ZoomIn,
 } from "lucide-react";
@@ -27,10 +26,12 @@ interface PhotoGridProps {
 type EditorState = {
   source: string;
   fileName: string;
+  replaceIndex: number | null;
 };
 
 export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceIndexRef = useRef<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -51,13 +52,13 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
     setCropY(0);
   };
 
-  const openEditor = (file: File) => {
+  const openEditor = (file: File, replaceIndex: number | null) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const source = event.target?.result;
       if (typeof source !== "string") return;
       resetEditorTools();
-      setEditor({ source, fileName: file.name });
+      setEditor({ source, fileName: file.name, replaceIndex });
     };
     reader.onerror = () => alert("Could not read this photo.");
     reader.readAsDataURL(file);
@@ -67,7 +68,10 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (photos.length >= 5) {
+    const replaceIndex = replaceIndexRef.current;
+    replaceIndexRef.current = null;
+
+    if (replaceIndex === null && photos.length >= 5) {
       alert("Maximum 5 photos allowed.");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
@@ -79,7 +83,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
       return;
     }
 
-    openEditor(file);
+    openEditor(file, replaceIndex);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -138,7 +142,13 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
         alert("This photo is already uploaded.");
         return;
       }
-      onPhotosChange([...photos, editedPhoto]);
+      if (editor.replaceIndex === null) {
+        onPhotosChange([...photos, editedPhoto]);
+      } else {
+        const nextPhotos = [...uniquePhotos];
+        nextPhotos[editor.replaceIndex] = editedPhoto;
+        onPhotosChange(nextPhotos);
+      }
       setEditor(null);
       resetEditorTools();
     } catch (err) {
@@ -156,10 +166,10 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
 
   const uniquePhotos = Array.from(new Set(photos));
 
-  const removePhoto = (index: number) => {
-    const newPhotos = [...uniquePhotos];
-    newPhotos.splice(index, 1);
-    onPhotosChange(newPhotos);
+  const chooseReplacement = (index: number) => {
+    if (disabled || uploading) return;
+    replaceIndexRef.current = index;
+    fileInputRef.current?.click();
   };
 
   const makePrimary = (index: number) => {
@@ -221,12 +231,13 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
                 )}
                 <button
                   type="button"
-                  onClick={() => removePhoto(index)}
+                  onClick={() => chooseReplacement(index)}
                   disabled={disabled}
-                  className="grid h-6 w-6 place-items-center rounded-full bg-rose-500 text-white shadow-lg transition hover:scale-105 sm:h-7 sm:w-7"
-                  title={index === 0 ? "Remove profile picture" : "Remove photo"}
+                  className="inline-flex h-7 items-center gap-1 rounded-full bg-slate-950/75 px-2 text-[10px] font-bold text-white shadow-lg backdrop-blur-sm transition hover:scale-105"
+                  title="Replace photo"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Camera className="h-3.5 w-3.5" />
+                  Replace
                 </button>
               </div>
               {index === 0 && (
@@ -241,7 +252,11 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
         {emptySlots.map((slotIndex) => (
           <div
             key={`empty-${slotIndex}`}
-            onClick={() => !disabled && !uploading && fileInputRef.current?.click()}
+            onClick={() => {
+              if (disabled || uploading) return;
+              replaceIndexRef.current = null;
+              fileInputRef.current?.click();
+            }}
             className={`relative flex aspect-[3/4] min-w-0 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-rose-200 bg-rose-50/50 transition-colors sm:rounded-2xl ${
               disabled || uploading ? "cursor-not-allowed opacity-70" : "cursor-pointer hover:border-rose-300 hover:bg-rose-50"
             }`}
@@ -265,20 +280,6 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
       <p className="mt-3 hidden text-center text-xs text-slate-500 min-[380px]:block">
         Drag to reorder. The first photo will be your main profile picture.
       </p>
-
-      {uniquePhotos.length > 0 && (
-        <div className="mt-3 flex justify-center">
-          <button
-            type="button"
-            onClick={() => removePhoto(0)}
-            disabled={disabled}
-            className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-500 shadow-sm transition hover:bg-rose-50"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Remove profile picture
-          </button>
-        </div>
-      )}
 
       {editor && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-4">
