@@ -391,6 +391,16 @@ export default function ProfilePage() {
  required={isEmpty("name")}
  onChange={(v) => set("name", v)}
  />
+ <div className="space-y-2">
+ <Label className="text-slate-600">Email address</Label>
+ <Input
+ type="email"
+ value={profile.email ?? ""}
+ disabled
+ className="bg-slate-50 text-slate-600 disabled:cursor-not-allowed disabled:opacity-100"
+ />
+ <p className="text-[11px] text-slate-400">Verified during registration and linked to your account.</p>
+ </div>
  <RequiredField
  label="Date of birth"
   disabled={isLocked}
