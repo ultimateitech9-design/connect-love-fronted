@@ -1,7 +1,7 @@
 import { API_ORIGIN } from "@/config/runtime";
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, type PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, BadgeCheck, Loader2, Zap } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, BadgeCheck, Loader2, Zap, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
 import { BoostDialog } from "@/features/boost/BoostDialog";
@@ -38,6 +38,8 @@ export interface Profile {
 export interface ProfileCardProps {
   profiles: Profile[];
   onAction?: (id: string, action: string) => void;
+  onUndo?: () => void;
+  canUndo?: boolean;
 }
 
 const ZODIAC_RANGES = [
@@ -66,7 +68,7 @@ const API = API_ORIGIN;
 
 type Action = "pass" | "like" | "super";
 
-export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
+export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: ProfileCardProps) {
   const [idx, setIdx] = useState(0);
 
   // Hold-to-view state
@@ -621,6 +623,16 @@ export function ProfileCard({ profiles, onAction }: ProfileCardProps) {
       </AnimatePresence>
 
       <div className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-6 sm:gap-4">
+        <button
+          type="button"
+          onClick={onUndo}
+          disabled={!canUndo}
+          className="grid h-11 w-11 place-items-center rounded-full border-2 border-border bg-card text-slate-500 shadow-md transition hover:scale-105 hover:border-slate-400 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:scale-100 dark:text-slate-300 sm:h-[48px] sm:w-[48px]"
+          aria-label="Undo last swipe"
+          title="Undo last swipe"
+        >
+          <RotateCcw className="h-5 w-5" strokeWidth={2.5} />
+        </button>
         <button
           onClick={() => triggerSwipe("pass")}
           className="grid h-12 w-12 place-items-center rounded-full border-2 border-border bg-card text-muted-foreground shadow-md transition hover:scale-105 hover:border-rose-300 hover:text-rose-400 sm:h-[56px] sm:w-[56px]"

@@ -356,6 +356,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  export default function Discover() {
   const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
   const [dismissedProfileIds, setDismissedProfileIds] = useState<Set<string>>(new Set());
+  const [lastSwipedProfile, setLastSwipedProfile] = useState<any | null>(null);
   const isDesktop = useDesktopLayout();
   const loadSecondaryPanels = useSecondaryPanels();
   const deferredSearch = useDeferredValue(filters.search);
@@ -365,7 +366,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
     () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, limit: 12 }),
     [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance],
   );
-  const { profiles, loading, swipeLeft, swipeRight, swipeSuper, refreshProfiles } = useDiscovery(token, requestFilters);
+  const { profiles, loading, swipeLeft, swipeRight, swipeSuper, undoSwipe, refreshProfiles } = useDiscovery(token, requestFilters);
 
   useEffect(() => {
     if (!token || locationSyncStarted.current || !("geolocation" in navigator)) return;
@@ -414,6 +415,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  const availableGoals = useMemo(() => profiles.map((p: any) => p.goals).filter(Boolean), [profiles]);
  
  const handleSwipe = (id: string, action: string) => {
+   setLastSwipedProfile(visibleProfiles.find((profile: any) => profile.id === id) ?? null);
    setDismissedProfileIds((current) => {
      const next = new Set(current);
      next.add(id);
@@ -428,6 +430,18 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
    }
  };
 
+ const handleUndo = async () => {
+   if (!lastSwipedProfile) return;
+   const restored = await undoSwipe(lastSwipedProfile);
+   if (!restored) return;
+   setDismissedProfileIds((current) => {
+     const next = new Set(current);
+     next.delete(lastSwipedProfile.id);
+     return next;
+   });
+   setLastSwipedProfile(null);
+ };
+
  return (
  <>
  <CampaignOfferCard />
@@ -435,7 +449,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  <div className="space-y-4">
  <MobileFilters filters={filters} onChange={setFilters} effectiveMaxDistance={effectiveMaxDistance} />
  <div className="flex min-w-0 items-start justify-center">
- {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} />}
+ {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} />}
  </div>
  </div>
  ) : (
@@ -446,7 +460,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  <FiltersPanelShell />
  )}
  <div className="flex min-w-0 items-start justify-center pt-1 sm:pt-2">
- {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} />}
+ {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} />}
  </div>
  <div className="hidden min-w-0 lg:block">
  {loadSecondaryPanels ? <RightRail /> : <RightRailShell />}

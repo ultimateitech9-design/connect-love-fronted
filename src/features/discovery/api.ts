@@ -27,6 +27,10 @@ export function swipeProfile(receiverId: string, action: "like" | "pass" | "supe
   });
 }
 
+export function undoSwipeProfile(receiverId: string) {
+  return directFetch<{ deleted: boolean }>(`/matches/swipe/${receiverId}`, { method: "DELETE" });
+}
+
 export function getDiscoveryProfileDetails(userId: string, signal?: AbortSignal) {
   return directFetch<any>(`/users/${userId}/details`, { signal });
 }

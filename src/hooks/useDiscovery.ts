@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getDiscoveryProfileDetails, getDiscoveryProfiles, swipeProfile } from "@/features/discovery/api";
+import { getDiscoveryProfileDetails, getDiscoveryProfiles, swipeProfile, undoSwipeProfile } from "@/features/discovery/api";
 
 type DiscoveryRequestFilters = {
   interestedIn?: "female" | "male" | "non-binary" | "everyone";
@@ -142,6 +142,26 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     }
   }, [fetchProfiles, removeProfileLocally, token]);
 
+  const undoSwipe = useCallback(async (profile: any) => {
+    if (!token || !profile?.id) return false;
+    try {
+      await undoSwipeProfile(profile.id);
+      setProfiles((current) => {
+        const next = [profile, ...current.filter((item) => item.id !== profile.id)];
+        profilesRef.current = next;
+        cacheRef.current.set(filterKey, next);
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+      return true;
+    } catch {
+      setError(true);
+      return false;
+    }
+  }, [filterKey, storageKey, token]);
+
   return {
     profiles,
     loading,
@@ -150,5 +170,6 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     swipeRight: (id: string) => swipe(id, "like"),
     swipeLeft: (id: string) => swipe(id, "pass"),
     swipeSuper: (id: string) => swipe(id, "superlike"),
+    undoSwipe,
   };
 }
