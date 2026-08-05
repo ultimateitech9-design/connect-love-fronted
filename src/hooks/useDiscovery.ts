@@ -15,7 +15,8 @@ type DiscoveryRequestFilters = {
 
 export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
   const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}:${filters.interestedIn || "everyone"}:${(filters.goals || []).join(",")}:${filters.maxDistance ?? ""}:${filters.limit || ""}`;
-  const storageKey = `connect-love:discovery:${filterKey}`;
+  // Versioned so profiles cached before video-KYC fields were added are not reused.
+  const storageKey = `connect-love:discovery:v2:${filterKey}`;
   const [profiles, setProfiles] = useState<any[]>(() => {
     if (typeof window === "undefined") return [];
     try {

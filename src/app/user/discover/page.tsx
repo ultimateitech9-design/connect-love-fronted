@@ -268,7 +268,7 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
             ))}
           </div>
         )}
-        {profile.kycMatched && (
+        {(profile.kycMatched === true || (profile.kycMatched == null && profile.isVerified === true)) && (
           <p className="pointer-events-none absolute right-4 top-5 z-10 inline-flex items-center gap-1 rounded-full border border-emerald-300/50 bg-black/55 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-300 shadow-lg backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
             KYC Verified

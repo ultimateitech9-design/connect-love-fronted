@@ -408,7 +408,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
             )}
           </AnimatePresence>
 
-          {!showDetails && profile.kycMatched && (
+          {!showDetails && (profile.kycMatched === true || (profile.kycMatched == null && profile.isVerified === true)) && (
             <div className="pointer-events-none absolute right-4 top-5 z-20 inline-flex items-center gap-1 rounded-full border border-emerald-300/50 bg-black/55 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-300 shadow-lg backdrop-blur-md sm:right-5 sm:top-6">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
               KYC Verified
@@ -529,7 +529,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
               ) : detailedProfile ? (
                 <div className="space-y-5 sm:space-y-6">
                   <div>
-                    {detailedProfile.kycMatched && (
+                    {(detailedProfile.kycMatched === true || (detailedProfile.kycMatched == null && detailedProfile.isVerified === true)) && (
                       <div className="mb-1 flex justify-end text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                         KYC Verified
                       </div>
