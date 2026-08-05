@@ -15,37 +15,37 @@ const currencySymbols: Record<string, string> = {
 
 const canonicalPlans: Record<string, Pick<Plan, "name" | "price" | "currency" | "features">> = {
   free: {
-    name: "Basic Plan",
+    name: "Free",
     price: 0,
     currency: "INR",
     features: ["20 Likes per day", "Basic Matching", "Chat after Match", "View Basic Profile"],
   },
   "basic access": {
-    name: "Basic Plan",
+    name: "Free",
     price: 0,
     currency: "INR",
     features: ["20 Likes per day", "Basic Matching", "Chat after Match", "View Basic Profile"],
   },
   gold: {
-    name: "Premium Plan",
+    name: "Gold",
     price: 199,
     currency: "INR",
     features: ["Unlimited Likes", "See Who Liked You", "5 Super Likes per day", "Profile Boost (1 per week)", "No Ads", "Priority Matching"],
   },
   "premium match": {
-    name: "Premium Plan",
+    name: "Gold",
     price: 199,
     currency: "INR",
     features: ["Unlimited Likes", "See Who Liked You", "5 Super Likes per day", "Profile Boost (1 per week)", "No Ads", "Priority Matching"],
   },
   platinum: {
-    name: "Elite Plan",
+    name: "Diamond",
     price: 399,
     currency: "INR",
     features: ["Unlimited Likes", "See Who Liked You", "Unlimited Super Likes", "Unlimited Profile Boost", "Priority Matching", "Advanced Filters", "Top Search Ranking", "Premium Badge", "No Ads"],
   },
   ultimate: {
-    name: "Elite Plan",
+    name: "Diamond",
     price: 399,
     currency: "INR",
     features: ["Unlimited Likes", "See Who Liked You", "Unlimited Super Likes", "Unlimited Profile Boost", "Priority Matching", "Advanced Filters", "Top Search Ranking", "Premium Badge", "No Ads"],

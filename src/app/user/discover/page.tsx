@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, useDeferredValue } from "react";
-import { BadgeCheck, Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
+import { Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
 import type { DiscoverFilters } from "@/features/user/FiltersPanel";
 import { useDiscovery } from "@/hooks/useDiscovery";
 import { getToken } from "@/lib/auth";
@@ -268,10 +268,15 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
             ))}
           </div>
         )}
+        {profile.kycMatched && (
+          <p className="pointer-events-none absolute right-4 top-5 z-10 inline-flex items-center gap-1 rounded-full border border-emerald-300/50 bg-black/55 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-300 shadow-lg backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
+            KYC Verified
+          </p>
+        )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-4 text-white">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-2xl font-semibold leading-tight">{profile.name}{profile.age ? `, ${profile.age}` : ""}</h2>
-            {(profile.verified || profile.isVerified) && <BadgeCheck className="h-5 w-5 text-emerald-400" />}
           </div>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
             {formatDistance(distance) && profile.showDistance !== false && (

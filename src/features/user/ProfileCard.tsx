@@ -1,7 +1,7 @@
 import { API_ORIGIN } from "@/config/runtime";
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, type PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, BadgeCheck, Loader2, Zap, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, Loader2, Zap, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
 import { BoostDialog } from "@/features/boost/BoostDialog";
@@ -30,6 +30,7 @@ export interface Profile {
   hobbies?: string[];
   verified?: boolean;
   isVerified?: boolean;
+  kycMatched?: boolean;
   interests?: string[];
   showDistance?: boolean;
   photosVisibleToNonMatches?: boolean;
@@ -407,6 +408,13 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
             )}
           </AnimatePresence>
 
+          {!showDetails && profile.kycMatched && (
+            <div className="pointer-events-none absolute right-4 top-5 z-20 inline-flex items-center gap-1 rounded-full border border-emerald-300/50 bg-black/55 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-300 shadow-lg backdrop-blur-md sm:right-5 sm:top-6">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
+              KYC Verified
+            </div>
+          )}
+
           {!showDetails && currentPhotos.length > 1 && (
             <>
               <button
@@ -467,15 +475,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
               <h3 className="min-w-0 max-w-full text-2xl font-semibold leading-tight tracking-tight drop-shadow-sm sm:text-3xl">
                 {profile.name}{profile.age ? `, ${profile.age}` : ""}
               </h3>
-              {(profile.verified || profile.isVerified) && (
-                <BadgeCheck className="h-5 w-5 shrink-0 text-emerald-400 drop-shadow-sm sm:h-[22px] sm:w-[22px]" strokeWidth={2.6} />
-              )}
             </div>
-            {(profile.verified || profile.isVerified) && (
-              <div className="mt-0.5 text-sm font-medium text-white/90">
-                Verified &middot; Free Member
-              </div>
-            )}
             <div className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
               {profile.showDistance !== false && profileDistanceLabel && (
                 <>
@@ -529,19 +529,16 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
               ) : detailedProfile ? (
                 <div className="space-y-5 sm:space-y-6">
                   <div>
+                    {detailedProfile.kycMatched && (
+                      <div className="mb-1 flex justify-end text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                        KYC Verified
+                      </div>
+                    )}
                     <div className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1">
                       <h2 className="min-w-0 max-w-full text-2xl font-bold leading-tight text-foreground">
                         {detailedProfile.name}{detailedProfile.age ? `, ${detailedProfile.age}` : ""}
                       </h2>
-                      {(detailedProfile.isVerified || detailedProfile.verified) && (
-                        <BadgeCheck className="h-5 w-5 shrink-0 text-emerald-400 sm:h-[22px] sm:w-[22px]" strokeWidth={2.6} />
-                      )}
                     </div>
-                    {(detailedProfile.isVerified || detailedProfile.verified) && (
-                      <div className="mt-1 text-sm font-medium text-blue-900/80 dark:text-white/70">
-                        Verified &middot; Free Member
-                      </div>
-                    )}
                     <p className="mt-1 text-sm font-medium text-muted-foreground">
                       {detailedProfile.profession}
                     </p>

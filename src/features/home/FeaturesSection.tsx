@@ -375,7 +375,7 @@ export function FeaturesSection() {
   );
 }
 
-function DiamondArtwork() {
+export function DiamondArtwork() {
   return (
     <svg viewBox="0 0 180 130" className="relative h-full w-full drop-shadow-[0_0_18px_rgba(215,193,255,1)]" role="presentation">
       <defs>
@@ -407,7 +407,7 @@ function DiamondArtwork() {
   );
 }
 
-function DiamondFacetBackground() {
+export function DiamondFacetBackground() {
   return (
     <svg className="pricing-diamond-facets pointer-events-none absolute inset-0 h-full w-full opacity-75" viewBox="0 0 360 540" preserveAspectRatio="none" role="presentation">
       <g fill="none" stroke="#b18bf5" strokeOpacity=".12" strokeWidth="1">
@@ -430,7 +430,7 @@ function DiamondFacetBackground() {
   );
 }
 
-function DiamondCrystalFrame() {
+export function DiamondCrystalFrame() {
   return (
     <svg className="pointer-events-none absolute inset-0 z-[5] h-full w-full" viewBox="0 0 360 540" preserveAspectRatio="none" role="presentation">
       <defs>

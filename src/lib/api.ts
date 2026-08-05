@@ -19,7 +19,11 @@ async function request<T>(url: string, init: RequestInit = {}, preferManagement 
  if (!headers.has("Content-Type") && init.body) headers.set("Content-Type", "application/json");
  if (token) headers.set("Authorization", `Bearer ${token}`);
  const res = await fetch(url, { ...init, headers });
- if (!res.ok) throw new Error(`API error ${res.status}`);
+ if (!res.ok) {
+  const payload = await res.json().catch(() => null) as { message?: string | string[] } | null;
+  const detail = Array.isArray(payload?.message) ? payload.message.join(" ") : payload?.message;
+  throw new Error(detail || `API error ${res.status}`);
+ }
  return res.json();
 }
 
@@ -80,7 +84,7 @@ export const api = {
  }>("/payments"),
  reports: () => apiFetch<{ reports: { type: string; count: number }[] }>("/reports"),
  notifications: () => apiFetch<{ notifications: CampaignRecord[] }>("/notifications"),
- security: () => apiFetch<{ loginActivity: { day: string; success: number; failed: number }[]; blockedAccounts: number }>("/security"),
+ security: () => apiFetch<{ loginActivity: { day: string; success: number; failed: number }[]; loginAttempts: number; failedLogins: number; activeSessions: number; blockedAccounts: number }>("/security"),
  settings: () => apiFetch<{ settings: { maintenanceMode: boolean; userRegistrations: boolean; matchingSystem: boolean; premiumMemberships: boolean } }>("/settings"),
  roles: () => apiFetch<{ roles: { role: string; assignedUsers: number; permissions: number; status: string }[] }>("/roles"),
  logs: () => apiFetch<{ logs: { id: string; user: string; activity: string; ipAddress: string; action: string; module?: string; role?: string; device?: string; loginAt?: string; lastActivityAt?: string; logoutAt?: string; durationSeconds?: number | null; createdAt?: string }[] }>("/logs"),

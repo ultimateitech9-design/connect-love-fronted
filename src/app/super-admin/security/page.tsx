@@ -13,6 +13,9 @@ type ViewMode = "line" | "area";
 export default function SecurityPage() {
  const [logins, setLogins] = useState<LoginRow[]>([]);
  const [blockedAccounts, setBlockedAccounts] = useState(0);
+ const [loginAttempts, setLoginAttempts] = useState(0);
+ const [failedLogins, setFailedLogins] = useState(0);
+ const [activeSessions, setActiveSessions] = useState(0);
  const [loading, setLoading] = useState(true);
  const [viewMode] = useState<ViewMode>("line");
  const [showFailed, setShowFailed] = useState(true);
@@ -26,6 +29,9 @@ export default function SecurityPage() {
  const res = await api.security();
  setLogins(res.loginActivity.map((row) => ({ d: row.day, success: row.success, failed: row.failed })));
  setBlockedAccounts(res.blockedAccounts);
+ setLoginAttempts(res.loginAttempts);
+ setFailedLogins(res.failedLogins);
+ setActiveSessions(res.activeSessions);
  } catch {
  setError("Backend data unavailable.");
  } finally {
@@ -34,10 +40,6 @@ export default function SecurityPage() {
  };
 
  useEffect(() => { fetchData(); }, []);
-
- const totalFailed = logins.reduce((s, r) => s + r.failed, 0);
- const totalSuccess = logins.reduce((s, r) => s + r.success, 0);
- const avgSessions = logins.length ? Math.round(totalSuccess / logins.length) : 0;
 
  return (
  <div>
@@ -49,9 +51,9 @@ export default function SecurityPage() {
  )}
 
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
- <StatCard label="Login Attempts" value={loading ? "..." : totalSuccess.toLocaleString()} icon={LogIn} tone="pink" valueClassName="text-xl" />
- <StatCard label="Failed Logins" value={loading ? "..." : totalFailed.toLocaleString()} icon={ShieldAlert} tone="amber" valueClassName="text-xl" />
- <StatCard label="Active Sessions" value={loading ? "..." : avgSessions.toLocaleString()} icon={Activity} tone="blue" valueClassName="text-xl" />
+ <StatCard label="Login Attempts" value={loading ? "..." : loginAttempts.toLocaleString()} icon={LogIn} tone="pink" valueClassName="text-xl" />
+ <StatCard label="Failed Logins" value={loading ? "..." : failedLogins.toLocaleString()} icon={ShieldAlert} tone="amber" valueClassName="text-xl" />
+ <StatCard label="Active Sessions" value={loading ? "..." : activeSessions.toLocaleString()} icon={Activity} tone="blue" valueClassName="text-xl" />
  <StatCard label="Blocked Accounts" value={loading ? "..." : blockedAccounts.toLocaleString()} icon={Ban} tone="violet" valueClassName="text-xl" />
  </div>
 

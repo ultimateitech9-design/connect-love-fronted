@@ -35,6 +35,7 @@ const GIF_MESSAGE_PREFIX = "__gif_message__:";
 const MAX_VOICE_SECONDS = 60;
 const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 const CHAT_THEME_STORAGE_KEY = "connect-love-chat-theme";
+const UNLOCKED_CHAT_THEMES_STORAGE_KEY = "connect-love-unlocked-chat-themes";
 const MUTED_CHATS_STORAGE_KEY = "connect-love-muted-chats";
 const INITIAL_MESSAGE_RENDER_LIMIT = 80;
 
@@ -1739,7 +1740,9 @@ export default function Messages() {
   }, []);
  const [mutedChatIds, setMutedChatIds] = useState<Set<string>>(new Set());
  const [coinBalance, setCoinBalance] = useState(0);
+ const [earnedCoinBalance, setEarnedCoinBalance] = useState(0);
  const [coinActionPending, setCoinActionPending] = useState(false);
+ const [unlockedThemeIds, setUnlockedThemeIds] = useState<Set<string>>(new Set());
  const [searchQuery, setSearchQuery] = useState("");
  const [draft, setDraft] = useState("");
  const [incomingCall, setIncomingCall] = useState<any | null>(null);
@@ -1831,10 +1834,22 @@ export default function Messages() {
    fetch(`${API_URL}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
      .then((response) => response.ok ? response.json() : null)
      .then((user) => {
-       if (user) setCoinBalance(Number(user.coinBalance) || 0);
+       if (user) {
+         setCoinBalance(Number(user.coinBalance) || 0);
+         setEarnedCoinBalance(Number(user.earnedCoinBalance) || 0);
+       }
      })
      .catch(() => {});
  }, [token]);
+
+ useEffect(() => {
+   try {
+     const saved = JSON.parse(window.localStorage.getItem(UNLOCKED_CHAT_THEMES_STORAGE_KEY) || "[]");
+     if (Array.isArray(saved)) setUnlockedThemeIds(new Set(saved.filter((id): id is string => typeof id === "string")));
+   } catch {
+     setUnlockedThemeIds(new Set());
+   }
+ }, []);
  const selectedTheme = CHAT_THEMES.find((theme) => theme.id === selectedThemeId) || FREE_CHAT_THEMES[0];
  const isDarkTheme = selectedTheme.id === "3d-stars" || selectedTheme.id === "3d-fire" || selectedTheme.id === "3d-galaxy";
  const chatThemeStyle = {
@@ -2511,8 +2526,20 @@ export default function Messages() {
        stream.addTrack(event.track);
      }
      remoteStreamRef.current = stream;
-     attachVideoStreams();
-     void remoteVideoRef.current?.play().catch(() => undefined);
+     const remoteVideo = remoteVideoRef.current;
+     if (remoteVideo) {
+       remoteVideo.srcObject = stream;
+       remoteVideo.muted = !isSpeakerOn;
+       remoteVideo.volume = isSpeakerOn ? 1 : 0;
+       // Some browsers create the video element before the first remote track.
+       // Re-assigning the stream on the next frame reliably starts rendering it.
+       window.requestAnimationFrame(() => {
+         if (remoteVideoRef.current && remoteStreamRef.current) {
+           remoteVideoRef.current.srcObject = remoteStreamRef.current;
+           void remoteVideoRef.current.play().catch(() => undefined);
+         }
+       });
+     }
    };
 
    peer.onicecandidate = (event) => {
@@ -2551,7 +2578,7 @@ export default function Messages() {
    };
 
    return peer;
- }, [attachVideoStreams, socket]);
+ }, [attachVideoStreams, isSpeakerOn, socket]);
 
  const startCall = useCallback(async (callType: "audio" | "video") => {
    if (!socket || !active) return;
@@ -2576,10 +2603,6 @@ export default function Messages() {
    const callType = incomingCall.callType === "audio" ? "audio" : "video";
    try {
      await ensureLocalMedia(callType);
-     socket.emit("acceptVideoCall", {
-       callId: incomingCall.call.id,
-       callerId: incomingCall.callerId,
-     });
      const acceptedCall: ActiveCall = {
        id: incomingCall.call.id,
        conversationId: incomingCall.conversationId,
@@ -2591,6 +2614,13 @@ export default function Messages() {
      activeCallRef.current = acceptedCall;
      setActiveCall(acceptedCall);
      setIncomingCall(null);
+     // Store the active call before notifying the caller. The caller can send
+     // its WebRTC offer immediately after this event; without this ordering the
+     // receiver can discard that first offer and only show its local preview.
+     socket.emit("acceptVideoCall", {
+       callId: incomingCall.call.id,
+       callerId: incomingCall.callerId,
+     });
    } catch {
      alert(callType === "video" ? "Camera or microphone permission is required for video calls." : "Microphone permission is required for audio calls.");
    }
@@ -2811,12 +2841,38 @@ export default function Messages() {
    setDraft((value) => `${value}${emoji}`);
  };
 
- const applyChatTheme = (theme: ChatTheme) => {
-   if (!activeId || !active) return;
-   if (theme.tier === "premium") {
-     const ok = confirm(`Pay Rs ${theme.price} to unlock and apply ${theme.name} 3D chat theme?`);
-     if (!ok) return;
-     toast.success(`${theme.name} theme unlocked for Rs ${theme.price}.`);
+ const applyChatTheme = async (theme: ChatTheme) => {
+   if (!activeId || !active || coinActionPending) return;
+   const needsUnlock = theme.tier === "premium" && !unlockedThemeIds.has(theme.id);
+   if (needsUnlock) {
+     const price = Number(theme.price) || 0;
+     const spendableCoins = coinBalance + earnedCoinBalance;
+     if (spendableCoins < price) {
+       toast.error(`You need ${price - spendableCoins} more coins. Please recharge.`);
+       return;
+     }
+     if (!confirm(`Unlock and apply ${theme.name} for ${price} coins?`)) return;
+     setCoinActionPending(true);
+     try {
+       const response = await fetch(`${API_URL}/users/me/coins/spend`, {
+         method: "POST",
+         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+         body: JSON.stringify({ amount: price }),
+       });
+       const data = await response.json().catch(() => null);
+       if (!response.ok) throw new Error(data?.message || "Not enough coins.");
+       setCoinBalance(Number(data.coinBalance) || 0);
+       setEarnedCoinBalance(Number(data.earnedCoinBalance) || 0);
+       const nextUnlocked = new Set(unlockedThemeIds).add(theme.id);
+       setUnlockedThemeIds(nextUnlocked);
+       window.localStorage.setItem(UNLOCKED_CHAT_THEMES_STORAGE_KEY, JSON.stringify([...nextUnlocked]));
+       toast.success(`${theme.name} unlocked for ${price} coins.`);
+     } catch (error) {
+       toast.error(error instanceof Error ? error.message : "Theme could not be unlocked.");
+       return;
+     } finally {
+       setCoinActionPending(false);
+     }
    } else {
      toast.success(`${theme.name} theme applied.`);
    }
@@ -2959,23 +3015,55 @@ export default function Messages() {
    }
  };
 
+ const withdrawGiftEarnings = async () => {
+   if (!token || coinActionPending) return;
+   const amountInput = prompt(`Gift earnings available: ${earnedCoinBalance} coins. Minimum withdrawal is 50 coins.`, "50");
+   if (amountInput === null) return;
+   const amount = Number(amountInput);
+   if (!Number.isInteger(amount) || amount < 50) {
+     toast.error("Minimum withdrawal is 50 coins.");
+     return;
+   }
+   const payoutAccount = prompt("Enter your UPI ID or payout account:", "");
+   if (!payoutAccount?.trim()) return;
+   setCoinActionPending(true);
+   try {
+     const response = await fetch(`${API_URL}/users/me/coins/withdraw`, {
+       method: "POST",
+       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+       body: JSON.stringify({ amount, payoutAccount: payoutAccount.trim() }),
+     });
+     const data = await response.json().catch(() => null);
+     if (!response.ok) throw new Error(data?.message || "Withdrawal request failed.");
+     setCoinBalance(Number(data.coinBalance) || 0);
+     setEarnedCoinBalance(Number(data.earnedCoinBalance) || 0);
+     toast.success("Withdrawal request sent to Super Admin.");
+   } catch (error) {
+     toast.error(error instanceof Error ? error.message : "Withdrawal request failed.");
+   } finally {
+     setCoinActionPending(false);
+   }
+ };
+
  const sendGiftWithCoins = async (gift: { emoji: string; label: string; price: number }) => {
    if (!active || !token || coinActionPending) return;
-   if (coinBalance < gift.price) {
-     toast.error(`You need ${gift.price - coinBalance} more coins. Please recharge.`);
+   const spendableCoins = coinBalance + earnedCoinBalance;
+   if (spendableCoins < gift.price) {
+     toast.error(`You need ${gift.price - spendableCoins} more coins. Please recharge.`);
      return;
    }
    if (!confirm(`Send ${gift.label} for ${gift.price} coins?`)) return;
    setCoinActionPending(true);
    try {
-     const response = await fetch(`${API_URL}/users/me/coins/spend`, {
+     const response = await fetch(`${API_URL}/users/me/coins/gift`, {
        method: "POST",
        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-       body: JSON.stringify({ amount: gift.price }),
+       body: JSON.stringify({ receiverId: active.userId, amount: gift.price, label: gift.label }),
      });
      const data = await response.json().catch(() => null);
-     if (!response.ok) throw new Error(data?.message || "Not enough coins.");
+     if (!response.ok) throw new Error(data?.message || "Gift could not be sent.");
      setCoinBalance(Number(data.coinBalance) || 0);
+     setEarnedCoinBalance(Number(data.earnedCoinBalance) || 0);
      sendMessage(active.userId, `${GIFT_MESSAGE_PREFIX}${gift.emoji}|${gift.label}|${gift.price}`);
      setShowEmojiPicker(false);
    } catch (error) {
@@ -3644,10 +3732,16 @@ export default function Messages() {
               <Coins className="h-5 w-5 text-amber-500" />
               <span>{coinBalance.toLocaleString()} coins</span>
             </div>
-            <Button type="button" size="sm" onClick={rechargeCoins} disabled={coinActionPending} className="h-8 rounded-full bg-amber-500 px-3 text-xs font-bold text-white hover:bg-amber-600">
-              {coinActionPending ? "Please wait..." : "Recharge"}
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button type="button" size="sm" variant="outline" onClick={withdrawGiftEarnings} disabled={coinActionPending || earnedCoinBalance < 50} className="h-8 rounded-full px-2.5 text-[10px] font-bold text-emerald-700">
+                Withdraw
+              </Button>
+              <Button type="button" size="sm" onClick={rechargeCoins} disabled={coinActionPending} className="h-8 rounded-full bg-amber-500 px-3 text-xs font-bold text-white hover:bg-amber-600">
+                {coinActionPending ? "Please wait..." : "Recharge"}
+              </Button>
+            </div>
           </div>
+          <p className="mb-3 px-1 text-[10px] font-semibold text-slate-500">Gift earnings: {earnedCoinBalance.toLocaleString()} coins · Minimum withdrawal: 50</p>
           <div className="grid grid-cols-2 gap-2.5">
             {PREMIUM_GIFTS.map((gift) => {
               const visual = giftVisuals[gift.label] || { emoji: "🌹", bg: "from-pink-50 to-white" };
@@ -3956,6 +4050,15 @@ export default function Messages() {
  </Button>
  </div>
  <div className="min-h-0 flex-1 overflow-y-auto p-5">
+ <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+ <div>
+ <p className="text-xs font-semibold text-amber-700">Theme Wallet</p>
+ <p className="text-sm font-bold text-amber-900">{coinBalance.toLocaleString()} coins</p>
+ </div>
+ <Button type="button" size="sm" disabled={coinActionPending} onClick={rechargeCoins} className="rounded-full bg-amber-500 px-4 font-bold text-white hover:bg-amber-600">
+ {coinActionPending ? "Please wait..." : "Recharge"}
+ </Button>
+ </div>
  <div className="mb-5 flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/30 px-4 py-3">
  <div>
  <p className="text-sm font-semibold text-foreground">Active: {selectedTheme.name}</p>
@@ -4016,7 +4119,7 @@ export default function Messages() {
  </span>
  <span className="flex items-center gap-2 px-3 py-3">
  <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-50 text-rose-600">
- {selectedThemeId === theme.id ? <Check className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+ {selectedThemeId === theme.id || unlockedThemeIds.has(theme.id) ? <Check className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
  </span>
  <span className="min-w-0 flex-1">
  <span className="block truncate text-sm font-bold text-foreground">{theme.name}</span>
@@ -4027,7 +4130,7 @@ export default function Messages() {
  </span>
  <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-xs font-bold text-rose-600">
  <CreditCard className="h-3 w-3" />
- Rs {theme.price}
+ {unlockedThemeIds.has(theme.id) ? "Unlocked" : `${theme.price} coins`}
  </span>
  </span>
  </button>
@@ -4061,7 +4164,13 @@ export default function Messages() {
  )}
  {activeCall && typeof document !== "undefined" && createPortal((
  <div className="fixed inset-0 z-[100] h-dvh min-h-dvh w-screen overflow-hidden bg-slate-950 text-white">
- <video ref={remoteVideoRef} autoPlay playsInline className={activeCall.callType === "video" ? "absolute inset-0 block !h-full !w-full object-cover object-center" : "hidden"} />
+ <video
+ ref={remoteVideoRef}
+ autoPlay
+ playsInline
+ onLoadedMetadata={(event) => { void event.currentTarget.play().catch(() => undefined); }}
+ className={activeCall.callType === "video" ? "absolute inset-0 block !h-full !w-full object-cover object-center" : "hidden"}
+ />
  {activeCall.callType === "audio" && (
  <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[radial-gradient(circle_at_center,_#334155_0%,_#0f172a_55%,_#020617_100%)] px-5">
  <Avatar className="h-24 w-24 border border-white/20 sm:h-28 sm:w-28">

@@ -12,7 +12,7 @@ export default function RefundPolicyPage() {
       "How to cancel a ConnectLove subscription, prevent future renewals, and request review of duplicate, unauthorized, or service-related charges.",
     icon: ReceiptText,
     cta: { label: "Contact Billing Support", href: "/contact-us" },
-    secondaryCta: { label: "View Premium Plans", href: "/user/premium" },
+    secondaryCta: { label: "View Gold & Diamond Plans", href: "/user/premium" },
     highlights: [
       "Cancel renewal through the platform where you purchased your plan.",
       "Refund eligibility depends on the payment channel, applicable law, and charge circumstances.",

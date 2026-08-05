@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  BadgeCheck, Camera, Eye, Heart as HeartIcon, LogOut, Sparkles, Loader2, CheckCircle2, AlertCircle, X,
+  Camera, Eye, Heart as HeartIcon, LogOut, Sparkles, Loader2, CheckCircle2, AlertCircle, X,
   Lock, Unlock,
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
@@ -326,20 +326,26 @@ export default function ProfilePage() {
             {profile.name || "Your Name"}
             {profile.dob ? `, ${new Date().getFullYear() - new Date(profile.dob).getFullYear()}` : ""}
           </h1>
-          {profile.isVerified && <BadgeCheck className="h-5 w-5 text-emerald-400" />}
         </div>
         <p className="text-sm text-slate-500 capitalize mt-1 font-medium">
-          {profile.isVerified ? "Verified · " : ""}{profile.plan ?? "free"} member
+          {profile.plan ?? "free"} member
         </p>
       </div>
-      <button
-        onClick={() => setIsLocked(!isLocked)}
-        className={`flex w-full shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-all active:scale-95 sm:w-auto sm:px-4 sm:text-sm ${
+      <div className="flex w-full shrink-0 flex-col items-center gap-2 sm:w-auto sm:items-end">
+        {profile.kycMatched && (
+          <p className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-700 shadow-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            KYC Verified
+          </p>
+        )}
+        <button
+          onClick={() => setIsLocked(!isLocked)}
+          className={`flex w-full shrink-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-all active:scale-95 sm:w-auto sm:px-4 sm:text-sm ${
           isLocked
             ? "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
             : "bg-rose-50 border-rose-200 text-rose-500 hover:bg-rose-100/70"
         }`}
-      >
+        >
         {isLocked ? (
           <>
             <Lock className="h-4 w-4" />
@@ -351,7 +357,8 @@ export default function ProfilePage() {
             <span>Editing Mode</span>
           </>
         )}
-      </button>
+        </button>
+      </div>
     </div>
 
     {/* Photo Grid Section */}
