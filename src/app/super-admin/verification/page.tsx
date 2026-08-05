@@ -44,8 +44,8 @@ export default function VerificationPage() {
  const [error, setError] = useState("");
  const [page, setPage] = useState(1);
 
- const fetchQueue = async () => {
- setLoading(true);
+ const fetchQueue = async (silent = false) => {
+ if (!silent) setLoading(true);
  setError("");
  try {
  const res = await api.verification();
@@ -64,15 +64,19 @@ export default function VerificationPage() {
  documents: (item as any).documents || [],
  }));
  setQueue(rows);
- setActiveUser(rows[0] || null);
+ setActiveUser((current) => rows.find((row) => row.id === current?.id) || rows[0] || null);
  } catch {
  setError("Backend data unavailable.");
  } finally {
- setLoading(false);
+ if (!silent) setLoading(false);
  }
  };
 
- useEffect(() => { fetchQueue(); }, []);
+ useEffect(() => {
+   void fetchQueue();
+   const timer = window.setInterval(() => { void fetchQueue(true); }, 10000);
+   return () => window.clearInterval(timer);
+ }, []);
 
  const filteredQueue = useMemo(
  () => filter === "High Priority" ? queue.filter((r) => r.priority === "High") : queue,
