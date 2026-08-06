@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Camera, Eye, Heart as HeartIcon, LogOut, Sparkles, Loader2, CheckCircle2, AlertCircle, X,
-  Lock, Unlock,
+  Lock, Unlock, BadgeCheck,
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
 
@@ -326,6 +326,9 @@ export default function ProfilePage() {
             {profile.name || "Your Name"}
             {profile.dob ? `, ${new Date().getFullYear() - new Date(profile.dob).getFullYear()}` : ""}
           </h1>
+          {profile.isVerified && (
+            <BadgeCheck className="h-5 w-5 shrink-0 fill-blue-500 text-white sm:h-6 sm:w-6" aria-label="Verified by administrator" />
+          )}
         </div>
         <p className="text-sm text-slate-500 capitalize mt-1 font-medium">
           {profile.plan ?? "free"} member

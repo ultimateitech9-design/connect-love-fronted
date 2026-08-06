@@ -90,16 +90,16 @@ export default function TransactionsPage() {
     <div className="rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex items-center gap-2 border-b border-border p-4">
         <Search className="h-4 w-4 text-muted-foreground" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search user, email or transaction..." className="w-full bg-transparent text-sm outline-none" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search user, email or transaction..." className="w-full bg-transparent text-sm text-black outline-none placeholder:text-slate-500" />
         {withdrawalsOnly && <button type="button" onClick={showAllTransactions} className="shrink-0 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600">Showing withdrawals ×</button>}
         {commissionOnly && <button type="button" onClick={showAllTransactions} className="shrink-0 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">Showing commission ×</button>}
       </div>
       {error ? <p className="p-6 text-sm text-rose-600">{error}</p> : loading ? <p className="p-6 text-sm text-muted-foreground">Loading transactions...</p> : (
-        <div className="overflow-x-auto"><table className="w-full min-w-[980px] text-left text-sm">
-          <thead className="bg-muted/40 text-xs uppercase text-muted-foreground"><tr>
+        <div className="overflow-x-auto"><table className="w-full min-w-[980px] text-left text-sm text-black [&_.text-muted-foreground]:!text-slate-700">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-700"><tr>
             <th className="px-4 py-3">Type</th><th className="px-4 py-3">User / Sender</th><th className="px-4 py-3">Receiver</th><th className="px-4 py-3">Gross</th><th className="px-4 py-3">User 80%</th><th className="px-4 py-3">Platform 20%</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Date</th>
           </tr></thead>
-          <tbody>{filtered.map((row) => <tr key={row.id} className="border-t border-border">
+          <tbody className="text-black">{filtered.map((row) => <tr key={row.id} className="border-t border-border bg-white text-black">
             <td className="px-4 py-3"><span className="inline-flex items-center gap-1.5 font-semibold capitalize">{row.type === 'recharge' || row.type === 'gift' ? <ArrowDownLeft className="h-4 w-4 text-emerald-500" /> : <ArrowUpRight className="h-4 w-4 text-rose-500" />}{row.type}</span><div className="text-xs text-muted-foreground">{row.label}</div></td>
             <td className="px-4 py-3 font-medium">{row.sender?.name || row.user?.name || 'Platform'}<div className="text-xs font-normal text-muted-foreground">{row.sender?.email || row.user?.email}</div></td>
             <td className="px-4 py-3">{row.receiver?.name || '—'}<div className="text-xs text-muted-foreground">{row.receiver?.email}</div></td>

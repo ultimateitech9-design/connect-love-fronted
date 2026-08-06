@@ -1,7 +1,7 @@
 import { API_ORIGIN } from "@/config/runtime";
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, type PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, Loader2, RotateCcw, Send } from "lucide-react";
+import { BadgeCheck, ChevronLeft, ChevronRight, MapPin, X, Heart, Star, Loader2, RotateCcw, Send } from "lucide-react";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
 import { formatDistance } from "@/lib/distance";
@@ -408,7 +408,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
             )}
           </AnimatePresence>
 
-          {!showDetails && (profile.kycMatched === true || (profile.kycMatched == null && profile.isVerified === true)) && (
+          {!showDetails && profile.kycMatched === true && (
             <div className="pointer-events-none absolute right-4 top-5 z-20 inline-flex items-center gap-1 rounded-full border border-emerald-300/50 bg-black/55 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-300 shadow-lg backdrop-blur-md sm:right-5 sm:top-6">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
               KYC Verified
@@ -475,6 +475,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
               <h3 className="min-w-0 max-w-full text-2xl font-semibold leading-tight tracking-tight drop-shadow-sm sm:text-3xl">
                 {profile.name}{profile.age ? `, ${profile.age}` : ""}
               </h3>
+              {profile.isVerified && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white drop-shadow-sm" aria-label="Verified profile" />}
             </div>
             <div className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
               {profile.showDistance !== false && profileDistanceLabel && (
@@ -529,7 +530,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
               ) : detailedProfile ? (
                 <div className="space-y-5 sm:space-y-6">
                   <div>
-                    {(detailedProfile.kycMatched === true || (detailedProfile.kycMatched == null && detailedProfile.isVerified === true)) && (
+                    {detailedProfile.kycMatched === true && (
                       <div className="mb-1 flex justify-end text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                         KYC Verified
                       </div>
@@ -538,6 +539,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
                       <h2 className="min-w-0 max-w-full text-2xl font-bold leading-tight text-foreground">
                         {detailedProfile.name}{detailedProfile.age ? `, ${detailedProfile.age}` : ""}
                       </h2>
+                      {detailedProfile.isVerified && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white" aria-label="Verified profile" />}
                     </div>
                     <p className="mt-1 text-sm font-medium text-muted-foreground">
                       {detailedProfile.profession}

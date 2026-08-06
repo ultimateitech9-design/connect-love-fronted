@@ -1799,6 +1799,8 @@ export default function Messages() {
   const hasLoadedHistoryRef = useRef<boolean>(false);
   const messagesListRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const typingStopTimerRef = useRef<number | null>(null);
+  const typingSentRef = useRef(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiPickerTriggerRef = useRef<HTMLButtonElement>(null);
  const mediaInputRef = useRef<HTMLInputElement>(null);
@@ -2433,21 +2435,35 @@ export default function Messages() {
  };
 
  useEffect(() => {
-   if (!activeUserId || isRecordingVoice) return;
+   if (typingStopTimerRef.current !== null) {
+     window.clearTimeout(typingStopTimerRef.current);
+     typingStopTimerRef.current = null;
+   }
 
    const hasDraft = draft.trim().length > 0;
-   sendTypingStatus(activeUserId, hasDraft);
+   if (!activeUserId || isRecordingVoice || !hasDraft) {
+     if (activeUserId && typingSentRef.current) sendTypingStatus(activeUserId, false);
+     typingSentRef.current = false;
+     return;
+   }
 
-   if (!hasDraft) return;
-   const timer = window.setTimeout(() => {
+   if (!typingSentRef.current) {
+     sendTypingStatus(activeUserId, true);
+     typingSentRef.current = true;
+   }
+
+   typingStopTimerRef.current = window.setTimeout(() => {
      sendTypingStatus(activeUserId, false);
+     typingSentRef.current = false;
+     typingStopTimerRef.current = null;
    }, 1500);
-
-   return () => {
-     window.clearTimeout(timer);
-     sendTypingStatus(activeUserId, false);
-   };
  }, [activeUserId, draft, isRecordingVoice, sendTypingStatus]);
+
+ useEffect(() => () => {
+   if (typingStopTimerRef.current !== null) window.clearTimeout(typingStopTimerRef.current);
+   if (activeUserId && typingSentRef.current) sendTypingStatus(activeUserId, false);
+   typingSentRef.current = false;
+ }, [activeUserId, sendTypingStatus]);
 
  useEffect(() => {
    if (!activeUserId) return;
@@ -2802,7 +2818,7 @@ export default function Messages() {
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [activeId, visibleMessages.length, isTyping, isRecording]);
+  }, [activeId, visibleMessages.length]);
 
  const handleSend = async (e?: React.FormEvent) => {
    if (e) e.preventDefault();
@@ -3627,13 +3643,13 @@ export default function Messages() {
  )
   );
 })}
- {(isTyping || isRecording) && (
-   <div className="relative z-10 flex w-full justify-start">
+ <div className="relative z-10 flex min-h-8 w-full justify-start" aria-live="polite">
+   {(isTyping || isRecording) && (
      <div className="rounded-2xl rounded-bl-sm bg-[var(--chat-incoming)] px-4 py-2 text-xs font-semibold text-[var(--chat-text-muted)] shadow-sm">
        {isRecording ? "Recording Audio..." : "Typing..."}
      </div>
-   </div>
- )}
+   )}
+ </div>
  <div ref={bottomRef} />
  </div>
 
