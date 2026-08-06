@@ -1,11 +1,11 @@
 import { API_ORIGIN } from "@/config/runtime";
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, type PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, Loader2, Zap, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, X, Heart, Star, Loader2, RotateCcw, Send } from "lucide-react";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
-import { BoostDialog } from "@/features/boost/BoostDialog";
 import { formatDistance } from "@/lib/distance";
+import { FirstImpressionDialog } from "@/features/first-impressions/FirstImpressionDialog";
 
 export interface Profile {
   id: string;
@@ -79,8 +79,8 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [instructionVisible, setInstructionVisible] = useState(true);
   const [isSuperLiking, setIsSuperLiking] = useState(false);
-  const [boostOpen, setBoostOpen] = useState(false);
   const [showKeyboardHints, setShowKeyboardHints] = useState(true);
+  const [firstImpressionOpen, setFirstImpressionOpen] = useState(false);
   const isDraggingRef = useRef(false);
   const keyboardActionsRef = useRef({
     pass: () => {},
@@ -644,15 +644,21 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
         >
           <Star className="h-5 w-5" strokeWidth={2.5} />
         </button>
-        <button type="button" onClick={() => setBoostOpen(true)} className="grid h-11 w-11 place-items-center rounded-full border-2 border-amber-300 bg-card text-amber-500 shadow-md transition hover:scale-105 sm:h-[48px] sm:w-[48px]" aria-label="Boost your profile" title="Boost your profile">
-          <Zap className="h-5 w-5" strokeWidth={2.5} fill="currentColor" />
-        </button>
         <button
           onClick={() => triggerSwipe("like")}
           className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20 transition hover:scale-105 sm:h-14 sm:w-14"
           aria-label="Like"
         >
           <Heart className="h-6 w-6" strokeWidth={2.5} fill="currentColor" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setFirstImpressionOpen(true)}
+          className="grid h-11 w-11 place-items-center rounded-full bg-[#171d29] text-blue-300 shadow-md transition hover:scale-105 hover:bg-[#20293a] sm:h-[48px] sm:w-[48px]"
+          aria-label={`Send a First Impression to ${profile.name}`}
+          title="Send a First Impression"
+        >
+          <Send className="h-5 w-5 -rotate-12" strokeWidth={2} />
         </button>
       </div>
 
@@ -695,7 +701,11 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
           </button>
         )}
       </div>
-      <BoostDialog open={boostOpen} onClose={() => setBoostOpen(false)} />
+      <FirstImpressionDialog
+        open={firstImpressionOpen}
+        profile={{ id: profile.id, name: profile.name, photo: currentDisplayPhoto, photoCount: currentPhotos.length }}
+        onClose={() => setFirstImpressionOpen(false)}
+      />
     </div>
   );
 }

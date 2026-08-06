@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getDiscoveryProfileDetails, getDiscoveryProfiles, swipeProfile, undoSwipeProfile } from "@/features/discovery/api";
 
 type DiscoveryRequestFilters = {
-  interestedIn?: "female" | "male" | "non-binary" | "everyone";
+  interestedIn?: "female" | "male" | "non-binary" | "prefer-not" | "everyone";
   search?: string;
   ageMin?: number;
   ageMax?: number;

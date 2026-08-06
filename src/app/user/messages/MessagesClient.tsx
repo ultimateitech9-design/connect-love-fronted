@@ -1714,8 +1714,19 @@ type ActiveCall = {
  callType: "audio" | "video";
 };
 
+type InboxFirstImpression = {
+ id: string;
+ sender: { id: string | null; name: string; photo: string | null };
+ content: string | null;
+ locked: boolean;
+ createdAt: string;
+};
+
 export default function Messages() {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [firstImpressions, setFirstImpressions] = useState<InboxFirstImpression[]>([]);
+  const [firstImpressionsUnlocked, setFirstImpressionsUnlocked] = useState(false);
+  const [activeFirstImpressionId, setActiveFirstImpressionId] = useState<string | null>(null);
   const [messageBursts, setMessageBursts] = useState<Record<string, { id: number; emoji: string }[]>>({});
 
   const triggerReactionBurst = useCallback((messageId: string, emoji: string) => {
@@ -1838,6 +1849,18 @@ export default function Messages() {
          setCoinBalance(Number(user.coinBalance) || 0);
          setEarnedCoinBalance(Number(user.earnedCoinBalance) || 0);
        }
+     })
+     .catch(() => {});
+ }, [token]);
+
+ useEffect(() => {
+   if (!token) return;
+   fetch(`${API_URL}/first-impressions/received`, { headers: { Authorization: `Bearer ${token}` } })
+     .then((response) => response.ok ? response.json() : null)
+     .then((result) => {
+       if (!result) return;
+       setFirstImpressions(Array.isArray(result.items) ? result.items.filter((item: InboxFirstImpression) => !item.locked) : []);
+       setFirstImpressionsUnlocked(Boolean(result.unlocked));
      })
      .catch(() => {});
  }, [token]);
@@ -2137,6 +2160,7 @@ export default function Messages() {
    .sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
 
  const active = displayMatches.find((m) => m.id === activeId);
+ const activeFirstImpression = firstImpressions.find((item) => item.id === activeFirstImpressionId) || null;
  const activeUserId = active?.userId;
  const activePresenceText = isRecording
    ? "Recording Audio..."
@@ -2984,6 +3008,7 @@ export default function Messages() {
  };
 
  const handleSelectMatch = (id: string) => {
+   setActiveFirstImpressionId(null);
    setActiveId(id);
    queryClient.invalidateQueries({ queryKey: ['messages', id] });
  };
@@ -3124,7 +3149,7 @@ export default function Messages() {
  className={cn("chat-theme-surface grid h-full min-h-0 gap-4 rounded-none p-0 sm:rounded-2xl lg:grid-cols-[320px_1fr]", selectedTheme.is3d && "chat-theme-3d")}
  style={chatThemeStyle}
  >
- <aside className={cn("flex min-h-0 flex-col overflow-hidden rounded-none bg-[var(--chat-panel)] shadow-none backdrop-blur sm:rounded-2xl sm:shadow-sm", active && "hidden lg:flex")}>
+ <aside className={cn("flex min-h-0 flex-col overflow-hidden rounded-none bg-[var(--chat-panel)] shadow-none backdrop-blur sm:rounded-2xl sm:shadow-sm", (active || activeFirstImpression) && "hidden lg:flex")}>
  <div className="flex flex-col gap-3 border-b border-black/10 p-4 dark:border-white/10">
  <h2 className="text-lg font-semibold text-[var(--chat-text)]">Messages</h2>
  <div className="relative">
@@ -3138,6 +3163,27 @@ export default function Messages() {
  </div>
  </div>
  <ul className="flex-1 overflow-y-auto divide-y divide-black/10 dark:divide-white/10">
+ {firstImpressions
+   .filter((item) => item.sender.name.toLowerCase().includes(searchQuery.toLowerCase()))
+   .map((item) => (
+   <li key={`first-${item.id}`}>
+     <button
+       type="button"
+       onClick={() => { setActiveId(null); setActiveFirstImpressionId(item.id); }}
+       className={cn("flex w-full items-center gap-3 px-4 py-3 text-left transition-colors", activeFirstImpressionId === item.id ? "bg-[var(--chat-selected)]" : "hover:bg-[var(--chat-hover)]")}
+     >
+       <div className="relative">
+         <Avatar className="h-[44px] w-[44px]"><AvatarImage src={item.sender.photo || undefined} /><AvatarFallback>{item.sender.name[0]}</AvatarFallback></Avatar>
+         <span className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-blue-500 text-white ring-2 ring-[var(--chat-panel)]"><Send className="h-2.5 w-2.5 -rotate-12" /></span>
+       </div>
+       <div className="min-w-0 flex-1">
+         <p className="truncate text-sm font-semibold text-[var(--chat-text)]">{item.sender.name}</p>
+         <p className={cn("truncate text-xs text-[var(--chat-text-muted)]", item.locked && "select-none blur-[3px]")}>{item.locked ? "A special message for you" : item.content}</p>
+       </div>
+       {item.locked && <Lock className="h-4 w-4 shrink-0 text-amber-500" />}
+     </button>
+   </li>
+ ))}
  {sortedMatches.map((m) => {
  return (
  <li key={m.id}>
@@ -3188,7 +3234,32 @@ export default function Messages() {
  </ul>
  </aside>
 
- {active ? (
+ {activeFirstImpression ? (
+  <section className="relative flex min-h-0 flex-col overflow-hidden rounded-none bg-[var(--chat-panel)] shadow-none backdrop-blur sm:rounded-2xl sm:shadow-sm">
+    <header className="flex shrink-0 items-center gap-3 border-b border-border px-5 py-3">
+      <Button variant="ghost" size="icon" onClick={() => setActiveFirstImpressionId(null)} className="lg:hidden" aria-label="Back to messages"><ArrowLeft className="h-5 w-5" /></Button>
+      <Avatar className="h-10 w-10"><AvatarImage src={activeFirstImpression.sender.photo || undefined} /><AvatarFallback>{activeFirstImpression.sender.name[0]}</AvatarFallback></Avatar>
+      <div><p className="text-sm font-semibold text-[var(--chat-text)]">{activeFirstImpression.sender.name}</p><p className="text-xs font-medium text-blue-500">First Impression</p></div>
+    </header>
+    <div className="flex flex-1 flex-col justify-end overflow-y-auto p-5">
+      <div className="max-w-[85%] self-start rounded-2xl rounded-bl-sm bg-[var(--chat-incoming)] p-4 text-[var(--chat-text)] shadow-sm">
+        {activeFirstImpression.locked ? (
+          <div className="min-w-[220px]">
+            <div className="relative overflow-hidden rounded-xl bg-black/5 p-3">
+              <p className="select-none text-sm leading-6 blur-[5px]" aria-hidden="true">This is a private First Impression message waiting for you.</p>
+              <Lock className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 text-amber-500" />
+            </div>
+            <p className="mt-3 text-xs text-[var(--chat-text-muted)]">Upgrade your plan to reveal this message.</p>
+            <Button asChild className="mt-3 h-9 rounded-full bg-blue-500 px-5 text-white hover:bg-blue-600"><a href="/user/premium">View plans</a></Button>
+          </div>
+        ) : (
+          <p className="whitespace-pre-wrap break-words text-sm leading-6">{activeFirstImpression.content}</p>
+        )}
+      </div>
+    </div>
+    {!firstImpressionsUnlocked && <div className="border-t border-border px-5 py-3 text-center text-xs text-[var(--chat-text-muted)]"><Lock className="mr-1 inline h-3.5 w-3.5" />Replies become available after matching.</div>}
+  </section>
+ ) : active ? (
   <section className="relative flex min-h-0 flex-col overflow-hidden rounded-none bg-[var(--chat-panel)] shadow-none backdrop-blur sm:rounded-2xl sm:shadow-sm">
     {selectedTheme.is3d && (
       <ChatThemeParticles themeId={selectedTheme.id} />

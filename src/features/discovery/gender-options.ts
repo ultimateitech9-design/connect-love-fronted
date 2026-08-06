@@ -13,6 +13,7 @@ export const INTERESTED_IN_OPTIONS = [
   { value: "female", label: "Women" },
   { value: "male", label: "Men" },
   { value: "non-binary", label: "Non-binary" },
+  { value: "prefer-not", label: "Prefer not to say" },
   { value: "everyone", label: "Everyone" },
 ] as const;
 

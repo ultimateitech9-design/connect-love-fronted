@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Ban, Clock, RefreshCw, Sparkles, Star, Trash2, UserCheck } from "lucide-react";
+import { MessageSquare, Ban, Clock, RefreshCw, Sparkles, Star, Trash2, UserCheck, LockKeyhole, Send } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner"; 
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 
 type MatchStatus = "PENDING" | "MATCHED" | "DECLINED" | "BLOCKED";
 type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; createdAt?: string };
+type ReceivedFirstImpression = { id: string; sender: { id: string | null; name: string; photo: string | null }; content: string | null; locked: boolean; createdAt: string };
 let matchesMemoryCache: DBMatch[] | null = null;
 
 async function readMatches(res: Response): Promise<DBMatch[]> {
@@ -37,6 +38,7 @@ export default function MatchesDashboard() {
  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
  const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
  const [fetchError, setFetchError] = useState(false);
+ const [firstImpressions, setFirstImpressions] = useState<ReceivedFirstImpression[]>([]);
 
  const applyMatches = (matches: DBMatch[], userId: string | null) => {
    setActiveMatches(matches.filter((match) => match.status === "MATCHED"));
@@ -90,6 +92,13 @@ export default function MatchesDashboard() {
    setFetchError(false);
    try {
      if (!token) return;
+     void apiFetch('/first-impressions/received', { headers: { Authorization: `Bearer ${token}` } })
+       .then(async (response) => {
+         if (!response.ok) return;
+         const result = await response.json();
+         setFirstImpressions(Array.isArray(result.items) ? result.items.filter((item: ReceivedFirstImpression) => item.locked) : []);
+       })
+       .catch(() => undefined);
      // Active matches are the default view, so render them first instead of
      // blocking the page on every pending/blocked profile and its photo.
      const activeResponse = await apiFetch("/matches?filter=active", { headers: { Authorization: `Bearer ${token}` } });
@@ -274,6 +283,32 @@ export default function MatchesDashboard() {
      {/* ACTIVE MATCHES */}
      <TabsContent value="active" className="mt-0 focus-visible:outline-none">
        <div className="mb-6"><p className="text-sm text-muted-foreground">You have {activeMatches.length} active matches. Say hello!</p></div>
+       {firstImpressions.length > 0 && (
+         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+           {firstImpressions.map((item) => (
+             <article key={item.id} className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+               <div className="flex items-center gap-3">
+                 <div className="relative">
+                   <Avatar className="h-12 w-12"><AvatarImage src={item.sender.photo || undefined} /><AvatarFallback className="bg-blue-50 text-blue-500">?</AvatarFallback></Avatar>
+                   <span className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-blue-500 text-white ring-2 ring-white"><Send className="h-2.5 w-2.5 -rotate-12" /></span>
+                 </div>
+                 <div className="min-w-0 flex-1">
+                   <p className="truncate font-semibold text-slate-900">{item.sender.name}</p>
+                   <p className="text-xs font-medium text-blue-500">Sent you a First Impression</p>
+                 </div>
+                 {item.locked && <LockKeyhole className="h-4 w-4 text-amber-500" />}
+               </div>
+               <div className="relative mt-4 overflow-hidden rounded-xl bg-slate-50 px-3 py-2">
+                 <p className={cn("text-sm text-slate-600", item.locked && "select-none blur-[4px]")}>{item.locked ? 'A private message is waiting for you.' : item.content}</p>
+                 {item.locked && <LockKeyhole className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-amber-500" />}
+               </div>
+               <Button asChild className="mt-4 w-full rounded-full bg-[color:var(--brand)] text-white hover:opacity-90">
+                 <Link href={item.locked ? '/user/premium' : '/user/messages'}>{item.locked ? 'Unlock First Impression' : 'View message'}</Link>
+               </Button>
+             </article>
+           ))}
+         </div>
+       )}
        {activeMatches.length === 0 ? (
          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/50 p-12 text-center text-muted-foreground">No active matches yet.</div>
        ) : (

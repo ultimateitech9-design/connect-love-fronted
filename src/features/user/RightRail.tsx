@@ -6,7 +6,8 @@ import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Zap } from "lucide-react";
+import { BoostDialog } from "@/features/boost/BoostDialog";
 import { getToken } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useMatches } from "@/hooks/useMatches";
@@ -27,6 +28,7 @@ function calcCompletion(p: any): number {
 type DBMatch = { id: string; senderId: string; receiverId: string; status: string };
 
 export function RightRail() {
+  const [boostOpen, setBoostOpen] = useState(false);
   const [completion, setCompletion] = useState(85);
   const [avatarUrl, setAvatarUrl] = useState("https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop");
   const [recentMatches, setRecentMatches] = useState<any[]>([]);
@@ -71,23 +73,35 @@ export function RightRail() {
     <div className="flex h-full flex-col gap-4">
       {/* Profile Completion */}
       <div className="rounded-2xl bg-card p-5 shadow-lg border-border border">
-        <Link href="/user/profile" className="flex items-center gap-3 group">
-          <Avatar className="h-[48px] w-[48px] group-hover:ring-2 ring-rose-500 transition-all" style={{ border: "2px solid rgba(236,72,153,0.3)" }}>
-            <AvatarImage src={avatarUrl} alt="Your profile photo" />
-            <AvatarFallback
-              className="text-white text-xs font-bold"
-              style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}
-            >
-              You
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-base font-semibold text-foreground group-hover:text-rose-700 transition-colors">Your Profile</p>
-            <p className="text-sm font-medium text-rose-700">{completion}% Complete</p>
-          </div>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/user/profile" className="group flex min-w-0 flex-1 items-center gap-3">
+            <Avatar className="h-[48px] w-[48px] shrink-0 group-hover:ring-2 ring-rose-500 transition-all" style={{ border: "2px solid rgba(236,72,153,0.3)" }}>
+              <AvatarImage src={avatarUrl} alt="Your profile photo" />
+              <AvatarFallback
+                className="text-white text-xs font-bold"
+                style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}
+              >
+                You
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold text-foreground transition-colors group-hover:text-rose-700">Your Profile</p>
+              <p className="text-sm font-medium text-rose-700">{completion}% Complete</p>
+            </div>
+          </Link>
+          <button
+            type="button"
+            onClick={() => setBoostOpen(true)}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-amber-300 bg-card text-amber-500 shadow-md transition hover:scale-105"
+            aria-label="Boost your profile"
+            title="Boost your profile"
+          >
+            <Zap className="h-5 w-5" strokeWidth={2.5} fill="currentColor" />
+          </button>
+        </div>
         <Progress value={completion} className="mt-4 h-[8px]" />
       </div>
+      <BoostDialog open={boostOpen} onClose={() => setBoostOpen(false)} />
 
       {/* Recent Matches */}
       <div className="flex-1 rounded-2xl bg-card p-5 shadow-lg flex flex-col border-border border">
