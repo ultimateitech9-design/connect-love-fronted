@@ -1,7 +1,7 @@
 "use client";
 import { apiFetch } from "@/config/runtime";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,7 +15,9 @@ import { motion } from "framer-motion";
 type MatchStatus = "PENDING" | "MATCHED" | "DECLINED" | "BLOCKED";
 type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; locked?: boolean; createdAt?: string };
 type ReceivedFirstImpression = { id: string; sender: { id: string | null; name: string; photo: string | null }; content: string | null; locked: boolean; createdAt: string };
-let matchesMemoryCache: DBMatch[] | null = null;
+type MatchTab = "active" | "received" | "pending" | "blocked";
+type MatchSummary = { active: number; sent: number; received: number; blocked: number };
+const MATCH_PAGE_SIZE = 12;
 
 async function readMatches(res: Response): Promise<DBMatch[]> {
  if (!res.ok) {
@@ -32,7 +34,7 @@ export default function MatchesDashboard() {
  const [receivedLikes, setReceivedLikes] = useState<DBMatch[]>([]);
  const [blockedUsers, setBlockedUsers] = useState<DBMatch[]>([]);
  const [isLoading, setIsLoading] = useState(true);
- const [mainTab, setMainTab] = useState<"active" | "received" | "pending" | "blocked">("active");
+ const [mainTab, setMainTab] = useState<MatchTab>("active");
  const [pendingTab, setPendingTab] = useState<"sent" | "super">("sent");
  const [myId, setMyId] = useState<string | null>(null);
  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
@@ -40,13 +42,9 @@ export default function MatchesDashboard() {
  const [fetchError, setFetchError] = useState(false);
  const [firstImpressions, setFirstImpressions] = useState<ReceivedFirstImpression[]>([]);
  const [showMatchPlanPopup, setShowMatchPlanPopup] = useState(false);
-
- const applyMatches = (matches: DBMatch[], userId: string | null) => {
-   setActiveMatches(matches.filter((match) => match.status === "MATCHED"));
-   setSentLikes(matches.filter((match) => match.status === "PENDING" && match.senderId === userId));
-   setReceivedLikes(matches.filter((match) => match.status === "PENDING" && match.receiverId === userId));
-   setBlockedUsers(matches.filter((match) => match.status === "BLOCKED" && match.senderId === userId));
- };
+ const [summary, setSummary] = useState<MatchSummary>({ active: 0, sent: 0, received: 0, blocked: 0 });
+ const loadedTabs = useRef(new Set<MatchTab>());
+ const loadingTabs = useRef(new Set<MatchTab>());
 
  useEffect(() => {
    // Remove the old full-response cache; embedded profile photos can exceed
@@ -75,60 +73,50 @@ export default function MatchesDashboard() {
    };
  };
 
- const fetchMatches = async (showLoading = true) => {
-   let currentUserId: string | null = myId;
+ const refreshSummary = async () => {
    const token = getToken();
-   if (token && !currentUserId) {
-     try {
-       const payload = JSON.parse(atob(token.split('.')[1]));
-       currentUserId = payload.userId || payload.sub || null;
-     } catch {}
-   }
+   if (!token) return;
+   const response = await apiFetch('/matches/summary', { headers: { Authorization: `Bearer ${token}` } });
+   if (response.ok) setSummary(await response.json());
+ };
 
-   const hasCachedMatches = Array.isArray(matchesMemoryCache);
-   if (showLoading) {
-     if (matchesMemoryCache) applyMatches(matchesMemoryCache, currentUserId);
-     setIsLoading(!hasCachedMatches);
-   }
+ const loadTab = async (tab: MatchTab, force = false) => {
+   if ((!force && loadedTabs.current.has(tab)) || loadingTabs.current.has(tab)) return;
+   const token = getToken();
+   if (!token) return;
+   loadingTabs.current.add(tab);
    setFetchError(false);
+   if (tab === 'active') setIsLoading(true);
    try {
-     if (!token) return;
-     void apiFetch('/first-impressions/received', { headers: { Authorization: `Bearer ${token}` } })
-       .then(async (response) => {
-         if (!response.ok) return;
-         const result = await response.json();
-         setFirstImpressions(Array.isArray(result.items) ? result.items.filter((item: ReceivedFirstImpression) => item.locked) : []);
-       })
-       .catch(() => undefined);
-     // Active matches are the default view, so render them first instead of
-     // blocking the page on every pending/blocked profile and its photo.
-     const activeResponse = await apiFetch("/matches?filter=active", { headers: { Authorization: `Bearer ${token}` } });
-     const active = await readMatches(activeResponse);
-     setActiveMatches(active);
-     if (showLoading) setIsLoading(false);
-
-     void Promise.all([
-       apiFetch("/matches?filter=sent", { headers: { Authorization: `Bearer ${token}` } }).then(readMatches),
-       apiFetch("/matches?filter=received", { headers: { Authorization: `Bearer ${token}` } }).then(readMatches),
-       apiFetch("/matches?filter=blocked", { headers: { Authorization: `Bearer ${token}` } }).then(readMatches),
-     ]).then(([sent, received, blocked]) => {
-       setSentLikes(sent);
-       setReceivedLikes(received);
-       setBlockedUsers(blocked);
-       matchesMemoryCache = [...active, ...sent, ...received, ...blocked];
-     }).catch((error) => {
-       console.error("Failed to load secondary match lists", error);
-     });
+     const response = await apiFetch(`/matches?filter=${tab === 'pending' ? 'sent' : tab}&limit=${MATCH_PAGE_SIZE}&offset=0`, { headers: { Authorization: `Bearer ${token}` } });
+     const matches = await readMatches(response);
+     if (tab === 'active') setActiveMatches(matches);
+     if (tab === 'received') setReceivedLikes(matches);
+     if (tab === 'pending') setSentLikes(matches);
+     if (tab === 'blocked') setBlockedUsers(matches);
+     loadedTabs.current.add(tab);
+     if (tab === 'active') {
+       void apiFetch('/first-impressions/received', { headers: { Authorization: `Bearer ${token}` } })
+         .then(async (response) => response.ok ? response.json() : null)
+         .then((result) => setFirstImpressions(Array.isArray(result?.items) ? result.items.filter((item: ReceivedFirstImpression) => item.locked) : []))
+         .catch(() => undefined);
+     }
    } catch (error) {
-     console.error("Failed to load matches", error);
+     console.error(`Failed to load ${tab} matches`, error);
      setFetchError(true);
    } finally {
-     if (showLoading) setIsLoading(false);
+     loadingTabs.current.delete(tab);
+     if (tab === 'active') setIsLoading(false);
    }
  };
 
+ const refreshCurrentTab = async () => {
+   loadedTabs.current.delete(mainTab);
+   await Promise.all([loadTab(mainTab, true), refreshSummary()]);
+ };
+
  useEffect(() => {
-   fetchMatches();
+   void Promise.all([loadTab('active'), refreshSummary()]);
  }, []);
 
  const handleBlock = async (id: string) => {
@@ -138,7 +126,7 @@ export default function MatchesDashboard() {
        headers: { "Authorization": `Bearer ${getToken()}` },
      });
      toast.success("User blocked successfully");
-     fetchMatches(); // refresh all lists
+     await refreshCurrentTab();
    } catch (error) {
      console.error("Failed to block user", error);
    }
@@ -151,7 +139,7 @@ export default function MatchesDashboard() {
        headers: { "Authorization": `Bearer ${getToken()}` },
      });
      toast.success("User unblocked successfully");
-     fetchMatches();
+     await refreshCurrentTab();
    } catch (error) {
      console.error("Failed to unblock user", error);
    }
@@ -171,6 +159,8 @@ export default function MatchesDashboard() {
       }
       toast.success("Pending request deleted");
       setSentLikes(prev => prev.filter(m => m.id !== id));
+      loadedTabs.current.delete('pending');
+      void refreshSummary();
     } catch (error) {
       console.error("Failed to withdraw", error);
       toast.error(error instanceof Error ? error.message : "Could not delete the pending request.");
@@ -187,9 +177,6 @@ export default function MatchesDashboard() {
    // Make the interaction instant. Roll back below only if the server rejects it.
    setReceivedLikes(prev => prev.filter(item => item.id !== matchId));
    setActiveMatches(prev => prev.some(item => item.id === matchId) ? prev : [activeMatch, ...prev]);
-   if (matchesMemoryCache) {
-     matchesMemoryCache = matchesMemoryCache.map(item => item.id === matchId ? activeMatch : item);
-   }
    try {
      const response = await apiFetch("/matches/respond", {
        method: "POST",
@@ -201,13 +188,12 @@ export default function MatchesDashboard() {
        throw new Error(data?.message || "Could not accept this match request.");
      }
      toast.success(match.locked ? "It's a Match! The profile is now unlocked." : `It's a Match! You and ${profileName} are now connected.`);
-     await fetchMatches(false);
+     loadedTabs.current.delete('active');
+     loadedTabs.current.delete('received');
+     await Promise.all([loadTab(mainTab, true), refreshSummary()]);
    } catch (error) {
      setActiveMatches(prev => prev.filter(item => item.id !== matchId));
      setReceivedLikes(prev => prev.some(item => item.id === matchId) ? prev : [match, ...prev]);
-     if (matchesMemoryCache) {
-       matchesMemoryCache = matchesMemoryCache.map(item => item.id === matchId ? match : item);
-     }
      const message = error instanceof TypeError
        ? "Server se connection nahi ho pa raha. Please try again."
        : error instanceof Error
@@ -229,6 +215,8 @@ export default function MatchesDashboard() {
      });
      toast.success("Passed on profile.");
      setReceivedLikes(prev => prev.filter(m => m.id !== matchId));
+     loadedTabs.current.delete('received');
+     void refreshSummary();
    } catch (error) {
      console.error("Failed to pass match", error);
    }
@@ -236,7 +224,7 @@ export default function MatchesDashboard() {
 
  const safeSentLikes = Array.isArray(sentLikes) ? sentLikes : [];
  const safeReceivedLikes = Array.isArray(receivedLikes) ? receivedLikes : [];
- const totalPending = safeSentLikes.length + safeReceivedLikes.length;
+ const totalPending = summary.sent + summary.received;
  const superLikes = safeSentLikes.filter(m => m.isSuperLike);
  const normalSentLikes = safeSentLikes.filter(m => !m.isSuperLike);
 
@@ -266,7 +254,7 @@ export default function MatchesDashboard() {
    {fetchError && (
      <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:flex-row sm:items-center sm:justify-between">
        <span>Matches could not be loaded. Please check the connection and try again.</span>
-       <Button variant="outline" size="sm" onClick={() => fetchMatches()} className="shrink-0 border-amber-300 bg-white text-amber-800 hover:bg-amber-100">
+       <Button variant="outline" size="sm" onClick={() => void refreshCurrentTab()} className="shrink-0 border-amber-300 bg-white text-amber-800 hover:bg-amber-100">
          <RefreshCw className="mr-2 h-4 w-4" /> Retry
        </Button>
      </div>
@@ -278,29 +266,29 @@ export default function MatchesDashboard() {
      </div>
    </div>
 
-   <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as "active" | "received" | "pending" | "blocked")} className="w-full">
+   <Tabs value={mainTab} onValueChange={(value) => { const tab = value as MatchTab; setMainTab(tab); void loadTab(tab); }} className="w-full">
      <TabsList className="mb-6 grid h-auto w-full grid-cols-4 rounded-2xl bg-slate-100 p-1 text-slate-500 sm:inline-grid sm:w-auto sm:rounded-full">
        <TabsTrigger value="active" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
-         <span className="sm:hidden">Active ({activeMatches.length})</span>
-         <span className="hidden sm:inline">Active Matches ({activeMatches.length})</span>
+         <span className="sm:hidden">Active ({summary.active})</span>
+         <span className="hidden sm:inline">Active Matches ({summary.active})</span>
        </TabsTrigger>
        <TabsTrigger value="received" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
-         <span className="sm:hidden">Received ({receivedLikes.length})</span>
-         <span className="hidden sm:inline">Likes Received ({receivedLikes.length})</span>
+         <span className="sm:hidden">Received ({summary.received})</span>
+         <span className="hidden sm:inline">Likes Received ({summary.received})</span>
        </TabsTrigger>
        <TabsTrigger value="pending" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
          <span className="sm:hidden">Pending ({totalPending})</span>
          <span className="hidden sm:inline">Pending Requests ({totalPending})</span>
        </TabsTrigger>
        <TabsTrigger value="blocked" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
-         <span className="sm:hidden">Blocked ({blockedUsers.length})</span>
-         <span className="hidden sm:inline">Blocked Users ({blockedUsers.length})</span>
+         <span className="sm:hidden">Blocked ({summary.blocked})</span>
+         <span className="hidden sm:inline">Blocked Users ({summary.blocked})</span>
        </TabsTrigger>
      </TabsList>
 
      {/* ACTIVE MATCHES */}
      <TabsContent value="active" className="mt-0 focus-visible:outline-none">
-       <div className="mb-6"><p className="text-sm text-muted-foreground">You have {activeMatches.length} active matches. Say hello!</p></div>
+       <div className="mb-6"><p className="text-sm text-muted-foreground">You have {summary.active} active matches. Say hello!</p></div>
        {firstImpressions.length > 0 && (
          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
            {firstImpressions.map((item) => (
@@ -530,7 +518,7 @@ export default function MatchesDashboard() {
 
      {/* BLOCKED USERS */}
      <TabsContent value="blocked" className="mt-0 focus-visible:outline-none">
-       <div className="mb-6"><p className="text-sm text-muted-foreground">Users you have blocked ({blockedUsers.length}).</p></div>
+       <div className="mb-6"><p className="text-sm text-muted-foreground">Users you have blocked ({summary.blocked}).</p></div>
        {blockedUsers.length === 0 ? (
          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/50 p-12 text-center text-muted-foreground">You haven't blocked anyone.</div>
        ) : (
