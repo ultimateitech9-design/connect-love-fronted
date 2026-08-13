@@ -45,6 +45,10 @@ export default function MatchesDashboard() {
  const [summary, setSummary] = useState<MatchSummary>({ active: 0, sent: 0, received: 0, blocked: 0 });
  const loadedTabs = useRef(new Set<MatchTab>());
  const loadingTabs = useRef(new Set<MatchTab>());
+ const loadingMoreTabs = useRef(new Set<MatchTab>());
+ const exhaustedTabs = useRef(new Set<MatchTab>());
+ const nextOffsets = useRef<Record<MatchTab, number>>({ active: 0, received: 0, pending: 0, blocked: 0 });
+ const selectedTab = useRef<MatchTab>('active');
 
  useEffect(() => {
    // Remove the old full-response cache; embedded profile photos can exceed
@@ -80,6 +84,39 @@ export default function MatchesDashboard() {
    if (response.ok) setSummary(await response.json());
  };
 
+ const appendTabMatches = (tab: MatchTab, matches: DBMatch[]) => {
+   const append = (current: DBMatch[]) => [...current, ...matches.filter((item) => !current.some((existing) => existing.id === item.id))];
+   if (tab === 'active') setActiveMatches(append);
+   if (tab === 'received') setReceivedLikes(append);
+   if (tab === 'pending') setSentLikes(append);
+   if (tab === 'blocked') setBlockedUsers(append);
+ };
+
+ const loadNextPage = async (tab: MatchTab) => {
+   if (selectedTab.current !== tab || exhaustedTabs.current.has(tab) || loadingMoreTabs.current.has(tab)) return;
+   const token = getToken();
+   if (!token) return;
+   loadingMoreTabs.current.add(tab);
+   try {
+     const response = await apiFetch(`/matches?filter=${tab === 'pending' ? 'sent' : tab}&limit=${MATCH_PAGE_SIZE}&offset=${nextOffsets.current[tab]}`, { headers: { Authorization: `Bearer ${token}` } });
+     const matches = await readMatches(response);
+     if (selectedTab.current !== tab) return;
+     appendTabMatches(tab, matches);
+     nextOffsets.current[tab] += matches.length;
+     if (matches.length < MATCH_PAGE_SIZE) {
+       exhaustedTabs.current.add(tab);
+     } else {
+       // Yield briefly so the cards already received can paint before the
+       // next page starts. This loads every record without a large first load.
+       window.setTimeout(() => void loadNextPage(tab), 80);
+     }
+   } catch (error) {
+     console.error(`Failed to load more ${tab} matches`, error);
+   } finally {
+     loadingMoreTabs.current.delete(tab);
+   }
+ };
+
  const loadTab = async (tab: MatchTab, force = false) => {
    if ((!force && loadedTabs.current.has(tab)) || loadingTabs.current.has(tab)) return;
    const token = getToken();
@@ -87,6 +124,10 @@ export default function MatchesDashboard() {
    loadingTabs.current.add(tab);
    setFetchError(false);
    if (tab === 'active') setIsLoading(true);
+   if (force) {
+     exhaustedTabs.current.delete(tab);
+     nextOffsets.current[tab] = 0;
+   }
    try {
      const response = await apiFetch(`/matches?filter=${tab === 'pending' ? 'sent' : tab}&limit=${MATCH_PAGE_SIZE}&offset=0`, { headers: { Authorization: `Bearer ${token}` } });
      const matches = await readMatches(response);
@@ -95,6 +136,8 @@ export default function MatchesDashboard() {
      if (tab === 'pending') setSentLikes(matches);
      if (tab === 'blocked') setBlockedUsers(matches);
      loadedTabs.current.add(tab);
+     nextOffsets.current[tab] = matches.length;
+     if (matches.length < MATCH_PAGE_SIZE) exhaustedTabs.current.add(tab);
      if (tab === 'active') {
        void apiFetch('/first-impressions/received', { headers: { Authorization: `Bearer ${token}` } })
          .then(async (response) => response.ok ? response.json() : null)
@@ -107,6 +150,7 @@ export default function MatchesDashboard() {
    } finally {
      loadingTabs.current.delete(tab);
      if (tab === 'active') setIsLoading(false);
+     if (selectedTab.current === tab && !exhaustedTabs.current.has(tab)) window.setTimeout(() => void loadNextPage(tab), 80);
    }
  };
 
@@ -266,7 +310,7 @@ export default function MatchesDashboard() {
      </div>
    </div>
 
-   <Tabs value={mainTab} onValueChange={(value) => { const tab = value as MatchTab; setMainTab(tab); void loadTab(tab); }} className="w-full">
+   <Tabs value={mainTab} onValueChange={(value) => { const tab = value as MatchTab; selectedTab.current = tab; setMainTab(tab); if (loadedTabs.current.has(tab)) void loadNextPage(tab); else void loadTab(tab); }} className="w-full">
      <TabsList className="mb-6 grid h-auto w-full grid-cols-4 rounded-2xl bg-slate-100 p-1 text-slate-500 sm:inline-grid sm:w-auto sm:rounded-full">
        <TabsTrigger value="active" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
          <span className="sm:hidden">Active ({summary.active})</span>
