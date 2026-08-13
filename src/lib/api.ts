@@ -35,7 +35,12 @@ export async function directFetch<T>(path: string, init: RequestInit = {}): Prom
  // Member-facing APIs must always use the currently logged-in user's token.
  // A stale management cookie previously shadowed sm_token, causing a brand-new
  // account to inherit another account's plan usage and hit the limit instantly.
- return request<T>(`${API_BASE.replace(/\/$/, "")}${path}`, init, false);
+  return request<T>(`${API_BASE.replace(/\/$/, "")}${path}`, init, false);
+}
+
+/** Management endpoints that intentionally live outside the /api prefix. */
+export async function managementFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+ return request<T>(`${API_BASE.replace(/\/$/, "")}${path}`, init, true);
 }
 
 export type CampaignRecord = {
