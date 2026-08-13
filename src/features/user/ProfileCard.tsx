@@ -721,6 +721,14 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
         open={firstImpressionOpen}
         profile={{ id: profile.id, name: profile.name, photo: currentDisplayPhoto, photoCount: currentPhotos.length }}
         onClose={() => setFirstImpressionOpen(false)}
+        onSent={() => {
+          // The backend records a First Impression as a normal profile Like.
+          // Move forward only after that request succeeds, so the same card is
+          // not shown again and no duplicate swipe request is sent.
+          setIdx((current) => current + 1);
+          x.set(0);
+          y.set(0);
+        }}
         canSend={canUsePremiumActions}
         onSendLocked={() => onPremiumActionLocked?.("first-impression")}
       />

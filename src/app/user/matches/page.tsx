@@ -32,8 +32,8 @@ export default function MatchesDashboard() {
  const [receivedLikes, setReceivedLikes] = useState<DBMatch[]>([]);
  const [blockedUsers, setBlockedUsers] = useState<DBMatch[]>([]);
  const [isLoading, setIsLoading] = useState(true);
- const [mainTab, setMainTab] = useState<"active" | "pending" | "blocked">("active");
- const [pendingTab, setPendingTab] = useState<"sent" | "received" | "super">("sent");
+ const [mainTab, setMainTab] = useState<"active" | "received" | "pending" | "blocked">("active");
+ const [pendingTab, setPendingTab] = useState<"sent" | "super">("sent");
  const [myId, setMyId] = useState<string | null>(null);
  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
  const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
@@ -278,11 +278,15 @@ export default function MatchesDashboard() {
      </div>
    </div>
 
-   <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as "active" | "pending" | "blocked")} className="w-full">
-     <TabsList className="mb-6 grid h-auto w-full grid-cols-3 rounded-2xl bg-slate-100 p-1 text-slate-500 sm:inline-grid sm:w-auto sm:rounded-full">
+   <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as "active" | "received" | "pending" | "blocked")} className="w-full">
+     <TabsList className="mb-6 grid h-auto w-full grid-cols-4 rounded-2xl bg-slate-100 p-1 text-slate-500 sm:inline-grid sm:w-auto sm:rounded-full">
        <TabsTrigger value="active" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
          <span className="sm:hidden">Active ({activeMatches.length})</span>
          <span className="hidden sm:inline">Active Matches ({activeMatches.length})</span>
+       </TabsTrigger>
+       <TabsTrigger value="received" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
+         <span className="sm:hidden">Received ({receivedLikes.length})</span>
+         <span className="hidden sm:inline">Likes Received ({receivedLikes.length})</span>
        </TabsTrigger>
        <TabsTrigger value="pending" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
          <span className="sm:hidden">Pending ({totalPending})</span>
@@ -372,16 +376,33 @@ export default function MatchesDashboard() {
        )}
      </TabsContent>
 
+     {/* LIKES RECEIVED — kept beside Active Matches so incoming likes are always visible */}
+     <TabsContent value="received" className="mt-0 focus-visible:outline-none">
+       <div className="mb-6"><p className="text-sm text-muted-foreground">People who liked your profile. Match or pass them here.</p></div>
+       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+         {receivedLikes.map((m) => {
+           const profile = getProfile(m);
+           if (!profile) return null;
+           const isSuper = m.isSuperLike;
+           return <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} className={cn("relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition-all", isSuper ? "border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" : "border border-slate-100 border-l-4 border-l-[color:var(--brand)]")}>
+             {isSuper && <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-blue-50/50 to-transparent" />}
+             {m.locked && <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/75 p-5 text-center backdrop-blur-md"><LockKeyhole className="h-6 w-6 text-rose-500" /><p className="mt-2 text-sm font-bold text-slate-900">Like Locked</p><p className="mt-1 text-xs text-slate-500">Activate a plan to view and match.</p><Button asChild className="mt-3 h-8 rounded-full bg-[color:var(--brand)] px-4 text-white"><Link href="/user/premium">View Plans</Link></Button></div>}
+             <div className={cn("relative z-10 flex items-center gap-3", m.locked && "select-none blur-md")}><Avatar className={cn("h-12 w-12", isSuper && "ring-2 ring-blue-300 ring-offset-2")}><AvatarImage src={profile.photo} /><AvatarFallback>{profile.name[0]}</AvatarFallback></Avatar><div><p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age} {isSuper && <Star className="mb-0.5 ml-1 inline-block h-4 w-4 fill-blue-500 text-blue-500" />}</p><p className={cn("text-xs font-medium", isSuper ? "text-blue-500" : "text-[color:var(--brand)]")}>{isSuper ? "Super Liked you!" : "Liked you!"}</p></div></div>
+             <p className={cn("relative z-10 mt-4 line-clamp-2 text-sm text-slate-500", m.locked && "select-none blur-md")}>{m.locked ? "Someone liked your profile" : profile.bio}</p>
+             <div className="relative z-10 mt-5 flex gap-2"><Button disabled={acceptingRequestId !== null || m.locked} className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600" : "bg-[color:var(--brand)]")} onClick={() => handleAcceptMatch(m, profile.name)}>{acceptingRequestId === m.id ? "Matching..." : "Match"}</Button><Button disabled={m.locked} variant="outline" className="rounded-full border-slate-200 text-slate-400 hover:text-red-500" onClick={() => handlePassMatch(m.id)}>Pass</Button></div>
+           </motion.div>;
+         })}
+         {receivedLikes.length === 0 && <div className="col-span-full py-4 text-sm text-slate-400">No likes received yet.</div>}
+       </div>
+     </TabsContent>
+
      {/* PENDING REQUESTS */}
      <TabsContent value="pending" className="mt-0 focus-visible:outline-none">
-       <div className="mb-4"><p className="text-sm text-muted-foreground">Manage likes you have sent and received.</p></div>
+       <div className="mb-4"><p className="text-sm text-muted-foreground">Manage likes you have sent and your super likes.</p></div>
        
        <div className="flex gap-2 mb-6">
          <button onClick={() => setPendingTab('sent')} className={cn("px-4 py-1.5 rounded-full text-sm font-medium transition-colors", pendingTab === 'sent' ? "bg-rose-100 text-[color:var(--brand)]" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
            Sent Likes ({normalSentLikes.length})
-         </button>
-         <button onClick={() => setPendingTab('received')} className={cn("px-4 py-1.5 rounded-full text-sm font-medium transition-colors", pendingTab === 'received' ? "bg-rose-100 text-[color:var(--brand)]" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
-           Likes Received ({receivedLikes.length})
          </button>
          <button onClick={() => setPendingTab('super')} className={cn("px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center", pendingTab === 'super' ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
            <Star className="w-3.5 h-3.5 mr-1.5 fill-current" /> Super Likes ({superLikes.length})
@@ -422,7 +443,7 @@ export default function MatchesDashboard() {
          </div>
        )}
 
-       {pendingTab === 'received' && (
+       {false && (
          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
            {receivedLikes.map((m) => {
              const profile = getProfile(m);

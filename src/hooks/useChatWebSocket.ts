@@ -41,7 +41,7 @@ export interface Message {
  clientId?: string;
 }
 
-export function useChatWebSocket(token: string, conversationId: string | null, onMessageLimitReached?: (message: string) => void) {
+export function useChatWebSocket(token: string, conversationId: string | null, onPlanLimitReached?: (message: string, content: string) => boolean | void) {
  const [socket, setSocket] = useState<Socket | null>(null);
  const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
  const [recordingUsers, setRecordingUsers] = useState<Record<string, boolean>>({});
@@ -251,10 +251,8 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  replyToMessageId: replyToMessageId || undefined
  }, (response: any) => {
    if (response?.error) {
-     toast.error(response.error);
-     if (/free plan allows.*messages|message.*limit|upgrade.*unlimited messages/i.test(response.error)) {
-       onMessageLimitReached?.(response.error);
-     }
+     const handled = onPlanLimitReached?.(response.error, content);
+     if (!handled) toast.error(response.error);
      queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) => {
        if (!old) return old;
        return old.map((message) => message.id === clientId ? { ...message, deliveryStatus: 'failed' } : message);
@@ -288,16 +286,14 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
   })
   .catch((error) => {
    const message = error instanceof Error ? error.message : 'Message could not be sent.';
-   toast.error(message);
-   if (/free plan allows.*messages|message.*limit|upgrade.*unlimited messages/i.test(message)) {
-     onMessageLimitReached?.(message);
-   }
+   const handled = onPlanLimitReached?.(message, content);
+   if (!handled) toast.error(message);
    queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) =>
     (old || []).map((message) => message.id === clientId ? { ...message, deliveryStatus: 'failed' } : message),
    );
   });
  }
- }, [conversationId, onMessageLimitReached, queryClient, socket, token]);
+ }, [conversationId, onPlanLimitReached, queryClient, socket, token]);
 
  const editMessage = useCallback((messageId: string, receiverId: string, content: string) => {
    if (!conversationId) return;

@@ -39,6 +39,21 @@ const UNLOCKED_CHAT_THEMES_STORAGE_KEY = "connect-love-unlocked-chat-themes";
 const MUTED_CHATS_STORAGE_KEY = "connect-love-muted-chats";
 const INITIAL_MESSAGE_RENDER_LIMIT = 80;
 
+declare global {
+ interface Window {
+  Razorpay?: new (options: Record<string, unknown>) => { open: () => void; on: (event: string, handler: (response: any) => void) => void };
+ }
+}
+
+function loadWalletCheckout() {
+ if (window.Razorpay) return Promise.resolve(true);
+ return new Promise<boolean>((resolve) => {
+  const existing = document.querySelector<HTMLScriptElement>('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+  if (existing) { existing.addEventListener("load", () => resolve(true), { once: true }); existing.addEventListener("error", () => resolve(false), { once: true }); return; }
+  const script = document.createElement("script"); script.src = "https://checkout.razorpay.com/v1/checkout.js"; script.onload = () => resolve(true); script.onerror = () => resolve(false); document.body.appendChild(script);
+ });
+}
+
 type LightweightMenuContextValue = {
   open: boolean;
   x: number;
@@ -1774,6 +1789,7 @@ export default function Messages() {
  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
  const [canUseChatMedia, setCanUseChatMedia] = useState(false);
+ const [mediaShareLimitReached, setMediaShareLimitReached] = useState(false);
  const [lockedChatFeature, setLockedChatFeature] = useState<"media" | "voice" | "message" | "call" | null>(null);
  const [recordingSeconds, setRecordingSeconds] = useState(0);
  const [selectedMedia, setSelectedMedia] = useState<{ file: File; url: string; type: "photo" | "video" } | null>(null);
@@ -1937,7 +1953,21 @@ export default function Messages() {
  }, [activeId]);
 
   const { matches: activeMatches } = useMatches(token, "active");
-  const handleMessageLimitReached = () => setLockedChatFeature("message");
+  const handlePlanLimitReached = useCallback((message: string, content: string) => {
+    if (/media sharing.*limit|image sharing.*limit|share.*images.*limit/i.test(message) && /^(?:__photo_message__:|__video_message__:)/.test(content)) {
+      setMediaShareLimitReached(true);
+      setSelectedMedia((current) => {
+        if (current) URL.revokeObjectURL(current.url);
+        return null;
+      });
+      return true;
+    }
+    if (/free plan allows.*messages|message.*limit|upgrade.*unlimited messages/i.test(message)) {
+      setLockedChatFeature("message");
+      return true;
+    }
+    return false;
+  }, []);
   const {
     messages,
     sendMessage,
@@ -1952,7 +1982,7 @@ export default function Messages() {
     deleteMessage,
     togglePin,
     toggleStar,
-  } = useChatWebSocket(token, activeId, handleMessageLimitReached);
+  } = useChatWebSocket(token, activeId, handlePlanLimitReached);
 
   const toggleReaction = useCallback((messageId: string, receiverId: string, emoji: string) => {
     triggerReactionBurst(messageId, emoji);
@@ -3054,27 +3084,40 @@ export default function Messages() {
 
  const rechargeCoins = async () => {
    if (!token || coinActionPending) return;
-   const input = prompt("How many coins do you want to recharge?", "100");
+   const input = prompt("How many coins do you want to recharge? ₹1 = 1 coin.", "100");
    if (input === null) return;
    const amount = Number(input);
-   if (!Number.isInteger(amount) || amount < 1 || amount > 100000) {
-     toast.error("Enter a valid coin amount between 1 and 100000.");
+   if (!Number.isInteger(amount) || amount < 10 || amount > 100000) {
+     toast.error("Enter a valid coin amount between 10 and 100000.");
      return;
    }
    setCoinActionPending(true);
    try {
-     const response = await fetch(`${API_URL}/users/me/coins/recharge`, {
+     const loaded = await loadWalletCheckout();
+     if (!loaded || !window.Razorpay) throw new Error("Payment checkout could not be loaded.");
+     const orderResponse = await fetch(`${API_URL}/wallet/razorpay/order`, {
        method: "POST",
        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-       body: JSON.stringify({ amount }),
+       body: JSON.stringify({ coins: amount }),
      });
-     const data = await response.json().catch(() => null);
-     if (!response.ok) throw new Error(data?.message || "Recharge failed.");
-     setCoinBalance(Number(data.coinBalance) || 0);
-     toast.success(`${amount} coins added.`);
+     const order = await orderResponse.json().catch(() => null);
+     if (!orderResponse.ok) throw new Error(order?.message || "Recharge could not be started.");
+     const checkout = new window.Razorpay({
+      key: order.keyId, amount: order.amount, currency: order.currency, name: "ConnectLove", description: `${order.coins} wallet coins`, order_id: order.orderId,
+      prefill: { name: order.customer?.name, email: order.customer?.email }, theme: { color: "#ff2d78" },
+      handler: async (payment: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+       try {
+        const verified = await fetch(`${API_URL}/wallet/razorpay/verify`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(payment) });
+        const data = await verified.json().catch(() => null); if (!verified.ok) throw new Error(data?.message || "Payment verification failed.");
+        setCoinBalance(Number(data.coinBalance) || 0); toast.success(`${data.coinsAdded || amount} coins added successfully.`);
+       } catch (error) { toast.error(error instanceof Error ? error.message : "Payment verification failed."); }
+       finally { setCoinActionPending(false); }
+      },
+      modal: { ondismiss: () => setCoinActionPending(false) },
+     });
+     checkout.open();
    } catch (error) {
      toast.error(error instanceof Error ? error.message : "Recharge failed.");
-   } finally {
      setCoinActionPending(false);
    }
  };
@@ -3088,20 +3131,19 @@ export default function Messages() {
      toast.error("Minimum withdrawal is 50 coins.");
      return;
    }
-   const payoutAccount = prompt("Enter your UPI ID or payout account:", "");
-   if (!payoutAccount?.trim()) return;
+   const upiId = prompt("Enter your UPI ID (example: name@upi):", "");
+   if (!upiId?.trim()) return;
    setCoinActionPending(true);
    try {
-     const response = await fetch(`${API_URL}/users/me/coins/withdraw`, {
+     const response = await fetch(`${API_URL}/wallet/razorpay/withdrawals`, {
        method: "POST",
        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-       body: JSON.stringify({ amount, payoutAccount: payoutAccount.trim() }),
+       body: JSON.stringify({ coins: amount, upiId: upiId.trim() }),
      });
      const data = await response.json().catch(() => null);
      if (!response.ok) throw new Error(data?.message || "Withdrawal request failed.");
-     setCoinBalance(Number(data.coinBalance) || 0);
-     setEarnedCoinBalance(Number(data.earnedCoinBalance) || 0);
-     toast.success("Withdrawal request sent to Super Admin.");
+     setEarnedCoinBalance((current) => Math.max(0, current - amount));
+     toast.success(data?.message || "Withdrawal is being processed to your UPI ID.");
    } catch (error) {
      toast.error(error instanceof Error ? error.message : "Withdrawal request failed.");
    } finally {
@@ -3754,17 +3796,18 @@ export default function Messages() {
  size="icon"
  variant="ghost"
  onClick={() => {
-  if (!canUseChatMedia) {
+  if (!canUseChatMedia || mediaShareLimitReached) {
    setLockedChatFeature("media");
    return;
   }
   mediaInputRef.current?.click();
  }}
  disabled={isRecordingVoice}
- className="h-[40px] w-[40px] shrink-0 rounded-full"
- title="Send photo or video"
+ className={cn("relative h-[40px] w-[40px] shrink-0 rounded-full", mediaShareLimitReached && "bg-slate-100 text-slate-400 hover:bg-slate-100")}
+ title={mediaShareLimitReached ? "Media sharing limit reached — view plans" : "Send photo or video"}
  >
  <Paperclip className="h-[16px] w-[16px]" />
+ {mediaShareLimitReached && <Lock className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full bg-white p-0.5 text-rose-500" />}
  </Button>
  <Button
  type="button"
