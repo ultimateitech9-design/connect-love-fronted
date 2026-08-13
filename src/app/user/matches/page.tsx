@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 type MatchStatus = "PENDING" | "MATCHED" | "DECLINED" | "BLOCKED";
-type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; createdAt?: string };
+type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; locked?: boolean; createdAt?: string };
 type ReceivedFirstImpression = { id: string; sender: { id: string | null; name: string; photo: string | null }; content: string | null; locked: boolean; createdAt: string };
 let matchesMemoryCache: DBMatch[] | null = null;
 
@@ -39,6 +39,7 @@ export default function MatchesDashboard() {
  const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
  const [fetchError, setFetchError] = useState(false);
  const [firstImpressions, setFirstImpressions] = useState<ReceivedFirstImpression[]>([]);
+ const [showMatchPlanPopup, setShowMatchPlanPopup] = useState(false);
 
  const applyMatches = (matches: DBMatch[], userId: string | null) => {
    setActiveMatches(matches.filter((match) => match.status === "MATCHED"));
@@ -181,7 +182,7 @@ export default function MatchesDashboard() {
  const handleAcceptMatch = async (match: DBMatch, profileName: string) => {
    if (acceptingRequestId) return;
    const matchId = match.id;
-   const activeMatch = { ...match, status: "MATCHED" as MatchStatus };
+   const activeMatch = { ...match, status: "MATCHED" as MatchStatus, locked: false };
    setAcceptingRequestId(matchId);
    // Make the interaction instant. Roll back below only if the server rejects it.
    setReceivedLikes(prev => prev.filter(item => item.id !== matchId));
@@ -199,7 +200,8 @@ export default function MatchesDashboard() {
        const data = await response.json().catch(() => null);
        throw new Error(data?.message || "Could not accept this match request.");
      }
-     toast.success(`It's a Match! You and ${profileName} are now connected.`);
+     toast.success(match.locked ? "It's a Match! The profile is now unlocked." : `It's a Match! You and ${profileName} are now connected.`);
+     await fetchMatches(false);
    } catch (error) {
      setActiveMatches(prev => prev.filter(item => item.id !== matchId));
      setReceivedLikes(prev => prev.some(item => item.id === matchId) ? prev : [match, ...prev]);
@@ -212,6 +214,7 @@ export default function MatchesDashboard() {
          ? error.message
          : "Could not accept this match request.";
      toast.error(message);
+     if (/plan allows.*matches|match.*limit|upgrade your plan to match/i.test(message)) setShowMatchPlanPopup(true);
    } finally {
      setAcceptingRequestId(null);
    }
@@ -249,6 +252,17 @@ export default function MatchesDashboard() {
 
  return (
  <div className="space-y-6">
+   {showMatchPlanPopup && (
+     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="match-limit-title" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowMatchPlanPopup(false); }}>
+       <div className="relative w-full max-w-md rounded-3xl border border-rose-100 bg-white p-7 text-center shadow-2xl">
+         <button type="button" onClick={() => setShowMatchPlanPopup(false)} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" aria-label="Close plan popup">×</button>
+         <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-pink-200 text-rose-600"><LockKeyhole className="h-8 w-8" /></span>
+         <h2 id="match-limit-title" className="mt-5 text-2xl font-black text-slate-900">Match Limit Completed</h2>
+         <p className="mt-2 text-sm leading-6 text-slate-600">The Free plan allows 2 active matches. Activate Gold for up to 10 matches or Diamond for up to 20 matches.</p>
+         <Button asChild className="mt-6 h-12 w-full rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-lg shadow-rose-500/25"><Link href="/user/premium">View Plans</Link></Button>
+       </div>
+     </div>
+   )}
    {fetchError && (
      <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:flex-row sm:items-center sm:justify-between">
        <span>Matches could not be loaded. Please check the connection and try again.</span>
@@ -318,7 +332,15 @@ export default function MatchesDashboard() {
              if (!profile) return null;
              const targetId = m.senderId === myId ? m.receiverId : m.senderId;
              return (
-               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm transition-all">
+               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} className="relative overflow-hidden rounded-2xl bg-white border border-slate-100 p-5 shadow-sm transition-all">
+                 {m.locked && (
+                   <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/75 p-5 text-center backdrop-blur-md">
+                     <span className="grid h-11 w-11 place-items-center rounded-full bg-rose-100 text-rose-600"><LockKeyhole className="h-5 w-5" /></span>
+                     <p className="mt-3 text-sm font-bold text-slate-900">Match Locked</p>
+                     <p className="mt-1 text-xs text-slate-500">Activate a plan to view this profile and message your match.</p>
+                     <Button asChild className="mt-4 h-9 rounded-full bg-[color:var(--brand)] px-5 text-white"><Link href="/user/premium">View Plans</Link></Button>
+                   </div>
+                 )}
                  <div className="flex items-center gap-3">
                    <div className="relative">
                      <Avatar className="h-12 w-12">
@@ -415,7 +437,7 @@ export default function MatchesDashboard() {
                  {isSuper && (
                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-50/50 to-transparent pointer-events-none" />
                  )}
-                 <div className="relative z-10 flex items-center gap-3">
+                 <div className={cn("relative z-10 flex items-center gap-3", m.locked && "pointer-events-none select-none blur-md")}>
                    <Avatar className={cn("h-12 w-12", isSuper && "ring-2 ring-blue-300 ring-offset-2")}>
                      <AvatarImage src={profile.photo} />
                      <AvatarFallback>{profile.name[0]}</AvatarFallback>
@@ -429,7 +451,7 @@ export default function MatchesDashboard() {
                      </p>
                    </div>
                  </div>
-                 <p className="relative z-10 mt-4 line-clamp-2 text-sm text-slate-500">{profile.bio}</p>
+                 <p className={cn("relative z-10 mt-4 line-clamp-2 text-sm text-slate-500", m.locked && "pointer-events-none select-none blur-md")}>{m.locked ? "Someone liked your profile" : profile.bio}</p>
                  <div className="relative z-10 mt-5 flex gap-2">
                    <Button disabled={acceptingRequestId !== null} className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" : "bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90")} onClick={() => handleAcceptMatch(m, profile.name)}>
                      {acceptingRequestId === m.id ? "Matching..." : "Match"}

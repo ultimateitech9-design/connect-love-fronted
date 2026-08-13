@@ -1,5 +1,28 @@
-.next
-node_modules
-out
-build
-dist
+# Dependencies and build output
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+.turbo/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and local runtime files
+*.log
+*.err
+*.tmp
+*.pid
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

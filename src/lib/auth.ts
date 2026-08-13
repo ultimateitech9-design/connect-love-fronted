@@ -34,7 +34,7 @@ function deleteCookie(name: string) {
 
 /** Retrieve the stored JWT token */
 export function getToken(): string | null {
- return storage()?.getItem(TOKEN_KEY) ?? getCookie("management_client_token");
+ return storage()?.getItem(TOKEN_KEY) ?? null;
 }
 
 /** Retrieve the management JWT without being shadowed by a normal user session. */

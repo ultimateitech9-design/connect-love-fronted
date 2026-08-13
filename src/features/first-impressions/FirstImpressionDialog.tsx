@@ -8,9 +8,11 @@ type Props = {
   profile: { id: string; name: string; photo: string | null; photoCount: number };
   onClose: () => void;
   onSent?: () => void;
+  canSend?: boolean;
+  onSendLocked?: () => void;
 };
 
-export function FirstImpressionDialog({ open, profile, onClose, onSent }: Props) {
+export function FirstImpressionDialog({ open, profile, onClose, onSent, canSend = true, onSendLocked }: Props) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -23,6 +25,10 @@ export function FirstImpressionDialog({ open, profile, onClose, onSent }: Props)
   const submit = async () => {
     const content = message.trim();
     if (!content || sending) return;
+    if (!canSend) {
+      onSendLocked?.();
+      return;
+    }
     setSending(true);
     try {
       const result = await sendFirstImpression(profile.id, content);

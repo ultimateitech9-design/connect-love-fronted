@@ -10,7 +10,7 @@ function getClientToken(preferManagement = false): string | null {
  .find((row) => row.startsWith("management_client_token="))
  ?.split("=")[1];
  const managementToken = cookieToken ? decodeURIComponent(cookieToken) : null;
- return preferManagement ? managementToken || localToken : localToken || managementToken;
+ return preferManagement ? managementToken || localToken : localToken;
 }
 
 async function request<T>(url: string, init: RequestInit = {}, preferManagement = false): Promise<T> {
@@ -32,7 +32,10 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 }
 
 export async function directFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
- return request<T>(`${API_BASE.replace(/\/$/, "")}${path}`, init, true);
+ // Member-facing APIs must always use the currently logged-in user's token.
+ // A stale management cookie previously shadowed sm_token, causing a brand-new
+ // account to inherit another account's plan usage and hit the limit instantly.
+ return request<T>(`${API_BASE.replace(/\/$/, "")}${path}`, init, false);
 }
 
 export type CampaignRecord = {

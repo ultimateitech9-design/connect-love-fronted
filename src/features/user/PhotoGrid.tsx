@@ -21,6 +21,7 @@ interface PhotoGridProps {
   photos: string[];
   onPhotosChange: (newPhotos: string[]) => void;
   disabled?: boolean;
+  maxPhotos?: number;
 }
 
 type EditorState = {
@@ -29,7 +30,7 @@ type EditorState = {
   replaceIndex: number | null;
 };
 
-export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) {
+export function PhotoGrid({ photos, onPhotosChange, disabled, maxPhotos = 5 }: PhotoGridProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const replaceIndexRef = useRef<number | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -71,8 +72,8 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
     const replaceIndex = replaceIndexRef.current;
     replaceIndexRef.current = null;
 
-    if (replaceIndex === null && photos.length >= 5) {
-      alert("Maximum 5 photos allowed.");
+    if (replaceIndex === null && photos.length >= maxPhotos) {
+      alert(`Your plan allows a maximum of ${maxPhotos} photos.`);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -168,22 +169,31 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
 
   const chooseReplacement = (index: number) => {
     if (disabled || uploading) return;
+    if (index < 2) {
+      alert("Your first 2 profile photos are fixed.");
+      return;
+    }
     replaceIndexRef.current = index;
     fileInputRef.current?.click();
   };
 
   const makePrimary = (index: number) => {
     if (index === 0) return;
+    if (uniquePhotos.length >= 2) {
+      alert("Your first 2 profile photos are fixed.");
+      return;
+    }
     const newPhotos = [...uniquePhotos];
     const [selected] = newPhotos.splice(index, 1);
     onPhotosChange([selected, ...newPhotos]);
   };
 
   const handleReorder = (newPhotos: string[]) => {
+    if (uniquePhotos.length >= 2 && (newPhotos[0] !== uniquePhotos[0] || newPhotos[1] !== uniquePhotos[1])) return;
     onPhotosChange(newPhotos);
   };
 
-  const emptySlotsCount = 5 - uniquePhotos.length;
+  const emptySlotsCount = Math.max(0, maxPhotos - uniquePhotos.length);
   const emptySlots = Array.from({ length: emptySlotsCount }).map((_, i) => i + uniquePhotos.length);
 
   return (
@@ -207,7 +217,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
             <Reorder.Item
               key={photo}
               value={photo}
-              dragListener={!disabled}
+              dragListener={!disabled && index >= 2}
               className="relative aspect-[3/4] min-w-0 w-full cursor-grab overflow-hidden rounded-xl border border-rose-100 shadow-md active:cursor-grabbing sm:rounded-2xl"
               style={{ touchAction: "none" }}
             >
@@ -239,6 +249,18 @@ export function PhotoGrid({ photos, onPhotosChange, disabled }: PhotoGridProps) 
                   <Camera className="h-3.5 w-3.5" />
                   Replace
                 </button>
+                {index >= 2 && (
+                  <button
+                    type="button"
+                    onClick={() => onPhotosChange(uniquePhotos.filter((_, photoIndex) => photoIndex !== index))}
+                    disabled={disabled}
+                    className="grid h-7 w-7 place-items-center rounded-full bg-rose-600/90 text-white shadow-lg transition hover:scale-105"
+                    title="Delete photo"
+                    aria-label={`Delete photo ${index + 1}`}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
               {index === 0 && (
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-rose-500/90 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm">

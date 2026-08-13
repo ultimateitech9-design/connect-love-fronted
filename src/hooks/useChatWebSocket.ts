@@ -4,6 +4,7 @@ import { SOCKET_ORIGIN, apiFetch } from "@/config/runtime";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const SOCKET_URL = SOCKET_ORIGIN;
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
@@ -40,7 +41,7 @@ export interface Message {
  clientId?: string;
 }
 
-export function useChatWebSocket(token: string, conversationId: string | null) {
+export function useChatWebSocket(token: string, conversationId: string | null, onMessageLimitReached?: (message: string) => void) {
  const [socket, setSocket] = useState<Socket | null>(null);
  const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
  const [recordingUsers, setRecordingUsers] = useState<Record<string, boolean>>({});
@@ -250,6 +251,10 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
  replyToMessageId: replyToMessageId || undefined
  }, (response: any) => {
    if (response?.error) {
+     toast.error(response.error);
+     if (/free plan allows.*messages|message.*limit|upgrade.*unlimited messages/i.test(response.error)) {
+       onMessageLimitReached?.(response.error);
+     }
      queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) => {
        if (!old) return old;
        return old.map((message) => message.id === clientId ? { ...message, deliveryStatus: 'failed' } : message);
@@ -270,20 +275,29 @@ export function useChatWebSocket(token: string, conversationId: string | null) {
   body: JSON.stringify({ receiverId, content, replyToMessageId: replyToMessageId || undefined }),
  })
   .then(async (response) => {
-   if (!response.ok) throw new Error('Message send failed');
+   if (!response.ok) {
+    const payload = await response.json().catch(() => null) as { message?: string | string[] } | null;
+    const detail = Array.isArray(payload?.message) ? payload.message.join(' ') : payload?.message;
+    throw new Error(detail || 'Message send failed');
+   }
    const saved = await response.json() as Message;
    queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) =>
     (old || []).map((message) => message.id === clientId ? { ...saved, deliveryStatus: 'sent' } : message),
    );
    queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
   })
-  .catch(() => {
+  .catch((error) => {
+   const message = error instanceof Error ? error.message : 'Message could not be sent.';
+   toast.error(message);
+   if (/free plan allows.*messages|message.*limit|upgrade.*unlimited messages/i.test(message)) {
+     onMessageLimitReached?.(message);
+   }
    queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) =>
     (old || []).map((message) => message.id === clientId ? { ...message, deliveryStatus: 'failed' } : message),
    );
   });
  }
- }, [conversationId, queryClient, socket, token]);
+ }, [conversationId, onMessageLimitReached, queryClient, socket, token]);
 
  const editMessage = useCallback((messageId: string, receiverId: string, content: string) => {
    if (!conversationId) return;

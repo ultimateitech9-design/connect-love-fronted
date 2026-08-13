@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getDiscoveryProfileDetails, getDiscoveryProfiles, swipeProfile, undoSwipeProfile } from "@/features/discovery/api";
+import { toast } from "sonner";
 
 type DiscoveryRequestFilters = {
   interestedIn?: "female" | "male" | "non-binary" | "prefer-not" | "everyone";
@@ -29,6 +30,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   });
   const [loading, setLoading] = useState(() => !!token && profiles.length === 0);
   const [error, setError] = useState(false);
+  const [upgradePrompt, setUpgradePrompt] = useState<string | null>(null);
   const cacheRef = useRef(new Map<string, any[]>());
   const profilesRef = useRef(profiles);
 
@@ -124,10 +126,10 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   }, [filterKey, storageKey]);
 
   const swipe = useCallback(async (receiverId: string, action: "like" | "pass" | "superlike") => {
-    if (!token) return;
-    removeProfileLocally(receiverId);
+    if (!token) return false;
     try {
       const match = await swipeProfile(receiverId, action);
+      removeProfileLocally(receiverId);
       if (match?.status === "MATCHED" && typeof window !== "undefined") {
         window.setTimeout(() => {
           window.location.href = `/user/messages?id=${match.id}`;
@@ -138,8 +140,13 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
       if (profilesRef.current.length <= 5) {
         await fetchProfiles(undefined, true);
       }
-    } catch {
+      return true;
+    } catch (error) {
       setError(true);
+      const message = error instanceof Error ? error.message : "Action could not be completed.";
+      if (/like.*limit|limit.*like|upgrade your plan/i.test(message)) setUpgradePrompt(message);
+      else toast.error(message);
+      return false;
     }
   }, [fetchProfiles, removeProfileLocally, token]);
 
@@ -167,6 +174,8 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     profiles,
     loading,
     error,
+    upgradePrompt,
+    closeUpgradePrompt: () => setUpgradePrompt(null),
     refreshProfiles: () => fetchProfiles(undefined, true),
     swipeRight: (id: string) => swipe(id, "like"),
     swipeLeft: (id: string) => swipe(id, "pass"),

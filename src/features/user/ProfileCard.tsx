@@ -30,6 +30,7 @@ export interface Profile {
   hobbies?: string[];
   verified?: boolean;
   isVerified?: boolean;
+  planBadge?: boolean;
   kycMatched?: boolean;
   interests?: string[];
   showDistance?: boolean;
@@ -38,9 +39,11 @@ export interface Profile {
 
 export interface ProfileCardProps {
   profiles: Profile[];
-  onAction?: (id: string, action: string) => void;
+  onAction?: (id: string, action: string) => boolean | void | Promise<boolean | void>;
   onUndo?: () => void;
   canUndo?: boolean;
+  canUsePremiumActions?: boolean;
+  onPremiumActionLocked?: (feature: "rewind" | "first-impression") => void;
 }
 
 const ZODIAC_RANGES = [
@@ -69,7 +72,7 @@ const API = API_ORIGIN;
 
 type Action = "pass" | "like" | "super";
 
-export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: ProfileCardProps) {
+export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUsePremiumActions = false, onPremiumActionLocked }: ProfileCardProps) {
   const [idx, setIdx] = useState(0);
 
   // Hold-to-view state
@@ -167,11 +170,16 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
 
 
 
-  const advance = (action: Action) => {
+  const advance = async (action: Action) => {
+    const completed = onAction ? await onAction(profile.id, action) : true;
+    if (completed === false) {
+      x.set(0);
+      y.set(0);
+      return;
+    }
     if (action === "like") toast.success(`You liked ${profile.name}`);
     if (action === "super") toast.success(`Super liked ${profile.name}`);
     if (action === "pass") toast(`Passed on ${profile.name}`);
-    if (onAction) onAction(profile.id, action);
     setIdx((i) => i + 1);
     x.set(0);
     y.set(0);
@@ -475,7 +483,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
               <h3 className="min-w-0 max-w-full text-2xl font-semibold leading-tight tracking-tight drop-shadow-sm sm:text-3xl">
                 {profile.name}{profile.age ? `, ${profile.age}` : ""}
               </h3>
-              {profile.isVerified && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white drop-shadow-sm" aria-label="Verified profile" />}
+              {profile.planBadge && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white drop-shadow-sm" aria-label="Paid plan badge" />}
             </div>
             <div className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
               {profile.showDistance !== false && profileDistanceLabel && (
@@ -539,7 +547,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
                       <h2 className="min-w-0 max-w-full text-2xl font-bold leading-tight text-foreground">
                         {detailedProfile.name}{detailedProfile.age ? `, ${detailedProfile.age}` : ""}
                       </h2>
-                      {detailedProfile.isVerified && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white" aria-label="Verified profile" />}
+                      {detailedProfile.planBadge && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white" aria-label="Paid plan badge" />}
                     </div>
                     <p className="mt-1 text-sm font-medium text-muted-foreground">
                       {detailedProfile.profession}
@@ -624,8 +632,14 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
       <div className="relative z-10 mt-5 flex flex-wrap items-center justify-center gap-3 sm:mt-6 sm:gap-4">
         <button
           type="button"
-          onClick={onUndo}
-          disabled={!canUndo}
+          onClick={() => {
+            if (!canUsePremiumActions) {
+              onPremiumActionLocked?.("rewind");
+              return;
+            }
+            onUndo?.();
+          }}
+          disabled={canUsePremiumActions && !canUndo}
           className="grid h-11 w-11 place-items-center rounded-full border-2 border-border bg-card text-slate-500 shadow-md transition hover:scale-105 hover:border-slate-400 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:scale-100 dark:text-slate-300 sm:h-[48px] sm:w-[48px]"
           aria-label="Undo last swipe"
           title="Undo last swipe"
@@ -707,6 +721,8 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false }: Pro
         open={firstImpressionOpen}
         profile={{ id: profile.id, name: profile.name, photo: currentDisplayPhoto, photoCount: currentPhotos.length }}
         onClose={() => setFirstImpressionOpen(false)}
+        canSend={canUsePremiumActions}
+        onSendLocked={() => onPremiumActionLocked?.("first-impression")}
       />
     </div>
   );

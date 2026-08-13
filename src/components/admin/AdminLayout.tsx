@@ -21,6 +21,7 @@ import {
   Menu,
   Pin,
   X,
+  TicketPercent,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutManagement } from "@/app/actions/managementAuth";
@@ -32,6 +33,7 @@ const nav = [
   { to: "/super-admin/user-360", label: "User 360", icon: UserRoundSearch },
   { to: "/super-admin/verification", label: "Verification", icon: ShieldCheck },
   { to: "/super-admin/payments", label: "Payments", icon: CreditCard },
+  { to: "/super-admin/coupons", label: "Coupons", icon: TicketPercent },
   { to: "/super-admin/transactions", label: "Transactions", icon: WalletCards },
   { to: "/super-admin/reports", label: "Reports", icon: Flag },
   { to: "/super-admin/notifications", label: "Campaigns", icon: Bell },

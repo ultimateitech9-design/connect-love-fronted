@@ -72,6 +72,7 @@ interface UserProfile {
  kycMatched: boolean;
  plan: string;
  isVerified: boolean;
+ planBadge?: boolean;
  onboardingCompleted: boolean;
 }
 
@@ -326,7 +327,7 @@ export default function ProfilePage() {
             {profile.name || "Your Name"}
             {profile.dob ? `, ${new Date().getFullYear() - new Date(profile.dob).getFullYear()}` : ""}
           </h1>
-          {profile.isVerified && (
+          {profile.planBadge && (
             <BadgeCheck className="h-5 w-5 shrink-0 fill-blue-500 text-white sm:h-6 sm:w-6" aria-label="Verified by administrator" />
           )}
         </div>
@@ -374,6 +375,7 @@ export default function ProfilePage() {
         photos={profile.photos || []}
         onPhotosChange={handlePhotosChange}
         disabled={photoSaving || isLocked}
+        maxPhotos={["female", "woman", "women", "girl", "ladies", "f"].includes(String(profile.gender || "").toLowerCase()) ? 10 : profile.plan === "platinum" ? 10 : profile.plan === "gold" ? 5 : 2}
       />
     </div>
   </header>

@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Crown, Zap, Heart, MessageCircle, Star, Shield, Sparkles, Video, Globe, Gem } from "lucide-react";
+import { Check, X, Crown, Zap, Heart, MessageCircle, Star, Shield, Sparkles, Video, Globe, Gem } from "lucide-react";
 import { isAuthenticated } from "@/lib/auth";
 
 const basicFeatures = [
@@ -26,28 +26,28 @@ const plans = [
   {
     name: "Free",
     price: "₹0",
-    period: "forever",
-    description: "Start your journey",
+    period: "1 Month",
+    description: "1 Month",
     tier: "free",
-    features: ["5 matches per day", "Basic messaging", "Profile creation", "Safety tools"],
+    features: ["10 Likes Per Day", "10 Messages Per Match", "2 Free Matches", "Add 2 Images to Profile", "No Video Calling", "No Image Sharing", "No Voice Messages", "No Super Likes", "No Profile Boost", "No Verified Badge", "No Profile Rewind", "No First Impressions"],
     popular: false,
   },
   {
     name: "Gold",
-    price: "₹199",
-    period: "per month",
-    description: "Most popular choice",
+    price: "₹299",
+    period: "1 Month",
+    description: "1 Month",
     tier: "gold",
-    features: ["Unlimited matches", "Priority visibility", "Video dates", "AI icebreakers", "Read receipts", "Advanced filters"],
+    features: ["20 Likes Per Day", "Unlimited Messages", "10 Matches", "Add 5 Images to Profile", "5 Video Calls (1 Hour Each)", "Share 10 Images", "Gold Verification Badge", "Profile Boost: 2 Times Per Month", "5 Super Likes", "2 Profile Rewinds", "5 First Impressions"],
     popular: true,
   },
   {
     name: "Diamond",
-    price: "₹399",
-    period: "per month",
-    description: "The ultimate experience",
+    price: "₹499",
+    period: "1 Month",
+    description: "1 Month",
     tier: "diamond",
-    features: ["Everything in Gold", "Global search", "Verified badge", "Dedicated support", "Profile boost daily", "Exclusive events"],
+    features: ["40 Likes Per Day", "Unlimited Messages", "20 Matches", "Add 10 Images to Profile", "10 Video Calls", "Share 20 Images", "Verified Badge", "Profile Boost: 1 Time Per Week", "10 Super Likes", "5 Profile Rewinds", "10 First Impressions"],
     popular: false,
   },
 ];
@@ -173,7 +173,7 @@ export function FeaturesSection() {
               return (
                 <article
                   key={plan.name}
-                  className={`pricing-card group relative isolate flex min-h-[520px] flex-col overflow-visible rounded-[28px] p-[2px] transition duration-500 hover:-translate-y-1.5 sm:min-h-[540px] ${
+                  className={`pricing-card group relative isolate flex min-h-[460px] flex-col overflow-visible rounded-[28px] p-[2px] transition duration-500 hover:-translate-y-1.5 ${
                     isFree
                       ? "bg-gradient-to-br from-white via-stone-200 to-white shadow-[0_18px_48px_rgba(71,58,42,0.16)]"
                       : isGold
@@ -241,7 +241,7 @@ export function FeaturesSection() {
                       </>
                     )}
 
-                    <header className={`relative p-6 ${isDiamond ? "min-h-[190px]" : "min-h-[176px]"} ${isGold ? "pt-8" : ""} ${isFree ? "pricing-free-header" : ""}`}>
+                    <header className={`relative p-4 ${isDiamond ? "min-h-[112px]" : "min-h-[108px]"} ${isGold ? "pt-6" : ""} ${isFree ? "pricing-free-header" : ""}`}>
                       <div className="flex items-center justify-between gap-4">
                         <p className={`text-sm font-black uppercase tracking-[0.13em] ${isFree ? "text-stone-500" : isGold ? "text-[#f2cf7d]" : "text-violet-50"}`}>
                           <span className="inline-flex items-center gap-2">
@@ -250,36 +250,33 @@ export function FeaturesSection() {
                           </span>
                         </p>
                         {isGold && (
-                          <span className="grid h-10 w-10 place-items-center rounded-full border border-[#9e7538] bg-black/50 text-[#f0c76c] shadow-[inset_0_0_18px_rgba(224,175,78,.15)]">
-                            <Gem className="h-5 w-5 fill-[#c18a34]/20" aria-hidden="true" />
+                          <span className="grid h-8 w-8 place-items-center rounded-full border border-[#9e7538] bg-black/50 text-[#f0c76c] shadow-[inset_0_0_18px_rgba(224,175,78,.15)]">
+                            <Gem className="h-4 w-4 fill-[#c18a34]/20" aria-hidden="true" />
                           </span>
                         )}
                       </div>
 
-                      <div className="mt-5 flex flex-wrap items-end gap-x-2 gap-y-1">
+                      <div className="mt-3 flex flex-wrap items-end gap-x-1.5 gap-y-1">
                         <span
-                          className={`inline-flex shrink-0 items-baseline whitespace-nowrap text-[2.65rem] font-black leading-none tabular-nums ${isGold ? "bg-gradient-to-b from-[#ffe6a2] to-[#b77a27] bg-clip-text text-transparent" : isDiamond ? "text-violet-100" : "pricing-free-price text-slate-950"}`}
+                          className={`inline-flex shrink-0 items-baseline whitespace-nowrap text-[2rem] font-black leading-none tabular-nums ${isGold ? "bg-gradient-to-b from-[#ffe6a2] to-[#b77a27] bg-clip-text text-transparent" : isDiamond ? "text-violet-100" : "pricing-free-price text-slate-950"}`}
                         >
                           <span className="tracking-[-0.04em]" aria-hidden="true">₹</span>
                           <span className="ml-[0.06em] tracking-[-0.03em]" aria-hidden="true">
                             {plan.price.replace("₹", "")}
                           </span>
                         </span>
-                        <span className={`mb-1 text-sm font-medium ${isFree ? "text-stone-500" : isGold ? "text-[#d5b26b]" : "text-violet-200"}`}>
+                        <span className={`mb-0.5 text-xs font-medium ${isFree ? "text-stone-500" : isGold ? "text-[#d5b26b]" : "text-violet-200"}`}>
                           /{plan.period}
                         </span>
                       </div>
-                      <p className={`mt-3 text-sm ${isFree ? "text-stone-500" : isGold ? "text-[#c4a56a]" : "text-violet-200/90"}`}>
-                        {plan.description}
-                      </p>
                     </header>
 
-                    <div className={`relative z-[6] mx-2 mb-2 flex flex-1 flex-col rounded-[22px] border p-5 sm:p-6 ${isFree ? "pricing-free-body border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,.78),rgba(248,245,240,.94))] shadow-[inset_0_1px_0_rgba(255,255,255,.98)]" : isGold ? "border-[#705326]/80 bg-[linear-gradient(180deg,rgba(27,27,28,.96),rgba(15,15,16,.98))] shadow-[inset_0_1px_0_rgba(255,222,153,.09)]" : "border-violet-300/20 bg-[linear-gradient(180deg,rgba(29,17,65,.84),rgba(12,7,34,.9))] shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"}`}>
-                      <ul className="mb-6">
+                    <div className={`relative z-[6] mx-2 mb-2 flex flex-1 flex-col rounded-[22px] border p-4 ${isFree ? "pricing-free-body border-white/90 bg-[linear-gradient(180deg,rgba(255,255,255,.78),rgba(248,245,240,.94))] shadow-[inset_0_1px_0_rgba(255,255,255,.98)]" : isGold ? "border-[#705326]/80 bg-[linear-gradient(180deg,rgba(27,27,28,.96),rgba(15,15,16,.98))] shadow-[inset_0_1px_0_rgba(255,222,153,.09)]" : "border-violet-300/20 bg-[linear-gradient(180deg,rgba(29,17,65,.84),rgba(12,7,34,.9))] shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"}`}>
+                      <ul className="mb-4">
                         {plan.features.map((feature) => (
-                          <li key={feature} className={`flex min-h-10 items-center gap-3 border-b text-[13px] last:border-b-0 ${isFree ? "border-stone-300/45 text-slate-700" : isGold ? "border-white/[0.06] text-stone-200" : "border-violet-200/10 text-violet-50"}`}>
-                            <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border ${isFree ? "border-stone-300 text-stone-500" : isGold ? "border-[#a97c38] text-[#e6bd66]" : "border-violet-400 text-violet-300"}`}>
-                              <Check className="h-3.5 w-3.5 stroke-[2.5]" aria-hidden="true" />
+                          <li key={feature} className={`flex min-h-8 items-center gap-2.5 border-b text-xs last:border-b-0 ${isFree ? "border-stone-300/45 text-slate-700" : isGold ? "border-white/[0.06] text-stone-200" : "border-violet-200/10 text-violet-50"}`}>
+                            <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border ${feature.startsWith("No ") ? "border-rose-300 text-rose-500" : isFree ? "border-stone-300 text-stone-500" : isGold ? "border-[#a97c38] text-[#e6bd66]" : "border-violet-400 text-violet-300"}`}>
+                              {feature.startsWith("No ") ? <X className="h-3 w-3 stroke-[2.5]" aria-hidden="true" /> : <Check className="h-3 w-3 stroke-[2.5]" aria-hidden="true" />}
                             </span>
                             <span>{feature}</span>
                           </li>
@@ -291,7 +288,7 @@ export function FeaturesSection() {
                         onClick={() => {
                           window.location.href = isFree ? "/register" : "/user/premium";
                         }}
-                        className={`mt-auto h-12 w-full rounded-full border text-sm font-black shadow-lg transition duration-300 hover:scale-[1.025] hover:brightness-110 active:scale-[0.985] ${
+                        className={`mt-auto h-10 w-full rounded-full border text-xs font-black shadow-lg transition duration-300 hover:scale-[1.025] hover:brightness-110 active:scale-[0.985] ${
                           isFree
                             ? "border-slate-800 bg-gradient-to-b from-[#292929] to-[#090909] text-white shadow-black/20"
                             : isGold

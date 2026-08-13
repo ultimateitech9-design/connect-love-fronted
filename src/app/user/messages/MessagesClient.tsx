@@ -1773,6 +1773,8 @@ export default function Messages() {
  const [isCameraOn, setIsCameraOn] = useState(true);
  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+ const [canUseChatMedia, setCanUseChatMedia] = useState(false);
+ const [lockedChatFeature, setLockedChatFeature] = useState<"media" | "voice" | "message" | "call" | null>(null);
  const [recordingSeconds, setRecordingSeconds] = useState(0);
  const [selectedMedia, setSelectedMedia] = useState<{ file: File; url: string; type: "photo" | "video" } | null>(null);
  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -1850,6 +1852,11 @@ export default function Messages() {
        if (user) {
          setCoinBalance(Number(user.coinBalance) || 0);
          setEarnedCoinBalance(Number(user.earnedCoinBalance) || 0);
+         const gender = String(user.gender || "").trim().toLowerCase();
+         const woman = ["female", "woman", "women", "girl", "ladies", "f"].includes(gender);
+         const paidPlan = ["gold", "platinum"].includes(String(user.plan || "free").toLowerCase());
+         const planActive = paidPlan && (!user.planExpiresAt || new Date(user.planExpiresAt).getTime() > Date.now());
+         setCanUseChatMedia(woman || planActive);
        }
      })
      .catch(() => {});
@@ -1930,6 +1937,7 @@ export default function Messages() {
  }, [activeId]);
 
   const { matches: activeMatches } = useMatches(token, "active");
+  const handleMessageLimitReached = () => setLockedChatFeature("message");
   const {
     messages,
     sendMessage,
@@ -1944,7 +1952,7 @@ export default function Messages() {
     deleteMessage,
     togglePin,
     toggleStar,
-  } = useChatWebSocket(token, activeId);
+  } = useChatWebSocket(token, activeId, handleMessageLimitReached);
 
   const toggleReaction = useCallback((messageId: string, receiverId: string, emoji: string) => {
     triggerReactionBurst(messageId, emoji);
@@ -2131,7 +2139,7 @@ export default function Messages() {
    window.localStorage.setItem(CHAT_THEME_STORAGE_KEY, themeId);
  }, [activeId, messages]);
 
- const displayMatches = useMemo(() => Array.from(new Map(activeMatches.map((m: any) => {
+ const displayMatches = useMemo(() => Array.from(new Map(activeMatches.filter((m: any) => !m.locked).map((m: any) => {
       const targetId = m.senderId === myId ? m.receiverId : m.senderId;
       return [m.id, { ...m, targetId }];
     })).values()).map((m: any) => {
@@ -2156,6 +2164,12 @@ export default function Messages() {
         unread: m.unreadCount || 0,
       };
     }), [activeMatches, myId]);
+
+ useEffect(() => {
+   if (!activeId || activeMatches.length === 0) return;
+   const selectedMatch = activeMatches.find((match: any) => match.id === activeId);
+   if (selectedMatch?.locked) setActiveId(null);
+ }, [activeId, activeMatches]);
 
  const sortedMatches = [...displayMatches]
    .filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -2621,6 +2635,10 @@ export default function Messages() {
  }, [attachVideoStreams, isSpeakerOn, socket]);
 
  const startCall = useCallback(async (callType: "audio" | "video") => {
+   if (!canUseChatMedia) {
+     setLockedChatFeature("call");
+     return;
+   }
    if (!socket || !active) return;
    try {
      await ensureLocalMedia(callType);
@@ -2631,12 +2649,13 @@ export default function Messages() {
          if (!response?.error) return;
          stopCallMedia();
          toast.error(response.error || "Call could not be started.");
+         if (/video call.*limit|call.*limit|upgrade your plan/i.test(response.error)) setLockedChatFeature("call");
        },
      );
    } catch {
      alert(callType === "video" ? "Camera or microphone permission is required for video calls." : "Microphone permission is required for audio calls.");
    }
- }, [active, ensureLocalMedia, socket, stopCallMedia]);
+ }, [active, canUseChatMedia, ensureLocalMedia, socket, stopCallMedia]);
 
  const acceptIncomingCall = useCallback(async () => {
    if (!socket || !incomingCall) return;
@@ -2975,12 +2994,16 @@ export default function Messages() {
  }, [active, sendVoiceBlob]);
 
  const toggleVoiceRecording = useCallback(() => {
+   if (!canUseChatMedia) {
+     setLockedChatFeature("voice");
+     return;
+   }
    if (isRecordingVoice) {
      stopVoiceRecording();
    } else {
      startVoiceRecording();
    }
- }, [isRecordingVoice, startVoiceRecording, stopVoiceRecording]);
+ }, [canUseChatMedia, isRecordingVoice, startVoiceRecording, stopVoiceRecording]);
 
  useEffect(() => {
    if (!isRecordingVoice) return;
@@ -3730,7 +3753,13 @@ export default function Messages() {
  type="button"
  size="icon"
  variant="ghost"
- onClick={() => mediaInputRef.current?.click()}
+ onClick={() => {
+  if (!canUseChatMedia) {
+   setLockedChatFeature("media");
+   return;
+  }
+  mediaInputRef.current?.click();
+ }}
  disabled={isRecordingVoice}
  className="h-[40px] w-[40px] shrink-0 rounded-full"
  title="Send photo or video"
@@ -4355,6 +4384,17 @@ export default function Messages() {
  )}
  </div>
  </div>
+ )}
+ {lockedChatFeature && (
+  <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="chat-feature-plan-title" onMouseDown={(event) => { if (event.target === event.currentTarget) setLockedChatFeature(null); }}>
+   <div className="relative w-full max-w-md rounded-3xl border border-rose-100 bg-white p-7 text-center shadow-2xl">
+    <button type="button" onClick={() => setLockedChatFeature(null)} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" aria-label="Close"><X className="h-4 w-4" /></button>
+    <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-rose-100 to-pink-200 text-rose-600 shadow-lg">{lockedChatFeature === "voice" ? <Mic className="h-8 w-8" /> : lockedChatFeature === "message" ? <Send className="h-8 w-8" /> : lockedChatFeature === "call" ? <Video className="h-8 w-8" /> : <Paperclip className="h-8 w-8" />}</div>
+    <h2 id="chat-feature-plan-title" className="mt-5 text-2xl font-black text-slate-900">Activate a Plan</h2>
+    <p className="mt-2 text-sm leading-6 text-slate-600">{lockedChatFeature === "voice" ? "Voice messages are available after activating Gold or Diamond." : lockedChatFeature === "message" ? "You have used all 10 messages available for this match on the Free plan. Activate Gold or Diamond for unlimited messages." : lockedChatFeature === "call" ? "Audio and video calling are available after activating Gold or Diamond." : "Image and video sharing are available after activating Gold or Diamond."}</p>
+    <button type="button" onClick={() => { window.location.href = "/user/premium"; }} className="mt-6 h-12 w-full rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-lg shadow-rose-500/25 hover:brightness-105">View Plans</button>
+   </div>
+  </div>
  )}
  {reactionPickerMessage && (
  <div

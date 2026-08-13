@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, useDeferredValue } from "react";
-import { BadgeCheck, Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
+import { BadgeCheck, Crown, Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
 import type { DiscoverFilters } from "@/features/user/FiltersPanel";
 import { useDiscovery } from "@/hooks/useDiscovery";
 import { getToken } from "@/lib/auth";
@@ -205,7 +205,7 @@ function MobileFilters({
   );
 }
 
-function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: (id: string, action: string) => void }) {
+function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: (id: string, action: string) => boolean | void | Promise<boolean | void> }) {
   const [idx, setIdx] = useState(0);
   const [photoIndex, setPhotoIndex] = useState(0);
 
@@ -221,8 +221,9 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
   const photo = photos[photoIndex] || photos[0] || null;
   const distance = profile.distanceKm ?? profile.distanceMi ?? null;
 
-  const advance = (action: string) => {
-    onAction(profile.id, action);
+  const advance = async (action: string) => {
+    const completed = await onAction(profile.id, action);
+    if (completed === false) return;
     setIdx((value) => value + 1);
     setPhotoIndex(0);
   };
@@ -277,7 +278,7 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-4 text-white">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-2xl font-semibold leading-tight">{profile.name}{profile.age ? `, ${profile.age}` : ""}</h2>
-            {profile.isVerified && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white" aria-label="Verified profile" />}
+            {profile.planBadge && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white" aria-label="Paid plan badge" />}
           </div>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
             {formatDistance(distance) && profile.showDistance !== false && (
@@ -362,7 +363,9 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  export default function Discover() {
   const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
   const [dismissedProfileIds, setDismissedProfileIds] = useState<Set<string>>(new Set());
-  const [lastSwipedProfile, setLastSwipedProfile] = useState<any | null>(null);
+ const [lastSwipedProfile, setLastSwipedProfile] = useState<any | null>(null);
+ const [canUsePremiumDiscoveryActions, setCanUsePremiumDiscoveryActions] = useState(false);
+ const [lockedDiscoveryFeature, setLockedDiscoveryFeature] = useState<"rewind" | "first-impression" | null>(null);
   const isDesktop = useDesktopLayout();
   const loadSecondaryPanels = useSecondaryPanels();
   const deferredSearch = useDeferredValue(filters.search);
@@ -372,7 +375,22 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
     () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, limit: 12 }),
     [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance],
   );
-  const { profiles, loading, swipeLeft, swipeRight, swipeSuper, undoSwipe, refreshProfiles } = useDiscovery(token, requestFilters);
+ const { profiles, loading, swipeLeft, swipeRight, swipeSuper, undoSwipe, refreshProfiles, upgradePrompt, closeUpgradePrompt } = useDiscovery(token, requestFilters);
+
+  useEffect(() => {
+    if (!token) return;
+    apiFetch("/users/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (response) => response.ok ? response.json() : null)
+      .then((user) => {
+        if (!user) return;
+        const gender = String(user.gender || "").trim().toLowerCase();
+        const woman = ["female", "woman", "women", "girl", "ladies", "f"].includes(gender);
+        const paid = ["gold", "platinum"].includes(String(user.plan || "free").toLowerCase());
+        const active = paid && (!user.planExpiresAt || new Date(user.planExpiresAt).getTime() > Date.now());
+        setCanUsePremiumDiscoveryActions(woman || active);
+      })
+      .catch(() => setCanUsePremiumDiscoveryActions(false));
+  }, [token]);
 
   useEffect(() => {
     if (!token || locationSyncStarted.current || !("geolocation" in navigator)) return;
@@ -420,20 +438,19 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  const availableInterests = useMemo(() => profiles.flatMap((p: any) => p.interests || []), [profiles]);
  const availableGoals = useMemo(() => profiles.map((p: any) => p.goals).filter(Boolean), [profiles]);
  
- const handleSwipe = (id: string, action: string) => {
+ const handleSwipe = async (id: string, action: string) => {
    setLastSwipedProfile(visibleProfiles.find((profile: any) => profile.id === id) ?? null);
-   setDismissedProfileIds((current) => {
-     const next = new Set(current);
-     next.add(id);
-     return next;
-   });
+   let completed = false;
    if (action === "superlike" || action === "super") {
-     swipeSuper(id);
+     completed = await swipeSuper(id);
    } else if (action === "right" || action === "like") {
-     swipeRight(id);
+     completed = await swipeRight(id);
    } else {
-     swipeLeft(id);
+     completed = await swipeLeft(id);
    }
+   if (!completed) return false;
+   setDismissedProfileIds((current) => new Set(current).add(id));
+   return true;
  };
 
  const handleUndo = async () => {
@@ -448,6 +465,8 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
    setLastSwipedProfile(null);
  };
 
+ const matchLimitPrompt = Boolean(upgradePrompt && /plan allows.*matches|match with more people/i.test(upgradePrompt));
+
  return (
  <>
  <CampaignOfferCard />
@@ -455,7 +474,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  <div className="space-y-4">
  <MobileFilters filters={filters} onChange={setFilters} effectiveMaxDistance={effectiveMaxDistance} />
  <div className="flex min-w-0 items-start justify-center">
- {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} />}
+ {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} canUsePremiumActions={canUsePremiumDiscoveryActions} onPremiumActionLocked={setLockedDiscoveryFeature} />}
  </div>
  </div>
  ) : (
@@ -466,12 +485,34 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  <FiltersPanelShell />
  )}
  <div className="flex min-w-0 items-start justify-center pt-1 sm:pt-2">
- {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} />}
+ {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} canUsePremiumActions={canUsePremiumDiscoveryActions} onPremiumActionLocked={setLockedDiscoveryFeature} />}
  </div>
  <div className="hidden min-w-0 lg:block">
  {loadSecondaryPanels ? <RightRail /> : <RightRailShell />}
  </div>
  </div>
+ )}
+ {upgradePrompt && (
+  <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="like-limit-title">
+   <div className="relative w-full max-w-md rounded-3xl border border-rose-100 bg-white p-6 text-center shadow-2xl sm:p-8">
+    <button type="button" onClick={closeUpgradePrompt} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" aria-label="Close plan popup"><X className="h-4 w-4" /></button>
+    <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-amber-100 to-yellow-200 text-amber-600 shadow-lg"><Crown className="h-8 w-8 fill-current" /></div>
+    <h2 id="like-limit-title" className="mt-5 text-2xl font-bold text-slate-900">{matchLimitPrompt ? "Match Limit Completed" : "Daily Likes Completed"}</h2>
+    <p className="mt-2 text-sm leading-6 text-slate-600">{matchLimitPrompt ? "The Free plan allows 2 active matches. Activate Gold for up to 10 matches or Diamond for up to 20 matches." : "You have used all 10 Likes available on the Free plan today. Activate Gold or Diamond to continue now, or wait until tomorrow for your Likes to reset."}</p>
+    <button type="button" onClick={() => { window.location.href = "/user/premium"; }} className="mt-6 h-12 w-full rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-lg shadow-rose-500/25 hover:brightness-105">Activate Plan</button>
+   </div>
+  </div>
+ )}
+ {lockedDiscoveryFeature && (
+  <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="premium-action-title" onMouseDown={(event) => { if (event.target === event.currentTarget) setLockedDiscoveryFeature(null); }}>
+   <div className="relative w-full max-w-md rounded-3xl border border-rose-100 bg-white p-6 text-center shadow-2xl sm:p-8">
+    <button type="button" onClick={() => setLockedDiscoveryFeature(null)} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" aria-label="Close plan popup"><X className="h-4 w-4" /></button>
+    <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-blue-100 to-violet-200 text-blue-600 shadow-lg">{lockedDiscoveryFeature === "rewind" ? <span className="text-3xl">↶</span> : <Star className="h-8 w-8 fill-current" />}</div>
+    <h2 id="premium-action-title" className="mt-5 text-2xl font-bold text-slate-900">Activate a Plan</h2>
+    <p className="mt-2 text-sm leading-6 text-slate-600">{lockedDiscoveryFeature === "rewind" ? "Profile Rewind is available after activating Gold or Diamond." : "First Impressions are available after activating Gold or Diamond."}</p>
+    <button type="button" onClick={() => { window.location.href = "/user/premium"; }} className="mt-6 h-12 w-full rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-lg shadow-rose-500/25 hover:brightness-105">View Plans</button>
+   </div>
+  </div>
  )}
  <ConnectLoveChatbot />
  </>
