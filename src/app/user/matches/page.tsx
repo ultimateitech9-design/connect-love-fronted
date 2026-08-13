@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Ban, Clock, RefreshCw, Sparkles, Star, Trash2, UserCheck, LockKeyhole, Send } from "lucide-react";
+import { MessageSquare, Ban, Clock, RefreshCw, Sparkles, Star, Trash2, UserCheck, LockKeyhole, Send, LoaderCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner"; 
 import { cn } from "@/lib/utils";
@@ -43,6 +43,7 @@ export default function MatchesDashboard() {
  const [firstImpressions, setFirstImpressions] = useState<ReceivedFirstImpression[]>([]);
  const [showMatchPlanPopup, setShowMatchPlanPopup] = useState(false);
  const [summary, setSummary] = useState<MatchSummary>({ active: 0, sent: 0, received: 0, blocked: 0 });
+ const [loadingMore, setLoadingMore] = useState<Record<MatchTab, boolean>>({ active: false, received: false, pending: false, blocked: false });
  const loadedTabs = useRef(new Set<MatchTab>());
  const loadingTabs = useRef(new Set<MatchTab>());
  const loadingMoreTabs = useRef(new Set<MatchTab>());
@@ -97,6 +98,7 @@ export default function MatchesDashboard() {
    const token = getToken();
    if (!token) return;
    loadingMoreTabs.current.add(tab);
+   setLoadingMore((current) => ({ ...current, [tab]: true }));
    try {
      const response = await apiFetch(`/matches?filter=${tab === 'pending' ? 'sent' : tab}&limit=${MATCH_PAGE_SIZE}&offset=${nextOffsets.current[tab]}`, { headers: { Authorization: `Bearer ${token}` } });
      const matches = await readMatches(response);
@@ -114,8 +116,15 @@ export default function MatchesDashboard() {
      console.error(`Failed to load more ${tab} matches`, error);
    } finally {
      loadingMoreTabs.current.delete(tab);
+     setLoadingMore((current) => ({ ...current, [tab]: false }));
    }
  };
+
+ const progressiveLoader = (tab: MatchTab) => loadingMore[tab] ? (
+   <div className="col-span-full flex items-center justify-center gap-2 py-6 text-sm font-medium text-slate-500" role="status" aria-live="polite">
+     <LoaderCircle className="h-4 w-4 animate-spin text-[color:var(--brand)]" /> Loading more requests…
+   </div>
+ ) : null;
 
  const loadTab = async (tab: MatchTab, force = false) => {
    if ((!force && loadedTabs.current.has(tab)) || loadingTabs.current.has(tab)) return;
@@ -406,6 +415,7 @@ export default function MatchesDashboard() {
            })}
          </div>
        )}
+       {progressiveLoader('active')}
      </TabsContent>
 
      {/* LIKES RECEIVED — kept beside Active Matches so incoming likes are always visible */}
@@ -426,6 +436,7 @@ export default function MatchesDashboard() {
          })}
          {receivedLikes.length === 0 && <div className="col-span-full py-4 text-sm text-slate-400">No likes received yet.</div>}
        </div>
+       {progressiveLoader('received')}
      </TabsContent>
 
      {/* PENDING REQUESTS */}
@@ -558,6 +569,7 @@ export default function MatchesDashboard() {
            {superLikes.length === 0 && <div className="col-span-full text-amber-600/60 text-sm py-4 font-medium">You haven't super liked anyone yet.</div>}
          </div>
        )}
+       {progressiveLoader('pending')}
      </TabsContent>
 
      {/* BLOCKED USERS */}
@@ -593,6 +605,7 @@ export default function MatchesDashboard() {
            })}
          </div>
        )}
+       {progressiveLoader('blocked')}
      </TabsContent>
    </Tabs>
  </div>
