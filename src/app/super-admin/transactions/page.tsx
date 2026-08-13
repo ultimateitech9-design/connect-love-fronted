@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, Coins, Search, WalletCards } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
-import { directFetch } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 
 type Row = {
   id: string;
@@ -30,7 +30,9 @@ export default function TransactionsPage() {
   const [actionId, setActionId] = useState<string | null>(null);
 
   useEffect(() => {
-    directFetch<Row[]>('/users/admin/coin-transactions')
+    // This is a Super Admin page: apiFetch uses the management session token.
+    // directFetch uses a member token and caused live 401 Unauthorized errors.
+    apiFetch<Row[]>('/users/admin/coin-transactions')
       .then(setRows)
       .catch((reason) => setError(reason instanceof Error ? reason.message : 'Transactions could not be loaded.'))
       .finally(() => setLoading(false));
@@ -68,7 +70,7 @@ export default function TransactionsPage() {
     if (!confirm(`Are you sure you want to ${action}?`)) return;
     setActionId(row.id);
     try {
-      await directFetch(`/users/admin/coin-transactions/${row.id}/withdrawal`, { method: 'PATCH', body: JSON.stringify({ status }) });
+      await apiFetch(`/users/admin/coin-transactions/${row.id}/withdrawal`, { method: 'PATCH', body: JSON.stringify({ status }) });
       setRows((current) => current.map((item) => item.id === row.id ? { ...item, status } : item));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Withdrawal could not be updated.');
