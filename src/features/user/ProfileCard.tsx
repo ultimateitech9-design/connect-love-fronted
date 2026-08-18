@@ -85,6 +85,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
   const [showKeyboardHints, setShowKeyboardHints] = useState(true);
   const [firstImpressionOpen, setFirstImpressionOpen] = useState(false);
   const isDraggingRef = useRef(false);
+  const actionPendingRef = useRef(false);
   const keyboardActionsRef = useRef({
     pass: () => {},
     like: () => {},
@@ -101,6 +102,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
 
   useEffect(() => {
     setIdx(0);
+    actionPendingRef.current = false;
   }, [profiles]);
 
   useEffect(() => {
@@ -171,18 +173,19 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
 
 
   const advance = async (action: Action) => {
-    const completed = onAction ? await onAction(profile.id, action) : true;
-    if (completed === false) {
+    if (actionPendingRef.current) return;
+    actionPendingRef.current = true;
+    try {
+      const completed = onAction ? await onAction(profile.id, action) : true;
+      if (completed === false) return;
+      if (action === "like") toast.success(`You liked ${profile.name}`);
+      if (action === "super") toast.success(`Super liked ${profile.name}`);
+      if (action === "pass") toast(`Passed on ${profile.name}`);
+    } finally {
+      actionPendingRef.current = false;
       x.set(0);
       y.set(0);
-      return;
     }
-    if (action === "like") toast.success(`You liked ${profile.name}`);
-    if (action === "super") toast.success(`Super liked ${profile.name}`);
-    if (action === "pass") toast(`Passed on ${profile.name}`);
-    setIdx((i) => i + 1);
-    x.set(0);
-    y.set(0);
   };
 
   const onDragEnd = (_: unknown, info: PanInfo) => {
@@ -200,17 +203,11 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
   };
 
   const triggerSwipe = (action: Action) => {
-    if (action === "super") {
-      setIsSuperLiking(true);
-      setTimeout(() => {
-        advance("super");
-        setIsSuperLiking(false);
-      }, 1000);
-      return;
-    }
+    if (actionPendingRef.current) return;
+    if (action === "super") setIsSuperLiking(true);
     const target = action === "like" ? 600 : action === "pass" ? -600 : 0;
     x.set(target);
-    setTimeout(() => advance(action), 180);
+    void advance(action).finally(() => setIsSuperLiking(false));
   };
 
   const fetchDetails = async () => {
@@ -253,8 +250,11 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
   const openProfileDetails = () => {
     if (showDetails || isDraggingRef.current) return;
     setInstructionVisible(false);
+    // The discovery card already contains the core profile fields. Render
+    // those immediately and refresh the complete profile in the background.
+    setDetailedProfile(profile);
     setShowDetails(true);
-    if (!detailedProfile) fetchDetails();
+    void fetchDetails();
   };
 
   keyboardActionsRef.current = {
@@ -725,7 +725,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
           // The backend records a First Impression as a normal profile Like.
           // Move forward only after that request succeeds, so the same card is
           // not shown again and no duplicate swipe request is sent.
-          setIdx((current) => current + 1);
+          void onAction?.(profile.id, "like");
           x.set(0);
           y.set(0);
         }}

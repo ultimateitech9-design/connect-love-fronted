@@ -39,6 +39,17 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   const [upgradePrompt, setUpgradePrompt] = useState<string | null>(null);
   const cacheRef = useRef(new Map<string, any[]>());
   const profilesRef = useRef(profiles);
+  const swipeInFlightRef = useRef(new Set<string>());
+
+  const uniqueProfiles = useCallback((items: any[]) => {
+    const seen = new Set<string>();
+    return items.filter((profile) => {
+      const id = String(profile?.id || "");
+      if (!id || id === currentUserKey || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [currentUserKey]);
 
   useEffect(() => {
     profilesRef.current = profiles;
@@ -97,7 +108,8 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     setLoading((current) => (profiles.length > 0 ? false : current));
     setError(false);
     try {
-      const data = await getDiscoveryProfiles({ ...filters, search: filters.search?.trim() }, signal);
+      const response = await getDiscoveryProfiles({ ...filters, search: filters.search?.trim() }, signal);
+      const data = uniqueProfiles(Array.isArray(response) ? response : []);
       cacheRef.current.set(filterKey, data);
       try {
         window.localStorage.setItem(storageKey, JSON.stringify(data));
@@ -111,7 +123,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [filterKey, filters.ageMax, filters.ageMin, filters.goals, filters.interestedIn, filters.limit, filters.maxDistance, filters.search, profiles.length, storageKey, token]);
+  }, [filterKey, filters.ageMax, filters.ageMin, filters.goals, filters.interestedIn, filters.limit, filters.maxDistance, filters.search, storageKey, token, uniqueProfiles]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -132,10 +144,13 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   }, [filterKey, storageKey]);
 
   const swipe = useCallback(async (receiverId: string, action: "like" | "pass" | "superlike") => {
-    if (!token) return false;
+    if (!token || swipeInFlightRef.current.has(receiverId)) return false;
+    const removedProfile = profilesRef.current.find((profile) => profile.id === receiverId);
+    swipeInFlightRef.current.add(receiverId);
+    // Advance the card immediately. If the API rejects the action, restore it.
+    removeProfileLocally(receiverId);
     try {
       const match = await swipeProfile(receiverId, action);
-      removeProfileLocally(receiverId);
       if (match?.status === "MATCHED" && typeof window !== "undefined") {
         window.setTimeout(() => {
           window.location.href = `/user/messages?id=${match.id}`;
@@ -144,17 +159,28 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
       // The API excludes the newly swiped profile, so page one now acts as the
       // next nearest batch without unstable offset pagination.
       if (profilesRef.current.length <= 5) {
-        await fetchProfiles(undefined, true);
+        void fetchProfiles(undefined, true);
       }
       return true;
     } catch (error) {
+      if (removedProfile) {
+        setProfiles((current) => {
+          const next = uniqueProfiles([removedProfile, ...current]);
+          profilesRef.current = next;
+          cacheRef.current.set(filterKey, next);
+          try { window.localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
+          return next;
+        });
+      }
       setError(true);
       const message = error instanceof Error ? error.message : "Action could not be completed.";
       if (/like.*limit|limit.*like|upgrade your plan/i.test(message)) setUpgradePrompt(message);
       else toast.error(message);
       return false;
+    } finally {
+      swipeInFlightRef.current.delete(receiverId);
     }
-  }, [fetchProfiles, removeProfileLocally, token]);
+  }, [fetchProfiles, filterKey, removeProfileLocally, storageKey, token, uniqueProfiles]);
 
   const undoSwipe = useCallback(async (profile: any) => {
     if (!token || !profile?.id) return false;

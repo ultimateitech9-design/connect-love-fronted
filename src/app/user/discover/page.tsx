@@ -208,10 +208,12 @@ function MobileFilters({
 function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: (id: string, action: string) => boolean | void | Promise<boolean | void> }) {
   const [idx, setIdx] = useState(0);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const actionPendingRef = useRef(false);
 
   useEffect(() => {
     setIdx(0);
     setPhotoIndex(0);
+    actionPendingRef.current = false;
   }, [profiles]);
 
   if (profiles.length === 0) return <EmptyProfilesCard />;
@@ -222,10 +224,14 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
   const distance = profile.distanceKm ?? profile.distanceMi ?? null;
 
   const advance = async (action: string) => {
-    const completed = await onAction(profile.id, action);
-    if (completed === false) return;
-    setIdx((value) => value + 1);
-    setPhotoIndex(0);
+    if (actionPendingRef.current) return;
+    actionPendingRef.current = true;
+    try {
+      await onAction(profile.id, action);
+    } finally {
+      actionPendingRef.current = false;
+      setPhotoIndex(0);
+    }
   };
 
   return (
