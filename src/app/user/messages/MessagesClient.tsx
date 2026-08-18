@@ -1860,23 +1860,43 @@ export default function Messages() {
 
  const token = getToken() || "";
 
- useEffect(() => {
+ const refreshWalletBalance = useCallback(async () => {
    if (!token) return;
-   fetch(`${API_URL}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
-     .then((response) => response.ok ? response.json() : null)
-     .then((user) => {
-       if (user) {
-         setCoinBalance(Number(user.coinBalance) || 0);
-         setEarnedCoinBalance(Number(user.earnedCoinBalance) || 0);
-         const gender = String(user.gender || "").trim().toLowerCase();
-         const woman = ["female", "woman", "women", "girl", "ladies", "f"].includes(gender);
-         const paidPlan = ["gold", "platinum"].includes(String(user.plan || "free").toLowerCase());
-         const planActive = paidPlan && (!user.planExpiresAt || new Date(user.planExpiresAt).getTime() > Date.now());
-         setCanUseChatMedia(woman || planActive);
-       }
-     })
-     .catch(() => {});
+   try {
+     const response = await fetch(`${API_URL}/users/me`, {
+       cache: "no-store",
+       headers: { Authorization: `Bearer ${token}` },
+     });
+     if (!response.ok) return;
+     const user = await response.json();
+     setCoinBalance(Number(user.coinBalance) || 0);
+     setEarnedCoinBalance(Number(user.earnedCoinBalance) || 0);
+     const gender = String(user.gender || "").trim().toLowerCase();
+     const woman = ["female", "woman", "women", "girl", "ladies", "f"].includes(gender);
+     const paidPlan = ["gold", "platinum"].includes(String(user.plan || "free").toLowerCase());
+     const planActive = paidPlan && (!user.planExpiresAt || new Date(user.planExpiresAt).getTime() > Date.now());
+     setCanUseChatMedia(woman || planActive);
+   } catch {}
  }, [token]);
+
+ useEffect(() => { void refreshWalletBalance(); }, [refreshWalletBalance]);
+
+ useEffect(() => {
+   if (activePickerTab !== "gift") return;
+   void refreshWalletBalance();
+   const refreshOnFocus = () => void refreshWalletBalance();
+   const refreshWhenVisible = () => {
+     if (document.visibilityState === "visible") void refreshWalletBalance();
+   };
+   const interval = window.setInterval(refreshOnFocus, 3000);
+   window.addEventListener("focus", refreshOnFocus);
+   document.addEventListener("visibilitychange", refreshWhenVisible);
+   return () => {
+     window.clearInterval(interval);
+     window.removeEventListener("focus", refreshOnFocus);
+     document.removeEventListener("visibilitychange", refreshWhenVisible);
+   };
+ }, [activePickerTab, refreshWalletBalance]);
 
  useEffect(() => {
    if (!token) return;
@@ -1987,6 +2007,9 @@ export default function Messages() {
   const toggleReaction = useCallback((messageId: string, receiverId: string, emoji: string) => {
     triggerReactionBurst(messageId, emoji);
     originalToggleReaction(messageId, receiverId, emoji);
+    // Reaction selection is complete; hide the message action menu immediately.
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    setReactionPickerMessage(null);
   }, [originalToggleReaction, triggerReactionBurst]);
 
   useEffect(() => {
@@ -2381,6 +2404,8 @@ export default function Messages() {
      });
      if (!res.ok) throw new Error("Clear chat failed");
      queryClient.setQueryData(["messages", activeId], []);
+     queryClient.setQueryData(["matches", "active"], (old: any[] | undefined) => old?.filter((match) => match.id !== activeId));
+     setActiveId(null);
      setSelectedMessageIds(new Set());
      queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
      toast.success("Chat deleted for you.");
@@ -2401,6 +2426,8 @@ export default function Messages() {
      if (!res.ok) throw new Error("Delete chat failed");
 
      queryClient.setQueryData(["messages", conversationId], []);
+     queryClient.setQueryData(["matches", "active"], (old: any[] | undefined) => old?.filter((match) => match.id !== conversationId));
+     if (activeId === conversationId) setActiveId(null);
      queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
      toast.success("Messages deleted. The match remains available for a new chat.");
    } catch {
@@ -3479,7 +3506,7 @@ export default function Messages() {
        <span className="line-clamp-1 opacity-90">{messageTextForActions(replyMessage)}</span>
      </div>
    )}
-   {isDeleted ? <p className="italic opacity-80">This message was deleted</p> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
+   {isDeleted ? <p className="italic opacity-80">This message was deleted</p> : m.lockedForPlan ? <a href="/user/premium" className="flex items-center gap-2 text-sm font-medium text-amber-700 hover:text-amber-800"><Lock className="h-4 w-4" /> Her reply is blurred. View plans to unlock.</a> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
     {messageBursts[m.id]?.map((burst: any) => (
       <FloatingReactionParticles key={burst.id} emoji={burst.emoji} />
     ))}
@@ -3625,7 +3652,7 @@ export default function Messages() {
        <span className="line-clamp-1 opacity-80">{messageTextForActions(replyMessage)}</span>
      </div>
    )}
-   {isDeleted ? <p className="italic opacity-70">This message was deleted</p> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
+   {isDeleted ? <p className="italic opacity-70">This message was deleted</p> : m.lockedForPlan ? <a href="/user/premium" className="flex items-center gap-2 text-sm font-medium text-amber-700 hover:text-amber-800"><Lock className="h-4 w-4" /> Her reply is blurred. View plans to unlock.</a> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
     {messageBursts[m.id]?.map((burst: any) => (
       <FloatingReactionParticles key={burst.id} emoji={burst.emoji} />
     ))}

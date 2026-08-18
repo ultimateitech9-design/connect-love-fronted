@@ -277,7 +277,7 @@ export default function MatchesDashboard() {
 
  const safeSentLikes = Array.isArray(sentLikes) ? sentLikes : [];
  const safeReceivedLikes = Array.isArray(receivedLikes) ? receivedLikes : [];
- const totalPending = summary.sent + summary.received;
+ const totalPending = summary.sent;
  const superLikes = safeSentLikes.filter(m => m.isSuperLike);
  const normalSentLikes = safeSentLikes.filter(m => !m.isSuperLike);
 

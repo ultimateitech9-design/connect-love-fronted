@@ -256,7 +256,8 @@ export function FeaturesSection() {
                         )}
                       </div>
 
-                      <div className="mt-3 flex flex-wrap items-end gap-x-1.5 gap-y-1">
+                      <div className={`${isDiamond ? "mt-7" : "mt-3"} flex flex-wrap items-end gap-x-1.5 gap-y-1`}>
+                        {!isFree && <span className="mb-1 mr-1 whitespace-nowrap text-lg font-black text-white/55 line-through decoration-2">{"\u20B9"}{isGold ? 499 : 999}</span>}
                         <span
                           className={`inline-flex shrink-0 items-baseline whitespace-nowrap text-[2rem] font-black leading-none tabular-nums ${isGold ? "bg-gradient-to-b from-[#ffe6a2] to-[#b77a27] bg-clip-text text-transparent" : isDiamond ? "text-violet-100" : "pricing-free-price text-slate-950"}`}
                         >
@@ -265,6 +266,7 @@ export function FeaturesSection() {
                             {plan.price.replace("₹", "")}
                           </span>
                         </span>
+                        {!isFree && <span className={`mb-0.5 ml-2 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${isGold ? "border-[#b88b3c] bg-[#6b501f]/40 text-[#f5d47f]" : "border-violet-300/50 bg-violet-400/15 text-violet-100"}`}>Special Offer</span>}
                         <span className={`mb-0.5 text-xs font-medium ${isFree ? "text-stone-500" : isGold ? "text-[#d5b26b]" : "text-violet-200"}`}>
                           /{plan.period}
                         </span>

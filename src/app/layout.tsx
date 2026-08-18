@@ -45,10 +45,9 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/connect-love-logo-96.webp?v=4", type: "image/webp", sizes: "96x96" },
-      { url: "/connect-love-logo.png?v=4", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.ico?v=5", type: "image/x-icon", sizes: "any" },
     ],
-    shortcut: "/connect-love-logo-96.webp?v=4",
+    shortcut: "/favicon.ico?v=5",
     apple: [{ url: "/connect-love-logo.png?v=4", type: "image/png", sizes: "512x512" }],
     other: [
       {

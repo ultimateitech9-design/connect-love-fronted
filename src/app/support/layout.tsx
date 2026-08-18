@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="dark theme-support min-h-full flex flex-col antialiased">
+    <div className="theme-support min-h-full flex flex-col antialiased bg-background text-foreground">
         <Providers>
           <SidebarProvider>
             <div className="flex min-h-screen w-full overflow-x-hidden">
@@ -37,14 +37,14 @@ export default function RootLayout({
                     <div className="hidden items-center gap-2 xl:flex" aria-label="ConnectLove contact emails">
                       <a
                         href="mailto:info@connectlove.in"
-                        className="flex h-9 items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 text-xs text-muted-foreground transition-colors hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-white"
+                        className="flex h-9 items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 text-xs text-muted-foreground transition-colors hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-foreground"
                       >
                         <Mail className="h-3.5 w-3.5 text-rose-400" />
                         <span><strong className="font-semibold text-foreground">Info</strong> · info@connectlove.in</span>
                       </a>
                       <a
                         href="mailto:support@connectlove.in"
-                        className="flex h-9 items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 text-xs text-muted-foreground transition-colors hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-white"
+                        className="flex h-9 items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-3 text-xs text-muted-foreground transition-colors hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-foreground"
                       >
                         <Mail className="h-3.5 w-3.5 text-rose-400" />
                         <span><strong className="font-semibold text-foreground">Support</strong> · support@connectlove.in</span>
@@ -59,7 +59,7 @@ export default function RootLayout({
                       </a>
                     </div>
                     <NotificationBell />
-                    <Link href="/support/profile" aria-label="Support profile" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-muted/20 hover:bg-white/10 transition-colors text-muted-foreground hover:text-white">
+                    <Link href="/support/profile" aria-label="Support profile" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-muted/20 hover:bg-rose-50 transition-colors text-muted-foreground hover:text-foreground">
                       <User className="h-4 w-4" />
                     </Link>
                   </div>

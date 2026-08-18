@@ -7,7 +7,7 @@ import { managementFetch } from '@/lib/api';
 
 type Row = {
   id: string;
-  type: 'recharge' | 'gift' | 'theme' | 'withdrawal';
+  type: 'recharge' | 'gift' | 'theme' | 'withdrawal' | 'admin_credit';
   status: string;
   grossCoins: number;
   userCoins: number;
@@ -101,7 +101,7 @@ export default function TransactionsPage() {
             <th className="px-4 py-3">Type</th><th className="px-4 py-3">User / Sender</th><th className="px-4 py-3">Receiver</th><th className="px-4 py-3">Gross</th><th className="px-4 py-3">User 80%</th><th className="px-4 py-3">Platform 20%</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Date</th>
           </tr></thead>
           <tbody className="text-black">{filtered.map((row) => <tr key={row.id} className="border-t border-border bg-white text-black">
-            <td className="px-4 py-3"><span className="inline-flex items-center gap-1.5 font-semibold capitalize">{row.type === 'recharge' || row.type === 'gift' ? <ArrowDownLeft className="h-4 w-4 text-emerald-500" /> : <ArrowUpRight className="h-4 w-4 text-rose-500" />}{row.type}</span><div className="text-xs text-muted-foreground">{row.label}</div></td>
+            <td className="px-4 py-3"><span className="inline-flex items-center gap-1.5 font-semibold capitalize">{row.type === 'recharge' || row.type === 'gift' || row.type === 'admin_credit' ? <ArrowDownLeft className="h-4 w-4 text-emerald-500" /> : <ArrowUpRight className="h-4 w-4 text-rose-500" />}{row.type.replace(/_/g, ' ')}</span><div className="text-xs text-muted-foreground">{row.label}</div></td>
             <td className="px-4 py-3 font-medium">{row.sender?.name || row.user?.name || 'Platform'}<div className="text-xs font-normal text-muted-foreground">{row.sender?.email || row.user?.email}</div></td>
             <td className="px-4 py-3">{row.receiver?.name || '—'}<div className="text-xs text-muted-foreground">{row.receiver?.email}</div></td>
             <td className="px-4 py-3 font-bold">{row.grossCoins}</td><td className="px-4 py-3 text-emerald-600">{row.userCoins}</td><td className="px-4 py-3 text-amber-600">{row.platformCoins}</td>

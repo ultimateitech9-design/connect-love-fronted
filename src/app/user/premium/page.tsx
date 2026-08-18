@@ -231,9 +231,12 @@ export default function PremiumPage() {
        </p>
       {isGold && <span className="grid h-8 w-8 place-items-center rounded-full border border-[#9e7538] bg-black/50 text-[#f0c76c]"><Gem className="h-4 w-4" /></span>}
       </div>
-      <div className="mt-3 flex items-end gap-1.5">
+      <div className={`${isDiamond ? "mt-7" : "mt-3"} flex flex-wrap items-end gap-1.5`}>
+       {!isFree && <span className="mb-1 mr-1 whitespace-nowrap text-lg font-black text-white/55 line-through decoration-2">{"\u20B9"}{isGold ? 499 : 999}</span>}
        <span className={`text-[2rem] font-black leading-none ${isGold ? "bg-gradient-to-b from-[#ffe6a2] to-[#b77a27] bg-clip-text text-transparent" : isDiamond ? "text-violet-100" : "text-slate-950"}`}>₹{plan.price}</span>
        <span className={`mb-0.5 text-xs ${isFree ? "text-stone-500" : isGold ? "text-[#d5b26b]" : "text-violet-200"}`}>/{plan.period}</span>
+       {!isFree && <span className={`mb-0.5 ml-2 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${isGold ? "border-[#b88b3c] bg-[#6b501f]/40 text-[#f5d47f]" : "border-violet-300/50 bg-violet-400/15 text-violet-100"}`}>Special Offer</span>}
+
       </div>
      </header>
      <div className={`relative z-10 mx-2 mb-2 flex flex-1 flex-col rounded-[22px] border p-4 ${isFree ? "border-white/90 bg-white/75" : isGold ? "border-[#705326]/80 bg-black/35" : "border-violet-300/20 bg-[#160c35]/80"}`}>

@@ -111,7 +111,7 @@ export default function Overview() {
         <CardHeader><CardTitle className="text-base">Recent Tickets</CardTitle></CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="min-w-[1050px] w-full text-sm">
               <thead>
                 <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-muted-foreground">
                   <th className="py-2 pr-4 font-medium">Ticket</th>
@@ -129,7 +129,7 @@ export default function Overview() {
                   <tr><td colSpan={8} className="py-8 text-center text-muted-foreground">No support tickets found.</td></tr>
                 ) : recentTickets.map((r) => (
                   <tr key={r.id} className="border-b border-border/40 last:border-0">
-                    <td className="py-3 pr-4 font-mono text-xs">{r.id}</td>
+                    <td className="whitespace-nowrap py-3 pr-4 font-mono text-xs">{r.id}</td>
                     <td className="py-3 pr-4">{r.user}</td>
                     <td className="py-3 pr-4 text-xs text-muted-foreground">{r.phone || "No phone"}</td>
                     <td className="py-3 pr-4">{r.topic}</td>

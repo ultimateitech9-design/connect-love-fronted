@@ -55,7 +55,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="flex flex-col leading-tight">
               <span className="text-base font-bold">
-                <span className="text-white">Connect</span>
+                <span className="text-foreground">Connect</span>
                 <span className="text-red-500">Love</span>
               </span>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -79,8 +79,8 @@ export function AppSidebar() {
                       isActive={active}
                       className={`transition-colors ${
                         active 
-                          ? "bg-[#3b1a2f] text-white hover:bg-[#4a233b] hover:text-white font-medium" 
-                          : "text-white/80 hover:bg-white/10 hover:text-white"
+                          ? "bg-rose-100 text-rose-700 hover:bg-rose-200 hover:text-rose-800 font-medium" 
+                          : "text-sidebar-foreground hover:bg-rose-50 hover:text-rose-700"
                       }`}
                     >
                       <Link href={item.url} className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   onClick={() => { window.location.href = "/support/profile"; }}
-                  className="flex items-center gap-2 text-pink-300 hover:text-pink-200"
+                  className="flex items-center gap-2 text-rose-600 hover:text-rose-700"
                 >
                   <User className="h-4 w-4" />
                   {!collapsed && <span>My Profile</span>}
@@ -103,7 +103,7 @@ export function AppSidebar() {
               </SidebarMenuItem>
               {!collapsed && (
                 <div className="pl-9 pt-1 pb-2 flex flex-col items-start gap-1">
-                  <button onClick={async () => { await logoutManagement(); window.location.href = "/management"; }} className="text-sm text-muted-foreground hover:text-white flex items-center gap-2 transition-colors">
+                  <button onClick={async () => { await logoutManagement(); window.location.href = "/management"; }} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2 transition-colors">
                     <LogOut className="h-3.5 w-3.5" /> Logout
                   </button>
                 </div>

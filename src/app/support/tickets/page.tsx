@@ -90,7 +90,7 @@ export default function TicketsPage() {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="min-w-[1050px] w-full text-sm">
                 <thead>
                   <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-muted-foreground">
                     <th className="py-2 pr-4 font-medium">ID</th>
@@ -104,16 +104,16 @@ export default function TicketsPage() {
                 <tbody>
                   {tickets.length === 0 ? <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">No support tickets found.</td></tr> : tickets.map((q) => (
                     <tr key={q.id} className="border-b border-border/40 last:border-0">
-                      <td className="py-3 pr-4 font-mono text-xs">#{q.id}</td>
+                      <td className="whitespace-nowrap py-3 pr-4 font-mono text-xs">#{q.id}</td>
                       <td className="py-3 pr-4"><div className="font-medium">{q.subject}</div><div className="max-w-xs text-xs text-muted-foreground">{q.message}</div>{q.photoDataUrl && <img src={q.photoDataUrl} alt="Support ticket attachment" className="mt-2 h-20 w-20 rounded-lg object-cover" />}</td>
-                      <td className="py-3 pr-4"><div className="font-medium">{q.user}</div><div className="text-xs text-muted-foreground">{q.email}</div><div className="text-xs text-muted-foreground">{q.phone || "No phone"}</div></td>
-                      <td className="py-3 pr-4">{q.priority}</td>
-                      <td className="py-3 pr-4">{q.status}</td>
+                      <td className="whitespace-nowrap py-3 pr-4"><div className="font-medium">{q.user}</div><div className="text-xs text-muted-foreground">{q.email}</div><div className="text-xs text-muted-foreground">{q.phone || "No phone"}</div></td>
+                      <td className="whitespace-nowrap py-3 pr-4">{q.priority}</td>
+                      <td className="whitespace-nowrap py-3 pr-4">{q.status}</td>
                       <td className="py-3 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <span>{q.age}</span>
-                          <button onClick={() => updateStatus(q.id, "resolved")} className="text-[color:var(--success)] hover:underline">Resolve</button>
-                          <button onClick={() => updateStatus(q.id, "escalated")} className="text-destructive hover:underline">Escalate</button>
+                        <div className="flex min-w-[170px] items-center gap-3 whitespace-nowrap">
+                          <span className="shrink-0">{q.age}</span>
+                          <button onClick={() => updateStatus(q.id, "resolved")} className="shrink-0 whitespace-nowrap text-[color:var(--success)] hover:underline">Resolve</button>
+                          <button onClick={() => updateStatus(q.id, "escalated")} className="shrink-0 whitespace-nowrap text-destructive hover:underline">Escalate</button>
                         </div>
                       </td>
                     </tr>

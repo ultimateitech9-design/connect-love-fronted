@@ -114,20 +114,21 @@ export const api = {
  planSplit: { name: string; value: number }[];
  recentUpgrades: { name: string; plan: string; amt: string; t: string }[];
  }>("/sales/overview"),
+ salesRetention: () => apiFetch<{ totalUsers: number; premiumUsers: number; activePremium: number; plans: { key: string; label: string; total: number; active: number; verified: number }[] }>("/sales/retention"),
  salesTrends: () => apiFetch<{
  kpis: { todaySales: number; weekSales: number; monthSales: number; threeMonthGrowth: number };
  monthly: { m: string; sales: number; growth: number }[];
  weekly: { w: string; sales: number }[];
  }>("/sales/trends"),
  salesPlans: () => apiFetch<{ plans: { id: string; key?: string; name: string; price: number; currency?: string; subscribers: number; status: string; features: string[] }[]; topMarkets: { city: string; value: number }[] }>("/sales/plans"),
- supportOverview: () => directFetch<{
+ supportOverview: () => managementFetch<{
  stats: { totalTickets: number; resolvedToday: number; openTickets: number; escalated: number };
  ticketTrend: { day: string; received: number; resolved: number }[];
  complaintMix: { name: string; value: number }[];
  recent: { id: number; name: string; email: string; phone?: string; photoDataUrl?: string; subject: string; message: string; status: string; createdAt: string }[];
  }>("/support/overview"),
- supportTickets: (status = "all") => directFetch<any[]>(`/support/tickets?status=${encodeURIComponent(status)}`),
- updateTicketStatus: (id: number, status: string) => directFetch(`/support/tickets/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+ supportTickets: (status = "all") => managementFetch<any[]>(`/support/tickets?status=${encodeURIComponent(status)}`),
+ updateTicketStatus: (id: number, status: string) => managementFetch(`/support/tickets/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
  refundPayment: (id: string) => apiFetch(`/payments/${id}/refund`, { method: "PATCH" }),
  createPlan: (body: { displayName: string; price: number; features?: string[]; status?: string }) => apiFetch("/plans", { method: "POST", body: JSON.stringify(body) }),
  updatePlan: (id: string, body: { displayName: string; price: number; features?: string[]; status?: string }) => apiFetch(`/plans/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
