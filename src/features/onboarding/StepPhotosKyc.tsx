@@ -25,6 +25,19 @@ const RECORD_SECONDS = 7;
 const MAX_KYC_FRAMES = 5;
 const API = API_ORIGIN;
 
+function readableApiError(value: unknown): string | null {
+  if (typeof value === "string") return value.trim() || null;
+  if (Array.isArray(value)) {
+    const messages = value.map(readableApiError).filter((item): item is string => Boolean(item));
+    return messages.length ? messages.join(" ") : null;
+  }
+  if (value && typeof value === "object") {
+    const error = value as Record<string, unknown>;
+    return readableApiError(error.msg) || readableApiError(error.message) || readableApiError(error.detail);
+  }
+  return null;
+}
+
 export function StepProfilePhotos({
   profile,
   onNext,
@@ -229,7 +242,7 @@ export function StepVideoKyc({
           });
           const result = await response.json().catch(() => null);
           if (!response.ok) {
-            const detail = Array.isArray(result?.message) ? result.message.join(" ") : result?.message;
+            const detail = readableApiError(result);
             throw new Error(detail || "Face verification could not be completed.");
           }
           setKycFrame(result.kycLivePhoto || capturedFrames[0]);

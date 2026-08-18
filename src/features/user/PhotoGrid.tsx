@@ -169,27 +169,18 @@ export function PhotoGrid({ photos, onPhotosChange, disabled, maxPhotos = 5 }: P
 
   const chooseReplacement = (index: number) => {
     if (disabled || uploading) return;
-    if (index < 2) {
-      alert("Your first 2 profile photos are fixed.");
-      return;
-    }
     replaceIndexRef.current = index;
     fileInputRef.current?.click();
   };
 
   const makePrimary = (index: number) => {
     if (index === 0) return;
-    if (uniquePhotos.length >= 2) {
-      alert("Your first 2 profile photos are fixed.");
-      return;
-    }
     const newPhotos = [...uniquePhotos];
     const [selected] = newPhotos.splice(index, 1);
     onPhotosChange([selected, ...newPhotos]);
   };
 
   const handleReorder = (newPhotos: string[]) => {
-    if (uniquePhotos.length >= 2 && (newPhotos[0] !== uniquePhotos[0] || newPhotos[1] !== uniquePhotos[1])) return;
     onPhotosChange(newPhotos);
   };
 
@@ -217,7 +208,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled, maxPhotos = 5 }: P
             <Reorder.Item
               key={photo}
               value={photo}
-              dragListener={!disabled && index >= 2}
+              dragListener={!disabled}
               className="relative aspect-[3/4] min-w-0 w-full cursor-grab overflow-hidden rounded-xl border border-rose-100 shadow-md active:cursor-grabbing sm:rounded-2xl"
               style={{ touchAction: "none" }}
             >
@@ -249,7 +240,7 @@ export function PhotoGrid({ photos, onPhotosChange, disabled, maxPhotos = 5 }: P
                   <Camera className="h-3.5 w-3.5" />
                   Replace
                 </button>
-                {index >= 2 && (
+                {uniquePhotos.length > 1 && (
                   <button
                     type="button"
                     onClick={() => onPhotosChange(uniquePhotos.filter((_, photoIndex) => photoIndex !== index))}
