@@ -23,6 +23,15 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [directKyc, setDirectKyc] = useState(false);
+
+  useEffect(() => {
+    const requestedStep = new URLSearchParams(window.location.search).get("step");
+    if (requestedStep === "video-kyc") {
+      setDirectKyc(true);
+      setCurrentStepIndex(1);
+    }
+  }, []);
 
   // Fetch initial profile
   useEffect(() => {
@@ -78,7 +87,7 @@ export default function OnboardingPage() {
 
       if (isFinal) {
         clearOnboardingRequired();
-        router.replace("/user/profile");
+        router.replace(directKyc ? "/user/profile" : "/user/discover");
       } else {
         setCurrentStepIndex((prev) => prev + 1);
       }
@@ -156,6 +165,7 @@ export default function OnboardingPage() {
                 <StepVideoKyc
                   profile={profile}
                   onNext={(val) => handleNext(val, true)}
+                  allowSkip={!directKyc}
                 />
               )}
             </motion.div>

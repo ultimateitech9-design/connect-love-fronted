@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Camera, Eye, Heart as HeartIcon, LogOut, Sparkles, Loader2, CheckCircle2, AlertCircle, X,
   Lock, Unlock, BadgeCheck,
+  ShieldAlert,
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
 
@@ -27,12 +28,12 @@ const BIO_SUGGESTIONS = [
 const PROFESSION_SUGGESTIONS = ["Software Engineer", "Business Owner", "Government Employee", "Doctor", "Teacher", "Lawyer", "Accountant", "Banker", "Designer", "Photographer", "Student", "Self Employed", "Freelancer", "Homemaker"];
 const HEIGHT_SUGGESTIONS = ["4'10\"", "5'0\"", "5'2\"", "5'4\"", "5'6\"", "5'8\"", "5'10\"", "6'0\"", "6'2\""];
 const ZODIAC_SIGNS = [
- { sign: "Capricorn", emoji: "â™‘", from: 1222 }, { sign: "Aquarius", emoji: "â™’", from: 120 },
- { sign: "Pisces", emoji: "â™“", from: 219 }, { sign: "Aries", emoji: "â™ˆ", from: 321 },
- { sign: "Taurus", emoji: "â™‰", from: 420 }, { sign: "Gemini", emoji: "â™Š", from: 521 },
- { sign: "Cancer", emoji: "â™‹", from: 621 }, { sign: "Leo", emoji: "â™Œ", from: 723 },
- { sign: "Virgo", emoji: "â™", from: 823 }, { sign: "Libra", emoji: "â™Ž", from: 923 },
- { sign: "Scorpio", emoji: "â™", from: 1023 }, { sign: "Sagittarius", emoji: "â™", from: 1122 },
+ { sign: "Capricorn", emoji: "♑", from: 1222 }, { sign: "Aquarius", emoji: "♒", from: 120 },
+ { sign: "Pisces", emoji: "♓", from: 219 }, { sign: "Aries", emoji: "♈", from: 321 },
+ { sign: "Taurus", emoji: "♉", from: 420 }, { sign: "Gemini", emoji: "♊", from: 521 },
+ { sign: "Cancer", emoji: "♋", from: 621 }, { sign: "Leo", emoji: "♌", from: 723 },
+ { sign: "Virgo", emoji: "♍", from: 823 }, { sign: "Libra", emoji: "♎", from: 923 },
+ { sign: "Scorpio", emoji: "♏", from: 1023 }, { sign: "Sagittarius", emoji: "♐", from: 1122 },
 ] as const;
 const ZODIAC_DROPDOWN_ORDER = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'] as const;
 
@@ -56,6 +57,7 @@ interface UserProfile {
  id: number;
  name: string;
  email: string;
+ phone: string;
  dob: string;
  gender: string;
  religion: string;
@@ -207,6 +209,7 @@ export default function ProfilePage() {
 
       const updatePayload = {
         name: profile.name,
+        phone: profile.phone?.trim() || "",
         birthDate: profile.dob,
         gender: profile.gender,
         religion: profile.religion,
@@ -316,6 +319,23 @@ export default function ProfilePage() {
  }
 
  return (
+ <div className="space-y-4 sm:space-y-5">
+ {profile.kycMatched !== true && (
+   <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5" role="status">
+     <div className="flex min-w-0 items-start gap-3">
+       <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200">
+         <ShieldAlert className="h-5 w-5" />
+       </div>
+       <div className="min-w-0">
+         <p className="font-bold text-amber-900">KYC Pending</p>
+         <p className="mt-0.5 text-sm leading-5 text-amber-800/80">Complete your video KYC to verify your identity and build trust on your profile.</p>
+       </div>
+     </div>
+     <Link href="/user/onboarding?step=video-kyc" className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-amber-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-amber-700">
+       Complete KYC
+     </Link>
+   </div>
+ )}
  <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
  {/* â”€â”€ Main profile card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
  <section className="min-w-0 space-y-5 overflow-hidden rounded-2xl bg-white p-3 shadow-lg min-[380px]:p-4 sm:space-y-6 sm:p-6" style={{ border: "1px solid rgba(236,72,153,0.15)" }}>
@@ -412,6 +432,21 @@ export default function ProfilePage() {
  className="bg-slate-50 text-slate-600 disabled:cursor-not-allowed disabled:opacity-100"
  />
  <p className="text-[11px] text-slate-400">Verified during registration and linked to your account.</p>
+ </div>
+ <div className="space-y-2">
+ <Label className="text-slate-600">Phone number</Label>
+ <Input
+ type="tel"
+ inputMode="tel"
+ autoComplete="tel"
+ disabled={isLocked}
+ value={profile.phone ?? ""}
+ placeholder="e.g. +91 98765 43210"
+ maxLength={30}
+ onChange={(event) => set("phone", event.target.value)}
+ className="bg-white text-slate-700 disabled:cursor-not-allowed disabled:bg-slate-50"
+ />
+ <p className="text-[11px] text-slate-400">Visible only to you and authorized administrators.</p>
  </div>
  <RequiredField
  label="Date of birth"
@@ -688,6 +723,7 @@ export default function ProfilePage() {
  </Link>
  </div>
  </aside>
+ </div>
  </div>
  );
 }

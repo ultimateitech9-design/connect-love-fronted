@@ -82,9 +82,11 @@ export function StepProfilePhotos({
 export function StepVideoKyc({
   profile,
   onNext,
+  allowSkip = true,
 }: {
   profile: PhotoProfile;
   onNext: (value: Record<string, never>) => void | Promise<void>;
+  allowSkip?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -357,7 +359,7 @@ export function StepVideoKyc({
         Enter dashboard
       </button>
 
-      <button
+      {allowSkip && <button
         type="button"
         onClick={skipKyc}
         disabled={recording || checking || skipping}
@@ -365,7 +367,7 @@ export function StepVideoKyc({
       >
         {skipping && <Loader2 className="h-4 w-4 animate-spin" />}
         {skipping ? "Opening dashboard..." : "Skip for now"}
-      </button>
+      </button>}
 
       <canvas ref={canvasRef} className="hidden" />
     </div>

@@ -37,6 +37,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
  if (cancelled) return;
 
  const mustCompleteOnboarding = isOnboardingRequired() && !user.onboardingCompleted;
+ const isDirectKyc = pathname === "/user/onboarding"
+   && new URLSearchParams(window.location.search).get("step") === "video-kyc";
 
  // New signup sessions must complete onboarding before entering the user app.
  if (mustCompleteOnboarding && pathname !== "/user/onboarding") {
@@ -45,10 +47,10 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
  return;
  }
 
- if (user.onboardingCompleted && pathname === "/user/onboarding") {
+ if (user.onboardingCompleted && pathname === "/user/onboarding" && (!isDirectKyc || user.kycMatched === true)) {
  clearOnboardingRequired();
  setLoading(false);
- router.replace("/user/profile");
+ router.replace(isDirectKyc ? "/user/profile" : "/user/discover");
  return;
  }
 

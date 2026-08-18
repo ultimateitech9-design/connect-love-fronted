@@ -23,6 +23,7 @@ type UserRow = {
 type UserForm = {
  name: string;
  email: string;
+ phone: string;
  role: string;
  plan: string;
  status: string;
@@ -42,6 +43,7 @@ type UserForm = {
 const emptyForm: UserForm = {
  name: "",
  email: "",
+ phone: "",
  role: "user",
  plan: "free",
  status: "active",
@@ -166,6 +168,7 @@ export default function User360Page() {
  setForm({
  name: user.name || "",
  email: user.email || "",
+ phone: user.phone || user.mobile || "",
  role: user.role || "user",
  plan: user.plan || "free",
  status: normalizeStatus(user.status),
@@ -207,6 +210,7 @@ export default function User360Page() {
  const body = {
  name: form.name,
  email: form.email,
+ phone: form.phone,
  role: form.role,
  plan: form.plan,
  status: form.status,
@@ -326,6 +330,7 @@ export default function User360Page() {
  {form.isVerified && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase text-emerald-700"><BadgeCheck className="h-3 w-3" /> Verified</span>}
  </div>
  <p className="mt-1 text-sm font-medium text-muted-foreground">{details.email}</p>
+ {form.phone && <p className="mt-1 text-sm font-bold text-foreground">Phone: {form.phone}</p>}
  <div className="mt-3 flex flex-wrap gap-2">
  <Pill label="Plan" value={formatPlan(form.plan)} />
  <Pill label="Role" value={form.role} />
@@ -345,6 +350,7 @@ export default function User360Page() {
  <div className="grid gap-4 md:grid-cols-2">
  <TextField label="Name" value={form.name} onChange={(value) => updateField("name", value)} />
  <TextField label="Email" value={form.email} onChange={(value) => updateField("email", value)} type="email" />
+ <TextField label="Phone Number" value={form.phone} onChange={(value) => updateField("phone", value)} type="tel" />
  <SelectField label="Role" value={form.role} onChange={(value) => updateField("role", value)} options={["user", "admin", "super_admin", "sales", "support"]} />
  <SelectField label="Plan" value={form.plan} onChange={(value) => updateField("plan", value)} options={["free", "gold", "platinum"]} />
  <SelectField label="Status" value={form.status} onChange={(value) => updateField("status", value)} options={["active", "suspended", "banned", "pending_verification"]} />
@@ -379,6 +385,7 @@ export default function User360Page() {
  <Info label="Age" value={details.age ? `${details.age}` : "-"} />
  <Info label="Last Active" value={toDateInput(details.lastActive) || "-"} />
  <Info label="City" value={form.city || "-"} />
+ <Info label="Phone" value={form.phone || "-"} />
  <Info label="Plan" value={formatPlan(form.plan)} />
  </div>
  </aside>
