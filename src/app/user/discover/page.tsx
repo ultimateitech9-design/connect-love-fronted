@@ -313,7 +313,14 @@ function getProfileDistanceKm(profile: any): number | null {
 }
 
 function matchesNonDistanceFilters(p: any, filters: DiscoverFilters, onlyShowVerifiedProfiles = false): boolean {
-  if (filters.interestedIn !== "everyone" && String(p.gender || "").toLowerCase() !== filters.interestedIn) return false;
+  const gender = String(p.gender || "").trim().toLowerCase();
+  const genderAliases: Record<string, string[]> = {
+    female: ["female", "woman", "women", "girl", "ladies", "f"],
+    male: ["male", "man", "men", "boy", "m"],
+    "non-binary": ["non-binary", "nonbinary", "non binary", "nb"],
+    "prefer-not": ["prefer-not", "prefer not", "prefer not to say"],
+  };
+  if (filters.interestedIn !== "everyone" && !(genderAliases[filters.interestedIn] || [filters.interestedIn]).includes(gender)) return false;
   if (filters.search && filters.search.trim()) {
     const query = filters.search.toLowerCase().trim();
     const nameMatch = p.name && p.name.toLowerCase().includes(query);

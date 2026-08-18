@@ -15,9 +15,15 @@ type DiscoveryRequestFilters = {
 };
 
 export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
+  let currentUserKey = "anonymous";
+  try {
+    const payload = token ? JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))) : null;
+    currentUserKey = String(payload?.sub || payload?.userId || "anonymous");
+  } catch {}
   const filterKey = `${filters.search || ""}:${filters.ageMin ?? ""}:${filters.ageMax ?? ""}:${filters.interestedIn || "everyone"}:${(filters.goals || []).join(",")}:${filters.maxDistance ?? ""}:${filters.limit || ""}`;
-  // Versioned so profiles cached before video-KYC fields were added are not reused.
-  const storageKey = `connect-love:discovery:v2:${filterKey}`;
+  // Discovery results contain relationship state and must never leak across
+  // accounts using the same browser. Version 3 scopes every cache to the JWT user.
+  const storageKey = `connect-love:discovery:v4:${currentUserKey}:${filterKey}`;
   const [profiles, setProfiles] = useState<any[]>(() => {
     if (typeof window === "undefined") return [];
     try {
