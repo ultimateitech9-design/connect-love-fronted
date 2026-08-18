@@ -1737,11 +1737,26 @@ type InboxFirstImpression = {
  createdAt: string;
 };
 
+function LockedFirstImpressionReply() {
+ return (
+  <div className="relative min-w-[230px] overflow-hidden rounded-xl border border-amber-200 bg-amber-50/90 p-3 text-slate-700">
+   <p className="select-none text-sm leading-6 blur-[5px]" aria-hidden="true">She replied to your First Impression. This private message is waiting for you.</p>
+   <a href="/user/premium" className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-white/35 text-center text-xs font-semibold text-amber-800 backdrop-blur-[1px]">
+    <Lock className="h-5 w-5" />
+    <span>Reply blurred</span>
+    <span className="rounded-full bg-amber-600 px-3 py-1 text-white">View plans to unlock</span>
+   </a>
+  </div>
+ );
+}
+
 export default function Messages() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [firstImpressions, setFirstImpressions] = useState<InboxFirstImpression[]>([]);
   const [firstImpressionsUnlocked, setFirstImpressionsUnlocked] = useState(false);
   const [activeFirstImpressionId, setActiveFirstImpressionId] = useState<string | null>(null);
+  const [firstImpressionReply, setFirstImpressionReply] = useState("");
+  const [firstImpressionReplying, setFirstImpressionReplying] = useState(false);
   const [messageBursts, setMessageBursts] = useState<Record<string, { id: number; emoji: string }[]>>({});
 
   const triggerReactionBurst = useCallback((messageId: string, emoji: string) => {
@@ -1904,7 +1919,7 @@ export default function Messages() {
      .then((response) => response.ok ? response.json() : null)
      .then((result) => {
        if (!result) return;
-       setFirstImpressions(Array.isArray(result.items) ? result.items.filter((item: InboxFirstImpression) => !item.locked) : []);
+       setFirstImpressions(Array.isArray(result.items) ? result.items : []);
        setFirstImpressionsUnlocked(Boolean(result.unlocked));
      })
      .catch(() => {});
@@ -2230,6 +2245,32 @@ export default function Messages() {
 
  const active = displayMatches.find((m) => m.id === activeId);
  const activeFirstImpression = firstImpressions.find((item) => item.id === activeFirstImpressionId) || null;
+
+ const handleFirstImpressionReply = async (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  const content = firstImpressionReply.trim();
+  if (!activeFirstImpression || !content || firstImpressionReplying) return;
+  setFirstImpressionReplying(true);
+  try {
+   const response = await fetch(API_URL + "/first-impressions/" + activeFirstImpression.id + "/reply", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+    body: JSON.stringify({ content }),
+   });
+   const result = await response.json().catch(() => null);
+   if (!response.ok) throw new Error(result?.message || "Reply could not be sent.");
+   setFirstImpressions((items) => items.filter((item) => item.id !== activeFirstImpression.id));
+   setActiveFirstImpressionId(null);
+   setFirstImpressionReply("");
+   await queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
+   toast.success("Reply sent successfully.");
+   if (result?.matchId) window.location.assign("/user/messages?id=" + result.matchId);
+  } catch (error) {
+   toast.error(error instanceof Error ? error.message : "Reply could not be sent.");
+  } finally {
+   setFirstImpressionReplying(false);
+  }
+ };
  const activeUserId = active?.userId;
  const activePresenceText = isRecording
    ? "Recording Audio..."
@@ -3277,7 +3318,7 @@ export default function Messages() {
    <li key={`first-${item.id}`}>
      <button
        type="button"
-       onClick={() => { setActiveId(null); setActiveFirstImpressionId(item.id); }}
+       onClick={() => { setActiveId(null); setFirstImpressionReply(""); setActiveFirstImpressionId(item.id); }}
        className={cn("flex w-full items-center gap-3 px-4 py-3 text-left transition-colors", activeFirstImpressionId === item.id ? "bg-[var(--chat-selected)]" : "hover:bg-[var(--chat-hover)]")}
      >
        <div className="relative">
@@ -3365,7 +3406,26 @@ export default function Messages() {
         )}
       </div>
     </div>
-    {!firstImpressionsUnlocked && <div className="border-t border-border px-5 py-3 text-center text-xs text-[var(--chat-text-muted)]"><Lock className="mr-1 inline h-3.5 w-3.5" />Replies become available after matching.</div>}
+    {firstImpressionsUnlocked ? (
+      <form onSubmit={handleFirstImpressionReply} className="flex shrink-0 items-end gap-2 border-t border-border p-4">
+        <textarea
+          value={firstImpressionReply}
+          onChange={(event) => setFirstImpressionReply(event.target.value.slice(0, 2000))}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              event.currentTarget.form?.requestSubmit();
+            }
+          }}
+          rows={1}
+          placeholder="Reply to this First Impression..."
+          className="min-h-11 max-h-32 flex-1 resize-y rounded-2xl border border-border bg-[var(--chat-input)] px-4 py-3 text-sm text-[var(--chat-text)] outline-none focus:border-rose-400"
+        />
+        <Button type="submit" size="icon" disabled={!firstImpressionReply.trim() || firstImpressionReplying} className="h-11 w-11 shrink-0 rounded-full bg-rose-500 text-white hover:bg-rose-600" aria-label="Send reply">
+          {firstImpressionReplying ? <Clock className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </Button>
+      </form>
+    ) : <div className="flex items-center justify-center gap-2 border-t border-border px-5 py-3 text-center text-xs text-[var(--chat-text-muted)]"><Lock className="h-3.5 w-3.5" /><span>Buy a plan to read and reply.</span><a href="/user/premium" className="font-semibold text-rose-500 hover:underline">View plans</a></div>}
   </section>
  ) : active ? (
   <section className="relative flex min-h-0 flex-col overflow-hidden rounded-none bg-[var(--chat-panel)] shadow-none backdrop-blur sm:rounded-2xl sm:shadow-sm">
@@ -3506,7 +3566,7 @@ export default function Messages() {
        <span className="line-clamp-1 opacity-90">{messageTextForActions(replyMessage)}</span>
      </div>
    )}
-   {isDeleted ? <p className="italic opacity-80">This message was deleted</p> : m.lockedForPlan ? <a href="/user/premium" className="flex items-center gap-2 text-sm font-medium text-amber-700 hover:text-amber-800"><Lock className="h-4 w-4" /> Her reply is blurred. View plans to unlock.</a> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
+   {isDeleted ? <p className="italic opacity-80">This message was deleted</p> : m.lockedForPlan ? <LockedFirstImpressionReply /> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
     {messageBursts[m.id]?.map((burst: any) => (
       <FloatingReactionParticles key={burst.id} emoji={burst.emoji} />
     ))}
@@ -3652,7 +3712,7 @@ export default function Messages() {
        <span className="line-clamp-1 opacity-80">{messageTextForActions(replyMessage)}</span>
      </div>
    )}
-   {isDeleted ? <p className="italic opacity-70">This message was deleted</p> : m.lockedForPlan ? <a href="/user/premium" className="flex items-center gap-2 text-sm font-medium text-amber-700 hover:text-amber-800"><Lock className="h-4 w-4" /> Her reply is blurred. View plans to unlock.</a> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
+   {isDeleted ? <p className="italic opacity-70">This message was deleted</p> : m.lockedForPlan ? <LockedFirstImpressionReply /> : <MessageContent content={m.content} isMe={isMe} onOpenPhoto={setPhotoViewerSrc} />}
     {messageBursts[m.id]?.map((burst: any) => (
       <FloatingReactionParticles key={burst.id} emoji={burst.emoji} />
     ))}
