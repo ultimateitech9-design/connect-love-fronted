@@ -20,7 +20,7 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  };
 
  const { data: matches = [], isLoading, isError } = useQuery({
- queryKey: ['matches', userKey, filter, limit],
+ queryKey: ['matches', 'access-v2', userKey, filter, limit],
  queryFn: fetchMatches,
  enabled: !!token && isEnabled,
  staleTime: Infinity,
