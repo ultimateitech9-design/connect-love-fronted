@@ -19,6 +19,20 @@ type MatchTab = "active" | "received" | "pending" | "blocked";
 type MatchSummary = { active: number; sent: number; received: number; blocked: number };
 const MATCH_PAGE_SIZE = 12;
 
+type MatchesPageCache = {
+ activeMatches: DBMatch[];
+ sentLikes: DBMatch[];
+ receivedLikes: DBMatch[];
+ blockedUsers: DBMatch[];
+ firstImpressions: ReceivedFirstImpression[];
+ summary: MatchSummary;
+ loadedTabs: MatchTab[];
+ exhaustedTabs: MatchTab[];
+ nextOffsets: Record<MatchTab, number>;
+};
+
+const matchesPageCache = new Map<string, MatchesPageCache>();
+
 async function readMatches(res: Response): Promise<DBMatch[]> {
  if (!res.ok) {
    const body = await res.json().catch(() => null);
@@ -52,9 +66,6 @@ export default function MatchesDashboard() {
  const selectedTab = useRef<MatchTab>('active');
 
  useEffect(() => {
-   // Remove the old full-response cache; embedded profile photos can exceed
-   // mobile browsers' small sessionStorage quota.
-   try { sessionStorage.removeItem("connectlove:matches"); } catch {}
    const token = getToken();
    if (token) {
      try {
@@ -83,6 +94,41 @@ export default function MatchesDashboard() {
    if (!token) return;
    const response = await apiFetch('/matches/summary', { headers: { Authorization: `Bearer ${token}` } });
    if (response.ok) setSummary(await response.json());
+ };
+
+ const prependLatestMatches = async (tab: MatchTab) => {
+   if (!loadedTabs.current.has(tab)) return;
+   const token = getToken();
+   if (!token) return;
+   const response = await apiFetch(`/matches?filter=${tab === 'pending' ? 'sent' : tab}&limit=20&offset=0`, {
+     headers: { Authorization: `Bearer ${token}` },
+   });
+   const latest = await readMatches(response);
+   const prepend = (current: DBMatch[]) => [
+     ...latest.filter((item) => !current.some((existing) => existing.id === item.id)),
+     ...current,
+   ];
+   if (tab === 'active') setActiveMatches(prepend);
+   if (tab === 'received') setReceivedLikes(prepend);
+   if (tab === 'pending') setSentLikes(prepend);
+   if (tab === 'blocked') setBlockedUsers(prepend);
+ };
+
+ const syncNewMatches = async () => {
+   const token = getToken();
+   if (!token) return;
+   try {
+     const response = await apiFetch('/matches/summary', { headers: { Authorization: `Bearer ${token}` } });
+     if (!response.ok) return;
+     const latestSummary = await response.json() as MatchSummary;
+     const changedTabs: MatchTab[] = [];
+     if (latestSummary.active > summary.active) changedTabs.push('active');
+     if (latestSummary.received > summary.received) changedTabs.push('received');
+     if (latestSummary.sent > summary.sent) changedTabs.push('pending');
+     if (latestSummary.blocked > summary.blocked) changedTabs.push('blocked');
+     await Promise.all(changedTabs.map(prependLatestMatches));
+     setSummary(latestSummary);
+   } catch {}
  };
 
  const appendTabMatches = (tab: MatchTab, matches: DBMatch[]) => {
@@ -169,8 +215,57 @@ export default function MatchesDashboard() {
  };
 
  useEffect(() => {
+   const token = getToken();
+   if (!token) return;
+   let userId = '';
+   try {
+     const payload = JSON.parse(atob(token.split('.')[1]));
+     userId = String(payload.userId || payload.sub || '');
+   } catch {}
+   const cached = userId ? matchesPageCache.get(userId) : undefined;
+   if (cached) {
+     setActiveMatches(cached.activeMatches);
+     setSentLikes(cached.sentLikes);
+     setReceivedLikes(cached.receivedLikes);
+     setBlockedUsers(cached.blockedUsers);
+     setFirstImpressions(cached.firstImpressions);
+     setSummary(cached.summary);
+     loadedTabs.current = new Set(cached.loadedTabs);
+     exhaustedTabs.current = new Set(cached.exhaustedTabs);
+     nextOffsets.current = { ...cached.nextOffsets };
+     setIsLoading(false);
+     return;
+   }
    void Promise.all([loadTab('active'), refreshSummary()]);
  }, []);
+
+ useEffect(() => {
+   if (!myId) return;
+   matchesPageCache.set(myId, {
+     activeMatches,
+     sentLikes,
+     receivedLikes,
+     blockedUsers,
+     firstImpressions,
+     summary,
+     loadedTabs: [...loadedTabs.current],
+     exhaustedTabs: [...exhaustedTabs.current],
+     nextOffsets: { ...nextOffsets.current },
+   });
+ }, [activeMatches, blockedUsers, firstImpressions, myId, receivedLikes, sentLikes, summary]);
+
+ useEffect(() => {
+   const onFocus = () => void syncNewMatches();
+   const onVisible = () => {
+     if (document.visibilityState === 'visible') void syncNewMatches();
+   };
+   window.addEventListener('focus', onFocus);
+   document.addEventListener('visibilitychange', onVisible);
+   return () => {
+     window.removeEventListener('focus', onFocus);
+     document.removeEventListener('visibilitychange', onVisible);
+   };
+ }, [summary]);
 
  const handleBlock = async (id: string) => {
    try {

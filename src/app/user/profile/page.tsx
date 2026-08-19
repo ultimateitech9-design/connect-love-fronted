@@ -16,6 +16,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
+import { cacheAvatarUrl } from "@/lib/avatarCache";
 
 const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"] as const;
 const PERSONALITY_SUGGESTIONS = ["Adventurous", "Ambitious", "Calm", "Caring", "Confident", "Creative", "Funny", "Honest", "Introverted", "Kind", "Loyal", "Romantic", "Witty"];
@@ -104,8 +105,6 @@ export default function ProfilePage() {
  const fileInputRef = useRef<HTMLInputElement>(null);
 
  // â”€â”€ localStorage key for avatar cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
- const AVATAR_KEY = "cl_avatar_url";
-
  // â”€â”€ Fetch profile on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
  useEffect(() => {
  const token = getToken();
@@ -115,8 +114,6 @@ export default function ProfilePage() {
  }
 
  // Load cached avatar immediately so UI doesn't flash
- const cachedAvatar = localStorage.getItem(AVATAR_KEY);
-
  apiFetch("/users/me", {
  headers: { Authorization: `Bearer ${token}` },
  })
@@ -142,7 +139,7 @@ export default function ProfilePage() {
         merged.zodiac = data.zodiac || zodiacFromDate(merged.dob)?.sign || "";
         setProfile(merged);
         setSavedCompletion(calcCompletion(merged));
-        if (merged.photos?.[0]) localStorage.setItem(AVATAR_KEY, merged.photos[0]);
+        cacheAvatarUrl(merged.photos?.[0]);
  }
  })
  .catch((error: unknown) => {
@@ -246,7 +243,7 @@ export default function ProfilePage() {
         hobbies: updated.hobbies ? (Array.isArray(updated.hobbies) ? updated.hobbies.join(", ") : updated.hobbies) : ""
       };
       setProfile(merged);
-      if (merged.photos?.[0]) localStorage.setItem(AVATAR_KEY, merged.photos[0]);
+      cacheAvatarUrl(merged.photos?.[0]);
 
  setSavedCompletion(calcCompletion(merged));
  setSaveMsg({ ok: true, text: "Profile saved successfully!" });
@@ -265,11 +262,7 @@ export default function ProfilePage() {
     setProfile((p) => ({ ...p, photos: newPhotos }));
 
     // 2. Persist primary photo to localStorage
-    if (newPhotos.length > 0) {
-      localStorage.setItem(AVATAR_KEY, newPhotos[0]);
-    } else {
-      localStorage.removeItem(AVATAR_KEY);
-    }
+    cacheAvatarUrl(newPhotos[0]);
 
     // 3. Auto-upload to the new backend endpoint
     const token = getToken();
@@ -294,7 +287,7 @@ export default function ProfilePage() {
               kycMatched: updated.kycMatched ?? p.kycMatched,
             }));
             if (updated.photos[0]) {
-              localStorage.setItem(AVATAR_KEY, updated.photos[0]);
+              cacheAvatarUrl(updated.photos[0]);
             }
           }
         }

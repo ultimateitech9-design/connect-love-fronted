@@ -13,8 +13,8 @@ import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
-import { useQueryClient } from "@tanstack/react-query";
 import { HeaderLanguageDropdown } from "@/features/i18n/HeaderLanguageDropdown";
+import { cacheAvatarUrl, getCachedAvatarUrl } from "@/lib/avatarCache";
 
 const API = API_ORIGIN;
 
@@ -40,7 +40,6 @@ const notifColor = {
 export function TopNav() {
  const pathname = usePathname();
  const router = useRouter();
- const queryClient = useQueryClient();
  const token = getToken() || "";
 
  const [notifOpen, setNotifOpen] = useState(false);
@@ -153,26 +152,10 @@ export function TopNav() {
   localStorage.setItem(seenMatchesStorageKey, JSON.stringify(trimmed));
  }, [activeMatches, pathname, seenMatchIds, seenMatchesReady, seenMatchesStorageKey]);
 
- useEffect(() => {
-  if (!loadNavData) return;
-  const refreshNavIndicators = () => {
-   queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
-   queryClient.invalidateQueries({ queryKey: ["matches", "received"] });
-  };
-  const interval = window.setInterval(refreshNavIndicators, 5_000);
-  const handleFocus = () => refreshNavIndicators();
-  window.addEventListener("focus", handleFocus);
-  return () => {
-   window.clearInterval(interval);
-   window.removeEventListener("focus", handleFocus);
-  };
- }, [loadNavData, queryClient]);
-
  // Fetch user avatar for the nav
  useEffect(() => {
- const AVATAR_KEY = "cl_avatar_url";
  const NAME_KEY = "cl_user_name";
- const cached = localStorage.getItem(AVATAR_KEY);
+ const cached = getCachedAvatarUrl();
  if (cached) setAvatarUrl(cached);
  const cachedName = localStorage.getItem(NAME_KEY);
  if (cachedName) setUserName(cachedName);
@@ -187,7 +170,7 @@ export function TopNav() {
   const latestPhoto = navUser?.photos?.[0] || navUser?.avatarUrl;
   if (latestPhoto) {
    setAvatarUrl(latestPhoto);
-   localStorage.setItem("cl_avatar_url", latestPhoto);
+   cacheAvatarUrl(latestPhoto);
   }
  }, [navUser]);
 

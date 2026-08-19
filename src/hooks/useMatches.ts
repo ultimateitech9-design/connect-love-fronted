@@ -16,10 +16,11 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  queryKey: ['matches', filter],
  queryFn: fetchMatches,
  enabled: !!token && isEnabled,
- staleTime: 60_000,
- gcTime: 5 * 60_000,
+ staleTime: Infinity,
+ gcTime: 24 * 60 * 60_000,
  refetchOnWindowFocus: false,
- refetchOnMount: "always",
+ refetchOnMount: false,
+ refetchOnReconnect: false,
  });
 
  const actionMutation = useMutation({

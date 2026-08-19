@@ -385,7 +385,10 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  const token = getToken() || "";
   const locationSyncStarted = useRef(false);
   const requestFilters = useMemo(
-    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, limit: 12 }),
+    // Render the first card quickly on mobile/slow networks. The discovery hook
+    // continuously refills the queue after swipes, so a large initial payload
+    // only delays first paint without improving the experience.
+    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, limit: 4 }),
     [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance],
   );
  const { profiles, loading, swipeLeft, swipeRight, swipeSuper, undoSwipe, refreshProfiles, upgradePrompt, closeUpgradePrompt } = useDiscovery(token, requestFilters);

@@ -11,6 +11,7 @@ import { BoostDialog } from "@/features/boost/BoostDialog";
 import { getToken } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useMatches } from "@/hooks/useMatches";
+import { getCachedAvatarUrl } from "@/lib/avatarCache";
 
 const API = API_ORIGIN;
 const COMPLETION_FIELDS = [
@@ -39,7 +40,7 @@ export function RightRail() {
   useEffect(() => {
     if (currentUser) {
       setCompletion(calcCompletion(currentUser));
-      const latestPhoto = currentUser.photos?.[0] || currentUser.avatarUrl || localStorage.getItem("cl_avatar_url");
+      const latestPhoto = currentUser.photos?.[0] || currentUser.avatarUrl || getCachedAvatarUrl();
       if (latestPhoto) setAvatarUrl(latestPhoto);
     }
   }, [currentUser]);

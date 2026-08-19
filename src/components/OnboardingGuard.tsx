@@ -30,7 +30,11 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
  headers: { Authorization: `Bearer ${token}` }
  })
  .then(res => {
- if (!res.ok) throw new Error("Failed to fetch user");
+ if (!res.ok) {
+  const error = new Error("Failed to fetch user") as Error & { status?: number };
+  error.status = res.status;
+  throw error;
+ }
  return res.json();
  })
  .then(user => {
@@ -56,10 +60,14 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
  setLoading(false);
  })
- .catch(() => {
+ .catch((error: Error & { status?: number }) => {
  if (cancelled) return;
- clearToken();
- router.replace("/");
+ if (error.status === 401 || error.status === 403) {
+  clearToken();
+  router.replace("/");
+  return;
+ }
+ setLoading(false);
  });
 
  const timer = mustCheckBeforeRender ? null : window.setTimeout(verifyUser, 7000);

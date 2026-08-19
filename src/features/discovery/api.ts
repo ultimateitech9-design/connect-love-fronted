@@ -9,6 +9,7 @@ export type DiscoveryFilters = {
   maxDistance?: number;
   page?: number;
   limit?: number;
+  excludeIds?: string[];
 };
 
 export function getDiscoveryProfiles(filters: DiscoveryFilters, signal?: AbortSignal) {

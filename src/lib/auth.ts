@@ -9,7 +9,12 @@ const API_BASE = API_ORIGIN;
 
 function storage(): Storage | null {
  if (typeof window === "undefined") return null;
- return window.localStorage;
+ try { return window.localStorage; } catch { return null; }
+}
+
+function sessionStorageSafe(): Storage | null {
+ if (typeof window === "undefined") return null;
+ try { return window.sessionStorage; } catch { return null; }
 }
 
 function getCookie(name: string): string | null {
@@ -34,7 +39,8 @@ function deleteCookie(name: string) {
 
 /** Retrieve the stored JWT token */
 export function getToken(): string | null {
- return storage()?.getItem(TOKEN_KEY) ?? null;
+ try { return storage()?.getItem(TOKEN_KEY) ?? sessionStorageSafe()?.getItem(TOKEN_KEY) ?? null; }
+ catch { return sessionStorageSafe()?.getItem(TOKEN_KEY) ?? null; }
 }
 
 /** Retrieve the management JWT without being shadowed by a normal user session. */
@@ -47,8 +53,9 @@ export function getManagementToken(): string | null {
  * Also sets the sm_auth cookie so Edge Middleware can protect /user/* routes.
  */
 export function setToken(token: string): void {
- storage()?.setItem(TOKEN_KEY, token);
- setCookie(COOKIE_NAME, "1", 30); // 30-day hint cookie
+ setCookie(COOKIE_NAME, "1", 30);
+ try { storage()?.setItem(TOKEN_KEY, token); } catch {}
+ try { sessionStorageSafe()?.setItem(TOKEN_KEY, token); } catch {}
 }
 
 export function requireOnboarding(): void {
@@ -82,7 +89,8 @@ export function isOnboardingRequired(): boolean {
  * Called on logout or when a 401 is received.
  */
 export function clearToken(): void {
- storage()?.removeItem(TOKEN_KEY);
+ try { storage()?.removeItem(TOKEN_KEY); } catch {}
+ try { sessionStorageSafe()?.removeItem(TOKEN_KEY); } catch {}
  clearProfileReminder();
  clearOnboardingRequired();
  deleteCookie(COOKIE_NAME);
@@ -90,7 +98,7 @@ export function clearToken(): void {
 
 /** Return true when a valid-looking token is present */
 export function isAuthenticated(): boolean {
- return !!storage()?.getItem(TOKEN_KEY);
+ return !!getToken();
 }
 
 /**

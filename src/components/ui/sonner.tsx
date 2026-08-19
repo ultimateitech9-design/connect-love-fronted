@@ -1,6 +1,7 @@
  "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import type { Toaster as SonnerToaster } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof SonnerToaster>;
@@ -10,10 +11,22 @@ const Sonner = dynamic(() => import("sonner").then((mod) => mod.Toaster), {
  loading: () => null,
 });
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({ position, mobileOffset, ...props }: ToasterProps) => {
+ const [isMobile, setIsMobile] = useState(false);
+
+ useEffect(() => {
+  const media = window.matchMedia("(max-width: 767px)");
+  const sync = () => setIsMobile(media.matches);
+  sync();
+  media.addEventListener("change", sync);
+  return () => media.removeEventListener("change", sync);
+ }, []);
+
  return (
  <Sonner
  className="toaster group"
+ position={isMobile ? "top-center" : (position || "bottom-right")}
+ mobileOffset={isMobile ? "76px" : mobileOffset}
  toastOptions={{
  classNames: {
  toast:

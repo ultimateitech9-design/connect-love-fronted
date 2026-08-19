@@ -44,14 +44,26 @@ export default function OnboardingPage() {
     fetch(`${API}/users/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          const error = new Error("Failed to fetch profile") as Error & { status?: number };
+          error.status = res.status;
+          throw error;
+        }
+        return res.json();
+      })
       .then((data) => {
         setProfile(data);
         setLoading(false);
       })
-      .catch(() => {
-        clearToken();
-        router.push("/");
+      .catch((error: Error & { status?: number }) => {
+        if (error.status === 401 || error.status === 403) {
+          clearToken();
+          router.push("/");
+          return;
+        }
+        setSaveError("Unable to load your profile. Please check your connection and retry.");
+        setLoading(false);
       });
   }, [router]);
 

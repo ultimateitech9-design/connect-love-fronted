@@ -12,6 +12,7 @@ type DiscoveryRequestFilters = {
   goals?: string[];
   maxDistance?: number;
   limit?: number;
+  excludeIds?: string[];
 };
 
 export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {}) {
@@ -24,12 +25,25 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   // Discovery results contain relationship state and must never leak across
   // accounts using the same browser. Version 3 scopes every cache to the JWT user.
   const storageKey = `connect-love:discovery:v4:${currentUserKey}:${filterKey}`;
+  const hiddenStorageKey = `connect-love:discovery:hidden:v1:${currentUserKey}`;
+  const hiddenAtLoad = (() => {
+    if (typeof window === "undefined") return new Set<string>();
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(hiddenStorageKey) || "[]");
+      return new Set<string>(Array.isArray(parsed) ? parsed.map(String) : []);
+    } catch {
+      return new Set<string>();
+    }
+  })();
+  const hiddenIdsRef = useRef(hiddenAtLoad);
   const [profiles, setProfiles] = useState<any[]>(() => {
     if (typeof window === "undefined") return [];
     try {
       const cached = window.localStorage.getItem(storageKey);
       const parsed = cached ? JSON.parse(cached) : null;
-      return Array.isArray(parsed) ? parsed : [];
+      return Array.isArray(parsed)
+        ? parsed.filter((profile) => !hiddenAtLoad.has(String(profile?.id || "")))
+        : [];
     } catch {
       return [];
     }
@@ -40,12 +54,22 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   const cacheRef = useRef(new Map<string, any[]>());
   const profilesRef = useRef(profiles);
   const swipeInFlightRef = useRef(new Set<string>());
+  const refillInFlightRef = useRef(false);
+  const exhaustedRef = useRef(false);
+
+  const persistHiddenIds = useCallback(() => {
+    try {
+      const ids = [...hiddenIdsRef.current].slice(-5000);
+      hiddenIdsRef.current = new Set(ids);
+      window.localStorage.setItem(hiddenStorageKey, JSON.stringify(ids));
+    } catch {}
+  }, [hiddenStorageKey]);
 
   const uniqueProfiles = useCallback((items: any[]) => {
     const seen = new Set<string>();
     return items.filter((profile) => {
       const id = String(profile?.id || "");
-      if (!id || id === currentUserKey || seen.has(id)) return false;
+      if (!id || id === currentUserKey || seen.has(id) || hiddenIdsRef.current.has(id)) return false;
       seen.add(id);
       return true;
     });
@@ -54,6 +78,22 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   useEffect(() => {
     profilesRef.current = profiles;
   }, [profiles]);
+
+  useEffect(() => {
+    let nextHidden = new Set<string>();
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(hiddenStorageKey) || "[]");
+      nextHidden = new Set(Array.isArray(parsed) ? parsed.map(String) : []);
+    } catch {}
+    hiddenIdsRef.current = nextHidden;
+    exhaustedRef.current = false;
+    cacheRef.current.clear();
+    setProfiles((current) => {
+      const next = current.filter((profile) => !nextHidden.has(String(profile?.id || "")));
+      profilesRef.current = next;
+      return next;
+    });
+  }, [hiddenStorageKey]);
 
   // Fetch the current card's remaining photos after the critical first paint.
   // The discovery response only carries primary thumbnails, which keeps its
@@ -81,7 +121,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     };
   }, [profiles]);
 
-  const fetchProfiles = useCallback(async (signal?: AbortSignal, force = false) => {
+  const fetchProfiles = useCallback(async (signal?: AbortSignal, force = false, append = false) => {
     if (!token) {
       setProfiles([]);
       setLoading(false);
@@ -90,7 +130,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
 
     const cached = force ? undefined : cacheRef.current.get(filterKey);
     if (cached) {
-      setProfiles(cached);
+      setProfiles(uniqueProfiles(cached));
       setLoading(false);
       return;
     }
@@ -99,8 +139,9 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
       const stored = force ? null : window.localStorage.getItem(storageKey);
       const parsed = stored ? JSON.parse(stored) : null;
       if (Array.isArray(parsed) && parsed.length > 0) {
-        cacheRef.current.set(filterKey, parsed);
-        setProfiles(parsed);
+        const cachedProfiles = uniqueProfiles(parsed);
+        cacheRef.current.set(filterKey, cachedProfiles);
+        setProfiles(cachedProfiles);
         setLoading(false);
       }
     } catch {}
@@ -108,14 +149,17 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     setLoading((current) => (profiles.length > 0 ? false : current));
     setError(false);
     try {
-      const response = await getDiscoveryProfiles({ ...filters, search: filters.search?.trim() }, signal);
+      const excludeIds = append ? profilesRef.current.map((profile) => String(profile.id)).slice(0, 24) : undefined;
+      const response = await getDiscoveryProfiles({ ...filters, search: filters.search?.trim(), excludeIds }, signal);
       const data = uniqueProfiles(Array.isArray(response) ? response : []);
-      cacheRef.current.set(filterKey, data);
+      const nextProfiles = append ? uniqueProfiles([...profilesRef.current, ...data]) : data;
+      exhaustedRef.current = append && data.length === 0;
+      cacheRef.current.set(filterKey, nextProfiles);
       try {
-        window.localStorage.setItem(storageKey, JSON.stringify(data));
+        window.localStorage.setItem(storageKey, JSON.stringify(nextProfiles));
       } catch {}
-      setProfiles(data);
-      profilesRef.current = data;
+      setProfiles(nextProfiles);
+      profilesRef.current = nextProfiles;
     } catch (err: any) {
       if (err?.name !== "AbortError") {
         setError(true);
@@ -130,6 +174,16 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
     fetchProfiles(controller.signal);
     return () => controller.abort();
   }, [fetchProfiles]);
+
+  // Keep upcoming unique cards ready in the background. The empty state is
+  // reached only after the API confirms no eligible database profiles remain.
+  useEffect(() => {
+    if (!token || loading || profiles.length === 0 || profiles.length > 8 || exhaustedRef.current || refillInFlightRef.current) return;
+    refillInFlightRef.current = true;
+    void fetchProfiles(undefined, true, true).finally(() => {
+      refillInFlightRef.current = false;
+    });
+  }, [fetchProfiles, loading, profiles.length, token]);
 
   const removeProfileLocally = useCallback((receiverId: string) => {
     setProfiles((current) => {
@@ -146,9 +200,13 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
   const swipe = useCallback(async (receiverId: string, action: "like" | "pass" | "superlike") => {
     if (!token || swipeInFlightRef.current.has(receiverId)) return false;
     const removedProfile = profilesRef.current.find((profile) => profile.id === receiverId);
+    const queueWillBeEmpty = profilesRef.current.length <= 1;
     swipeInFlightRef.current.add(receiverId);
+    hiddenIdsRef.current.add(receiverId);
+    persistHiddenIds();
     // Advance the card immediately. If the API rejects the action, restore it.
     removeProfileLocally(receiverId);
+    if (queueWillBeEmpty) setLoading(true);
     try {
       const match = await swipeProfile(receiverId, action);
       if (match?.status === "MATCHED" && typeof window !== "undefined") {
@@ -158,11 +216,17 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
       }
       // The API excludes the newly swiped profile, so page one now acts as the
       // next nearest batch without unstable offset pagination.
-      if (profilesRef.current.length <= 5) {
-        void fetchProfiles(undefined, true);
+      if (profilesRef.current.length <= 8 && !refillInFlightRef.current) {
+        exhaustedRef.current = false;
+        refillInFlightRef.current = true;
+        void fetchProfiles(undefined, true, true).finally(() => {
+          refillInFlightRef.current = false;
+        });
       }
       return true;
     } catch (error) {
+      hiddenIdsRef.current.delete(receiverId);
+      persistHiddenIds();
       if (removedProfile) {
         setProfiles((current) => {
           const next = uniqueProfiles([removedProfile, ...current]);
@@ -179,13 +243,16 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
       return false;
     } finally {
       swipeInFlightRef.current.delete(receiverId);
+      if (queueWillBeEmpty && profilesRef.current.length > 0) setLoading(false);
     }
-  }, [fetchProfiles, filterKey, removeProfileLocally, storageKey, token, uniqueProfiles]);
+  }, [fetchProfiles, filterKey, persistHiddenIds, removeProfileLocally, storageKey, token, uniqueProfiles]);
 
   const undoSwipe = useCallback(async (profile: any) => {
     if (!token || !profile?.id) return false;
     try {
       await undoSwipeProfile(profile.id);
+      hiddenIdsRef.current.delete(String(profile.id));
+      persistHiddenIds();
       setProfiles((current) => {
         const next = [profile, ...current.filter((item) => item.id !== profile.id)];
         profilesRef.current = next;
@@ -200,7 +267,7 @@ export function useDiscovery(token: string, filters: DiscoveryRequestFilters = {
       setError(true);
       return false;
     }
-  }, [filterKey, storageKey, token]);
+  }, [filterKey, persistHiddenIds, storageKey, token]);
 
   return {
     profiles,

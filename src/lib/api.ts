@@ -4,7 +4,11 @@ const BASE = `${API_BASE.replace(/\/$/, "")}/api`;
 
 function getClientToken(preferManagement = false): string | null {
  if (typeof window === "undefined") return null;
- const localToken = window.localStorage.getItem("sm_token");
+ let localToken: string | null = null;
+ try { localToken = window.localStorage.getItem("sm_token"); } catch {}
+ if (!localToken) {
+  try { localToken = window.sessionStorage.getItem("sm_token"); } catch {}
+ }
  const cookieToken = document.cookie
  .split("; ")
  .find((row) => row.startsWith("management_client_token="))
