@@ -3,17 +3,24 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { matchesApi, type MatchFilter } from '@/features/matches/api';
 
-export function useMatches(token: string, filter: MatchFilter, options: { enabled?: boolean } = {}) {
+export function useMatches(token: string, filter: MatchFilter, options: { enabled?: boolean; limit?: number } = {}) {
  const queryClient = useQueryClient();
  const isEnabled = options.enabled ?? true;
+ const limit = options.limit ?? 12;
+ let userKey = 'anonymous';
+ try {
+  const encoded = token.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/');
+  const payload = encoded ? JSON.parse(atob(encoded)) : null;
+  userKey = String(payload?.userId || payload?.sub || 'anonymous');
+ } catch {}
 
  const fetchMatches = async () => {
  if (!token) return [];
- return matchesApi.list(filter);
+ return matchesApi.list(filter, limit);
  };
 
  const { data: matches = [], isLoading, isError } = useQuery({
- queryKey: ['matches', filter],
+ queryKey: ['matches', userKey, filter, limit],
  queryFn: fetchMatches,
  enabled: !!token && isEnabled,
  staleTime: Infinity,

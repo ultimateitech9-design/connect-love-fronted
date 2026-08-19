@@ -1987,7 +1987,7 @@ export default function Messages() {
    }
  }, [activeId]);
 
-  const { matches: activeMatches } = useMatches(token, "active");
+  const { matches: activeMatches } = useMatches(token, "active", { limit: 100 });
   const handlePlanLimitReached = useCallback((message: string, content: string) => {
     if (/media sharing.*limit|image sharing.*limit|share.*images.*limit/i.test(message) && /^(?:__photo_message__:|__video_message__:)/.test(content)) {
       setMediaShareLimitReached(true);

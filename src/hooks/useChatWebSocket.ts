@@ -94,7 +94,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  });
 
  // Update matches cache to bump it to the top
- queryClient.setQueryData(['matches', 'active'], (oldMatches: any) => {
+ queryClient.setQueryData(['matches', userId, 'active'], (oldMatches: any) => {
  if (!oldMatches) return oldMatches;
  const updated = oldMatches.map((match: any) => {
  if (match.id === message.conversationId) {
@@ -154,7 +154,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  });
 
  newSocket.on('USER_STATUS_CHANGED', (payload: { userId: string, isOnline: boolean, lastSeen?: string }) => {
-   queryClient.setQueryData(['matches', 'active'], (oldMatches: any) => {
+   queryClient.setQueryData(['matches', userId, 'active'], (oldMatches: any) => {
      if (!oldMatches) return oldMatches;
      return oldMatches.map((match: any) => {
        if (match.sender?.id === payload.userId) {
