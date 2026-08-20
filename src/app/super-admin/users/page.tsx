@@ -26,7 +26,7 @@ type StatusFilter = "All" | Status;
 type Verification = "Verified" | "Pending" | "Revoked";
 type Account = string;
 type Role = string;
-type CreatableRole = "Admin" | "Sales" | "Support";
+type CreatableRole = "User" | "Admin" | "Sales" | "Support";
 type RoleFilter = "All" | Role;
 
 interface Row {
@@ -83,7 +83,8 @@ function buildRow(u: { id: string; name: string; email: string; role: string; ac
 }
 
 const monoLabel = "font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground";
-const roleValueMap: Record<CreatableRole, "admin" | "sales" | "support"> = {
+const roleValueMap: Record<CreatableRole, "user" | "admin" | "sales" | "support"> = {
+ User: "user",
  Admin: "admin",
  Sales: "sales",
  Support: "support",
@@ -224,7 +225,7 @@ export default function UsersPage() {
  <div>
  <h1 className="text-3xl font-bold tracking-tight text-foreground">User Management</h1>
  <p className="text-sm text-muted-foreground mt-2">
- Create and manage system access IDs for Admin, Sales, and Support.
+ Create regular user accounts and manage system access IDs.
  </p>
  </div>
  <button onClick={() => setShowModal(true)} className="inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-90" style={{ background: "var(--gradient-brand)" }}>
@@ -250,6 +251,7 @@ export default function UsersPage() {
  <div className="space-y-1.5">
  <label className="text-xs font-semibold uppercase text-muted-foreground">Role</label>
  <select value={newRole} onChange={e => setNewRole(e.target.value as CreatableRole)} className="w-full h-10 px-3 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary">
+ <option value="User">User</option>
  <option value="Admin">Admin</option>
  <option value="Sales">Sales</option>
  <option value="Support">Support</option>
@@ -267,7 +269,7 @@ export default function UsersPage() {
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.68)", backdropFilter: "blur(7px)" }} onClick={(event) => { if (event.target === event.currentTarget && !creatingId) setShowModal(false); }}>
  <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-2xl animate-in fade-in zoom-in-95 duration-200">
  <div className="flex items-center justify-between border-b border-border px-6 py-5">
- <div><h2 className="text-xl font-bold text-foreground">Create New Dashboard ID</h2><p className="mt-1 text-sm text-muted-foreground">Create secure login credentials for a management dashboard.</p></div>
+ <div><h2 className="text-xl font-bold text-foreground">Create New Account</h2><p className="mt-1 text-sm text-muted-foreground">Create a regular user account or management dashboard ID.</p></div>
  <button type="button" disabled={creatingId} onClick={() => setShowModal(false)} className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><X className="h-5 w-5" /></button>
  </div>
  <form onSubmit={handleCreateUser} className="p-6">
@@ -277,7 +279,7 @@ export default function UsersPage() {
  <div className="space-y-1.5"><label className={monoLabel}>Login Email</label><input required type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="name@company.com" /></div>
  <div className="space-y-1.5"><label className={monoLabel}>Password</label><input required minLength={8} type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Minimum 8 characters" /></div>
  <div className="space-y-1.5"><label className={monoLabel}>Confirm Password</label><input required minLength={8} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground caret-pink-500 outline-none placeholder:text-muted-foreground focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20" placeholder="Repeat password" /></div>
- <div className="space-y-1.5 sm:col-span-2"><label className={monoLabel}>Dashboard Role</label><select value={newRole} onChange={(e) => setNewRole(e.target.value as CreatableRole)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"><option value="Admin">Admin</option><option value="Sales">Sales</option><option value="Support">Support</option></select><p className="text-xs text-muted-foreground">Admin IDs can only be created from the Super Admin panel.</p></div>
+ <div className="space-y-1.5 sm:col-span-2"><label className={monoLabel}>Account Role</label><select value={newRole} onChange={(e) => setNewRole(e.target.value as CreatableRole)} className="h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20"><option value="User">User</option><option value="Admin">Admin</option><option value="Sales">Sales</option><option value="Support">Support</option></select><p className="text-xs text-muted-foreground">User creates a regular Free account; they complete their profile after login.</p></div>
  </div>
  <div className="mt-6 flex justify-end gap-3 border-t border-border pt-5"><button type="button" disabled={creatingId} onClick={() => setShowModal(false)} className="h-10 rounded-lg border border-border bg-card px-5 text-sm font-semibold text-foreground hover:bg-muted disabled:opacity-50">Cancel</button><button type="submit" disabled={creatingId} className="h-10 min-w-32 rounded-lg px-5 text-sm font-semibold text-white shadow-md disabled:opacity-50" style={{ background: "var(--gradient-brand)" }}>{creatingId ? "Creating..." : "Create ID"}</button></div>
  </form>

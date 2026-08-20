@@ -434,7 +434,7 @@ export default function ProfilePage() {
  autoComplete="tel"
  disabled={isLocked}
  value={profile.phone ?? ""}
- placeholder="e.g. +91 98765 43210"
+ placeholder="000000"
  maxLength={30}
  onChange={(event) => set("phone", event.target.value)}
  className="bg-white text-slate-700 disabled:cursor-not-allowed disabled:bg-slate-50"
