@@ -37,7 +37,6 @@ const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 const CHAT_THEME_STORAGE_KEY = "connect-love-chat-theme";
 const UNLOCKED_CHAT_THEMES_STORAGE_KEY = "connect-love-unlocked-chat-themes";
 const MUTED_CHATS_STORAGE_KEY = "connect-love-muted-chats";
-const INITIAL_MESSAGE_RENDER_LIMIT = 80;
 
 declare global {
  interface Window {
@@ -1811,7 +1810,6 @@ export default function Messages() {
  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [selectedThemeId, setSelectedThemeId] = useState(FREE_CHAT_THEMES[0].id);
-  const [showFullHistory, setShowFullHistory] = useState(false);
   const [disappearingMode, setDisappearingMode] = useState<'after-view' | '24h' | '7d' | 'off'>("off");
   const [activePickerTab, setActivePickerTab] = useState<"emoji" | "gift" | "gif">("emoji");
   const [activeEmojiCategory, setActiveEmojiCategory] = useState(FREE_EMOJI_CATEGORIES[0].id);
@@ -1831,6 +1829,7 @@ export default function Messages() {
   const initialMessageIdsRef = useRef<Set<string>>(new Set());
   const hasLoadedHistoryRef = useRef<boolean>(false);
   const messagesListRef = useRef<HTMLDivElement>(null);
+  const olderMessagesScrollHeightRef = useRef<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingStopTimerRef = useRef<number | null>(null);
   const typingSentRef = useRef(false);
@@ -2011,6 +2010,9 @@ export default function Messages() {
     sendTypingStatus,
     sendRecordingStatus,
     markMessagesRead,
+    hasOlderMessages,
+    isLoadingOlder,
+    loadOlderMessages,
     isTyping,
     isRecording,
     editMessage,
@@ -2075,10 +2077,13 @@ export default function Messages() {
    }
    return true;
  });
- const hiddenOlderMessageCount = Math.max(0, visibleMessages.length - INITIAL_MESSAGE_RENDER_LIMIT);
- const renderedMessages = showFullHistory || hiddenOlderMessageCount === 0
-   ? visibleMessages
-   : visibleMessages.slice(-INITIAL_MESSAGE_RENDER_LIMIT);
+ const renderedMessages = visibleMessages;
+
+ const handleLoadOlderMessages = async () => {
+   const list = messagesListRef.current;
+   olderMessagesScrollHeightRef.current = list?.scrollHeight ?? null;
+   await loadOlderMessages();
+ };
 
  // Sync disappearing mode when receiving websocket control message
  useEffect(() => {
@@ -2088,8 +2093,10 @@ export default function Messages() {
      const match = lastMsg.content.match(/\[CONTROL:DISAPPEARING_MODE:(.+)\]/);
      if (match) {
        const mode = match[1];
-       setDisappearingMode(mode);
-       window.localStorage.setItem("disappearing:" + activeId, mode);
+       if (mode === "after-view" || mode === "24h" || mode === "7d" || mode === "off") {
+         setDisappearingMode(mode);
+         window.localStorage.setItem("disappearing:" + activeId, mode);
+       }
      }
    }
   }, [messages, activeId]);
@@ -2098,7 +2105,6 @@ export default function Messages() {
   useEffect(() => {
     initialMessageIdsRef.current = new Set();
     hasLoadedHistoryRef.current = false;
-    setShowFullHistory(false);
   }, [activeId]);
 
   // Capture initial history message IDs
@@ -2929,6 +2935,13 @@ export default function Messages() {
     const messagesList = messagesListRef.current;
     if (!messagesList) return;
 
+    const previousScrollHeight = olderMessagesScrollHeightRef.current;
+    if (previousScrollHeight !== null) {
+      messagesList.scrollTop += messagesList.scrollHeight - previousScrollHeight;
+      olderMessagesScrollHeightRef.current = null;
+      return;
+    }
+
     messagesList.scrollTop = messagesList.scrollHeight;
     const frame = window.requestAnimationFrame(() => {
       messagesList.scrollTop = messagesList.scrollHeight;
@@ -3499,14 +3512,15 @@ export default function Messages() {
  </header>
 
  <div ref={messagesListRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-6">
-{hiddenOlderMessageCount > 0 && !showFullHistory && (
+{hasOlderMessages && messages.length > 0 && (
   <div className="flex justify-center">
     <button
       type="button"
-      onClick={() => setShowFullHistory(true)}
-      className="rounded-full border border-rose-100 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm hover:bg-rose-50"
+      onClick={() => void handleLoadOlderMessages()}
+      disabled={isLoadingOlder}
+      className="rounded-full border border-rose-100 bg-white/90 px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm hover:bg-rose-50 disabled:opacity-60"
     >
-      Load {hiddenOlderMessageCount} older messages
+      {isLoadingOlder ? "Loading older messages..." : "Load older messages"}
     </button>
   </div>
 )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, Clock3, ExternalLink, Inbox, Loader2, Mail, MessageSquareWarning, Phone, RefreshCw, Search, UserRound } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, ExternalLink, Inbox, Loader2, Mail, MessageSquareWarning, Phone, RefreshCw, Search, Trash2, UserRound } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { api } from "@/lib/api";
@@ -17,6 +17,8 @@ const statusStyles: Record<string, string> = {
   closed: "bg-slate-100 text-slate-700 ring-slate-200",
 };
 
+const COMPLAINTS_PER_PAGE = 15;
+
 const labelStatus = (status: string) => status.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 export default function ComplaintsPage() {
@@ -26,6 +28,7 @@ export default function ComplaintsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadComplaints = useCallback(async () => {
     setLoading(true);
@@ -58,6 +61,15 @@ export default function ComplaintsPage() {
     });
   }, [complaints, filter, search]);
 
+  const totalPages = Math.max(1, Math.ceil(visibleComplaints.length / COMPLAINTS_PER_PAGE));
+  const paginatedComplaints = useMemo(() => {
+    const start = (currentPage - 1) * COMPLAINTS_PER_PAGE;
+    return visibleComplaints.slice(start, start + COMPLAINTS_PER_PAGE);
+  }, [currentPage, visibleComplaints]);
+
+  useEffect(() => { setCurrentPage(1); }, [filter, search]);
+  useEffect(() => { setCurrentPage((page) => Math.min(page, totalPages)); }, [totalPages]);
+
   const updateStatus = async (id: number, status: string) => {
     setUpdatingId(id);
     setError("");
@@ -66,6 +78,21 @@ export default function ComplaintsPage() {
       setComplaints((items) => items.map((item) => item.id === id ? { ...item, status } : item));
     } catch {
       setError("Complaint status could not be updated. Please try again.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const deleteComplaint = async (item: Complaint) => {
+    const confirmed = window.confirm(`Delete complaint #${item.id}? This will permanently remove it from the database.`);
+    if (!confirmed) return;
+    setUpdatingId(item.id);
+    setError("");
+    try {
+      await api.deleteTicket(item.id);
+      setComplaints((items) => items.filter((complaint) => complaint.id !== item.id));
+    } catch {
+      setError("Complaint could not be deleted. Please try again.");
     } finally {
       setUpdatingId(null);
     }
@@ -93,7 +120,7 @@ export default function ComplaintsPage() {
 
       {loading ? <div className="flex min-h-64 items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Loading complaints...</div>
       : visibleComplaints.length === 0 ? <div className="flex min-h-64 flex-col items-center justify-center px-4 text-center"><MessageSquareWarning className="mb-3 h-9 w-9 text-muted-foreground/50" /><p className="font-semibold">No complaints found</p><p className="mt-1 text-sm text-muted-foreground">New Contact Us submissions will appear here automatically.</p></div>
-      : <div className="divide-y divide-border">{visibleComplaints.map((item) => <article key={item.id} className="p-4 transition hover:bg-muted/20 sm:p-5">
+      : <div className="divide-y divide-border">{paginatedComplaints.map((item) => <article key={item.id} className="p-4 transition hover:bg-muted/20 sm:p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs font-bold text-rose-600">#{item.id}</span><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${statusStyles[item.status] ?? "bg-slate-100 text-slate-700 ring-slate-200"}`}>{labelStatus(item.status)}</span><span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Clock3 className="h-3.5 w-3.5" />{new Date(item.createdAt).toLocaleString()}</span></div>
@@ -102,10 +129,21 @@ export default function ComplaintsPage() {
           </div>
           <div className="flex shrink-0 flex-col gap-3 sm:flex-row xl:w-64 xl:flex-col">
             {item.photoDataUrl && <a href={item.photoDataUrl} target="_blank" rel="noreferrer" className="group relative block h-28 w-28 overflow-hidden rounded-xl border border-border"><img src={item.photoDataUrl} alt={`Evidence for complaint ${item.id}`} className="h-full w-full object-cover transition group-hover:scale-105" /><span className="absolute bottom-1 right-1 rounded-md bg-black/65 p-1 text-white"><ExternalLink className="h-3.5 w-3.5" /></span></a>}
-            <div className="flex flex-wrap gap-2"><button disabled={updatingId === item.id || item.status === "reviewing"} onClick={() => void updateStatus(item.id, "reviewing")} className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 disabled:opacity-50">Review</button><button disabled={updatingId === item.id || item.status === "escalated"} onClick={() => void updateStatus(item.id, "escalated")} className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 disabled:opacity-50">Escalate</button><button disabled={updatingId === item.id || ["resolved", "closed"].includes(item.status)} onClick={() => void updateStatus(item.id, "resolved")} className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 disabled:opacity-50">Resolve</button></div>
+            <div className="flex flex-wrap gap-2"><button disabled={updatingId === item.id || item.status === "reviewing"} onClick={() => void updateStatus(item.id, "reviewing")} className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 disabled:opacity-50">Review</button><button disabled={updatingId === item.id || item.status === "escalated"} onClick={() => void updateStatus(item.id, "escalated")} className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 disabled:opacity-50">Escalate</button><button disabled={updatingId === item.id || ["resolved", "closed"].includes(item.status)} onClick={() => void updateStatus(item.id, "resolved")} className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 disabled:opacity-50">Resolve</button><button disabled={updatingId === item.id} onClick={() => void deleteComplaint(item)} className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />{updatingId === item.id ? "Please wait" : "Delete"}</button></div>
           </div>
         </div>
       </article>)}</div>}
+      {!loading && visibleComplaints.length > 0 && <div className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs text-muted-foreground">Showing {((currentPage - 1) * COMPLAINTS_PER_PAGE) + 1}-{Math.min(currentPage * COMPLAINTS_PER_PAGE, visibleComplaints.length)} of {visibleComplaints.length} � Latest complaints first</p>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button type="button" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={currentPage === 1} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+          {Array.from({ length: totalPages }, (_, index) => index + 1).filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1).map((page, index, pages) => <span key={page} className="contents">
+            {index > 0 && page - pages[index - 1] > 1 && <span className="px-1 text-xs text-muted-foreground">&</span>}
+            <button type="button" onClick={() => setCurrentPage(page)} aria-current={currentPage === page ? "page" : undefined} className={`h-8 min-w-8 rounded-lg border px-2 text-xs font-semibold ${currentPage === page ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-muted"}`}>{page}</button>
+          </span>)}
+          <button type="button" onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} disabled={currentPage === totalPages} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+        </div>
+      </div>}
     </section>
   </div>;
 }

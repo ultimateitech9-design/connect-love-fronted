@@ -12,6 +12,25 @@ const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
 const VIDEO_MESSAGE_PREFIX = "__video_message__:";
 const CHAT_THEME_MESSAGE_PREFIX = "__chat_theme__:";
 const GIF_MESSAGE_PREFIX = "__gif_message__:";
+const MESSAGE_PAGE_SIZE = 50;
+const MESSAGE_CACHE_LIMIT = 50;
+
+const messageCacheKey = (userId: string, conversationId: string) => `connect-love-messages:${userId}:${conversationId}`;
+
+function readCachedMessages(userId: string, conversationId: string | null): Message[] {
+ if (typeof window === 'undefined' || !userId || !conversationId) return [];
+ try {
+  const cached = JSON.parse(window.localStorage.getItem(messageCacheKey(userId, conversationId)) || '[]');
+  return Array.isArray(cached) ? cached : [];
+ } catch { return []; }
+}
+
+function saveCachedMessages(userId: string, conversationId: string, messages: Message[]) {
+ try {
+  const cacheable = messages.filter((message) => message.content.length < 50_000).slice(-MESSAGE_CACHE_LIMIT);
+  window.localStorage.setItem(messageCacheKey(userId, conversationId), JSON.stringify(cacheable));
+ } catch { /* Storage quota or privacy mode: network loading remains available. */ }
+}
 
 function messagePreview(content: string) {
  if (content.startsWith(CHAT_THEME_MESSAGE_PREFIX)) return "Chat theme changed";
@@ -41,15 +60,24 @@ export interface Message {
  clientId?: string;
 }
 
+function userIdFromToken(token: string) {
+ try {
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  return String(payload.sub || payload.userId || '');
+ } catch { return ''; }
+}
+
 export function useChatWebSocket(token: string, conversationId: string | null, onPlanLimitReached?: (message: string, content: string) => boolean | void) {
  const [socket, setSocket] = useState<Socket | null>(null);
  const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
  const [recordingUsers, setRecordingUsers] = useState<Record<string, boolean>>({});
  const queryClient = useQueryClient();
  const activeConversationRef = useRef(conversationId);
- const currentUserIdRef = useRef('');
+ const currentUserIdRef = useRef(userIdFromToken(token));
  const typingTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
  const recordingTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+ const [hasOlderMessages, setHasOlderMessages] = useState(true);
+ const [isLoadingOlder, setIsLoadingOlder] = useState(false);
 
  useEffect(() => {
  activeConversationRef.current = conversationId;
@@ -210,19 +238,56 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  };
  }, [token, queryClient]);
 
- // Fetch initial messages for a conversation
- const { data: messages = [], isLoading } = useQuery({
+ // Show the last cached messages immediately, then refresh the latest batch silently.
+ const { data: messages = [], isLoading } = useQuery<Message[]>({
  queryKey: ['messages', conversationId],
  queryFn: async () => {
- if (!conversationId || !token) return [];
- const res = await apiFetch(`/messages/${conversationId}`, {
- headers: { Authorization: `Bearer ${token}` }
- });
- if (!res.ok) throw new Error('Failed to fetch messages');
- return res.json();
+  if (!conversationId || !token) return [];
+  const res = await apiFetch(`/messages/${conversationId}?limit=${MESSAGE_PAGE_SIZE}`, {
+   headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!res.ok) throw new Error('Failed to fetch messages');
+  const latest = await res.json() as Message[];
+  setHasOlderMessages(latest.length === MESSAGE_PAGE_SIZE);
+  return latest;
  },
  enabled: !!conversationId && !!token,
+ initialData: () => readCachedMessages(currentUserIdRef.current, conversationId),
+ initialDataUpdatedAt: 0,
+ staleTime: 15_000,
+ refetchOnMount: 'always',
+ refetchOnWindowFocus: false,
  });
+
+ useEffect(() => {
+  if (!conversationId || !currentUserIdRef.current || messages.length === 0) return;
+  saveCachedMessages(currentUserIdRef.current, conversationId, messages);
+ }, [conversationId, messages]);
+
+ useEffect(() => {
+  setHasOlderMessages(true);
+  setIsLoadingOlder(false);
+ }, [conversationId]);
+
+ const loadOlderMessages = useCallback(async () => {
+  if (!conversationId || !token || isLoadingOlder || !hasOlderMessages || messages.length === 0) return;
+  setIsLoadingOlder(true);
+  try {
+   const before = messages[0].createdAt;
+   const res = await apiFetch(`/messages/${conversationId}?limit=${MESSAGE_PAGE_SIZE}&before=${encodeURIComponent(before)}`, {
+    headers: { Authorization: `Bearer ${token}` }
+   });
+   if (!res.ok) throw new Error('Failed to fetch older messages');
+   const older = await res.json() as Message[];
+   setHasOlderMessages(older.length === MESSAGE_PAGE_SIZE);
+   queryClient.setQueryData<Message[]>(['messages', conversationId], (current = []) => {
+    const byId = new Map([...older, ...current].map((message) => [message.id, message]));
+    return Array.from(byId.values()).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+   });
+  } catch {
+   toast.error('Older messages could not be loaded.');
+  } finally { setIsLoadingOlder(false); }
+ }, [conversationId, hasOlderMessages, isLoadingOlder, messages, queryClient, token]);
 
  const sendMessage = useCallback((receiverId: string, content: string, replyToMessageId?: string | null) => {
  if (conversationId) {
@@ -478,6 +543,9 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  socket,
  messages,
  isLoading,
+ hasOlderMessages,
+ isLoadingOlder,
+ loadOlderMessages,
  sendMessage,
  editMessage,
  deleteMessage,

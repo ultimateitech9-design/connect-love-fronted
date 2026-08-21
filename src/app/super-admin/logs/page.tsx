@@ -28,6 +28,8 @@ const statusStyles: Record<LogEntry['status'], string> = {
   Event: 'bg-slate-100 text-slate-700',
 };
 
+const LOGS_PER_PAGE = 15;
+
 function formatDate(value?: string) {
   if (!value) return '-';
   return new Intl.DateTimeFormat('en-IN', {
@@ -63,6 +65,7 @@ export default function LogsPage() {
   const [allLogs, setAllLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [logsError, setLogsError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchLogs = async () => {
     setLogsError('');
@@ -102,6 +105,20 @@ export default function LogsPage() {
     return matchesSearch && matchesStatus;
   }), [allLogs, searchQuery, statusFilter]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / LOGS_PER_PAGE));
+  const paginatedLogs = useMemo(() => {
+    const start = (currentPage - 1) * LOGS_PER_PAGE;
+    return filteredLogs.slice(start, start + LOGS_PER_PAGE);
+  }, [currentPage, filteredLogs]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
   const sessionLogs = allLogs.filter((log) => log.loginAt);
   const activeCount = sessionLogs.filter((log) => log.status === 'Active').length;
   const completedCount = sessionLogs.filter((log) => log.status === 'Completed').length;
@@ -137,7 +154,7 @@ export default function LogsPage() {
             </button>
           ))}
         </div>
-        <span className="ml-auto text-xs text-muted-foreground">Showing {filteredLogs.length} of {allLogs.length} logs</span>
+        <span className="ml-auto text-xs text-muted-foreground">Showing {filteredLogs.length ? (currentPage - 1) * LOGS_PER_PAGE + 1 : 0}-{Math.min(currentPage * LOGS_PER_PAGE, filteredLogs.length)} of {filteredLogs.length} logs</span>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -155,7 +172,7 @@ export default function LogsPage() {
                 <tr key={index} className="border-t border-border">
                   {Array.from({ length: 7 }).map((__, cell) => <td key={cell} className="px-4 py-3"><div className="h-5 animate-pulse rounded bg-muted" /></td>)}
                 </tr>
-              )) : filteredLogs.map((log) => (
+              )) : paginatedLogs.map((log) => (
                 <tr key={log.id} className="border-t border-border transition-colors hover:bg-muted/30">
                   <td className="whitespace-nowrap px-4 py-3"><div className="font-medium text-foreground">{log.user}</div><div className="text-xs capitalize text-muted-foreground">{log.role}</div></td>
                   <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{formatDate(log.loginAt)}</td>
@@ -170,6 +187,21 @@ export default function LogsPage() {
             </tbody>
           </table>
         </div>
+        {!loading && filteredLogs.length > 0 && (
+          <div className="flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-muted-foreground">Latest logs first � {LOGS_PER_PAGE} per page</p>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button type="button" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={currentPage === 1} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+              {Array.from({ length: totalPages }, (_, index) => index + 1).filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1).map((page, index, pages) => (
+                <span key={page} className="contents">
+                  {index > 0 && page - pages[index - 1] > 1 && <span className="px-1 text-xs text-muted-foreground">&</span>}
+                  <button type="button" onClick={() => setCurrentPage(page)} aria-current={currentPage === page ? 'page' : undefined} className={`h-8 min-w-8 rounded-lg border px-2 text-xs font-semibold ${currentPage === page ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted'}`}>{page}</button>
+                </span>
+              ))}
+              <button type="button" onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} disabled={currentPage === totalPages} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

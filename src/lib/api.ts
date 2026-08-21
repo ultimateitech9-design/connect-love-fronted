@@ -133,6 +133,7 @@ export const api = {
  }>("/support/overview"),
  supportTickets: (status = "all") => managementFetch<any[]>(`/support/tickets?status=${encodeURIComponent(status)}`),
  updateTicketStatus: (id: number, status: string) => managementFetch(`/support/tickets/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+ deleteTicket: (id: number) => managementFetch<{ success: true; id: number }>(`/support/tickets/${id}`, { method: "DELETE" }),
  refundPayment: (id: string) => apiFetch(`/payments/${id}/refund`, { method: "PATCH" }),
  createPlan: (body: { displayName: string; price: number; features?: string[]; status?: string }) => apiFetch("/plans", { method: "POST", body: JSON.stringify(body) }),
  updatePlan: (id: string, body: { displayName: string; price: number; features?: string[]; status?: string }) => apiFetch(`/plans/${id}`, { method: "PATCH", body: JSON.stringify(body) }),

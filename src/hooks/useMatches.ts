@@ -3,6 +3,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { matchesApi, type MatchFilter } from '@/features/matches/api';
 
+const matchesCacheKey = (userId: string, filter: MatchFilter) => `connect-love-matches:${userId}:${filter}`;
+
+function readCachedMatches(userId: string, filter: MatchFilter) {
+ if (typeof window === 'undefined' || userId === 'anonymous') return [];
+ try {
+  const cached = JSON.parse(window.localStorage.getItem(matchesCacheKey(userId, filter)) || '[]');
+  return Array.isArray(cached) ? cached : [];
+ } catch { return []; }
+}
+
+function saveCachedMatches(userId: string, filter: MatchFilter, matches: any[]) {
+ if (typeof window === 'undefined' || userId === 'anonymous') return;
+ try { window.localStorage.setItem(matchesCacheKey(userId, filter), JSON.stringify(matches.slice(0, 250))); } catch {}
+}
+
 export function useMatches(token: string, filter: MatchFilter, options: { enabled?: boolean; limit?: number; all?: boolean } = {}) {
  const queryClient = useQueryClient();
  const isEnabled = options.enabled ?? true;
@@ -17,7 +32,11 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
 
  const fetchMatches = async () => {
  if (!token) return [];
- if (!fetchAll) return matchesApi.list(filter, limit);
+ if (!fetchAll) {
+  const result = await matchesApi.list(filter, limit);
+  saveCachedMatches(userKey, filter, result);
+  return result;
+ }
  const collected: any[] = [];
  const pageSize = 100;
  for (let offset = 0; ; offset += pageSize) {
@@ -25,6 +44,7 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
   collected.push(...batch);
   if (batch.length < pageSize) break;
  }
+ saveCachedMatches(userKey, filter, collected);
  return collected;
  };
 
@@ -34,10 +54,12 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  queryKey: ['matches', filter, 'access-v4', userKey, fetchAll ? 'all' : limit],
  queryFn: fetchMatches,
  enabled: !!token && isEnabled,
- staleTime: Infinity,
+ initialData: () => readCachedMatches(userKey, filter),
+ initialDataUpdatedAt: 0,
+ staleTime: 30_000,
  gcTime: 24 * 60 * 60_000,
  refetchOnWindowFocus: false,
- refetchOnMount: false,
+ refetchOnMount: 'always',
  refetchOnReconnect: false,
  });
 
