@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { API_ORIGIN } from "@/config/runtime";
 import { clearOnboardingRequired, requireOnboarding, setToken } from "@/lib/auth";
+import { markAppInstallPromptPending } from "@/lib/appInstallPrompt";
 
 type GoogleCredentialResponse = { credential?: string };
 
@@ -62,6 +63,7 @@ export function GoogleAuthButton({ mode }: { mode: "signin" | "signup" }) {
 
         setToken(body.access_token);
         if (body.isNewUser || !body.user?.onboardingCompleted) {
+          if (body.isNewUser) markAppInstallPromptPending();
           requireOnboarding();
           window.location.href = "/user/onboarding";
         } else {

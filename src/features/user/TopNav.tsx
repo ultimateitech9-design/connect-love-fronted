@@ -52,7 +52,7 @@ export function TopNav() {
 
  const notifRef = useRef<HTMLDivElement>(null);
 
- const { matches: activeMatches, loading: activeMatchesLoading } = useMatches(token, "active", { enabled: loadNavData });
+ const { matches: activeMatches, loading: activeMatchesLoading } = useMatches(token, "active", { enabled: loadNavData, all: true });
  const { matches: receivedMatches } = useMatches(token, "received", { enabled: loadNavData });
  const { data: navUser } = useCurrentUser(token, loadNavData);
 

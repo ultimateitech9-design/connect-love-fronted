@@ -13,6 +13,7 @@ import { z } from "zod";
 import { requireOnboarding, scheduleProfileReminder, setToken } from "@/lib/auth";
 import { getAccurateCurrentPosition } from "@/lib/geolocation";
 import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options";
+import { markAppInstallPromptPending } from "@/lib/appInstallPrompt";
 
 const API_BASE = API_ORIGIN;
 
@@ -104,6 +105,8 @@ export function SignupModal({ open, onClose, onSwitchToLogin }: SignupModalProps
  setError(body.message || "Registration failed. Please try again.");
  return;
  }
+
+ markAppInstallPromptPending();
 
  // Step 2: Auto-login to get token
  const loginRes = await fetch(`${API_BASE}/auth/login`, {

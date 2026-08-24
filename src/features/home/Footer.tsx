@@ -9,12 +9,23 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { footerLinkGroups } from "./marketingPages";
 
 const API_BASE = API_ORIGIN;
+function GooglePlayIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#00d77e" d="M3.4 2.2c-.25.35-.4.78-.4 1.28v17.04c0 .5.15.93.4 1.28L13.8 12 3.4 2.2Z" />
+      <path fill="#00a8f3" d="m4.2 1.7 11.45 6.55-1.85 3.75L3.4 2.2c.22-.3.5-.48.8-.5Z" />
+      <path fill="#ffce00" d="m15.65 8.25 4.62 2.64c.98.56.98 1.66 0 2.22l-4.62 2.64L13.8 12l1.85-3.75Z" />
+      <path fill="#ff4b55" d="M15.65 15.75 4.2 22.3c-.3-.02-.58-.2-.8-.5L13.8 12l1.85 3.75Z" />
+    </svg>
+  );
+}
 
 const socialLinks = [
   { label: "Instagram", href: "https://www.instagram.com/connectloveofficial/", icon: Instagram },
   { label: "Facebook", href: "https://www.facebook.com/connectloveofficial/", icon: Facebook },
   { label: "LinkedIn", href: "https://www.linkedin.com/company/connect-love-official/", icon: Linkedin },
   { label: "YouTube", href: "https://www.youtube.com/@ConnectLove-Official", icon: Youtube },
+  { label: "Get ConnectLove on Google Play", href: "https://play.google.com/store/apps/details?id=com.connectlove", icon: GooglePlayIcon },
 ];
 
 export function Footer() {

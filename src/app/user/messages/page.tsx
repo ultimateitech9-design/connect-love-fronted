@@ -1,11 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const MessagesClient = dynamic(() => import("./MessagesClient"), {
-  ssr: false,
-  loading: () => <MessagesShell />,
-});
+import MessagesClient from "./MessagesClient";
 
 function MessagesShell() {
   return (

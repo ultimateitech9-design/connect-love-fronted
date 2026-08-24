@@ -4,7 +4,7 @@ import { API_ORIGIN } from "@/config/runtime";
 
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Heart, Info, Loader2, Mail, MapPin, ShieldCheck, Sparkles, UserRoundPlus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Heart, Loader2, Mail, MapPin, ShieldCheck, Sparkles, UserRoundPlus } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,7 @@ import { z } from "zod";
 import { requireOnboarding, scheduleProfileReminder, setToken } from "@/lib/auth";
 import { getAccurateCurrentPosition } from "@/lib/geolocation";
 import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options";
+import { markAppInstallPromptPending } from "@/lib/appInstallPrompt";
 
 const API_BASE = API_ORIGIN;
 
@@ -213,6 +214,8 @@ export default function RegisterPage() {
         return;
       }
 
+      markAppInstallPromptPending();
+
       const loginRes = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -346,14 +349,6 @@ export default function RegisterPage() {
               <p className="mt-1 text-xs leading-5 text-slate-500">
                 {pendingSignup ? `Enter the 6-digit OTP sent from noreply@connectlove.in to ${pendingSignup.email}. It expires in 10 minutes.` : "A clean start for real matches. No clutter, no oversized modal."}
               </p>
-              {pendingSignup && (
-                <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                  <p>
-                    Can&apos;t find the email? Please check your <span className="font-black">Spam or Junk folder</span>—your OTP email may have landed there.
-                  </p>
-                </div>
-              )}
 
               {error && <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
