@@ -4,7 +4,7 @@ import { API_ORIGIN } from "@/config/runtime";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { Bell, Settings, LogOut, UserRound } from "lucide-react";
+import { Bell, Heart, MessageCircle, Pencil, Settings, LogOut, UserRound } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -24,12 +24,6 @@ const navItems = [
  { to: "/user/messages", label: "Messages" },
  { to: "/user/profile", label: "Profile" },
 ];
-
-const notifIcon = {
- match: "ðŸ’•",
- message: "ðŸ’¬",
- profile: "âœï¸",
-};
 
 const notifColor = {
  match: "bg-rose-50 border-rose-200",
@@ -72,7 +66,7 @@ export function TopNav() {
    ...receivedMatches.map((m: any) => ({
      id: `match-${m.id}`,
      type: "match" as const,
-     title: "New Match Request! ðŸ’•",
+     title: "New Match Request!",
      body: "Someone liked your profile. Check it out!",
      time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
      link: "/user/matches",
@@ -280,7 +274,7 @@ export function TopNav() {
  {notifOpen && (
           <div
             id="notifications-panel"
-            className="fixed left-4 right-4 top-20 rounded-2xl border shadow-2xl overflow-hidden z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-90"
+            className="fixed left-4 right-4 top-20 rounded-2xl border shadow-2xl overflow-hidden z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-[360px] sm:max-w-[calc(100vw-2rem)]"
             style={{
               borderColor: "rgba(236, 72, 153, 0.2)",
               boxShadow: "0 20px 60px rgba(236, 72, 153, 0.15), 0 4px 20px rgba(0,0,0,0.08)",
@@ -319,9 +313,9 @@ export function TopNav() {
  key={n.id}
  className="flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-rose-50/50 bg-rose-50/30"
  >
- <Link href={n.link} className="flex flex-1 items-start gap-3" onClick={() => setNotifOpen(false)}>
- <div className={cn("mt-0.5 flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full border text-base", notifColor[n.type as keyof typeof notifColor])}>
- {notifIcon[n.type as keyof typeof notifIcon]}
+ <Link href={n.link} className="flex w-full min-w-0 flex-1 items-start gap-3" onClick={() => setNotifOpen(false)}>
+ <div className={cn("mt-0.5 flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full border", notifColor[n.type as keyof typeof notifColor])}>
+ {n.type === "match" ? <Heart className="h-4 w-4 text-rose-600" /> : n.type === "message" ? <MessageCircle className="h-4 w-4 text-pink-600" /> : <Pencil className="h-4 w-4 text-purple-600" />}
  </div>
  <div className="min-w-[0px] flex-1">
  <div className="flex items-start justify-between gap-2">
