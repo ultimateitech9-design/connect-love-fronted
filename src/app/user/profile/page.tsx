@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
 import { cacheAvatarUrl } from "@/lib/avatarCache";
+import { calculateProfileCompletion, PROFILE_COMPLETION_FIELDS, type ProfileCompletionField } from "@/lib/profileCompletion";
 
 const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"] as const;
 const PERSONALITY_SUGGESTIONS = ["Adventurous", "Ambitious", "Calm", "Caring", "Confident", "Creative", "Funny", "Honest", "Introverted", "Kind", "Loyal", "Romantic", "Witty"];
@@ -47,12 +48,8 @@ function zodiacFromDate(value?: string) {
  return zodiac;
 }
 
-// Fields that count toward profile completion (in order of weight)
-const COMPLETION_FIELDS = [
- "name", "dob", "gender", "religion", "profession", "height", "city", "relationshipGoal", "bio", "interests", "personality", "photos",
-] as const;
-
-type ProfileField = typeof COMPLETION_FIELDS[number];
+const COMPLETION_FIELDS = PROFILE_COMPLETION_FIELDS;
+type ProfileField = ProfileCompletionField;
 
 interface UserProfile {
  id: number;
@@ -85,13 +82,6 @@ interface ProfileInsights {
  compatibilityAverage: number | null;
 }
 
-function calcCompletion(p: Partial<UserProfile>): number {
- const filled = COMPLETION_FIELDS.filter((f) => {
- const v = Reflect.get(p, f);
- return v && String(v).trim().length > 0;
- }).length;
- return Math.round((filled / COMPLETION_FIELDS.length) * 100);
-}
 
 export default function ProfilePage() {
  const [profile, setProfile] = useState<Partial<UserProfile>>({});
@@ -138,7 +128,7 @@ export default function ProfilePage() {
         };
         merged.zodiac = data.zodiac || zodiacFromDate(merged.dob)?.sign || "";
         setProfile(merged);
-        setSavedCompletion(calcCompletion(merged));
+        setSavedCompletion(calculateProfileCompletion(merged));
         cacheAvatarUrl(merged.photos?.[0]);
  }
  })
@@ -245,7 +235,7 @@ export default function ProfilePage() {
       setProfile(merged);
       cacheAvatarUrl(merged.photos?.[0]);
 
- setSavedCompletion(calcCompletion(merged));
+ setSavedCompletion(calculateProfileCompletion(merged));
  setSaveMsg({ ok: true, text: "Profile saved successfully!" });
  } catch {
  setSaveMsg({ ok: false, text: "Could not save. Please try again." });
@@ -300,7 +290,7 @@ export default function ProfilePage() {
   };
 
  // Live completion (updates as user types) vs saved completion (updates after Save)
- const liveCompletion = calcCompletion(profile);
+ const liveCompletion = calculateProfileCompletion(profile);
  const isEmpty = (key: ProfileField) => !Reflect.get(profile, key)?.toString().trim();
 
  if (loading) {

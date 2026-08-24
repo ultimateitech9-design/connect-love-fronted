@@ -12,20 +12,9 @@ import { getToken } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useMatches } from "@/hooks/useMatches";
 import { getCachedAvatarUrl } from "@/lib/avatarCache";
+import { calculateProfileCompletion } from "@/lib/profileCompletion";
 
 const API = API_ORIGIN;
-const COMPLETION_FIELDS = [
-  "name", "birthDate", "gender", "religion", "profession", "height", "city", "bio", "interests", "personalityWords", "hobbies",
-] as const;
-
-function calcCompletion(p: any): number {
-  const filled = COMPLETION_FIELDS.filter((f) => {
-    const v = p[f];
-    return v && String(v).trim().length > 0;
-  }).length;
-  return Math.round((filled / COMPLETION_FIELDS.length) * 100);
-}
-
 type DBMatch = { id: string; senderId: string; receiverId: string; status: string };
 
 export function RightRail() {
@@ -39,7 +28,7 @@ export function RightRail() {
 
   useEffect(() => {
     if (currentUser) {
-      setCompletion(calcCompletion(currentUser));
+      setCompletion(calculateProfileCompletion(currentUser));
       const latestPhoto = currentUser.photos?.[0] || currentUser.avatarUrl || getCachedAvatarUrl();
       if (latestPhoto) setAvatarUrl(latestPhoto);
     }
