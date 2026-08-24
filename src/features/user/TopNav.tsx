@@ -26,9 +26,9 @@ const navItems = [
 ];
 
 const notifIcon = {
- match: "💕",
- message: "💬",
- profile: "✏️",
+ match: "ðŸ’•",
+ message: "ðŸ’¬",
+ profile: "âœï¸",
 };
 
 const notifColor = {
@@ -72,7 +72,7 @@ export function TopNav() {
    ...receivedMatches.map((m: any) => ({
      id: `match-${m.id}`,
      type: "match" as const,
-     title: "New Match Request! 💕",
+     title: "New Match Request! ðŸ’•",
      body: "Someone liked your profile. Check it out!",
      time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
      link: "/user/matches",
@@ -238,7 +238,13 @@ export function TopNav() {
             )}
  >
  {i.label}
- {hasIndicator && <span className="h-2 w-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50 animate-pulse" />}
+ {isMessages && unreadMessagesCount > 0 ? (
+ <span className="grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+ {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+ </span>
+ ) : isMatches && newMatchesCount > 0 ? (
+ <span className="h-2 w-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50 animate-pulse" />
+ ) : null}
  {active && (
  <span className="absolute -bottom-[22px] left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-rose-500 to-pink-500" />
  )}
@@ -372,7 +378,13 @@ export function TopNav() {
  return (
  <Link key={item.to} href={item.to} className={cn("relative flex min-h-12 items-center justify-center rounded-xl px-1 text-xs font-semibold", active ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40" : "text-muted-foreground")}>
  {item.label}
- {((item.label === "Messages" && unreadMessagesCount > 0) || (item.label === "Matches" && newMatchesCount > 0)) && <span className="absolute right-[18%] top-2 h-2 w-2 rounded-full bg-rose-500" />}
+ {item.label === "Messages" && unreadMessagesCount > 0 ? (
+ <span className="absolute right-[14%] top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+ {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+ </span>
+ ) : item.label === "Matches" && newMatchesCount > 0 ? (
+ <span className="absolute right-[18%] top-2 h-2 w-2 rounded-full bg-rose-500" />
+ ) : null}
  </Link>
  );
  })}

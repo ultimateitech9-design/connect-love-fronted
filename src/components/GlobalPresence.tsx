@@ -5,8 +5,27 @@ import { useEffect } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { getToken } from "@/lib/auth";
+import { toast } from "sonner";
 
 const SOCKET_URL = SOCKET_ORIGIN;
+
+type IncomingMessage = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+};
+
+function messagePreview(content: string) {
+  if (content.startsWith("__voice_message__:")) return "Voice message";
+  if (content.startsWith("__photo_message__:")) return "Photo";
+  if (content.startsWith("__video_message__:")) return "Video";
+  if (content.startsWith("__gif_message__:")) return "GIF";
+  if (content.startsWith("__call_log__:")) return "Call";
+  if (content.startsWith("__chat_theme__:")) return "Chat theme changed";
+  return content;
+}
 
 export function GlobalPresence() {
   const queryClient = useQueryClient();
@@ -34,12 +53,37 @@ export function GlobalPresence() {
       queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
     });
 
-    socket.on("receiveMessage", () => {
-      queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
+    socket.on("receiveMessage", (message: IncomingMessage) => {
+      if (String(message.senderId) === userId) return;
+
+      let senderName = "New message";
+      queryClient.setQueriesData({ queryKey: ["matches", "active", "access-v4", userId] }, (oldMatches: any) => {
+        if (!Array.isArray(oldMatches)) return oldMatches;
+        const updated = oldMatches.map((match: any) => {
+          if (String(match.id) !== String(message.conversationId)) return match;
+          const sender = String(match.senderId) === userId ? match.receiver : match.sender;
+          senderName = sender?.name ? `Message from ${sender.name}` : senderName;
+          return {
+            ...match,
+            lastMessage: messagePreview(message.content),
+            lastMessageTime: message.createdAt,
+            unreadCount: Number(match.unreadCount || 0) + 1,
+          };
+        });
+        return updated.sort((a: any, b: any) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
+      });
+
+      toast(senderName, {
+        description: messagePreview(message.content),
+        action: {
+          label: "View",
+          onClick: () => { window.location.href = `/user/messages?id=${message.conversationId}`; },
+        },
+      });
     });
 
     socket.on("USER_STATUS_CHANGED", (payload: { userId: string; isOnline: boolean; lastSeen?: string }) => {
-      queryClient.setQueryData(["matches", "active"], (oldMatches: any) => {
+      queryClient.setQueriesData({ queryKey: ["matches", "active", "access-v4", userId] }, (oldMatches: any) => {
         if (!oldMatches) return oldMatches;
         return oldMatches.map((match: any) => {
           if (match.sender?.id === payload.userId) {

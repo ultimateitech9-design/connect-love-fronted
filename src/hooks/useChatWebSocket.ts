@@ -129,7 +129,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  });
 
  // Update matches cache to bump it to the top
- queryClient.setQueryData(['matches', 'active', 'access-v4', userId, 'all'], (oldMatches: any) => {
+ queryClient.setQueriesData({ queryKey: ['matches', 'active', 'access-v4', userId] }, (oldMatches: any) => {
  if (!oldMatches) return oldMatches;
  const updated = oldMatches.map((match: any) => {
  if (match.id === message.conversationId) {
@@ -139,7 +139,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  lastMessageTime: message.createdAt,
  // Only increment unread if we are not the sender and not actively viewing this conversation
  unreadCount: (String(message.senderId) === userId || activeConversationRef.current === message.conversationId) 
- ? match.unreadCount 
+ ? (activeConversationRef.current === message.conversationId ? 0 : match.unreadCount)
  : (match.unreadCount || 0) + 1
  };
  }
@@ -502,10 +502,16 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  }, [conversationId, socket]);
 
  const markMessagesRead = useCallback(() => {
+   if (conversationId) {
+     queryClient.setQueriesData({ queryKey: ['matches', 'active', 'access-v4', currentUserIdRef.current] }, (oldMatches: any) => {
+       if (!Array.isArray(oldMatches)) return oldMatches;
+       return oldMatches.map((match: any) => String(match.id) === String(conversationId) ? { ...match, unreadCount: 0 } : match);
+     });
+   }
    if (socket && conversationId) {
      socket.emit('markMessagesRead', { conversationId });
    }
- }, [conversationId, socket]);
+ }, [conversationId, queryClient, socket]);
 
  const toggleReaction = useCallback((messageId: string, receiverId: string, emoji: string) => {
    if (!conversationId) return;
