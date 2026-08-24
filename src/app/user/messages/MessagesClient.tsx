@@ -1015,13 +1015,6 @@ function callLogPayload(content: string): CallLogPayload | null {
   }
 }
 
-function formatCallClock(value: string | null | undefined) {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
 function formatCallDuration(startedAt: string | null, endedAt: string | null) {
   if (!startedAt || !endedAt) return null;
   const totalSeconds = Math.max(0, Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000));
@@ -1038,59 +1031,38 @@ function CallLogContent({ content, isMe }: { content: string; isMe: boolean }) {
   const call = callLogPayload(content);
   if (!call) return <span>Call</span>;
 
-  const placedTime = formatCallClock(call.placedAt);
-  const startedTime = formatCallClock(call.startedAt);
-  const endedTime = formatCallClock(call.endedAt);
-  const duration = formatCallDuration(call.startedAt, call.endedAt);
   const direction = isMe ? "Outgoing" : "Incoming";
-  const type = call.callType === "video" ? "video" : "audio";
-  const status =
-    call.status === "ringing" ? (isMe ? "Calling..." : "Incoming call") :
-    call.status === "active" ? "Call in progress" :
-    call.status === "rejected" ? "Declined" :
+  const duration = formatCallDuration(call.startedAt, call.endedAt);
+  const title = call.callType === "video" ? "Video call" : "Voice call";
+  const subtitle =
+    call.status === "ringing" ? direction + " call" :
+    call.status === "active" ? "Ongoing call" :
+    call.status === "rejected" ? direction + " call declined" :
     call.status === "missed" ? "Missed call" :
-    "Call ended";
+    duration ? direction + " • " + duration :
+    direction + " call ended";
   const Icon = call.callType === "video" ? Video : Phone;
 
   return (
-    <div className="min-w-[220px] py-0.5">
-      <div className="flex items-center gap-3">
-        <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-full", isMe ? "bg-white/20" : "bg-rose-100 text-rose-600")}>
-          <Icon className="h-5 w-5" />
-        </span>
-        <div className="min-w-0">
-          <p className="font-bold">{direction} {type} call</p>
-          <p className={cn("mt-0.5 text-xs", isMe ? "text-white/80" : "text-[var(--chat-text-muted)]")}>{status}</p>
-        </div>
-      </div>
-      <div className={cn("mt-2 space-y-1 border-t pt-2 text-[11px]", isMe ? "border-white/20 text-white/85" : "border-slate-200 text-[var(--chat-text-muted)]")}>
-        <div className="flex items-center justify-between gap-4">
-          <span>Call placed</span>
-          <span className="font-semibold">{placedTime || "--"}</span>
-        </div>
-        {startedTime && (
-          <div className="flex items-center justify-between gap-4">
-            <span>Answered</span>
-            <span className="font-semibold">{startedTime}</span>
-          </div>
-        )}
-        {endedTime && (
-          <div className="flex items-center justify-between gap-4">
-            <span>{call.status === "rejected" ? "Declined" : "Ended"}</span>
-            <span className="font-semibold">{endedTime}</span>
-          </div>
-        )}
-        {duration && (
-          <div className="flex items-center justify-between gap-4">
-            <span>Duration</span>
-            <span className="font-semibold">{duration}</span>
-          </div>
-        )}
+    <div className="flex min-w-[180px] items-center gap-3 py-0.5 pr-2">
+      <span className={cn(
+        "grid h-10 w-10 shrink-0 place-items-center rounded-full",
+        isMe ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700",
+      )}>
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="font-bold leading-5">{title}</p>
+        <p className={cn(
+          "truncate text-xs leading-5",
+          isMe ? "text-white/80" : call.status === "missed" ? "text-rose-500" : "text-[var(--chat-text-muted)]",
+        )}>
+          {subtitle}
+        </p>
       </div>
     </div>
   );
 }
-
 function messagePreview(content?: string) {
   if (isChatThemeMessage(content)) return "Chat theme changed";
   if (isVoiceMessage(content)) return "Voice message";
@@ -1946,6 +1918,7 @@ export default function Messages() {
  const mediaInputRef = useRef<HTMLInputElement>(null);
  const localVideoRef = useRef<HTMLVideoElement>(null);
  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+ const remoteAudioRef = useRef<HTMLAudioElement>(null);
  const localStreamRef = useRef<MediaStream | null>(null);
  const remoteStreamRef = useRef<MediaStream | null>(null);
  const voiceRecorderRef = useRef<MediaRecorder | null>(null);
@@ -2358,6 +2331,9 @@ export default function Messages() {
    .sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
 
  const active = displayMatches.find((m) => m.id === activeId);
+ const incomingCaller = incomingCall
+   ? displayMatches.find((match) => String(match.userId) === String(incomingCall.callerId))
+   : null;
  const activeFirstImpression = firstImpressions.find((item) => item.id === activeFirstImpressionId) || null;
 
  const handleFirstImpressionReply = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -2705,8 +2681,14 @@ export default function Messages() {
    }
    if (remoteVideoRef.current && remoteStreamRef.current) {
      remoteVideoRef.current.srcObject = remoteStreamRef.current;
-     remoteVideoRef.current.muted = !isSpeakerOn;
-     remoteVideoRef.current.volume = isSpeakerOn ? 1 : 0;
+     remoteVideoRef.current.muted = true;
+     void remoteVideoRef.current.play().catch(() => undefined);
+   }
+   if (remoteAudioRef.current && remoteStreamRef.current) {
+     remoteAudioRef.current.srcObject = remoteStreamRef.current;
+     remoteAudioRef.current.muted = !isSpeakerOn;
+     remoteAudioRef.current.volume = isSpeakerOn ? 1 : 0;
+     if (isSpeakerOn) void remoteAudioRef.current.play().catch(() => undefined);
    }
  }, [isSpeakerOn]);
 
@@ -2767,9 +2749,10 @@ export default function Messages() {
 
  const toggleSpeaker = useCallback(() => {
    const next = !isSpeakerOn;
-   if (remoteVideoRef.current) {
-     remoteVideoRef.current.muted = !next;
-     remoteVideoRef.current.volume = next ? 1 : 0;
+   if (remoteAudioRef.current) {
+     remoteAudioRef.current.muted = !next;
+     remoteAudioRef.current.volume = next ? 1 : 0;
+     if (next) void remoteAudioRef.current.play().catch(() => undefined);
    }
    setIsSpeakerOn(next);
  }, [isSpeakerOn]);
@@ -2793,19 +2776,25 @@ export default function Messages() {
      }
      remoteStreamRef.current = stream;
      const remoteVideo = remoteVideoRef.current;
+     const remoteAudio = remoteAudioRef.current;
      if (remoteVideo) {
        remoteVideo.srcObject = stream;
-       remoteVideo.muted = !isSpeakerOn;
-       remoteVideo.volume = isSpeakerOn ? 1 : 0;
-       // Some browsers create the video element before the first remote track.
-       // Re-assigning the stream on the next frame reliably starts rendering it.
-       window.requestAnimationFrame(() => {
-         if (remoteVideoRef.current && remoteStreamRef.current) {
-           remoteVideoRef.current.srcObject = remoteStreamRef.current;
-           void remoteVideoRef.current.play().catch(() => undefined);
-         }
-       });
+       // Keep the visual element muted so browser autoplay policy can never
+       // block remote video frames because the stream also contains audio.
+       remoteVideo.muted = true;
+       void remoteVideo.play().catch(() => undefined);
      }
+     if (remoteAudio) {
+       remoteAudio.srcObject = stream;
+       remoteAudio.muted = !isSpeakerOn;
+       remoteAudio.volume = isSpeakerOn ? 1 : 0;
+       if (isSpeakerOn) void remoteAudio.play().catch(() => undefined);
+     }
+     // The call overlay and remote track can mount in either order. Re-attach
+     // on the next frame so both elements receive the already-arrived stream.
+     window.requestAnimationFrame(() => {
+       attachVideoStreams();
+     });
    };
 
    peer.onicecandidate = (event) => {
@@ -4512,11 +4501,16 @@ export default function Messages() {
  {incomingCall && !activeCall && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
  <div className="w-full max-w-sm rounded-2xl bg-card p-6 text-center shadow-2xl">
- <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-rose-100 text-rose-600">
- {incomingCall.callType === "audio" ? <Phone className="h-7 w-7" /> : <Video className="h-7 w-7" />}
- </div>
- <h3 className="text-lg font-semibold text-foreground">Incoming {incomingCall.callType === "audio" ? "audio" : "video"} call</h3>
- <p className="mt-1 text-sm text-muted-foreground">A matched user wants to start a {incomingCall.callType === "audio" ? "audio" : "video"} call.</p>
+ <Avatar className="mx-auto mb-3 h-16 w-16 border-2 border-rose-100 shadow-md">
+ <AvatarImage src={incomingCaller?.photo} alt={incomingCaller?.name || "Caller"} />
+ <AvatarFallback className="bg-rose-100 text-xl font-bold text-rose-600">
+ {incomingCaller?.name?.[0]?.toUpperCase() || (incomingCall.callType === "audio" ? <Phone className="h-7 w-7" /> : <Video className="h-7 w-7" />)}
+ </AvatarFallback>
+ </Avatar>
+ <h3 className="text-xl font-bold text-foreground">{incomingCaller?.name || "ConnectLove user"}</h3>
+ <p className="mt-1 text-sm font-medium text-muted-foreground">
+ Incoming {incomingCall.callType === "audio" ? "voice" : "video"} call
+ </p>
  <div className="mt-6 flex justify-center gap-3">
  <Button variant="outline" className="rounded-full" onClick={() => endVideoCall("rejected")}>
  <PhoneOff className="mr-2 h-4 w-4" />
@@ -4536,8 +4530,15 @@ export default function Messages() {
  ref={remoteVideoRef}
  autoPlay
  playsInline
+ muted
  onLoadedMetadata={(event) => { void event.currentTarget.play().catch(() => undefined); }}
  className={activeCall.callType === "video" ? "absolute inset-0 block !h-full !w-full object-cover object-center" : "hidden"}
+ />
+ <audio
+ ref={remoteAudioRef}
+ autoPlay
+ playsInline
+ className="hidden"
  />
  {activeCall.callType === "audio" && (
  <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-[radial-gradient(circle_at_center,_#334155_0%,_#0f172a_55%,_#020617_100%)] px-5">
