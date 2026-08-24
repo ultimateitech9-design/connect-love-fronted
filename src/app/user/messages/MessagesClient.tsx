@@ -32,6 +32,7 @@ const VIDEO_MESSAGE_PREFIX = "__video_message__:";
 const GIFT_MESSAGE_PREFIX = "__gift_message__:";
 const CHAT_THEME_MESSAGE_PREFIX = "__chat_theme__:";
 const GIF_MESSAGE_PREFIX = "__gif_message__:";
+const CALL_LOG_PREFIX = "__call_log__:";
 const MAX_VOICE_SECONDS = 60;
 const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 const CHAT_THEME_STORAGE_KEY = "connect-love-chat-theme";
@@ -991,6 +992,105 @@ function gifMessageSrc(content: string) {
   return content.slice(GIF_MESSAGE_PREFIX.length);
 }
 
+type CallLogPayload = {
+  callId: string;
+  callType: "audio" | "video";
+  status: "ringing" | "active" | "ended" | "rejected" | "missed";
+  callerId: string;
+  receiverId: string;
+  placedAt: string;
+  startedAt: string | null;
+  endedAt: string | null;
+};
+
+function isCallLogMessage(content?: string) {
+  return !!content?.startsWith(CALL_LOG_PREFIX);
+}
+
+function callLogPayload(content: string): CallLogPayload | null {
+  try {
+    return JSON.parse(content.slice(CALL_LOG_PREFIX.length)) as CallLogPayload;
+  } catch {
+    return null;
+  }
+}
+
+function formatCallClock(value: string | null | undefined) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatCallDuration(startedAt: string | null, endedAt: string | null) {
+  if (!startedAt || !endedAt) return null;
+  const totalSeconds = Math.max(0, Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000));
+  if (!Number.isFinite(totalSeconds)) return null;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours) return hours + "h " + minutes + "m " + seconds + "s";
+  if (minutes) return minutes + "m " + seconds + "s";
+  return seconds + "s";
+}
+
+function CallLogContent({ content, isMe }: { content: string; isMe: boolean }) {
+  const call = callLogPayload(content);
+  if (!call) return <span>Call</span>;
+
+  const placedTime = formatCallClock(call.placedAt);
+  const startedTime = formatCallClock(call.startedAt);
+  const endedTime = formatCallClock(call.endedAt);
+  const duration = formatCallDuration(call.startedAt, call.endedAt);
+  const direction = isMe ? "Outgoing" : "Incoming";
+  const type = call.callType === "video" ? "video" : "audio";
+  const status =
+    call.status === "ringing" ? (isMe ? "Calling..." : "Incoming call") :
+    call.status === "active" ? "Call in progress" :
+    call.status === "rejected" ? "Declined" :
+    call.status === "missed" ? "Missed call" :
+    "Call ended";
+  const Icon = call.callType === "video" ? Video : Phone;
+
+  return (
+    <div className="min-w-[220px] py-0.5">
+      <div className="flex items-center gap-3">
+        <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-full", isMe ? "bg-white/20" : "bg-rose-100 text-rose-600")}>
+          <Icon className="h-5 w-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="font-bold">{direction} {type} call</p>
+          <p className={cn("mt-0.5 text-xs", isMe ? "text-white/80" : "text-[var(--chat-text-muted)]")}>{status}</p>
+        </div>
+      </div>
+      <div className={cn("mt-2 space-y-1 border-t pt-2 text-[11px]", isMe ? "border-white/20 text-white/85" : "border-slate-200 text-[var(--chat-text-muted)]")}>
+        <div className="flex items-center justify-between gap-4">
+          <span>Call placed</span>
+          <span className="font-semibold">{placedTime || "--"}</span>
+        </div>
+        {startedTime && (
+          <div className="flex items-center justify-between gap-4">
+            <span>Answered</span>
+            <span className="font-semibold">{startedTime}</span>
+          </div>
+        )}
+        {endedTime && (
+          <div className="flex items-center justify-between gap-4">
+            <span>{call.status === "rejected" ? "Declined" : "Ended"}</span>
+            <span className="font-semibold">{endedTime}</span>
+          </div>
+        )}
+        {duration && (
+          <div className="flex items-center justify-between gap-4">
+            <span>Duration</span>
+            <span className="font-semibold">{duration}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function messagePreview(content?: string) {
   if (isChatThemeMessage(content)) return "Chat theme changed";
   if (isVoiceMessage(content)) return "Voice message";
@@ -998,6 +1098,10 @@ function messagePreview(content?: string) {
   if (isVideoMessage(content)) return "Video";
   if (isGiftMessage(content)) return "Premium gift";
   if (isGifMessage(content)) return "GIF";
+  if (isCallLogMessage(content)) {
+    const call = callLogPayload(content || "");
+    return call?.callType === "audio" ? "Audio call" : "Video call";
+  }
   return content || "No messages yet.";
 }
 
@@ -1427,6 +1531,10 @@ function FloatingReactionParticles({ emoji }: { emoji: string }) {
 }
 
 function MessageContent({ content, isMe, onOpenPhoto }: { content: string; isMe: boolean; onOpenPhoto: (src: string) => void }) {
+ if (isCallLogMessage(content)) {
+   return <CallLogContent content={content} isMe={isMe} />;
+ }
+
  if (isSingleEmojiMessage(content)) {
    const emoji = content.trim();
    return <CinematicEmoji emoji={emoji} />;

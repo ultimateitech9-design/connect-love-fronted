@@ -12,6 +12,7 @@ const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
 const VIDEO_MESSAGE_PREFIX = "__video_message__:";
 const CHAT_THEME_MESSAGE_PREFIX = "__chat_theme__:";
 const GIF_MESSAGE_PREFIX = "__gif_message__:";
+const CALL_LOG_PREFIX = "__call_log__:";
 const MESSAGE_PAGE_SIZE = 50;
 const MESSAGE_CACHE_LIMIT = 50;
 
@@ -38,6 +39,12 @@ function messagePreview(content: string) {
  if (content.startsWith(PHOTO_MESSAGE_PREFIX)) return "Photo";
  if (content.startsWith(VIDEO_MESSAGE_PREFIX)) return "Video";
  if (content.startsWith(GIF_MESSAGE_PREFIX)) return "GIF";
+ if (content.startsWith(CALL_LOG_PREFIX)) {
+  try {
+   const call = JSON.parse(content.slice(CALL_LOG_PREFIX.length));
+   return call.callType === "audio" ? "Audio call" : "Video call";
+  } catch { return "Call"; }
+ }
  return content;
 }
 
