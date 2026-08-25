@@ -91,6 +91,7 @@ const roleValueMap: Record<CreatableRole, "user" | "admin" | "sales" | "support"
 };
 
 export default function UsersPage() {
+ const [premiumOnly, setPremiumOnly] = useState<boolean | null>(null);
  const [perPage, setPerPage] = useState(10);
  const [page, setPage] = useState(1);
  const [status, setStatus] = useState<StatusFilter>("All");
@@ -186,10 +187,11 @@ export default function UsersPage() {
   };
 
  const fetchUsers = async () => {
+ if (premiumOnly === null) return;
  setLoading(true);
  setError("");
  try {
- const res = await api.users();
+ const res = await api.users("", 1, 100, premiumOnly ? "premium" : undefined);
  setRows(res.users.map((u, i) => buildRow(u, i)));
  } catch {
  setError("Failed to load users from backend. Is the backend server running?");
@@ -198,7 +200,10 @@ export default function UsersPage() {
  }
  };
 
- useEffect(() => { fetchUsers(); }, []);
+ useEffect(() => {
+   setPremiumOnly(new URLSearchParams(window.location.search).get("filter") === "premium");
+ }, []);
+ useEffect(() => { fetchUsers(); }, [premiumOnly]);
 
  const filteredRows = useMemo(() => {
  return rows.filter((row) => {
@@ -223,9 +228,9 @@ export default function UsersPage() {
  <div className="w-full relative pb-20">
  <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
  <div>
- <h1 className="text-3xl font-bold tracking-tight text-foreground">User Management</h1>
+ <h1 className="text-3xl font-bold tracking-tight text-foreground">{premiumOnly ? "Premium Users" : "User Management"}</h1>
  <p className="text-sm text-muted-foreground mt-2">
- Create regular user accounts and manage system access IDs.
+ {premiumOnly ? "Users whose Gold or Diamond plan is currently active." : "Create regular user accounts and manage system access IDs."}
  </p>
  </div>
  <button onClick={() => setShowModal(true)} className="inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-semibold text-white shadow-lg transition-opacity hover:opacity-90" style={{ background: "var(--gradient-brand)" }}>

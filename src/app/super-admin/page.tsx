@@ -50,8 +50,10 @@ export default function HomePage() {
    switch (label) {
      case "Total Users":
      case "Active Users":
-     case "Premium Users":
        router.push("/super-admin/users");
+       break;
+     case "Premium Users":
+       router.push("/super-admin/users?filter=premium");
        break;
      case "Total Revenue":
        router.push("/super-admin/payments");

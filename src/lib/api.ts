@@ -84,9 +84,10 @@ export type CampaignInput = {
 
 export const api = {
  dashboard: () => apiFetch<{ stats: { label: string; value: string; delta: string }[]; growth?: { m: string; users: number; matches: number }[] }>("/dashboard"),
- users: (search = "", page = 1, limit = 100) => {
+ users: (search = "", page = 1, limit = 100, filter?: "premium") => {
    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
    if (search.trim()) params.set("search", search.trim());
+   if (filter) params.set("filter", filter);
    return apiFetch<{ total: number; page: number; limit: number; hasMore: boolean; users: { id: string; name: string; email: string; mobile?: string; phone?: string; role: string; plan: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string }[] }>(`/users?${params.toString()}`);
  },
  verification: () => apiFetch<{ queue: { id: string; name: string; email?: string; idType: string; priority: string; status: string; date?: string; documents?: string[]; photo?: string | null; birthDate?: string | null; matchScore?: number }[] }>("/verification"),
