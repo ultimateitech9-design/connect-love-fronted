@@ -1345,6 +1345,10 @@ function formatRecordingTime(seconds: number) {
  return `${mins}:${secs}`;
 }
 
+function maskPhoneNumbers(content: string): string {
+ return content.replace(/(?:\+?\d[\s().-]*){6,}\d/g, "###");
+}
+
 function isEmojiOnlyMessage(content: string) {
  const value = content.trim();
  if (!value || !/[\p{Extended_Pictographic}\p{Emoji_Presentation}\p{Regional_Indicator}]/u.test(value)) return false;
@@ -4313,7 +4317,7 @@ export default function Messages() {
  )}
  <Input
  value={draft}
- onChange={(e) => setDraft(e.target.value)}
+ onChange={(e) => setDraft(maskPhoneNumbers(e.target.value))}
  placeholder={isRecordingVoice ? `Recording voice ${formatRecordingTime(recordingSeconds)}` : editingMessage ? "Edit message..." : replyToMessage ? "Type a reply..." : "Type a message..."}
  disabled={isRecordingVoice || !!selectedMedia}
  className="h-[40px] rounded-full px-4 border-none bg-[var(--chat-input)] text-[var(--chat-text)] placeholder:text-[var(--chat-text-muted)]/60"

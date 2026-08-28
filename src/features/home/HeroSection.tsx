@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Play, Star, X, Heart } from "lucide-react";
+import { Download, Play, Star, X, Heart } from "lucide-react";
 import { LanguageSelector } from "@/features/i18n/LanguageSelector";
 
 interface HeroSectionProps {
@@ -141,6 +141,17 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
                 </span>
                 Watch our Story
               </button>
+              <a
+                id="hero-download-app-btn"
+                href="https://play.google.com/store/apps/details?id=com.connectlove&pli=1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group box-border flex min-h-14 w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-emerald-300/60 bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-emerald-950/30 transition-all duration-300 hover:scale-105 hover:from-emerald-400 hover:to-teal-500 hover:shadow-emerald-500/30 active:scale-95 sm:w-[210px]"
+                aria-label="Download ConnectLove from Google Play"
+              >
+                <Download className="h-5 w-5 transition-transform duration-300 group-hover:translate-y-0.5" />
+                Download App
+              </a>
               <LanguageSelector variant="hero" />
             </div>
           </div>
