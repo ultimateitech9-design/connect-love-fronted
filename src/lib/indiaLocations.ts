@@ -1,3 +1,5 @@
+import importedCityEntries from "@/data/india-cities.json";
+
 export type DatingLocationKind = "city" | "state";
 
 export type DatingLocation = {
@@ -127,13 +129,38 @@ export const INDIA_STATES: DatingLocation[] = stateNames.map((name) => ({
   slug: locationSlug(name),
 }));
 
-export const INDIA_CITIES: DatingLocation[] = cityEntries.map(([name, stateName]) => ({
-  kind: "city",
-  name,
-  slug: locationSlug(name),
-  stateName,
-  stateSlug: locationSlug(stateName),
-}));
+const uniqueCityEntries = [
+  ...new Map(
+    [...cityEntries, ...importedCityEntries.map(({ city, state }) => [city, state] as const)].map(([name, stateName]) => [
+      `${name.toLocaleLowerCase("en-IN")}\u001f${stateName.toLocaleLowerCase("en-IN")}`,
+      [name, stateName] as const,
+    ]),
+  ).values(),
+];
+
+const citySlugCounts = new Map<string, number>();
+for (const [name] of uniqueCityEntries) {
+  const slug = locationSlug(name);
+  citySlugCounts.set(slug, (citySlugCounts.get(slug) ?? 0) + 1);
+}
+
+export const INDIA_CITIES: DatingLocation[] = uniqueCityEntries.map(
+  ([name, stateName]) => {
+    const citySlug = locationSlug(name);
+    const stateSlug = locationSlug(stateName);
+
+    return {
+      kind: "city",
+      name,
+      slug:
+        (citySlugCounts.get(citySlug) ?? 0) > 1
+          ? `${citySlug}-${stateSlug}`
+          : citySlug,
+      stateName,
+      stateSlug,
+    };
+  },
+);
 
 export const INDIA_DATING_LOCATIONS = [...INDIA_STATES, ...INDIA_CITIES];
 

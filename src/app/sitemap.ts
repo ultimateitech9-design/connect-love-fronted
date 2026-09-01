@@ -1,18 +1,7 @@
 import type { MetadataRoute } from "next";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import {
-  datingLocationPath,
-  INDIA_DATING_LOCATIONS,
-} from "@/lib/indiaLocations";
 import { SITE_URL } from "@/lib/seo";
-import {
-  isWorldCityIndexable,
-  WORLD_CITIES,
-  WORLD_COUNTRIES,
-  worldCityPath,
-  worldCountryPath,
-} from "@/lib/worldCities";
 
 export const dynamic = "force-static";
 
@@ -32,13 +21,19 @@ const excludedRootSegments = new Set([
 
 function discoverPublicRoutes(directory: string, segments: string[] = []): string[] {
   const entries = readdirSync(directory, { withFileTypes: true });
-  const hasPage = entries.some((entry) => entry.isFile() && /^page\.(tsx?|jsx?)$/.test(entry.name));
+  const hasPage = entries.some(
+    (entry) => entry.isFile() && /^page\.(tsx?|jsx?)$/.test(entry.name),
+  );
   const routes = hasPage ? [segments.length ? `/${segments.join("/")}` : "/"] : [];
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     if (!segments.length && excludedRootSegments.has(entry.name)) continue;
-    if (entry.name.startsWith("_") || entry.name.startsWith("@") || entry.name.includes("[")) continue;
+    if (
+      entry.name.startsWith("_") ||
+      entry.name.startsWith("@") ||
+      entry.name.includes("[")
+    ) continue;
 
     const isRouteGroup = entry.name.startsWith("(") && entry.name.endsWith(")");
     const nextSegments = isRouteGroup ? segments : [...segments, entry.name];
@@ -50,18 +45,12 @@ function discoverPublicRoutes(directory: string, segments: string[] = []): strin
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const appDirectory = join(process.cwd(), "src", "app");
-  const publicRoutes = [...new Set(discoverPublicRoutes(appDirectory))].sort();
-  const locationRoutes = [
-    "/dating/city",
-    "/dating/state",
-    ...INDIA_DATING_LOCATIONS.map(datingLocationPath),
-  ];
-  const globalRoutes = [
-    ...WORLD_COUNTRIES.map(worldCountryPath),
-    ...WORLD_CITIES.filter(isWorldCityIndexable).map(worldCityPath),
-  ];
   const routes = [
-    ...new Set([...publicRoutes, ...locationRoutes, ...globalRoutes]),
+    ...new Set([
+      ...discoverPublicRoutes(appDirectory),
+      "/dating/city",
+      "/dating/state",
+    ]),
   ].sort();
 
   return routes.map((route) => ({
