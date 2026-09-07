@@ -22,6 +22,32 @@ declare global {
 
 export const LANGUAGE_STORAGE_KEY = "connect-love-language";
 
+function translationCookieDomains(): string[] {
+  const hostname = window.location.hostname;
+  if (!hostname || hostname === "localhost" || hostname === "127.0.0.1") return [];
+  const labels = hostname.split(".").filter(Boolean);
+  const rootDomain = labels.length > 1 ? `.${labels.slice(-2).join(".")}` : hostname;
+  return [...new Set([hostname, rootDomain])];
+}
+
+function clearTranslationCookies() {
+  const expired = "Thu, 01 Jan 1970 00:00:00 GMT";
+  document.cookie = `googtrans=;expires=${expired};path=/;SameSite=Lax`;
+  translationCookieDomains().forEach((domain) => {
+    document.cookie = `googtrans=;expires=${expired};path=/;domain=${domain};SameSite=Lax`;
+  });
+}
+
+function writeTranslationCookies(translationCode: string) {
+  clearTranslationCookies();
+  if (translationCode === "en") return;
+  const value = `/en/${translationCode}`;
+  document.cookie = `googtrans=${value};path=/;SameSite=Lax`;
+  translationCookieDomains().forEach((domain) => {
+    document.cookie = `googtrans=${value};path=/;domain=${domain};SameSite=Lax`;
+  });
+}
+
 function applyTranslator(code: string) {
   const language = findLanguage(code);
   document.documentElement.lang = language.code;
@@ -50,11 +76,13 @@ function hideTranslationChrome() {
 export function setPreferredLanguage(code: string) {
   const language = findLanguage(code);
   localStorage.setItem(LANGUAGE_STORAGE_KEY, language.code);
-  const cookieValue = language.translationCode === "en" ? "/en/en" : `/en/${language.translationCode}`;
-  document.cookie = `googtrans=${cookieValue};path=/;SameSite=Lax`;
+  writeTranslationCookies(language.translationCode);
   document.documentElement.lang = language.code;
   document.documentElement.dir = language.direction || "ltr";
-  window.location.reload();
+  // A full navigation restores the original English DOM before Google applies
+  // the newly selected language. This also makes language-to-language changes
+  // reliable after the page has already been translated once.
+  window.location.assign(window.location.href);
 }
 
 export function TranslationProvider({ children }: { children: React.ReactNode }) {
@@ -62,7 +90,12 @@ export function TranslationProvider({ children }: { children: React.ReactNode })
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
-    const language = findLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
+    const storedCode = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    const language = findLanguage(storedCode);
+    if (storedCode && storedCode !== language.code) {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, language.code);
+      writeTranslationCookies(language.translationCode);
+    }
     document.documentElement.lang = language.code;
     document.documentElement.dir = language.direction || "ltr";
     const shouldTranslate = language.translationCode !== "en";

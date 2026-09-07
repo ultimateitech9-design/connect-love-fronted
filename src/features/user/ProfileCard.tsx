@@ -91,7 +91,6 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
     like: () => {},
     superLike: () => {},
     openProfile: () => {},
-    closeProfile: () => {},
     nextPhoto: () => {},
   });
 
@@ -127,9 +126,8 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
       const actions = keyboardActionsRef.current;
       if (event.key === "ArrowLeft") actions.pass();
       else if (event.key === "ArrowRight") actions.like();
-      else if (event.key === "ArrowUp") actions.openProfile();
-      else if (event.key === "ArrowDown") actions.closeProfile();
-      else if (event.key === "Enter") actions.superLike();
+      else if (event.key === "ArrowUp") actions.superLike();
+      else if (event.key === "Enter") actions.openProfile();
       else if (event.code === "Space") actions.nextPhoto();
       else return;
 
@@ -262,7 +260,6 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
     like: () => triggerSwipe("like"),
     superLike: () => triggerSwipe("super"),
     openProfile: openProfileDetails,
-    closeProfile: () => setShowDetails(false),
     nextPhoto: () => {
       if (showDetails || currentPhotos.length < 2) return;
       setPhotoIndex((current) => (current + 1) % currentPhotos.length);
@@ -694,9 +691,8 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
             {[
               ["←", "Nope"],
               ["→", "Like"],
-              ["↑", "Open Profile"],
-              ["↵", "Super Like"],
-              ["↓", "Close Profile"],
+              ["↑", "Super Like"],
+              ["↵", "Open Profile"],
               ["Space", "Next Photo"],
             ].map(([key, label]) => (
               <span key={label} className="inline-flex items-center gap-1 whitespace-nowrap">

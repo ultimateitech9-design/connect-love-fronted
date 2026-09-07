@@ -1469,3 +1469,41 @@ html {
     animation: none;
   }
 }
+/* International phone field: country flag/code selector plus the local number. */
+.international-phone-input {
+  display: flex;
+  min-height: 42px;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.75rem;
+  background: white;
+  padding: 0 0.75rem;
+  color: rgb(51 65 85);
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.international-phone-input:focus-within {
+  border-color: rgb(253 164 175);
+  box-shadow: 0 0 0 2px rgb(254 205 211);
+}
+
+.international-phone-input .PhoneInputCountry {
+  margin-right: 0.25rem;
+}
+
+.international-phone-input .PhoneInputInput {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  outline: 0;
+  font-size: 0.875rem;
+}
+
+.international-phone-input:has(.PhoneInputInput:disabled) {
+  cursor: not-allowed;
+  background: rgb(248 250 252);
+  opacity: 0.7;
+}

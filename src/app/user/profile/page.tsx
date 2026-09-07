@@ -18,6 +18,8 @@ import {
 import { logout, getToken, clearToken } from "@/lib/auth";
 import { cacheAvatarUrl } from "@/lib/avatarCache";
 import { calculateProfileCompletion, PROFILE_COMPLETION_FIELDS, type ProfileCompletionField } from "@/lib/profileCompletion";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import { hasActivePaidPlan } from "@/lib/subscription";
 
 const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"] as const;
 const PERSONALITY_SUGGESTIONS = ["Adventurous", "Ambitious", "Calm", "Caring", "Confident", "Creative", "Funny", "Honest", "Introverted", "Kind", "Loyal", "Romantic", "Witty"];
@@ -71,6 +73,7 @@ interface UserProfile {
  photos: string[];
  kycMatched: boolean;
  plan: string;
+ planExpiresAt?: string | null;
  isVerified: boolean;
  planBadge?: boolean;
  onboardingCompleted: boolean;
@@ -187,6 +190,11 @@ export default function ProfilePage() {
       }
     }
 
+    if (profile.phone && !isValidPhoneNumber(profile.phone)) {
+      setSaveMsg({ ok: false, text: "Select a country and enter a valid phone number." });
+      return;
+    }
+
     setSaving(true);
     setSaveMsg(null);
     const token = getToken();
@@ -287,6 +295,7 @@ export default function ProfilePage() {
         setPhotoSaving(false);
       }
     }
+
   };
 
  // Live completion (updates as user types) vs saved completion (updates after Save)
@@ -418,18 +427,17 @@ export default function ProfilePage() {
  </div>
  <div className="space-y-2">
  <Label className="text-slate-600">Phone number</Label>
- <Input
- type="tel"
- inputMode="tel"
- autoComplete="tel"
+ <PhoneInput
+ international
+ defaultCountry="IN"
+ countryCallingCodeEditable={false}
  disabled={isLocked}
  value={profile.phone ?? ""}
- placeholder="000000"
- maxLength={30}
- onChange={(event) => set("phone", event.target.value)}
- className="bg-white text-slate-700 disabled:cursor-not-allowed disabled:bg-slate-50"
+ placeholder="Enter phone number"
+ onChange={(value) => set("phone", value ?? "")}
+ className="international-phone-input"
  />
- <p className="text-[11px] text-slate-400">Visible only to you and authorized administrators.</p>
+ <p className="text-[11px] text-slate-400">Choose your country; its calling code is added automatically. Visible only to you and authorized administrators.</p>
  </div>
  <RequiredField
  label="Date of birth"
@@ -691,8 +699,8 @@ export default function ProfilePage() {
  </div>
  </div>
 
- {/* Premium tip */}
- <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg, #fff0f3, #fce7f3)", border: "1px solid rgba(236,72,153,0.25)" }}>
+ {/* Premium tip: hide it when Gold or Diamond is currently active. */}
+ {!hasActivePaidPlan(profile) && <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg, #fff0f3, #fce7f3)", border: "1px solid rgba(236,72,153,0.25)" }}>
  <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
  <Sparkles className="h-[16px] w-[16px] text-rose-400" /> Premium tip
  </p>
@@ -704,7 +712,7 @@ export default function ProfilePage() {
  Upgrade to Premium
  </Button>
  </Link>
- </div>
+ </div>}
  </aside>
  </div>
  </div>

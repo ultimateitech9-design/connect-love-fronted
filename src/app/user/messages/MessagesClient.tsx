@@ -3550,14 +3550,22 @@ export default function Messages() {
    <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-border px-5 py-3">
  <div className="flex items-center gap-3">
  <Button variant="ghost" size="icon" onClick={() => setActiveId(null)} className="lg:hidden" aria-label="Back to conversations"><ArrowLeft className="h-5 w-5" /></Button>
- <Avatar className="h-[40px] w-[40px]">
+ <button
+ type="button"
+ onClick={() => void handleViewProfile()}
+ className="group flex min-w-0 items-center gap-3 rounded-xl px-1 py-0.5 text-left outline-none transition hover:bg-black/5 focus-visible:ring-2 focus-visible:ring-rose-400 dark:hover:bg-white/10"
+ aria-label={`View ${active.name}'s profile`}
+ title="View profile"
+ >
+ <Avatar className="h-[40px] w-[40px] transition-transform group-hover:scale-105">
  <AvatarImage src={active.photo} />
  <AvatarFallback>{active.name[0]}</AvatarFallback>
  </Avatar>
- <div>
- <p className="text-sm font-semibold text-[var(--chat-text)]">{active.name}, {active.age}</p>
- <p className={cn("text-xs", (isTyping || isRecording) ? "font-semibold text-rose-500" : "text-[var(--chat-text-muted)]")}>{activePresenceText}</p>
+ <div className="min-w-0">
+ <p className="truncate text-sm font-semibold text-[var(--chat-text)] group-hover:text-rose-500">{active.name}, {active.age}</p>
+ <p className={cn("truncate text-xs", (isTyping || isRecording) ? "font-semibold text-rose-500" : "text-[var(--chat-text-muted)]")}>{activePresenceText}</p>
  </div>
+ </button>
  </div>
  <div className="flex items-center gap-1 text-[var(--chat-text)]">
  <Button variant="ghost" size="icon" onClick={() => startCall("audio")} disabled={!socket}><Phone className="h-[16px] w-[16px]" /></Button>

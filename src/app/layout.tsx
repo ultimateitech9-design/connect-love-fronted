@@ -17,6 +17,7 @@ import {
   SITE_URL,
 } from "@/lib/seo";
 import "../styles.css";
+import "react-phone-number-input/style.css";
 
 const poppins = Poppins({
   subsets: ["latin"],

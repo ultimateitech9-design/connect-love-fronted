@@ -115,7 +115,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         {/* Logo */}
         <Link href="/" onClick={(event) => handleNavClick(event, "#hero")} className="flex items-center gap-2.5 group">
           <BrandLogo className="h-11 w-11 shadow-lg shadow-rose-500/30 transition-all duration-300 group-hover:shadow-rose-500/60 group-hover:scale-105" priority />
-          <span className="site-navbar-logo text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+          <span translate="no" className="notranslate site-navbar-logo text-xl font-bold tracking-tight text-slate-900 dark:text-white">
             Connect<span className="text-rose-500">Love</span>
           </span>
         </Link>

@@ -50,7 +50,13 @@ export function TopNav() {
  const { matches: receivedMatches } = useMatches(token, "received", { enabled: loadNavData });
  const { data: navUser } = useCurrentUser(token, loadNavData);
 
- const unreadMessagesCount = activeMatches.reduce((sum: number, m: any) => sum + (m.unreadCount || 0), 0);
+ // Locked conversations are intentionally absent from the Messages list, so
+ // their messages must not create a badge the member cannot open or clear.
+ const visibleActiveMatches = activeMatches.filter((match: any) => !match.locked);
+ const unreadMessagesCount = visibleActiveMatches.reduce(
+  (sum: number, match: any) => sum + Math.max(0, Number(match.unreadCount) || 0),
+  0,
+ );
  let sessionUserId = "user";
  try {
   const payload = JSON.parse(atob(token.split('.')[1] || ''));
@@ -72,7 +78,7 @@ export function TopNav() {
      link: "/user/matches",
      count: 1,
    })),
-   ...activeMatches.filter((m: any) => m.unreadCount > 0).map((m: any) => ({
+   ...visibleActiveMatches.filter((m: any) => Number(m.unreadCount) > 0).map((m: any) => ({
      id: `msg-${m.id}-${m.lastMessageTime || m.updatedAt || m.unreadCount}`,
      type: "message" as const,
      title: `New Message (${m.unreadCount})`,
@@ -205,7 +211,7 @@ export function TopNav() {
  {/* Logo */}
  <Link href="/user/discover" className="group flex min-w-0 shrink items-center gap-1.5 min-[380px]:gap-2 sm:shrink-0 sm:gap-2.5">
  <BrandLogo className="h-8 w-8 shadow-lg shadow-rose-500/30 sm:h-9 sm:w-9" priority />
-        <span className="truncate text-sm font-bold tracking-tight text-foreground min-[380px]:text-base sm:text-xl">
+        <span translate="no" className="notranslate truncate text-sm font-bold tracking-tight text-foreground min-[380px]:text-base sm:text-xl">
           Connect<span className="text-rose-700">Love</span>
         </span>
       </Link>

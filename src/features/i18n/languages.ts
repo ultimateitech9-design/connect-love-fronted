@@ -29,7 +29,6 @@ export const APP_LANGUAGES: AppLanguage[] = [
   { code: "sd", translationCode: "sd", name: "Sindhi", nativeName: "سنڌي", direction: "rtl" },
   { code: "ta", translationCode: "ta", name: "Tamil", nativeName: "தமிழ்" },
   { code: "te", translationCode: "te", name: "Telugu", nativeName: "తెలుగు" },
-  { code: "ur", translationCode: "ur", name: "Urdu", nativeName: "اردو", direction: "rtl" },
 ];
 
 export const DEFAULT_LANGUAGE = APP_LANGUAGES[0];

@@ -13,6 +13,7 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useMatches } from "@/hooks/useMatches";
 import { getCachedAvatarUrl } from "@/lib/avatarCache";
 import { calculateProfileCompletion } from "@/lib/profileCompletion";
+import { hasActivePaidPlan } from "@/lib/subscription";
 
 const API = API_ORIGIN;
 type DBMatch = { id: string; senderId: string; receiverId: string; status: string };
@@ -23,7 +24,7 @@ export function RightRail() {
   const [avatarUrl, setAvatarUrl] = useState("https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop");
   const [recentMatches, setRecentMatches] = useState<any[]>([]);
   const token = getToken() || "";
-  const { data: currentUser } = useCurrentUser(token);
+  const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser(token);
   const { matches: activeMatches } = useMatches(token, "active");
 
   useEffect(() => {
@@ -35,11 +36,11 @@ export function RightRail() {
   }, [currentUser]);
 
   useEffect(() => {
-    if (token && activeMatches.length) {
+    if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const myId = payload.userId || payload.sub;
-            const displayMatches = Array.from(new Map(activeMatches.map((m: any) => {
+            const displayMatches = Array.from(new Map(activeMatches.filter((m: any) => !m.locked).map((m: any) => {
               const targetId = m.senderId === myId ? m.receiverId : m.senderId;
               return [m.id, { ...m, targetId }];
             })).values()).map((m: any) => {
@@ -53,9 +54,13 @@ export function RightRail() {
                 name: profile.name || "Unknown",
                 photo: profile.photo || "",
               };
-            });
+            }).filter((match: any) => match.name && match.name !== "Unknown" && match.name !== "Someone");
             setRecentMatches(displayMatches.slice(0, 5));
-      } catch(e) {}
+      } catch {
+        setRecentMatches([]);
+      }
+    } else {
+      setRecentMatches([]);
     }
   }, [activeMatches, token]);
 
@@ -132,8 +137,8 @@ export function RightRail() {
           )}
         </ul>
 
-        {/* Upgrade Ad */}
-        <div
+        {/* Upgrade Ad: only members without an active paid plan see this. */}
+        {!currentUserLoading && !hasActivePaidPlan(currentUser) && <div
           className="mt-6 rounded-xl p-4 text-center"
           style={{
             background: "linear-gradient(135deg, #fff0f3, #fce7f3)",
@@ -153,7 +158,7 @@ export function RightRail() {
               Upgrade Now
             </Button>
           </Link>
-        </div>
+        </div>}
       </div>
     </div>
   );

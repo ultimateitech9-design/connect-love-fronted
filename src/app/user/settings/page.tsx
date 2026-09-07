@@ -150,7 +150,7 @@ export default function SettingsPage() {
      });
      if (!res.ok) throw new Error("Deactivate failed");
      clearToken();
-     window.location.href = "/?account=deactivated";
+     window.location.href = "/login?account=deactivated";
    } catch {
      setAccountMessage("Could not deactivate your account. Please try again.");
    }

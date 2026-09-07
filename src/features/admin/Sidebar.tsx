@@ -65,7 +65,7 @@ export function AdminSidebar() {
   <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-slate-100 bg-white/90 px-4 backdrop-blur-xl lg:hidden">
    <div className="flex items-center gap-2.5">
     <BrandLogo className="h-9 w-9 shadow-md shadow-rose-500/20" />
-    <div><p className="text-sm font-bold leading-none text-slate-900">ConnectLove</p><p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-rose-500">Admin</p></div>
+    <div><p translate="no" className="notranslate text-sm font-bold leading-none text-slate-900">ConnectLove</p><p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-rose-500">Admin</p></div>
    </div>
    <button type="button" onClick={() => setOpen(true)} aria-label="Open admin menu" aria-expanded={open} className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 hover:bg-rose-50 hover:text-rose-600">
     <Menu className="h-6 w-6" />
@@ -76,7 +76,7 @@ export function AdminSidebar() {
   <aside className={cn("fixed inset-y-0 left-0 z-50 flex w-[min(82vw,19rem)] flex-col border-r border-slate-100 bg-white shadow-2xl transition-transform duration-300 lg:sticky lg:top-0 lg:z-20 lg:h-dvh lg:w-64 lg:shrink-0 lg:translate-x-0 lg:bg-white/60 lg:shadow-none lg:backdrop-blur-xl", open ? "translate-x-0" : "-translate-x-full")}>
    <div className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-100 px-5">
     <BrandLogo className="h-8 w-8 shadow-md shadow-rose-500/20" />
-    <div className="min-w-0 flex-1"><p className="text-sm font-bold leading-none text-slate-900">ConnectLove</p><p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-rose-500">Admin</p></div>
+    <div className="min-w-0 flex-1"><p translate="no" className="notranslate text-sm font-bold leading-none text-slate-900">ConnectLove</p><p className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-rose-500">Admin</p></div>
     <button type="button" onClick={() => setOpen(false)} aria-label="Close admin menu" className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-rose-50 hover:text-rose-600 lg:hidden"><X className="h-5 w-5" /></button>
    </div>
    {navigation}
