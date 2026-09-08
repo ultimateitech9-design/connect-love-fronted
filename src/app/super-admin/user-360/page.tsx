@@ -110,6 +110,7 @@ export default function User360Page() {
  const usersRequestRef = useRef(0);
  const [loadingDetails, setLoadingDetails] = useState(false);
  const [saving, setSaving] = useState(false);
+ const [updatingStatus, setUpdatingStatus] = useState(false);
  const [deleting, setDeleting] = useState(false);
  const [error, setError] = useState("");
  const [message, setMessage] = useState("");
@@ -199,6 +200,24 @@ export default function User360Page() {
 
  const updateField = (key: keyof UserForm, value: string | boolean) => {
  setForm((current) => ({ ...current, [key]: value }));
+ };
+
+ const handleStatusChange = async (status: "active" | "suspended") => {
+ if (!selectedId || updatingStatus) return;
+ setUpdatingStatus(true);
+ setError("");
+ setMessage("");
+ try {
+ await api.updateUserStatus(selectedId, status);
+ setForm((current) => ({ ...current, status }));
+ setDetails((current: any) => current ? { ...current, status } : current);
+ setUsers((current) => current.map((user) => user.id === selectedId ? { ...user, status } : user));
+ setMessage(status === "active" ? "User account active ho gaya." : "User account suspend ho gaya.");
+ } catch {
+ setError("User status update nahi hua.");
+ } finally {
+ setUpdatingStatus(false);
+ }
  };
 
  const handleSave = async () => {
@@ -334,7 +353,19 @@ export default function User360Page() {
  <div className="mt-3 flex flex-wrap gap-2">
  <Pill label="Plan" value={formatPlan(form.plan)} />
  <Pill label="Role" value={form.role} />
- <Pill label="Status" value={form.status.replace("_", " ")} />
+ <label className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-bold ${form.status === "active" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
+ <span>Status:</span>
+ <select
+ aria-label="User account status"
+ value={form.status === "suspended" ? "suspended" : "active"}
+ onChange={(event) => void handleStatusChange(event.target.value as "active" | "suspended")}
+ disabled={updatingStatus}
+ className="cursor-pointer bg-transparent font-bold capitalize outline-none disabled:cursor-wait disabled:opacity-60"
+ >
+ <option value="active">Active</option>
+ <option value="suspended">Suspended</option>
+ </select>
+ </label>
  <Pill label="Joined" value={toDateInput(details.joined) || "-"} />
  </div>
  </div>

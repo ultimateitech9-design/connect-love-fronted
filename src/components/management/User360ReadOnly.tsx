@@ -45,7 +45,7 @@ function pillTone(value?: string) {
   return "bg-slate-50 text-slate-700 ring-slate-100";
 }
 
-export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user profile intelligence." }: { title?: string; subtitle?: string }) {
+export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user profile intelligence.", canManageStatus = false }: { title?: string; subtitle?: string; canManageStatus?: boolean }) {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [details, setDetails] = useState<any | null>(null);
@@ -53,6 +53,9 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const filteredUsers = useMemo(() => {
     const text = query.toLowerCase().trim();
@@ -68,17 +71,34 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
 
   useEffect(() => {
     let alive = true;
-    setLoadingUsers(true);
-    api.users()
-      .then((res) => {
-        if (!alive) return;
-        setUsers(res.users as UserRow[]);
-        setSelectedId((current) => current || res.users[0]?.id || "");
-      })
-      .catch(() => setError("Users load nahi hue. Backend/session check karein."))
-      .finally(() => {
+
+    const loadAllUsers = async () => {
+      setLoadingUsers(true);
+      setError("");
+      try {
+        let page = 1;
+        let hasMore = true;
+        let allUsers: UserRow[] = [];
+
+        while (hasMore) {
+          const res = await api.users("", page, 100);
+          if (!alive) return;
+          allUsers = Array.from(new Map([...allUsers, ...(res.users as UserRow[])].map((user) => [user.id, user])).values());
+          setTotalUsers(res.total);
+          hasMore = res.hasMore;
+          page += 1;
+        }
+
+        setUsers(allUsers);
+        setSelectedId((current) => current && allUsers.some((user) => user.id === current) ? current : allUsers[0]?.id || "");
+      } catch {
+        if (alive) setError("Users load nahi hue. Backend/session check karein.");
+      } finally {
         if (alive) setLoadingUsers(false);
-      });
+      }
+    };
+
+    void loadAllUsers();
     return () => { alive = false; };
   }, []);
 
@@ -98,6 +118,23 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
     return () => { alive = false; };
   }, [selectedId]);
 
+  const handleStatusChange = async (status: "active" | "suspended") => {
+    if (!selectedId || updatingStatus) return;
+    setUpdatingStatus(true);
+    setError("");
+    setMessage("");
+    try {
+      await api.updateUserStatus(selectedId, status);
+      setDetails((current: any) => current ? { ...current, status } : current);
+      setUsers((current) => current.map((user) => user.id === selectedId ? { ...user, status } : user));
+      setMessage(status === "active" ? "User account active ho gaya." : "User account suspend ho gaya.");
+    } catch {
+      setError("User status update nahi hua. Permission/session check karein.");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   const contactNumber = details?.mobile || details?.phone || users.find((user) => user.id === selectedId)?.mobile || users.find((user) => user.id === selectedId)?.phone || "";
 
   return (
@@ -116,6 +153,8 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
         </div>
       )}
 
+      {message && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">{message}</div>}
+
       <div className="grid gap-6 xl:grid-cols-[340px_1fr]">
         <aside className="rounded-2xl border border-border bg-card shadow-card">
           <div className="border-b border-border p-4">
@@ -128,7 +167,7 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
                 className="h-10 w-full rounded-full border border-border bg-background pl-9 pr-3 text-sm outline-none focus:border-rose-400"
               />
             </div>
-            <p className="mt-3 text-xs font-semibold text-muted-foreground">{filteredUsers.length} users</p>
+            <p className="mt-3 text-xs font-semibold text-muted-foreground">{query.trim() ? `${filteredUsers.length} of ${totalUsers}` : totalUsers} users</p>
           </div>
           <div className="max-h-[680px] overflow-y-auto p-2">
             {loadingUsers ? (
@@ -172,7 +211,23 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
                     {contactNumber && <p className="mt-1 text-sm font-medium text-muted-foreground">{contactNumber}</p>}
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Pill label="Plan" value={formatPlan(details.plan)} />
-                      <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ring-1 ${pillTone(details.status)}`}>{details.status || "active"}</span>
+                      {canManageStatus ? (
+                        <label className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold ring-1 ${pillTone(details.status)}`}>
+                          <span>Status:</span>
+                          <select
+                            aria-label="User account status"
+                            value={String(details.status || "active").toLowerCase() === "suspended" ? "suspended" : "active"}
+                            onChange={(event) => void handleStatusChange(event.target.value as "active" | "suspended")}
+                            disabled={updatingStatus}
+                            className="cursor-pointer bg-transparent font-bold capitalize outline-none disabled:cursor-wait disabled:opacity-60"
+                          >
+                            <option value="active">Active</option>
+                            <option value="suspended">Suspended</option>
+                          </select>
+                        </label>
+                      ) : (
+                        <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ring-1 ${pillTone(details.status)}`}>{details.status || "active"}</span>
+                      )}
                       <Pill label="Joined" value={toDate(details.joined)} />
                     </div>
                   </div>

@@ -113,7 +113,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <p className="text-[11px] text-muted-foreground uppercase tracking-wider mt-1 truncate">Super Admin Panel</p>
           </div>
         </div>
-        <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+        <nav className="shrink-0 px-3 py-2 space-y-0.5">
           {nav.map((item) => {
             const active = pathname === item.to;
             const Icon = item.icon;
@@ -158,7 +158,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="space-y-2 p-3 border-t border-sidebar-border">
+        <div className="shrink-0 space-y-2 p-3 border-t border-sidebar-border">
           <button
             type="button"
             onClick={toggleSidebarPinned}

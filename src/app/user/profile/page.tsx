@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Camera, Eye, Heart as HeartIcon, LogOut, Sparkles, Loader2, CheckCircle2, AlertCircle, X,
   Lock, Unlock, BadgeCheck,
-  ShieldAlert,
+  ShieldAlert, Crown, CalendarDays, Clock3,
 } from "lucide-react";
 import { logout, getToken, clearToken } from "@/lib/auth";
 import { cacheAvatarUrl } from "@/lib/avatarCache";
@@ -301,6 +301,12 @@ export default function ProfilePage() {
  // Live completion (updates as user types) vs saved completion (updates after Save)
  const liveCompletion = calculateProfileCompletion(profile);
  const isEmpty = (key: ProfileField) => !Reflect.get(profile, key)?.toString().trim();
+ const hasPaidPlan = hasActivePaidPlan(profile);
+ const planName = String(profile.plan || "free").toLowerCase() === "platinum" || String(profile.plan || "").toLowerCase() === "diamond" ? "Diamond" : "Gold";
+ const planExpiry = profile.planExpiresAt ? new Date(profile.planExpiresAt) : null;
+ const remainingPlanDays = planExpiry && Number.isFinite(planExpiry.getTime())
+ ? Math.max(0, Math.ceil((planExpiry.getTime() - Date.now()) / 86_400_000))
+ : null;
 
  if (loading) {
  return (
@@ -344,7 +350,7 @@ export default function ProfilePage() {
           )}
         </div>
         <p className="text-sm text-slate-500 capitalize mt-1 font-medium">
-          {profile.plan ?? "free"} member
+          {String(profile.plan || "free").toLowerCase() === "platinum" || String(profile.plan || "").toLowerCase() === "diamond" ? "Diamond Member" : String(profile.plan || "free").toLowerCase() === "gold" ? "Gold Member" : "Free Member"}
         </p>
       </div>
       <div className="flex w-full shrink-0 flex-col items-center gap-2 sm:w-auto sm:items-end">
@@ -699,8 +705,32 @@ export default function ProfilePage() {
  </div>
  </div>
 
+ {/* Active membership: paid users see their plan and remaining validity. */}
+ {hasPaidPlan && <div className="overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 p-5 shadow-lg">
+ <div className="flex items-start gap-3">
+ <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-md shadow-violet-500/20">
+ <Crown className="h-5 w-5" />
+ </div>
+ <div className="min-w-0">
+ <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-600">Your current plan</p>
+ <h3 className="mt-0.5 text-lg font-black text-slate-900">{planName} Plan</h3>
+ </div>
+ </div>
+ <div className="mt-4 grid grid-cols-2 gap-3">
+ <div className="rounded-xl border border-violet-100 bg-white/80 p-3">
+ <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500"><CalendarDays className="h-3.5 w-3.5 text-violet-500" /> Validity</p>
+ <p className="mt-1 text-sm font-black text-slate-900">30 days</p>
+ </div>
+ <div className="rounded-xl border border-violet-100 bg-white/80 p-3">
+ <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500"><Clock3 className="h-3.5 w-3.5 text-violet-500" /> Days left</p>
+ <p className="mt-1 text-sm font-black text-violet-700">{remainingPlanDays === null ? "No expiry" : `${remainingPlanDays} days`}</p>
+ </div>
+ </div>
+ {planExpiry && Number.isFinite(planExpiry.getTime()) && <p className="mt-3 text-xs font-medium text-slate-600">Active until {planExpiry.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>}
+ </div>}
+
  {/* Premium tip: hide it when Gold or Diamond is currently active. */}
- {!hasActivePaidPlan(profile) && <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg, #fff0f3, #fce7f3)", border: "1px solid rgba(236,72,153,0.25)" }}>
+ {!hasPaidPlan && <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg, #fff0f3, #fce7f3)", border: "1px solid rgba(236,72,153,0.25)" }}>
  <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
  <Sparkles className="h-[16px] w-[16px] text-rose-400" /> Premium tip
  </p>
@@ -860,3 +890,4 @@ function Stat({
  </div>
  );
 }
+

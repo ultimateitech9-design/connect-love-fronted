@@ -143,6 +143,7 @@ export const api = {
  createUser: (body: { name: string; email: string; password: string; role: string }) => apiFetch<{ user: unknown; message?: string }>("/users", { method: "POST", body: JSON.stringify(body) }),
  createManagementUser: (body: { name: string; email: string; password: string; role: "user" | "admin" | "sales" | "support" }) => managementFetch<{ user: unknown; message: string }>("/admin/management-users", { method: "POST", body: JSON.stringify(body) }),
  banUser: (id: string, banned: boolean) => apiFetch<{ success: boolean }>(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: banned ? "banned" : "active" }) }),
+ updateUserStatus: (id: string, status: "active" | "suspended") => apiFetch<{ success: boolean; user: any }>(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
  deleteUser: (id: string) => apiFetch<{ success: boolean }>(`/users/${id}`, { method: "DELETE" }),
  userDetails: (id: string) => apiFetch<{ user: any }>(`/users/${id}`),
  updateUser: (id: string, body: Record<string, unknown>) => apiFetch<{ success: boolean; user: any; message?: string }>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(body) }),

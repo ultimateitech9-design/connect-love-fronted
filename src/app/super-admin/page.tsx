@@ -143,7 +143,7 @@ export default function HomePage() {
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
  {[
  { label: "Modules", value: "10", color: "text-primary" },
- { label: "Permissions", value: "32", color: "text-secondary" },
+ { label: "Permissions", value: "32", color: "text-violet-600" },
  { label: "Access Level", value: "100%", color: "text-emerald-600" },
  { label: "Active Sessions", value: "2", color: "text-primary" },
  ].map((item) => (
