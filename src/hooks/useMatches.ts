@@ -7,6 +7,7 @@ import { matchesApi, type MatchFilter } from '@/features/matches/api';
 const MATCH_CACHE_DB = 'connect-love-offline';
 const MATCH_CACHE_STORE = 'matches';
 const matchesCacheKey = (userId: string, filter: MatchFilter, scope: string | number) => `${userId}:${filter}:${scope}`;
+const EMPTY_MATCHES: any[] = [];
 
 function openMatchCache(): Promise<IDBDatabase | null> {
  return new Promise((resolve) => {
@@ -91,7 +92,7 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  return collected;
  };
 
- const { data: matches = [], isLoading, isError } = useQuery({
+ const { data, isLoading, isError } = useQuery({
  // Keep filter second so existing ['matches', 'active'] invalidations refresh
  // this user-scoped query whenever a match is created, blocked, or removed.
  queryKey,
@@ -103,6 +104,8 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  refetchOnMount: 'always',
  refetchOnReconnect: false,
  });
+
+ const matches = data ?? EMPTY_MATCHES;
 
  const actionMutation = useMutation({
  mutationFn: async ({ action, matchId, response }: { action: 'respond' | 'block' | 'unblock', matchId: string, response?: 'accept' | 'decline' }) => {
