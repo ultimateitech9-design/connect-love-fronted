@@ -108,10 +108,11 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
 
  useEffect(() => {
   if (filter !== 'messages' || !token || !isEnabled || !cacheHydrated) return;
-  const sessionKey = `connect-love:matches-synced:${userKey}`;
+  const sessionKey = `connect-love:matches-synced:v2:${userKey}`;
   if (window.sessionStorage.getItem(sessionKey)) return;
-  window.sessionStorage.setItem(sessionKey, '1');
-  void refetch();
+  void refetch().then((result) => {
+   if (result.isSuccess) window.sessionStorage.setItem(sessionKey, '1');
+  });
  }, [cacheHydrated, filter, isEnabled, refetch, token, userKey]);
 
  const matches = data ?? EMPTY_MATCHES;

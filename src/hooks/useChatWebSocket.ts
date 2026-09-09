@@ -14,7 +14,7 @@ const CHAT_THEME_MESSAGE_PREFIX = "__chat_theme__:";
 const GIF_MESSAGE_PREFIX = "__gif_message__:";
 const CALL_LOG_PREFIX = "__call_log__:";
 const MESSAGE_PAGE_SIZE = 50;
-const MESSAGE_CACHE_LIMIT = 50;
+const MESSAGE_CACHE_LIMIT = 1000;
 
 const messageCacheKey = (userId: string, conversationId: string) => `connect-love-messages:${userId}:${conversationId}`;
 
@@ -270,10 +270,11 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
 
  useEffect(() => {
   if (!conversationId || !token || !currentUserIdRef.current) return;
-  const sessionKey = `connect-love:messages-synced:${currentUserIdRef.current}:${conversationId}`;
+  const sessionKey = `connect-love:messages-synced:v2:${currentUserIdRef.current}:${conversationId}`;
   if (window.sessionStorage.getItem(sessionKey)) return;
-  window.sessionStorage.setItem(sessionKey, '1');
-  void refetchMessages();
+  void refetchMessages().then((result) => {
+   if (result.isSuccess) window.sessionStorage.setItem(sessionKey, '1');
+  });
  }, [conversationId, refetchMessages, token]);
 
  useEffect(() => {
@@ -286,7 +287,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
   setIsLoadingOlder(false);
  }, [conversationId]);
 
- const loadOlderMessages = useCallback(async () => {
+ const loadOlderMessages = useCallback(async (silent = false) => {
   if (!conversationId || !token || isLoadingOlder || !hasOlderMessages || messages.length === 0) return;
   setIsLoadingOlder(true);
   try {
@@ -302,9 +303,15 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
     return Array.from(byId.values()).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
    });
   } catch {
-   toast.error('Older messages could not be loaded.');
+   if (!silent) toast.error('Older messages could not be loaded.');
   } finally { setIsLoadingOlder(false); }
  }, [conversationId, hasOlderMessages, isLoadingOlder, messages, queryClient, token]);
+
+ useEffect(() => {
+  if (!conversationId || !hasOlderMessages || isLoadingOlder || messages.length === 0) return;
+  const timer = window.setTimeout(() => { void loadOlderMessages(true); }, 150);
+  return () => window.clearTimeout(timer);
+ }, [conversationId, hasOlderMessages, isLoadingOlder, loadOlderMessages, messages.length]);
 
  const sendMessage = useCallback((receiverId: string, content: string, replyToMessageId?: string | null) => {
  if (conversationId) {
