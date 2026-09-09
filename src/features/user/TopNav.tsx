@@ -4,7 +4,7 @@ import { API_ORIGIN } from "@/config/runtime";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { Bell, Heart, MessageCircle, Pencil, Settings, LogOut, UserRound } from "lucide-react";
+import { Bell, CheckCheck, Heart, MessageCircle, Pencil, Settings, LogOut, Trash2, UserRound } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,7 @@ export function TopNav() {
  const [userName, setUserName] = useState<string>("You");
  const [loadNavData, setLoadNavData] = useState(false);
  const [seenNotificationIds, setSeenNotificationIds] = useState<Set<string>>(new Set());
+ const [clearedNotificationIds, setClearedNotificationIds] = useState<Set<string>>(new Set());
  const [seenMatchIds, setSeenMatchIds] = useState<Set<string>>(new Set());
  const [seenMatchesReady, setSeenMatchesReady] = useState(false);
 
@@ -63,6 +64,7 @@ export function TopNav() {
   sessionUserId = String(payload.sub || payload.userId || "user");
  } catch {}
  const seenStorageKey = `cl_seen_notifications:${sessionUserId}`;
+ const clearedStorageKey = `cl_cleared_notifications:${sessionUserId}`;
  const seenMatchesStorageKey = `cl_seen_matches:${sessionUserId}`;
  const newMatchesCount = seenMatchesReady && !pathname.startsWith("/user/matches")
    ? activeMatches.filter((match: any) => !seenMatchIds.has(String(match.id))).length
@@ -88,7 +90,8 @@ export function TopNav() {
      count: Number(m.unreadCount) || 1,
    }))
  ];
- const unseenNotifications = realNotifications.filter((notification) => !seenNotificationIds.has(notification.id));
+ const visibleNotifications = realNotifications.filter((notification) => !clearedNotificationIds.has(notification.id));
+ const unseenNotifications = visibleNotifications.filter((notification) => !seenNotificationIds.has(notification.id));
  const totalUnread = unseenNotifications.reduce((sum, notification) => sum + notification.count, 0);
 
  useEffect(() => {
@@ -116,6 +119,15 @@ export function TopNav() {
    setSeenNotificationIds(new Set());
   }
  }, [seenStorageKey]);
+
+ useEffect(() => {
+  try {
+   const saved = JSON.parse(localStorage.getItem(clearedStorageKey) || "[]");
+   setClearedNotificationIds(new Set(Array.isArray(saved) ? saved.map(String) : []));
+  } catch {
+   setClearedNotificationIds(new Set());
+  }
+ }, [clearedStorageKey]);
 
  useEffect(() => {
   setSeenMatchesReady(false);
@@ -187,15 +199,34 @@ export function TopNav() {
 
  const handleLogout = () => logout("/");
  const handleNotificationToggle = () => {
-  const willOpen = !notifOpen;
-  if (willOpen && realNotifications.length) {
-   const next = new Set(seenNotificationIds);
-   realNotifications.forEach((notification) => next.add(notification.id));
-   const trimmed = [...next].slice(-200);
-   setSeenNotificationIds(new Set(trimmed));
-   localStorage.setItem(seenStorageKey, JSON.stringify(trimmed));
-  }
-  setNotifOpen(willOpen);
+  setNotifOpen((current) => !current);
+ };
+
+ const handleMarkAllAsRead = () => {
+  if (unseenNotifications.length === 0) return;
+  const next = new Set(seenNotificationIds);
+  visibleNotifications.forEach((notification) => next.add(notification.id));
+  const trimmed = [...next].slice(-500);
+  setSeenNotificationIds(new Set(trimmed));
+  localStorage.setItem(seenStorageKey, JSON.stringify(trimmed));
+ };
+
+ const handleNotificationRead = (id: string) => {
+  if (seenNotificationIds.has(id)) return;
+  const next = new Set(seenNotificationIds);
+  next.add(id);
+  const trimmed = [...next].slice(-500);
+  setSeenNotificationIds(new Set(trimmed));
+  localStorage.setItem(seenStorageKey, JSON.stringify(trimmed));
+ };
+
+ const handleClearNotifications = () => {
+  if (visibleNotifications.length === 0) return;
+  const next = new Set(clearedNotificationIds);
+  visibleNotifications.forEach((notification) => next.add(notification.id));
+  const trimmed = [...next].slice(-500);
+  setClearedNotificationIds(new Set(trimmed));
+  localStorage.setItem(clearedStorageKey, JSON.stringify(trimmed));
  };
 
  return (
@@ -288,23 +319,33 @@ export function TopNav() {
           >
  {/* Panel header */}
  <div
- className="flex items-center justify-between px-5 py-4 border-b"
+ className="border-b px-5 py-4"
  style={{ borderColor: "rgba(236, 72, 153, 0.12)", background: "linear-gradient(135deg, #fff5f7, #fdf2f8)" }}
  >
  <div className="flex items-center gap-2">
  <Bell className="h-[16px] w-[16px] text-rose-700" />
  <h3 className="font-semibold text-slate-800">Notifications</h3>
- {realNotifications.length > 0 && (
+ {visibleNotifications.length > 0 && (
  <span className="rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
- {realNotifications.length}
+ {totalUnread}
  </span>
  )}
  </div>
+ {visibleNotifications.length > 0 && (
+ <div className="mt-3 flex items-center gap-2">
+ <button type="button" onClick={handleMarkAllAsRead} disabled={unseenNotifications.length === 0} className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-default disabled:opacity-50" aria-label="Mark all notifications as read">
+ <CheckCheck className="h-3.5 w-3.5" /> {unseenNotifications.length === 0 ? "All read" : "Mark all as read"}
+ </button>
+ <button type="button" onClick={handleClearNotifications} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-100" aria-label="Clear all notifications">
+ <Trash2 className="h-3.5 w-3.5" /> Clear all
+ </button>
+ </div>
+ )}
  </div>
 
  {/* Notification list */}
  <div className="max-h-[min(60dvh,360px)] overflow-y-auto overscroll-contain">
- {realNotifications.length === 0 ? (
+ {visibleNotifications.length === 0 ? (
  <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
  <div className="mb-3 flex h-[48px] w-[48px] items-center justify-center rounded-full bg-rose-50">
  <Bell className="h-[20px] w-[20px] text-rose-300" />
@@ -314,19 +355,19 @@ export function TopNav() {
  </div>
  ) : (
  <ul className="divide-y" style={{ borderColor: "rgba(236, 72, 153, 0.08)" }}>
- {realNotifications.map((n) => (
+ {visibleNotifications.map((n) => (
  <li
  key={n.id}
- className="flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-rose-50/50 bg-rose-50/30"
+ className={cn("flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-rose-50/50", !seenNotificationIds.has(n.id) && "bg-rose-50/30")}
  >
- <Link href={n.link} className="flex w-full min-w-0 flex-1 items-start gap-3" onClick={() => setNotifOpen(false)}>
+ <Link href={n.link} className="flex w-full min-w-0 flex-1 items-start gap-3" onClick={() => { handleNotificationRead(n.id); setNotifOpen(false); }}>
  <div className={cn("mt-0.5 flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full border", notifColor[n.type as keyof typeof notifColor])}>
  {n.type === "match" ? <Heart className="h-4 w-4 text-rose-600" /> : n.type === "message" ? <MessageCircle className="h-4 w-4 text-pink-600" /> : <Pencil className="h-4 w-4 text-purple-600" />}
  </div>
  <div className="min-w-[0px] flex-1">
  <div className="flex items-start justify-between gap-2">
  <p className="text-sm font-semibold text-slate-800 leading-tight">{n.title}</p>
- <span className="mt-1 h-[8px] w-[8px] shrink-0 rounded-full bg-rose-500" />
+ {!seenNotificationIds.has(n.id) && <span className="mt-1 h-[8px] w-[8px] shrink-0 rounded-full bg-rose-500" />}
  </div>
  <p className="mt-1 text-xs text-slate-600 leading-snug line-clamp-2">{n.body}</p>
  <p className="mt-1.5 text-[10px] font-medium text-slate-400">{n.time}</p>

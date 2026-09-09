@@ -100,7 +100,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         onMouseEnter={() => setSidebarHovered(true)}
         onMouseLeave={() => setSidebarHovered(false)}
         className={cn(
-          "hidden lg:flex shrink-0 flex-col bg-sidebar border-r border-sidebar-border shadow-sm transition-all duration-300 ease-out",
+          "sticky top-0 hidden h-dvh shrink-0 self-start overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden bg-sidebar border-r border-sidebar-border shadow-sm transition-all duration-300 ease-out lg:flex lg:flex-col",
           sidebarOpen ? "w-64" : "w-20"
         )}
       >

@@ -66,7 +66,7 @@ function normalizeStatus(value?: string) {
  const text = String(value || "active").toLowerCase().replace(/\s+/g, "_");
  if (text === "active") return "active";
  if (text === "banned") return "banned";
- if (text === "suspended") return "suspended";
+ if (text === "suspended" || text === "deactivated") return "suspended";
  return "pending_verification";
 }
 
