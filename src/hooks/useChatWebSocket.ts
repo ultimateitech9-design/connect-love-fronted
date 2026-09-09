@@ -112,7 +112,6 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
 
  newSocket.on('connect', () => {
  console.log('Connected to chat server');
- queryClient.invalidateQueries({ queryKey: ["matches"] });
  });
 
  newSocket.on('receiveMessage', (message: Message) => {
@@ -246,7 +245,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  }, [token, queryClient]);
 
  // Show the last cached messages immediately, then refresh the latest batch silently.
- const { data: messages = [], isLoading } = useQuery<Message[]>({
+ const { data: messages = [], isLoading, refetch: refetchMessages } = useQuery<Message[]>({
  queryKey: ['messages', conversationId],
  queryFn: async () => {
   if (!conversationId || !token) return [];
@@ -261,10 +260,21 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  enabled: !!conversationId && !!token,
  initialData: () => readCachedMessages(currentUserIdRef.current, conversationId),
  initialDataUpdatedAt: 0,
- staleTime: 15_000,
- refetchOnMount: 'always',
+ staleTime: Infinity,
+ gcTime: 24 * 60 * 60_000,
+ refetchInterval: false,
+ refetchOnMount: false,
  refetchOnWindowFocus: false,
+ refetchOnReconnect: false,
  });
+
+ useEffect(() => {
+  if (!conversationId || !token || !currentUserIdRef.current) return;
+  const sessionKey = `connect-love:messages-synced:${currentUserIdRef.current}:${conversationId}`;
+  if (window.sessionStorage.getItem(sessionKey)) return;
+  window.sessionStorage.setItem(sessionKey, '1');
+  void refetchMessages();
+ }, [conversationId, refetchMessages, token]);
 
  useEffect(() => {
   if (!conversationId || !currentUserIdRef.current || messages.length === 0) return;

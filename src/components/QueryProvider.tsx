@@ -3,6 +3,9 @@
 import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
+const isPersistentMessagesQuery = (query: { queryKey: readonly unknown[] }) =>
+ query.queryKey[0] === 'messages' || (query.queryKey[0] === 'matches' && query.queryKey[1] === 'messages');
+
 export function QueryProvider({ children }: { children: React.ReactNode }) {
  const [queryClient] = useState(() => {
   let client: QueryClient;
@@ -30,7 +33,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
  useEffect(() => {
   const syncActiveData = () => {
    if (document.visibilityState === 'visible' && navigator.onLine) {
-    void queryClient.invalidateQueries({ type: 'active' });
+    void queryClient.invalidateQueries({ type: 'active', predicate: (query) => !isPersistentMessagesQuery(query) });
    }
   };
   window.addEventListener('focus', syncActiveData);

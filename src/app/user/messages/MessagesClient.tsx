@@ -2323,6 +2323,7 @@ export default function Messages() {
         unread: m.unreadCount || 0,
         isBlocked: m.status === "BLOCKED",
         blockedByMe: m.status === "BLOCKED" && String(m.blockedByUserId || m.senderId) === String(myId),
+        canSendMessages: m.status === "MATCHED",
       };
     }), [activeMatches, myId]);
 
@@ -2370,6 +2371,8 @@ export default function Messages() {
  const activeUserId = active?.userId;
  const activePresenceText = active?.isBlocked
    ? (active.blockedByMe ? "You blocked this contact" : "This user blocked you")
+   : !active?.canSendMessages
+     ? "Chat history"
    : isRecording
      ? "Recording Audio..."
      : isTyping
@@ -3589,8 +3592,8 @@ export default function Messages() {
  </button>
  </div>
  <div className="flex items-center gap-1 text-[var(--chat-text)]">
- <Button variant="ghost" size="icon" onClick={() => startCall("audio")} disabled={!socket || active.isBlocked}><Phone className="h-[16px] w-[16px]" /></Button>
- <Button variant="ghost" size="icon" onClick={() => startCall("video")} disabled={!socket || active.isBlocked}><Video className="h-[16px] w-[16px]" /></Button>
+ <Button variant="ghost" size="icon" onClick={() => startCall("audio")} disabled={!socket || !active.canSendMessages}><Phone className="h-[16px] w-[16px]" /></Button>
+ <Button variant="ghost" size="icon" onClick={() => startCall("video")} disabled={!socket || !active.canSendMessages}><Video className="h-[16px] w-[16px]" /></Button>
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <Button variant="ghost" size="icon"><MoreVertical className="h-[16px] w-[16px]" /></Button>
@@ -3635,7 +3638,7 @@ export default function Messages() {
  <Trash2 className="mr-2 h-4 w-4" />
  Clear Chat
  </DropdownMenuItem>
- {active.isBlocked ? (active.blockedByMe ? <DropdownMenuItem onClick={handleUnblockUser}>Unblock User</DropdownMenuItem> : null) : <DropdownMenuItem className="text-red-500" onClick={handleBlockUser}>Block User</DropdownMenuItem>}
+ {!active.canSendMessages ? (active.blockedByMe ? <DropdownMenuItem onClick={handleUnblockUser}>Unblock User</DropdownMenuItem> : null) : <DropdownMenuItem className="text-red-500" onClick={handleBlockUser}>Block User</DropdownMenuItem>}
  </DropdownMenuContent>
  </DropdownMenu>
  </div>
@@ -3957,10 +3960,10 @@ export default function Messages() {
  <div ref={bottomRef} />
  </div>
 
- {active.isBlocked ? (
+ {!active.canSendMessages ? (
  <div className="flex shrink-0 items-center justify-center gap-3 border-t border-border bg-[var(--chat-panel)] px-4 py-3 text-center text-xs text-[var(--chat-text-muted)]">
  <Lock className="h-4 w-4 shrink-0" />
- <span>{active.blockedByMe ? "You blocked this contact." : "You cannot reply because this user blocked you."}</span>
+ <span>{active.isBlocked ? (active.blockedByMe ? "You blocked this contact." : "You cannot reply because this user blocked you.") : "This saved chat is read-only until both users are matched."}</span>
  {active.blockedByMe && <Button type="button" variant="outline" size="sm" onClick={handleUnblockUser} className="h-8 rounded-full">Unblock</Button>}
  </div>
  ) : selectedMessageIds.size > 0 ? (

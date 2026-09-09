@@ -38,7 +38,7 @@ async function saveCachedMatches(userId: string, filter: MatchFilter, scope: str
  if (!db) return;
  await new Promise<void>((resolve) => {
   const transaction = db.transaction(MATCH_CACHE_STORE, 'readwrite');
-  transaction.objectStore(MATCH_CACHE_STORE).put(matches.slice(0, 250), matchesCacheKey(userId, filter, scope));
+  transaction.objectStore(MATCH_CACHE_STORE).put(matches.slice(0, 1000), matchesCacheKey(userId, filter, scope));
   transaction.oncomplete = () => resolve();
   transaction.onerror = () => resolve();
  });
@@ -77,7 +77,7 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
   return result;
  }
  const collected: any[] = [];
- const pageSize = 25;
+ const pageSize = 100;
  for (let offset = 0; ; offset += pageSize) {
   const batch = await matchesApi.list(filter, pageSize, offset);
   collected.push(...batch);
@@ -92,19 +92,27 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  return collected;
  };
 
- const { data, isLoading, isError } = useQuery({
+ const { data, isLoading, isError, refetch } = useQuery({
  // Keep filter second so existing ['matches', 'active'] invalidations refresh
  // this user-scoped query whenever a match is created, blocked, or removed.
  queryKey,
  queryFn: fetchMatches,
  enabled: !!token && isEnabled && cacheHydrated,
- staleTime: 30_000,
+ staleTime: filter === 'messages' ? Infinity : 30_000,
  gcTime: 24 * 60 * 60_000,
- refetchInterval: 5_000,
- refetchOnWindowFocus: 'always',
- refetchOnMount: 'always',
- refetchOnReconnect: 'always',
+ refetchInterval: filter === 'messages' ? false : 5_000,
+ refetchOnWindowFocus: filter === 'messages' ? false : 'always',
+ refetchOnMount: filter === 'messages' ? false : 'always',
+ refetchOnReconnect: filter === 'messages' ? false : 'always',
  });
+
+ useEffect(() => {
+  if (filter !== 'messages' || !token || !isEnabled || !cacheHydrated) return;
+  const sessionKey = `connect-love:matches-synced:${userKey}`;
+  if (window.sessionStorage.getItem(sessionKey)) return;
+  window.sessionStorage.setItem(sessionKey, '1');
+  void refetch();
+ }, [cacheHydrated, filter, isEnabled, refetch, token, userKey]);
 
  const matches = data ?? EMPTY_MATCHES;
 
