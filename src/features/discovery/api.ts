@@ -32,6 +32,10 @@ export function undoSwipeProfile(receiverId: string) {
   return directFetch<{ deleted: boolean }>(`/matches/swipe/${receiverId}`, { method: "DELETE" });
 }
 
+export function recordDiscoveryProfileView(userId: string) {
+  return directFetch<{ recorded: boolean }>(`/users/${userId}/view`, { method: "POST" });
+}
+
 export function getDiscoveryProfileDetails(userId: string, signal?: AbortSignal) {
   return directFetch<any>(`/users/${userId}/details`, { signal });
 }

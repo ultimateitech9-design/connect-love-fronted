@@ -112,7 +112,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
 
  newSocket.on('connect', () => {
  console.log('Connected to chat server');
- queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
+ queryClient.invalidateQueries({ queryKey: ["matches"] });
  });
 
  newSocket.on('receiveMessage', (message: Message) => {
@@ -129,7 +129,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  });
 
  // Update matches cache to bump it to the top
- queryClient.setQueriesData({ queryKey: ['matches', 'active', 'access-v4', userId] }, (oldMatches: any) => {
+ queryClient.setQueriesData({ queryKey: ["matches"] }, (oldMatches: any) => {
  if (!oldMatches) return oldMatches;
  const updated = oldMatches.map((match: any) => {
  if (match.id === message.conversationId) {
@@ -189,7 +189,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  });
 
  newSocket.on('USER_STATUS_CHANGED', (payload: { userId: string, isOnline: boolean, lastSeen?: string }) => {
-   queryClient.setQueriesData({ queryKey: ['matches', 'active', 'access-v4', userId] }, (oldMatches: any) => {
+   queryClient.setQueriesData({ queryKey: ["matches"] }, (oldMatches: any) => {
      if (!oldMatches) return oldMatches;
      return oldMatches.map((match: any) => {
        if (match.sender?.id === payload.userId) {
@@ -354,7 +354,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
    queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) =>
     (old || []).map((message) => message.id === clientId ? { ...saved, deliveryStatus: 'sent' } : message),
    );
-   queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
+   queryClient.invalidateQueries({ queryKey: ["matches"] });
   })
   .catch((error) => {
    const message = error instanceof Error ? error.message : 'Message could not be sent.';
@@ -503,7 +503,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
 
  const markMessagesRead = useCallback(() => {
    if (conversationId) {
-     queryClient.setQueriesData({ queryKey: ['matches', 'active', 'access-v4', currentUserIdRef.current] }, (oldMatches: any) => {
+     queryClient.setQueriesData({ queryKey: ['matches'] }, (oldMatches: any) => {
        if (!Array.isArray(oldMatches)) return oldMatches;
        return oldMatches.map((match: any) => String(match.id) === String(conversationId) ? { ...match, unreadCount: 0 } : match);
      });

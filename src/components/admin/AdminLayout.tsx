@@ -211,10 +211,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               System Status
             </span>
-            <button onClick={() => router.push("/super-admin/notifications")} className="relative h-10 w-10 rounded-full hover:bg-muted flex items-center justify-center text-foreground transition-colors">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-2 h-1.5 w-1.5 rounded-full bg-primary" />
-            </button>
           </div>
         </header>
         {mobileMenuOpen && (

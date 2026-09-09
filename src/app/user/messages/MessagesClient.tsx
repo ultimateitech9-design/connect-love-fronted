@@ -2071,7 +2071,7 @@ export default function Messages() {
    }
  }, [activeId]);
 
-  const { matches: activeMatches } = useMatches(token, "active", { all: true });
+  const { matches: activeMatches } = useMatches(token, "messages", { all: true });
   const handlePlanLimitReached = useCallback((message: string, content: string) => {
     if (/media sharing.*limit|image sharing.*limit|share.*images.*limit/i.test(message) && /^(?:__photo_message__:|__video_message__:)/.test(content)) {
       setMediaShareLimitReached(true);
@@ -2138,7 +2138,7 @@ export default function Messages() {
        method: 'PATCH',
        headers: { Authorization: `Bearer ${token}` }
      }).then(() => {
-       queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
+       queryClient.invalidateQueries({ queryKey: ['matches'] });
      }).catch(() => {});
    }
  }, [activeId, token, queryClient, markMessagesRead]);
@@ -2321,6 +2321,8 @@ export default function Messages() {
         lastMessage: messagePreview(m.lastMessage),
         lastMessageTime: m.lastMessageTime || m.createdAt,
         unread: m.unreadCount || 0,
+        isBlocked: m.status === "BLOCKED",
+        blockedByMe: m.status === "BLOCKED" && String(m.blockedByUserId || m.senderId) === String(myId),
       };
     }), [activeMatches, myId]);
 
@@ -2356,7 +2358,7 @@ export default function Messages() {
    setFirstImpressions((items) => items.filter((item) => item.id !== activeFirstImpression.id));
    setActiveFirstImpressionId(null);
    setFirstImpressionReply("");
-   await queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
+   await queryClient.invalidateQueries({ queryKey: ['matches'] });
    toast.success("Reply sent successfully.");
    if (result?.matchId) window.location.assign("/user/messages?id=" + result.matchId);
   } catch (error) {
@@ -2366,13 +2368,15 @@ export default function Messages() {
   }
  };
  const activeUserId = active?.userId;
- const activePresenceText = isRecording
-   ? "Recording Audio..."
-   : isTyping
-     ? "Typing..."
-     : active?.online
-       ? "Online now"
-       : (active?.lastSeen ? `Last seen at ${new Date(active.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Offline");
+ const activePresenceText = active?.isBlocked
+   ? (active.blockedByMe ? "You blocked this contact" : "This user blocked you")
+   : isRecording
+     ? "Recording Audio..."
+     : isTyping
+       ? "Typing..."
+       : active?.online
+         ? "Online now"
+         : (active?.lastSeen ? `Last seen at ${new Date(active.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Offline");
 
  const parseUserIdList = (value?: string | null) => {
    if (!value) return [];
@@ -3252,7 +3256,7 @@ export default function Messages() {
        body: JSON.stringify({ scope: "me" }),
      });
      queryClient.invalidateQueries({ queryKey: ['messages', activeId] });
-     queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
+     queryClient.invalidateQueries({ queryKey: ['matches'] });
    } catch (err) {
      console.error("Failed to unsend message:", err);
    }
@@ -3390,22 +3394,39 @@ export default function Messages() {
 
  const handleBlockUser = async () => {
    if (!active) return;
-   if (!confirm(`Block ${active.name}? You will no longer see this user in messages.`)) return;
+   if (!confirm(`Block ${active.name}? Your existing chat will stay visible, but neither of you can send new messages until you unblock them.`)) return;
    try {
      const res = await fetch(`${API_URL}/matches/block/${active.id}`, {
        method: "PATCH",
        headers: { Authorization: `Bearer ${token}` },
      });
-     if (!res.ok) throw new Error("Block failed");
-     queryClient.invalidateQueries({ queryKey: ['matches', 'active'] });
-     queryClient.invalidateQueries({ queryKey: ['matches', 'blocked'] });
-     setActiveId(null);
+     const data = await res.json().catch(() => null);
+     if (!res.ok) throw new Error(data?.message || "Block failed");
+     await queryClient.invalidateQueries({ queryKey: ['matches'] });
+     toast.success(`${active.name} blocked. Chat history is preserved.`);
    } catch (err) {
      console.error("Failed to block user", err);
-     alert("Could not block this user. Please try again.");
+     toast.error(err instanceof Error ? err.message : "Could not block this user. Please try again.");
    }
  };
 
+ const handleUnblockUser = async () => {
+   if (!active?.isBlocked || !active.blockedByMe) return;
+   try {
+     const res = await fetch(`${API_URL}/matches/unblock/${active.id}`, {
+       method: "PATCH",
+       headers: { Authorization: `Bearer ${token}` },
+     });
+     const data = await res.json().catch(() => null);
+     if (!res.ok) throw new Error(data?.message || "Unblock failed");
+     await queryClient.invalidateQueries({ queryKey: ['matches'] });
+     queryClient.invalidateQueries({ queryKey: ['messages', active.id] });
+     toast.success(`${active.name} unblocked. You can continue your existing conversation.`);
+   } catch (err) {
+     console.error("Failed to unblock user", err);
+     toast.error(err instanceof Error ? err.message : "Could not unblock this user. Please try again.");
+   }
+ };
  return (
  <>
  <div
@@ -3479,7 +3500,7 @@ export default function Messages() {
  </div>
  </div>
  <p className="truncate text-xs text-[var(--chat-text-muted)]">
- {messagePreview(m.lastMessage)}
+ {m.isBlocked ? (m.blockedByMe ? "You blocked this contact" : "This user blocked you") : messagePreview(m.lastMessage)}
  </p>
  </div>
  </button>
@@ -3568,8 +3589,8 @@ export default function Messages() {
  </button>
  </div>
  <div className="flex items-center gap-1 text-[var(--chat-text)]">
- <Button variant="ghost" size="icon" onClick={() => startCall("audio")} disabled={!socket}><Phone className="h-[16px] w-[16px]" /></Button>
- <Button variant="ghost" size="icon" onClick={() => startCall("video")} disabled={!socket}><Video className="h-[16px] w-[16px]" /></Button>
+ <Button variant="ghost" size="icon" onClick={() => startCall("audio")} disabled={!socket || active.isBlocked}><Phone className="h-[16px] w-[16px]" /></Button>
+ <Button variant="ghost" size="icon" onClick={() => startCall("video")} disabled={!socket || active.isBlocked}><Video className="h-[16px] w-[16px]" /></Button>
  <DropdownMenu>
  <DropdownMenuTrigger asChild>
  <Button variant="ghost" size="icon"><MoreVertical className="h-[16px] w-[16px]" /></Button>
@@ -3614,7 +3635,7 @@ export default function Messages() {
  <Trash2 className="mr-2 h-4 w-4" />
  Clear Chat
  </DropdownMenuItem>
- <DropdownMenuItem className="text-red-500" onClick={handleBlockUser}>Block User</DropdownMenuItem>
+ {active.isBlocked ? (active.blockedByMe ? <DropdownMenuItem onClick={handleUnblockUser}>Unblock User</DropdownMenuItem> : null) : <DropdownMenuItem className="text-red-500" onClick={handleBlockUser}>Block User</DropdownMenuItem>}
  </DropdownMenuContent>
  </DropdownMenu>
  </div>
@@ -3631,6 +3652,14 @@ export default function Messages() {
     >
       {isLoadingOlder ? "Loading older messages..." : "Load older messages"}
     </button>
+  </div>
+)}
+{active.isBlocked && (
+  <div className="flex justify-center py-1" role="status">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100/90 px-3 py-1 text-[11px] font-medium text-slate-600 shadow-sm">
+      <Lock className="h-3 w-3" />
+      {active.blockedByMe ? "You blocked this contact. Unblock to send messages." : "This user blocked you. You cannot send messages."}
+    </span>
   </div>
 )}
 {renderedMessages.map((m: any) => {
@@ -3928,7 +3957,13 @@ export default function Messages() {
  <div ref={bottomRef} />
  </div>
 
- {selectedMessageIds.size > 0 ? (
+ {active.isBlocked ? (
+ <div className="flex shrink-0 items-center justify-center gap-3 border-t border-border bg-[var(--chat-panel)] px-4 py-3 text-center text-xs text-[var(--chat-text-muted)]">
+ <Lock className="h-4 w-4 shrink-0" />
+ <span>{active.blockedByMe ? "You blocked this contact." : "You cannot reply because this user blocked you."}</span>
+ {active.blockedByMe && <Button type="button" variant="outline" size="sm" onClick={handleUnblockUser} className="h-8 rounded-full">Unblock</Button>}
+ </div>
+ ) : selectedMessageIds.size > 0 ? (
  <div className="flex h-16 items-center justify-between border-t border-border bg-white px-4 text-slate-950 shadow-[0_-8px_20px_rgba(15,23,42,0.06)]">
  <div className="flex min-w-0 items-center gap-4">
  <button type="button" onClick={clearSelectedMessages} className="grid h-10 w-10 place-items-center rounded-full text-slate-900 hover:bg-slate-100" aria-label="Cancel selection">

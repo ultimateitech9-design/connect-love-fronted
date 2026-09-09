@@ -4,7 +4,6 @@ import { SidebarProvider, SidebarTrigger } from "@/features/support/components/u
 import { AppSidebar } from "@/features/support/components/AppSidebar";
 import { Mail, Search, User } from "lucide-react";
 import { Input } from "@/features/support/components/ui/input";
-import { NotificationBell } from "@/features/support/components/NotificationBell";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -58,7 +57,6 @@ export default function RootLayout({
                         <Mail className="h-4 w-4" />
                       </a>
                     </div>
-                    <NotificationBell />
                     <Link href="/support/profile" aria-label="Support profile" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-muted/20 hover:bg-rose-50 transition-colors text-muted-foreground hover:text-foreground">
                       <User className="h-4 w-4" />
                     </Link>

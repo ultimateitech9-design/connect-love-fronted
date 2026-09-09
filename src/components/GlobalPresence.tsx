@@ -49,13 +49,13 @@ export function GlobalPresence() {
     });
 
     socket.on("connect", () => {
-      queryClient.invalidateQueries({ queryKey: ["matches", "active"] });
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
     });
 
     socket.on("receiveMessage", (message: IncomingMessage) => {
       if (String(message.senderId) === userId) return;
 
-      queryClient.setQueriesData({ queryKey: ["matches", "active", "access-v4", userId] }, (oldMatches: any) => {
+      queryClient.setQueriesData({ queryKey: ["matches"] }, (oldMatches: any) => {
         if (!Array.isArray(oldMatches)) return oldMatches;
         const updated = oldMatches.map((match: any) => {
           if (String(match.id) !== String(message.conversationId)) return match;
@@ -74,7 +74,7 @@ export function GlobalPresence() {
     });
 
     socket.on("USER_STATUS_CHANGED", (payload: { userId: string; isOnline: boolean; lastSeen?: string }) => {
-      queryClient.setQueriesData({ queryKey: ["matches", "active", "access-v4", userId] }, (oldMatches: any) => {
+      queryClient.setQueriesData({ queryKey: ["matches"] }, (oldMatches: any) => {
         if (!oldMatches) return oldMatches;
         return oldMatches.map((match: any) => {
           if (match.sender?.id === payload.userId) {

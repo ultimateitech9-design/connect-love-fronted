@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Sidebar } from "@/features/sales/components/Sidebar";
-import { NotificationMenu } from "@/features/sales/components/NotificationMenu";
 import { Search, User } from "lucide-react";
 import Link from "next/link";
 
@@ -33,7 +32,6 @@ export default function RootLayout({
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                <NotificationMenu />
                 <div
                   className="grid h-10 w-10 place-items-center rounded-full font-semibold text-white"
                   style={{ background: "var(--gradient-love)" }}

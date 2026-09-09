@@ -67,8 +67,8 @@ export default function HomePage() {
    }
  };
 
- const fetchStats = async () => {
- setLoading(true);
+ const fetchStats = async (silent = false) => {
+ if (!silent) setLoading(true);
  setError("");
  try {
  const data = await api.dashboard();
@@ -84,11 +84,22 @@ export default function HomePage() {
  } catch {
  setError("Failed to load data from backend. Is the backend server running?");
  } finally {
- setLoading(false);
+ if (!silent) setLoading(false);
  }
  };
 
- useEffect(() => { fetchStats(); }, []);
+ useEffect(() => {
+ void fetchStats();
+ const refresh = () => { if (document.visibilityState === "visible") void fetchStats(true); };
+ const interval = window.setInterval(refresh, 5_000);
+ window.addEventListener("focus", refresh);
+ document.addEventListener("visibilitychange", refresh);
+ return () => {
+ window.clearInterval(interval);
+ window.removeEventListener("focus", refresh);
+ document.removeEventListener("visibilitychange", refresh);
+ };
+ }, []);
 
  const activityPageCount = Math.max(1, Math.ceil(activityLog.length / ACTIVITY_PER_PAGE));
  const activityStartIndex = (activityPage - 1) * ACTIVITY_PER_PAGE;

@@ -16,6 +16,6 @@ export function useCurrentUser(token: string, enabled = true) {
     enabled: enabled && !!token,
     staleTime: 5 * 60_000,
     gcTime: 30 * 60_000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: "always",
   });
 }

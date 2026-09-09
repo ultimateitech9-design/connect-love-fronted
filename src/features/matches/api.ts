@@ -1,6 +1,6 @@
 import { directFetch } from "@/lib/api";
 
-export type MatchFilter = "active" | "sent" | "received" | "blocked";
+export type MatchFilter = "active" | "sent" | "received" | "blocked" | "messages";
 
 export const matchesApi = {
   list: (filter: MatchFilter, limit = 12, offset = 0) =>

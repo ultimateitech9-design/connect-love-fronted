@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
 import { formatDistance } from "@/lib/distance";
 import { FirstImpressionDialog } from "@/features/first-impressions/FirstImpressionDialog";
+import { recordDiscoveryProfileView } from "@/features/discovery/api";
 
 export interface Profile {
   id: string;
@@ -103,6 +104,15 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
     setIdx(0);
     actionPendingRef.current = false;
   }, [profiles]);
+
+  const activeProfileId = profiles.length > 0 ? profiles[idx % profiles.length]?.id : null;
+
+  useEffect(() => {
+    if (!activeProfileId) return;
+    void recordDiscoveryProfileView(activeProfileId).catch(() => {
+      // Insights should never interrupt discovery if tracking is unavailable.
+    });
+  }, [activeProfileId]);
 
   useEffect(() => {
     setPhotoIndex(0);

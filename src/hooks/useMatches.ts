@@ -100,9 +100,10 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  enabled: !!token && isEnabled && cacheHydrated,
  staleTime: 30_000,
  gcTime: 24 * 60 * 60_000,
- refetchOnWindowFocus: false,
+ refetchInterval: 5_000,
+ refetchOnWindowFocus: 'always',
  refetchOnMount: 'always',
- refetchOnReconnect: false,
+ refetchOnReconnect: 'always',
  });
 
  const matches = data ?? EMPTY_MATCHES;

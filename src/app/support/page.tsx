@@ -19,23 +19,39 @@ export default function Overview() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api.supportOverview()
-      .then((data) => {
-        setStats(data.stats);
-        setTrend(data.ticketTrend);
-        setMix(data.complaintMix);
-        setRecentTickets(data.recent.map((ticket) => ({
-          id: `#${ticket.id}`,
-          user: ticket.name,
-          phone: ticket.phone,
-          photoDataUrl: ticket.photoDataUrl,
-          topic: ticket.subject,
-          message: ticket.message,
-          priority: ticket.status === "escalated" ? "High" : ticket.status === "open" ? "Medium" : "Low",
-          status: ticket.status.replace(/\b\w/g, (c) => c.toUpperCase()),
-        })));
-      })
-      .catch(() => setError("Failed to load support data from backend."));
+    let active = true;
+    const loadOverview = () => {
+      if (document.visibilityState !== "visible") return;
+      api.supportOverview()
+        .then((data) => {
+          if (!active) return;
+          setStats(data.stats);
+          setTrend(data.ticketTrend);
+          setMix(data.complaintMix);
+          setRecentTickets(data.recent.map((ticket) => ({
+            id: `#${ticket.id}`,
+            user: ticket.name,
+            phone: ticket.phone,
+            photoDataUrl: ticket.photoDataUrl,
+            topic: ticket.subject,
+            message: ticket.message,
+            priority: ticket.status === "escalated" ? "High" : ticket.status === "open" ? "Medium" : "Low",
+            status: ticket.status.replace(/\b\w/g, (c) => c.toUpperCase()),
+          })));
+          setError("");
+        })
+        .catch(() => { if (active) setError("Failed to load support data from backend."); });
+    };
+    loadOverview();
+    const interval = window.setInterval(loadOverview, 5_000);
+    window.addEventListener("focus", loadOverview);
+    document.addEventListener("visibilitychange", loadOverview);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", loadOverview);
+      document.removeEventListener("visibilitychange", loadOverview);
+    };
   }, []);
 
   return (

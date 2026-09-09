@@ -149,18 +149,29 @@ export default function ProfilePage() {
  useEffect(() => {
  const token = getToken();
  if (!token) return;
- apiFetch("/users/me/insights", {
- headers: { Authorization: `Bearer ${token}` },
- })
- .then((response) => {
- if (!response.ok) throw new Error("Failed to load profile insights");
- return response.json();
- })
- .then(setInsights)
- .catch(() => {
- // Keep the profile usable if insights are temporarily unavailable.
- setInsights({ profileViews7d: 0, likesReceived: 0, compatibilityAverage: null });
- });
+ let cancelled = false;
+ const refreshInsights = () => {
+  if (document.visibilityState !== "visible") return;
+  apiFetch("/users/me/insights", {
+   headers: { Authorization: `Bearer ${token}` },
+  })
+  .then((response) => {
+   if (!response.ok) throw new Error("Failed to load profile insights");
+   return response.json();
+  })
+  .then((data) => { if (!cancelled) setInsights(data); })
+  .catch(() => {
+   if (!cancelled) setInsights((current) => current ?? { profileViews7d: 0, likesReceived: 0, compatibilityAverage: null });
+  });
+ };
+ refreshInsights();
+ const interval = window.setInterval(refreshInsights, 5_000);
+ window.addEventListener("focus", refreshInsights);
+ return () => {
+  cancelled = true;
+  window.clearInterval(interval);
+  window.removeEventListener("focus", refreshInsights);
+ };
  }, []);
 
 
@@ -398,20 +409,6 @@ export default function ProfilePage() {
     </div>
   </header>
 
- {/* Save feedback */}
- {saveMsg && (
- <div className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm border ${
- saveMsg.ok
- ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
- : "bg-rose-500/10 border-rose-500/30 text-rose-400"
- }`}>
- {saveMsg.ok
- ? <CheckCircle2 className="h-[16px] w-[16px] shrink-0" />
- : <AlertCircle className="h-[16px] w-[16px] shrink-0" />}
- {saveMsg.text}
- </div>
- )}
-
  {/* Form fields */}
  <div className="grid gap-4 sm:grid-cols-2">
  <RequiredField
@@ -632,14 +629,31 @@ export default function ProfilePage() {
  Log Out
  </Button>
  </div>
+ <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+ {saveMsg && (
+ <div
+ role={saveMsg.ok ? "status" : "alert"}
+ className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm ${
+ saveMsg.ok
+ ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+ : "bg-rose-500/10 border-rose-500/30 text-rose-400"
+ }`}
+ >
+ {saveMsg.ok
+ ? <CheckCircle2 className="h-[16px] w-[16px] shrink-0" />
+ : <AlertCircle className="h-[16px] w-[16px] shrink-0" />}
+ {saveMsg.text}
+ </div>
+ )}
  <Button
- className="w-full bg-gradient-to-r from-rose-500 to-pink-600 text-white gap-2 border-0 sm:w-auto"
+ className="w-full shrink-0 bg-gradient-to-r from-rose-500 to-pink-600 text-white gap-2 border-0 sm:w-auto"
  onClick={handleSave}
  disabled={saving || isLocked}
  >
  {saving && <Loader2 className="h-[16px] w-[16px] animate-spin" />}
  {saving ? "Savingâ€¦" : "Save changes"}
  </Button>
+ </div>
  </div>
  </section>
 

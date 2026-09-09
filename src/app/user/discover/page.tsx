@@ -13,6 +13,7 @@ import { AgeRangeSlider } from "@/features/discovery/AgeRangeSlider";
 import { CampaignOfferCard } from "@/features/user/CampaignOfferCard";
 import { ConnectLoveChatbot } from "@/features/chatbot/ConnectLoveChatbot";
 import { apiFetch } from "@/config/runtime";
+import { recordDiscoveryProfileView } from "@/features/discovery/api";
 
 const DISTANCE_STEP_KM = 100;
 const DISTANCE_OPTIONS_KM = [1, 5, 10, 25, 50, 100, 250, 500, 10000];
@@ -215,6 +216,15 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
     setPhotoIndex(0);
     actionPendingRef.current = false;
   }, [profiles]);
+
+  const activeProfileId = profiles.length > 0 ? profiles[idx % profiles.length]?.id : null;
+
+  useEffect(() => {
+    if (!activeProfileId) return;
+    void recordDiscoveryProfileView(activeProfileId).catch(() => {
+      // Keep the mobile discovery flow usable if insight tracking is unavailable.
+    });
+  }, [activeProfileId]);
 
   if (profiles.length === 0) return <EmptyProfilesCard />;
 

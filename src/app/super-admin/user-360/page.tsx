@@ -130,9 +130,9 @@ export default function User360Page() {
  );
  }, [query, users]);
 
- const loadUsers = async (search = "") => {
+ const loadUsers = async (search = "", silent = false) => {
  const requestId = ++usersRequestRef.current;
- setLoadingUsers(true);
+ if (!silent) setLoadingUsers(true);
  setError("");
  try {
  let page = 1;
@@ -153,15 +153,17 @@ export default function User360Page() {
  } catch {
  setError("Users load nahi hue. Backend/session check karein.");
  } finally {
- if (requestId === usersRequestRef.current) setLoadingUsers(false);
+ if (requestId === usersRequestRef.current && !silent) setLoadingUsers(false);
  }
  };
 
- const loadDetails = async (id: string) => {
+ const loadDetails = async (id: string, silent = false) => {
  if (!id) return;
+ if (!silent) {
  setLoadingDetails(true);
  setError("");
  setMessage("");
+ }
  try {
  const res = await api.userDetails(id);
  const user = res.user;
@@ -188,15 +190,37 @@ export default function User360Page() {
  } catch {
  setError("User details load nahi hue.");
  } finally {
- setLoadingDetails(false);
+ if (!silent) setLoadingDetails(false);
  }
  };
 
  useEffect(() => {
- const timer = window.setTimeout(() => loadUsers(query), 250);
- return () => window.clearTimeout(timer);
+ const timer = window.setTimeout(() => void loadUsers(query), 250);
+ const refresh = () => { if (document.visibilityState === "visible") void loadUsers(query, true); };
+ const interval = window.setInterval(refresh, 5_000);
+ window.addEventListener("focus", refresh);
+ document.addEventListener("visibilitychange", refresh);
+ return () => {
+ window.clearTimeout(timer);
+ window.clearInterval(interval);
+ window.removeEventListener("focus", refresh);
+ document.removeEventListener("visibilitychange", refresh);
+ };
  }, [query]);
- useEffect(() => { loadDetails(selectedId); }, [selectedId]);
+ useEffect(() => {
+ if (!selectedId) return;
+ void loadDetails(selectedId);
+ const refresh = () => {
+ const tag = document.activeElement?.tagName || "";
+ if (document.visibilityState === "visible" && !["INPUT", "SELECT", "TEXTAREA"].includes(tag)) void loadDetails(selectedId, true);
+ };
+ const interval = window.setInterval(refresh, 5_000);
+ window.addEventListener("focus", refresh);
+ return () => {
+ window.clearInterval(interval);
+ window.removeEventListener("focus", refresh);
+ };
+ }, [selectedId]);
 
  const updateField = (key: keyof UserForm, value: string | boolean) => {
  setForm((current) => ({ ...current, [key]: value }));

@@ -5,6 +5,7 @@ import { Check, X, Gem, Star, Lock, Shield, Loader2, TicketPercent } from "lucid
 import { toast } from "sonner";
 import { directFetch } from "@/lib/api";
 import { DiamondArtwork, DiamondCrystalFrame, DiamondFacetBackground } from "@/features/home/FeaturesSection";
+import { useQueryClient } from "@tanstack/react-query";
 
 declare global {
  interface Window {
@@ -78,6 +79,7 @@ const plans: Plan[] = [
 ];
 
 export default function PremiumPage() {
+ const queryClient = useQueryClient();
  const [selected, setSelected] = useState<string | null>(null);
  const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
  const [couponCode, setCouponCode] = useState("");
@@ -133,7 +135,7 @@ export default function PremiumPage() {
     try {
      await directFetch("/payments/razorpay/verify", { method: "POST", body: JSON.stringify(response) });
      toast.success(`${plan.name} activated for 30 days!`);
-     window.setTimeout(() => window.location.reload(), 900);
+     await queryClient.invalidateQueries({ type: "active" });
     } catch {
      toast.error("Payment received, but verification is pending. Please contact support if the plan does not activate.");
     } finally {

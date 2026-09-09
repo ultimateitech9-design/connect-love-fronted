@@ -72,8 +72,8 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
   useEffect(() => {
     let alive = true;
 
-    const loadAllUsers = async () => {
-      setLoadingUsers(true);
+    const loadAllUsers = async (silent = false) => {
+      if (!silent) setLoadingUsers(true);
       setError("");
       try {
         let page = 1;
@@ -94,28 +94,51 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
       } catch {
         if (alive) setError("Users load nahi hue. Backend/session check karein.");
       } finally {
-        if (alive) setLoadingUsers(false);
+        if (alive && !silent) setLoadingUsers(false);
       }
     };
 
     void loadAllUsers();
-    return () => { alive = false; };
+    const refresh = () => { if (document.visibilityState === "visible") void loadAllUsers(true); };
+    const interval = window.setInterval(refresh, 5_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      alive = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, []);
 
   useEffect(() => {
     if (!selectedId) return;
     let alive = true;
-    setLoadingDetails(true);
-    setError("");
-    api.userDetails(selectedId)
-      .then((res) => {
-        if (alive) setDetails(res.user);
-      })
-      .catch(() => setError("User details load nahi hue."))
-      .finally(() => {
-        if (alive) setLoadingDetails(false);
-      });
-    return () => { alive = false; };
+    const loadDetails = (silent = false) => {
+      if (!silent) {
+        setLoadingDetails(true);
+        setError("");
+      }
+      api.userDetails(selectedId)
+        .then((res) => {
+          if (alive) setDetails(res.user);
+        })
+        .catch(() => { if (alive && !silent) setError("User details load nahi hue."); })
+        .finally(() => {
+          if (alive && !silent) setLoadingDetails(false);
+        });
+    };
+    loadDetails();
+    const refresh = () => {
+      if (document.visibilityState === "visible" && document.activeElement?.tagName !== "SELECT") loadDetails(true);
+    };
+    const interval = window.setInterval(refresh, 5_000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      alive = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+    };
   }, [selectedId]);
 
   const handleStatusChange = async (status: "active" | "suspended") => {
