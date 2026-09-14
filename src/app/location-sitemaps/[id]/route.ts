@@ -28,7 +28,7 @@ export async function GET(
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls.map(
       (url) =>
-        `  <url><loc>${escapeSitemapXml(url)}</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
+        `  <url><loc>${escapeSitemapXml(url)}</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
     ),
     "</urlset>",
   ].join("\n");

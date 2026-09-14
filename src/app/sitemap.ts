@@ -55,6 +55,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return routes.map((route) => ({
     url: new URL(route, SITE_URL).toString(),
+    lastModified: new Date(),
     changeFrequency:
       route === "/" || route === "/blog" || route.startsWith("/dating/")
         ? "weekly"

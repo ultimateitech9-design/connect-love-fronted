@@ -10,9 +10,14 @@ import {
 
 export const LOCATION_SITEMAP_URL_LIMIT = 50_000;
 
-export function getLocationSitemapUrls() {
+export function getIndiaSitemapUrls() {
+  return [...new Set(INDIA_DATING_LOCATIONS.map(datingLocationPath))]
+    .sort()
+    .map((path) => new URL(path, SITE_URL).toString());
+}
+
+export function getWorldwideSitemapUrls() {
   const paths = [
-    ...INDIA_DATING_LOCATIONS.map(datingLocationPath),
     ...WORLD_COUNTRIES.map(worldCountryPath),
     ...WORLD_CITIES.filter(isWorldCityIndexable).map(worldCityPath),
   ];
@@ -20,6 +25,10 @@ export function getLocationSitemapUrls() {
   return [...new Set(paths)]
     .sort()
     .map((path) => new URL(path, SITE_URL).toString());
+}
+
+export function getLocationSitemapUrls() {
+  return getIndiaSitemapUrls();
 }
 
 export function getLocationSitemapCount() {

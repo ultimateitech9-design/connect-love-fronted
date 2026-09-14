@@ -37,7 +37,10 @@ type WorldCitiesData = {
 
 export const WORLD_CITIES_DATA = worldCitiesData as WorldCitiesData;
 export const WORLD_CITIES = WORLD_CITIES_DATA.cities;
-export const INDEXABLE_WORLD_CITY_COUNT = 500;
+// Every city in the published dataset has a dedicated, canonical landing page.
+// Keep the complete set eligible for indexing so valid location URLs do not
+// receive a noindex directive merely because of their dataset rank.
+export const INDEXABLE_WORLD_CITY_COUNT = Number.POSITIVE_INFINITY;
 
 const countryMap = new Map<string, WorldCountry>();
 for (const city of WORLD_CITIES) {

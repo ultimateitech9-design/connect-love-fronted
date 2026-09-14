@@ -14,14 +14,16 @@ export default function robots(): MetadataRoute.Robots {
           "/management/",
           "/sales/",
           "/support/",
-          "/login",
-          "/register",
           "/forgot-password",
           "/deploy-status/",
           "/api/",
         ],
       },
     ],
-    sitemap: [`${SITE_URL}/sitemap.xml`, `${SITE_URL}/location-sitemap.xml`],
+    sitemap: [
+      `${SITE_URL}/sitemap.xml`,
+      `${SITE_URL}/location-sitemap.xml`,
+      `${SITE_URL}/worldwide-sitemap.xml`,
+    ],
   };
 }
