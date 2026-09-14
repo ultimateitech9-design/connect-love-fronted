@@ -105,9 +105,9 @@ export default function PaymentsPage() {
     const totalRefunded = refundedTx.reduce((sum, t) => sum + t.amount, 0);
 
     return {
-      revenue: `$${totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      revenue: `Rs ${totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       subscribers: totalSubscribers,
-      refunds: `$${totalRefunded.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      refunds: `Rs ${totalRefunded.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       transactionsCount: transactions.length
     };
   }, [transactions, plans]);
@@ -291,7 +291,7 @@ export default function PaymentsPage() {
                     {tx.plan.toLowerCase() === "platinum" ? "Diamond" : tx.plan}
                   </td>
                   <td className="py-4 text-sm font-bold text-foreground">
-                    ${tx.amount.toFixed(2)}
+                    Rs {tx.amount.toFixed(2)}
                   </td>
                   <td className="py-4 text-sm text-muted-foreground">
                     {tx.date}

@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 const protectedManagementPaths = ["/admin", "/super-admin", "/sales", "/support"];
 
 const managementRoleAccess: Record<string, string[]> = {
-  "/admin": ["admin", "super_admin"],
+  "/admin": ["admin"],
   "/super-admin": ["super_admin"],
-  "/sales": ["sales", "super_admin"],
-  "/support": ["support", "admin", "super_admin"],
+  "/sales": ["sales"],
+  "/support": ["support"],
 };
 
 export function proxy(request: NextRequest) {
@@ -34,13 +34,13 @@ export function proxy(request: NextRequest) {
     const role = request.cookies.get("management_role")?.value;
     if (!token) {
       const url = request.nextUrl.clone();
-      url.pathname = "/management";
+      url.pathname = `${matchedPath === "/super-admin" ? "/management/super-admin" : matchedPath === "/admin" ? "/management/admin" : matchedPath === "/sales" ? "/management/sales" : "/management/support"}`;
       return NextResponse.redirect(url);
     }
     const allowedRoles = managementRoleAccess[matchedPath];
     if (allowedRoles && (!role || !allowedRoles.includes(role))) {
       const url = request.nextUrl.clone();
-      url.pathname = "/management";
+      url.pathname = `${matchedPath === "/super-admin" ? "/management/super-admin" : matchedPath === "/admin" ? "/management/admin" : matchedPath === "/sales" ? "/management/sales" : "/management/support"}`;
       url.searchParams.set("reason", "forbidden");
       return NextResponse.redirect(url);
     }

@@ -24,12 +24,23 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
 
  useEffect(() => {
  setLoggedIn(isAuthenticated());
+ const syncAuth = () => setLoggedIn(isAuthenticated());
  setActiveTheme(getStoredTheme());
  const syncTheme = (event: Event) => {
  setActiveTheme((event as CustomEvent<AppTheme>).detail || getStoredTheme());
  };
+ window.addEventListener("connect-love-auth-change", syncAuth);
+ window.addEventListener("storage", syncAuth);
+ window.addEventListener("focus", syncAuth);
+ window.addEventListener("pageshow", syncAuth);
  window.addEventListener("connect-love-theme-change", syncTheme);
- return () => window.removeEventListener("connect-love-theme-change", syncTheme);
+ return () => {
+  window.removeEventListener("connect-love-auth-change", syncAuth);
+  window.removeEventListener("storage", syncAuth);
+  window.removeEventListener("focus", syncAuth);
+  window.removeEventListener("pageshow", syncAuth);
+  window.removeEventListener("connect-love-theme-change", syncTheme);
+ };
  }, []);
 
  useEffect(() => {
@@ -141,7 +152,14 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
           <ThemeToggle className="dark:bg-slate-900" />
           {loggedIn ? (
             <Link
-              href="/user"
+              href={isAuthenticated() ? "/user" : "/login"}
+              onClick={(event) => {
+                if (!isAuthenticated()) {
+                  event.preventDefault();
+                  goToLogin();
+                }
+              }}
+              aria-label={isAuthenticated() ? "Open account" : "Sign in"}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-all duration-300 hover:scale-105 hover:bg-slate-200 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
             >
               <User className="h-5 w-5" />
@@ -224,7 +242,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
               <HeaderLanguageDropdown mobile />
               {loggedIn ? (
                 <Link
-                  href="/user"
+                  href={isAuthenticated() ? "/user" : "/login"}
                   onClick={() => setMobileOpen(false)}
                   className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600 shadow-md shadow-rose-500/25"
                 >

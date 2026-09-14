@@ -45,7 +45,7 @@ export function getToken(): string | null {
 
 /** Retrieve the management JWT without being shadowed by a normal user session. */
 export function getManagementToken(): string | null {
- return getCookie("management_client_token") ?? storage()?.getItem(TOKEN_KEY) ?? null;
+ return getCookie("management_client_token");
 }
 
 /**
@@ -56,6 +56,7 @@ export function setToken(token: string): void {
  setCookie(COOKIE_NAME, "1", 30);
  try { storage()?.setItem(TOKEN_KEY, token); } catch {}
  try { sessionStorageSafe()?.setItem(TOKEN_KEY, token); } catch {}
+ if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('connect-love-auth-change', { detail: true }));
 }
 
 export function requireOnboarding(): void {
@@ -94,6 +95,7 @@ export function clearToken(): void {
  clearProfileReminder();
  clearOnboardingRequired();
  deleteCookie(COOKIE_NAME);
+ if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('connect-love-auth-change', { detail: false }));
 }
 
 /** Return true when a valid-looking token is present */
