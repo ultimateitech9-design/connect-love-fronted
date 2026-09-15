@@ -14,18 +14,22 @@ type Row = {
   platformCoins: number;
   label?: string;
   payoutAccount?: string;
+  payoutDetails?: string;
+  amountPaise?: number | null;
   createdAt: string;
-  user?: { name: string; email: string } | null;
-  sender?: { name: string; email: string } | null;
-  receiver?: { name: string; email: string } | null;
+  user?: AccountDetails | null;
+  sender?: AccountDetails | null;
+  receiver?: AccountDetails | null;
 };
 
-export default function TransactionsPage() {
+type AccountDetails = { name: string; email: string; phone?: string | null; gender?: string | null; birthDate?: string | null; city?: string | null; profession?: string | null };
+
+export default function TransactionsPage({ initialWithdrawalsOnly = false }: { initialWithdrawalsOnly?: boolean }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
-  const [withdrawalsOnly, setWithdrawalsOnly] = useState(false);
+  const [withdrawalsOnly, setWithdrawalsOnly] = useState(initialWithdrawalsOnly);
   const [commissionOnly, setCommissionOnly] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
 
@@ -100,14 +104,14 @@ export default function TransactionsPage() {
           <thead className="bg-slate-50 text-xs uppercase text-slate-700"><tr>
             <th className="px-4 py-3">Type</th><th className="px-4 py-3">User / Sender</th><th className="px-4 py-3">Receiver</th><th className="px-4 py-3">Gross</th><th className="px-4 py-3">User 80%</th><th className="px-4 py-3">Platform 20%</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Date</th>
           </tr></thead>
-          <tbody className="text-black">{filtered.map((row) => <tr key={row.id} className="border-t border-border bg-white text-black">
+          <tbody className="text-black">{filtered.map((row) => { let details: Record<string, string> = {}; try { details = row.payoutDetails ? JSON.parse(row.payoutDetails) : {}; } catch {} return <tr key={row.id} className="border-t border-border bg-white text-black">
             <td className="px-4 py-3"><span className="inline-flex items-center gap-1.5 font-semibold capitalize">{row.type === 'recharge' || row.type === 'gift' || row.type === 'admin_credit' ? <ArrowDownLeft className="h-4 w-4 text-emerald-500" /> : <ArrowUpRight className="h-4 w-4 text-rose-500" />}{row.type.replace(/_/g, ' ')}</span><div className="text-xs text-muted-foreground">{row.label}</div></td>
-            <td className="px-4 py-3 font-medium">{row.sender?.name || row.user?.name || 'Platform'}<div className="text-xs font-normal text-muted-foreground">{row.sender?.email || row.user?.email}</div></td>
+            <td className="px-4 py-3 font-medium">{row.sender?.name || row.user?.name || 'Platform'}<div className="text-xs font-normal text-muted-foreground">{row.sender?.email || row.user?.email}</div>{row.type === 'withdrawal' && row.user && <div className="mt-1 text-[11px] font-normal text-slate-600">{row.user.phone || 'No phone'} ? {row.user.gender || 'Gender not set'}{row.user.city ? ` ? ${row.user.city}` : ''}{row.user.profession ? ` ? ${row.user.profession}` : ''}</div>}</td>
             <td className="px-4 py-3">{row.receiver?.name || '—'}<div className="text-xs text-muted-foreground">{row.receiver?.email}</div></td>
-            <td className="px-4 py-3 font-bold">{row.grossCoins}</td><td className="px-4 py-3 text-emerald-600">{row.userCoins}</td><td className="px-4 py-3 text-amber-600">{row.platformCoins}</td>
-            <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-bold ${row.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : row.status === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{row.status === 'completed' ? 'Successful' : row.status}</span>{row.payoutAccount && <div className="mt-1 text-xs text-muted-foreground">{row.payoutAccount}</div>}{row.type === 'withdrawal' && row.status === 'pending' && <div className="mt-2 flex gap-1.5"><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'completed')} className="rounded-md bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white disabled:opacity-50">Mark Successful</button><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'rejected')} className="rounded-md bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600 disabled:opacity-50">Reject</button></div>}</td>
+            <td className="px-4 py-3"><strong>{row.grossCoins}</strong>{row.type === 'withdrawal' && <div className="text-xs text-slate-600">?{((Number(row.amountPaise || 0)) / 100).toFixed(2)}</div>}</td><td className="px-4 py-3 text-emerald-600">{row.userCoins}</td><td className="px-4 py-3 text-amber-600">{row.platformCoins}</td>
+            <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-bold ${row.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : row.status === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{row.status === 'completed' ? 'Paid' : row.status}</span>{row.payoutAccount && <div className="mt-1 text-xs text-muted-foreground">{row.payoutAccount}</div>}{row.type === 'withdrawal' && details.method === 'upi' && <div className="mt-1 text-[11px] text-slate-600">UPI: {details.upiId}</div>}{row.type === 'withdrawal' && details.method === 'bank' && <div className="mt-1 text-[11px] text-slate-600">{details.accountHolder} ? {details.bankName || 'Bank'} ? IFSC {details.ifsc}<br />A/C {details.accountNumber}</div>}{row.type === 'withdrawal' && row.status === 'pending' && <div className="mt-2 flex gap-1.5"><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'completed')} className="rounded-md bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white disabled:opacity-50">Mark Paid</button><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'rejected')} className="rounded-md bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600 disabled:opacity-50">Reject</button></div>}</td>
             <td className="px-4 py-3 text-muted-foreground">{new Date(row.createdAt).toLocaleString()}</td>
-          </tr>)}</tbody>
+          </tr>; })}</tbody>
         </table></div>
       )}
     </div>

@@ -3312,32 +3312,7 @@ export default function Messages() {
  };
 
  const withdrawGiftEarnings = async () => {
-   if (!token || coinActionPending) return;
-   const amountInput = prompt(`Gift earnings available: ${earnedCoinBalance} coins. Minimum withdrawal is 50 coins.`, "50");
-   if (amountInput === null) return;
-   const amount = Number(amountInput);
-   if (!Number.isInteger(amount) || amount < 50) {
-     toast.error("Minimum withdrawal is 50 coins.");
-     return;
-   }
-   const upiId = prompt("Enter your UPI ID (example: name@upi):", "");
-   if (!upiId?.trim()) return;
-   setCoinActionPending(true);
-   try {
-     const response = await fetch(`${API_URL}/wallet/razorpay/withdrawals`, {
-       method: "POST",
-       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-       body: JSON.stringify({ coins: amount, upiId: upiId.trim() }),
-     });
-     const data = await response.json().catch(() => null);
-     if (!response.ok) throw new Error(data?.message || "Withdrawal request failed.");
-     setEarnedCoinBalance((current) => Math.max(0, current - amount));
-     toast.success(data?.message || "Withdrawal is being processed to your UPI ID.");
-   } catch (error) {
-     toast.error(error instanceof Error ? error.message : "Withdrawal request failed.");
-   } finally {
-     setCoinActionPending(false);
-   }
+   if (typeof window !== "undefined") window.location.href = "/user/withdraw";
  };
 
  const sendGiftWithCoins = async (gift: { emoji: string; label: string; price: number }) => {

@@ -25,6 +25,7 @@ import {
   Crown,
   MessageSquareWarning,
   Gift,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutManagement } from "@/app/actions/managementAuth";
@@ -39,6 +40,7 @@ const nav = [
   { to: "/super-admin/plan-activation", label: "Plan Activation", icon: Crown },
   { to: "/super-admin/coupons", label: "Coupons", icon: TicketPercent },
   { to: "/super-admin/transactions", label: "Transactions", icon: WalletCards },
+  { to: "/super-admin/withdrawals", label: "Withdrawals", icon: Banknote },
   { to: "/super-admin/gift-coins", label: "Gift Coins", icon: Gift },
   { to: "/super-admin/reports", label: "Reports", icon: Flag },
   { to: "/super-admin/complaints", label: "Complaints", icon: MessageSquareWarning },
