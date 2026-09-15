@@ -15,7 +15,6 @@ export const APP_LANGUAGES: AppLanguage[] = [
   { code: "gu", translationCode: "gu", name: "Gujarati", nativeName: "ગુજરાતી" },
   { code: "hi", translationCode: "hi", name: "Hindi", nativeName: "हिन्दी" },
   { code: "kn", translationCode: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ" },
-  { code: "ks", translationCode: "ks", name: "Kashmiri", nativeName: "کٲشُر", direction: "rtl" },
   { code: "gom", translationCode: "gom", name: "Konkani", nativeName: "कोंकणी" },
   { code: "mai", translationCode: "mai", name: "Maithili", nativeName: "मैथिली" },
   { code: "ml", translationCode: "ml", name: "Malayalam", nativeName: "മലയാളം" },
@@ -26,7 +25,6 @@ export const APP_LANGUAGES: AppLanguage[] = [
   { code: "pa", translationCode: "pa", name: "Punjabi", nativeName: "ਪੰਜਾਬੀ" },
   { code: "sa", translationCode: "sa", name: "Sanskrit", nativeName: "संस्कृतम्" },
   { code: "sat", translationCode: "sat", name: "Santali", nativeName: "ᱥᱟᱱᱛᱟᱲᱤ" },
-  { code: "sd", translationCode: "sd", name: "Sindhi", nativeName: "سنڌي", direction: "rtl" },
   { code: "ta", translationCode: "ta", name: "Tamil", nativeName: "தமிழ்" },
   { code: "te", translationCode: "te", name: "Telugu", nativeName: "తెలుగు" },
 ];
