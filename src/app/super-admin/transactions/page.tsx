@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, Coins, Search, WalletCards } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { ArrowDownLeft, ArrowUpRight, Coins, Copy, Search, WalletCards } from 'lucide-react';
 import { PageHeader } from '@/components/admin/PageHeader';
 import { managementFetch } from '@/lib/api';
 
@@ -24,7 +25,9 @@ type Row = {
 
 type AccountDetails = { name: string; email: string; phone?: string | null; gender?: string | null; birthDate?: string | null; city?: string | null; profession?: string | null };
 
-export default function TransactionsPage({ initialWithdrawalsOnly = false }: { initialWithdrawalsOnly?: boolean }) {
+export default function TransactionsPage() {
+  const pathname = usePathname();
+  const initialWithdrawalsOnly = pathname === '/super-admin/withdrawals';
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,6 +35,7 @@ export default function TransactionsPage({ initialWithdrawalsOnly = false }: { i
   const [withdrawalsOnly, setWithdrawalsOnly] = useState(initialWithdrawalsOnly);
   const [commissionOnly, setCommissionOnly] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     // This backend route is outside /api, but must use the Super Admin token.
@@ -84,6 +88,25 @@ export default function TransactionsPage({ initialWithdrawalsOnly = false }: { i
 
   const totalCommission = rows.reduce((sum, row) => sum + Number(row.platformCoins || 0), 0);
   const pendingWithdrawals = rows.filter((row) => row.type === 'withdrawal' && row.status === 'pending').reduce((sum, row) => sum + row.grossCoins, 0);
+  const copyPayoutDetails = async (row: Row, details: Record<string, string>) => {
+    const account = row.user;
+    const lines = [
+      `User: ${account?.name || ''}`,
+      `Email: ${account?.email || ''}`,
+      `Phone: ${account?.phone || 'Not provided'}`,
+      `Amount: ${row.grossCoins} coins (?${(Number(row.amountPaise || 0) / 100).toFixed(2)})`,
+      `Method: ${String(details.method || '').toUpperCase()}`,
+      ...(details.method === 'upi' ? [`UPI ID: ${details.upiId || ''}`] : [
+        `Account holder: ${details.accountHolder || ''}`,
+        `Bank name: ${details.bankName || ''}`,
+        `Account number: ${details.accountNumber || ''}`,
+        `IFSC: ${details.ifsc || ''}`,
+      ]),
+    ];
+    await navigator.clipboard.writeText(lines.join('\n'));
+    setCopiedId(row.id);
+    window.setTimeout(() => setCopiedId((current) => current === row.id ? null : current), 1800);
+  };
 
   return <div>
     <PageHeader title="Transaction History" description="Wallet recharges, gifts, user earnings, platform commission and withdrawal requests." />
@@ -106,10 +129,10 @@ export default function TransactionsPage({ initialWithdrawalsOnly = false }: { i
           </tr></thead>
           <tbody className="text-black">{filtered.map((row) => { let details: Record<string, string> = {}; try { details = row.payoutDetails ? JSON.parse(row.payoutDetails) : {}; } catch {} return <tr key={row.id} className="border-t border-border bg-white text-black">
             <td className="px-4 py-3"><span className="inline-flex items-center gap-1.5 font-semibold capitalize">{row.type === 'recharge' || row.type === 'gift' || row.type === 'admin_credit' ? <ArrowDownLeft className="h-4 w-4 text-emerald-500" /> : <ArrowUpRight className="h-4 w-4 text-rose-500" />}{row.type.replace(/_/g, ' ')}</span><div className="text-xs text-muted-foreground">{row.label}</div></td>
-            <td className="px-4 py-3 font-medium">{row.sender?.name || row.user?.name || 'Platform'}<div className="text-xs font-normal text-muted-foreground">{row.sender?.email || row.user?.email}</div>{row.type === 'withdrawal' && row.user && <div className="mt-1 text-[11px] font-normal text-slate-600">{row.user.phone || 'No phone'} ? {row.user.gender || 'Gender not set'}{row.user.city ? ` ? ${row.user.city}` : ''}{row.user.profession ? ` ? ${row.user.profession}` : ''}</div>}</td>
+            <td className="px-4 py-3 font-medium">{row.sender?.name || row.user?.name || 'Platform'}<div className="text-xs font-normal text-muted-foreground">{row.sender?.email || row.user?.email}</div>{row.type === 'withdrawal' && row.user && <div className="mt-1 space-y-0.5 text-[11px] font-normal leading-4 text-slate-600"><div>Phone: {row.user.phone || 'Not provided'}</div><div>Gender: {row.user.gender || 'Not set'}</div>{row.user.city && <div>City: {row.user.city}</div>}{row.user.profession && <div>Profession: {row.user.profession}</div>}</div>}</td>
             <td className="px-4 py-3">{row.receiver?.name || '—'}<div className="text-xs text-muted-foreground">{row.receiver?.email}</div></td>
             <td className="px-4 py-3"><strong>{row.grossCoins}</strong>{row.type === 'withdrawal' && <div className="text-xs text-slate-600">?{((Number(row.amountPaise || 0)) / 100).toFixed(2)}</div>}</td><td className="px-4 py-3 text-emerald-600">{row.userCoins}</td><td className="px-4 py-3 text-amber-600">{row.platformCoins}</td>
-            <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-bold ${row.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : row.status === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{row.status === 'completed' ? 'Paid' : row.status}</span>{row.payoutAccount && <div className="mt-1 text-xs text-muted-foreground">{row.payoutAccount}</div>}{row.type === 'withdrawal' && details.method === 'upi' && <div className="mt-1 text-[11px] text-slate-600">UPI: {details.upiId}</div>}{row.type === 'withdrawal' && details.method === 'bank' && <div className="mt-1 text-[11px] text-slate-600">{details.accountHolder} ? {details.bankName || 'Bank'} ? IFSC {details.ifsc}<br />A/C {details.accountNumber}</div>}{row.type === 'withdrawal' && row.status === 'pending' && <div className="mt-2 flex gap-1.5"><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'completed')} className="rounded-md bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white disabled:opacity-50">Mark Paid</button><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'rejected')} className="rounded-md bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600 disabled:opacity-50">Reject</button></div>}</td>
+            <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-bold ${row.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : row.status === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{row.status === 'completed' ? 'Paid' : row.status}</span>{row.payoutAccount && <div className="mt-1 text-xs text-muted-foreground">Account: {row.payoutAccount}</div>}{row.type === 'withdrawal' && details.method === 'upi' && <div className="mt-1 space-y-0.5 text-[11px] leading-4 text-slate-600"><div>Method: UPI</div><div>UPI ID: {details.upiId || 'Not provided'}</div></div>}{row.type === 'withdrawal' && details.method === 'bank' && <div className="mt-1 space-y-0.5 text-[11px] leading-4 text-slate-600"><div>Method: Bank account</div><div>Account holder: {details.accountHolder || 'Not provided'}</div><div>Bank name: {details.bankName || 'Not provided'}</div><div>Account number: {details.accountNumber || 'Not provided'}</div><div>IFSC: {details.ifsc || 'Not provided'}</div></div>}{row.type === 'withdrawal' && details.method && <button type="button" onClick={() => copyPayoutDetails(row, details)} className="mt-2 inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200"><Copy className="h-3 w-3" />{copiedId === row.id ? 'Copied' : 'Copy details'}</button>}{row.type === 'withdrawal' && row.status === 'pending' && <div className="mt-2 flex gap-1.5"><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'completed')} className="rounded-md bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white disabled:opacity-50">Mark Paid</button><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'rejected')} className="rounded-md bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600 disabled:opacity-50">Reject</button></div>}</td>
             <td className="px-4 py-3 text-muted-foreground">{new Date(row.createdAt).toLocaleString()}</td>
           </tr>; })}</tbody>
         </table></div>

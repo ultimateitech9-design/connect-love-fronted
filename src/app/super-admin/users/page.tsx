@@ -191,8 +191,16 @@ export default function UsersPage() {
  setLoading(true);
  setError("");
  try {
- const res = await api.users("", 1, 100, premiumOnly ? "premium" : undefined);
- setRows(res.users.map((u, i) => buildRow(u, i)));
+ const limit = 100;
+ const filter = premiumOnly ? "premium" : undefined;
+ const firstPage = await api.users("", 1, limit, filter);
+ const totalPages = Math.max(1, Math.ceil(firstPage.total / limit));
+ const remainingPages = await Promise.all(
+   Array.from({ length: totalPages - 1 }, (_, index) => api.users("", index + 2, limit, filter)),
+ );
+ const allUsers = [firstPage, ...remainingPages].flatMap((response) => response.users);
+ setRows(allUsers.map((u, i) => buildRow(u, i)));
+ setPage(1);
  } catch {
  setError("Failed to load users from backend. Is the backend server running?");
  } finally {
