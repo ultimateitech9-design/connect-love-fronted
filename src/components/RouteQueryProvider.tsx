@@ -21,6 +21,7 @@ export function RouteQueryProvider({ children }: { children: React.ReactNode }) 
 
   const enableLiveSync = needsQueryClient
     && !pathname.startsWith("/management/")
-    && !pathname.startsWith("/user/messages");
+    && !pathname.startsWith("/user/messages")
+    && pathname !== "/super-admin/user-360";
   return <QueryProvider>{enableLiveSync ? <LiveDataSync /> : null}{children}</QueryProvider>;
 }
