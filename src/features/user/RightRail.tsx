@@ -25,7 +25,7 @@ export function RightRail() {
   const [recentMatches, setRecentMatches] = useState<any[]>([]);
   const token = getToken() || "";
   const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser(token);
-  const { matches: activeMatches } = useMatches(token, "active");
+  const { matches: activeMatches } = useMatches(token, "active", { limit: 10 });
 
   useEffect(() => {
     if (currentUser) {
@@ -55,9 +55,8 @@ export function RightRail() {
                 photo: profile.photo || "",
               };
             }).filter((match: any) => match.name && match.name !== "Unknown" && match.name !== "Someone");
-            // Show every unlocked active match in the section. The list itself
-            // can scroll when there are more matches than the available rail height.
-            setRecentMatches(displayMatches);
+            // The API returns newest matches first; keep this preview to ten.
+            setRecentMatches(displayMatches.slice(0, 10));
       } catch {
         setRecentMatches([]);
       }
