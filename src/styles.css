@@ -8,7 +8,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: var(--font-poppins), "Poppins", sans-serif;
+  --font-sans: "Poppins", "Segoe UI", sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -132,7 +132,7 @@
 
 @layer base {
   *, ::before, ::after { box-sizing: border-box; border-color: var(--color-border); min-width: 0; }
-  html, body { width: 100%; min-width: 0; font-family: var(--font-poppins), "Poppins", sans-serif; scroll-behavior: smooth; overflow-x: clip; }
+  html, body { width: 100%; min-width: 0; font-family: "Poppins", "Segoe UI", sans-serif; scroll-behavior: smooth; overflow-x: clip; }
   body {
     min-height: 100dvh;
     background-color: var(--color-background);
@@ -698,8 +698,8 @@ button:hover .react-cry .cinematic-reaction-emoji {
   --color-brand-rose: var(--brand-rose);
   --color-brand-coral: var(--brand-coral);
   --color-brand-plum: var(--brand-plum);
-  --font-display: var(--font-poppins), "Poppins", sans-serif;
-  --font-sans: var(--font-poppins), "Poppins", sans-serif;
+  --font-display: "Poppins", "Segoe UI", sans-serif;
+  --font-sans: "Poppins", "Segoe UI", sans-serif;
 }
 
 .theme-sales.dark {

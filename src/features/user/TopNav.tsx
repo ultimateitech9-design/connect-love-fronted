@@ -9,6 +9,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { logout, getToken } from "@/lib/auth";
+import { directFetch } from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -42,6 +43,7 @@ export function TopNav() {
  const [loadNavData, setLoadNavData] = useState(false);
  const [seenNotificationIds, setSeenNotificationIds] = useState<Set<string>>(new Set());
  const [clearedNotificationIds, setClearedNotificationIds] = useState<Set<string>>(new Set());
+ const [notificationsClearedAt, setNotificationsClearedAt] = useState<string | null>(null);
  const [seenMatchIds, setSeenMatchIds] = useState<Set<string>>(new Set());
  const [seenMatchesReady, setSeenMatchesReady] = useState(false);
 
@@ -90,7 +92,14 @@ export function TopNav() {
      count: Number(m.unreadCount) || 1,
    }))
  ];
- const visibleNotifications = realNotifications.filter((notification) => !clearedNotificationIds.has(notification.id));
+ const visibleNotifications = realNotifications.filter((notification) => {
+  if (clearedNotificationIds.has(notification.id)) return false;
+  if (!notificationsClearedAt) return true;
+  const source = notification.id.startsWith("match-")
+   ? receivedMatches.find((match: any) => `match-${match.id}` === notification.id)?.createdAt
+   : visibleActiveMatches.find((match: any) => `msg-${match.id}-${match.lastMessageTime || match.updatedAt || match.unreadCount}` === notification.id)?.lastMessageTime || visibleActiveMatches.find((match: any) => `msg-${match.id}-${match.lastMessageTime || match.updatedAt || match.unreadCount}` === notification.id)?.updatedAt;
+  return !source || new Date(source).getTime() > new Date(notificationsClearedAt).getTime();
+ });
  const unseenNotifications = visibleNotifications.filter((notification) => !seenNotificationIds.has(notification.id));
  const totalUnread = unseenNotifications.reduce((sum, notification) => sum + notification.count, 0);
 
@@ -123,11 +132,12 @@ export function TopNav() {
  useEffect(() => {
   try {
    const saved = JSON.parse(localStorage.getItem(clearedStorageKey) || "[]");
+  setNotificationsClearedAt(navUser?.notificationsClearedAt || null);
    setClearedNotificationIds(new Set(Array.isArray(saved) ? saved.map(String) : []));
   } catch {
    setClearedNotificationIds(new Set());
   }
- }, [clearedStorageKey]);
+ }, [clearedStorageKey, navUser?.notificationsClearedAt]);
 
  useEffect(() => {
   setSeenMatchesReady(false);
@@ -220,13 +230,19 @@ export function TopNav() {
   localStorage.setItem(seenStorageKey, JSON.stringify(trimmed));
  };
 
- const handleClearNotifications = () => {
+ const handleClearNotifications = async () => {
   if (visibleNotifications.length === 0) return;
-  const next = new Set(clearedNotificationIds);
-  visibleNotifications.forEach((notification) => next.add(notification.id));
-  const trimmed = [...next].slice(-500);
-  setClearedNotificationIds(new Set(trimmed));
-  localStorage.setItem(clearedStorageKey, JSON.stringify(trimmed));
+  try {
+   const response = await directFetch<{ clearedAt: string }>("/users/me/notifications/clear-all", { method: "POST" });
+   setNotificationsClearedAt(response.clearedAt);
+   const next = new Set(clearedNotificationIds);
+   visibleNotifications.forEach((notification) => next.add(notification.id));
+   const trimmed = [...next].slice(-500);
+   setClearedNotificationIds(new Set(trimmed));
+   localStorage.setItem(clearedStorageKey, JSON.stringify(trimmed));
+  } catch {
+   // Keep notifications visible when the server cannot save the acknowledgement.
+  }
  };
 
  return (

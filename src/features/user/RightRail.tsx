@@ -55,7 +55,9 @@ export function RightRail() {
                 photo: profile.photo || "",
               };
             }).filter((match: any) => match.name && match.name !== "Unknown" && match.name !== "Someone");
-            setRecentMatches(displayMatches.slice(0, 5));
+            // Show every unlocked active match in the section. The list itself
+            // can scroll when there are more matches than the available rail height.
+            setRecentMatches(displayMatches);
       } catch {
         setRecentMatches([]);
       }
@@ -109,7 +111,7 @@ export function RightRail() {
             See all
           </Link>
         </div>
-        <ul className="mt-4 space-y-4 flex-1">
+        <ul className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
           {recentMatches.length > 0 ? recentMatches.map((m) => (
             <li key={m.id} className="flex items-center gap-3">
               <div className="relative">

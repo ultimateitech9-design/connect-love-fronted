@@ -12,6 +12,7 @@ type UserRow = {
  phone?: string;
  role: string;
  plan: string;
+ gender?: string;
  account: string;
  city: string;
  joined: string;
@@ -105,6 +106,7 @@ export default function User360Page() {
  const [details, setDetails] = useState<any | null>(null);
  const [form, setForm] = useState<UserForm>(emptyForm);
  const [query, setQuery] = useState("");
+ const [genderFilter, setGenderFilter] = useState<"all" | "male" | "female">("all");
  const [loadingUsers, setLoadingUsers] = useState(true);
  const [totalUsers, setTotalUsers] = useState(0);
  const usersRequestRef = useRef(0);
@@ -118,17 +120,24 @@ export default function User360Page() {
 
  const filteredUsers = useMemo(() => {
  const text = query.toLowerCase().trim();
- if (!text) return users;
- return users.filter((user) =>
- user.name.toLowerCase().includes(text) ||
- user.email.toLowerCase().includes(text) ||
- String(user.mobile || "").toLowerCase().includes(text) ||
- String(user.phone || "").toLowerCase().includes(text) ||
- user.id.toLowerCase().includes(text) ||
- user.role.toLowerCase().includes(text) ||
- user.plan.toLowerCase().includes(text)
+ return users.filter((user) => {
+ const gender = String(user.gender || "").trim().toLowerCase();
+ const matchesGender = genderFilter === "all" || (genderFilter === "male"
+   ? ["male", "man", "men", "boy", "m"].includes(gender)
+   : ["female", "woman", "women", "girl", "f", "femaley"].includes(gender));
+ if (!matchesGender) return false;
+ if (!text) return true;
+ return (
+   user.name.toLowerCase().includes(text) ||
+   user.email.toLowerCase().includes(text) ||
+   String(user.mobile || "").toLowerCase().includes(text) ||
+   String(user.phone || "").toLowerCase().includes(text) ||
+   user.id.toLowerCase().includes(text) ||
+   user.role.toLowerCase().includes(text) ||
+   user.plan.toLowerCase().includes(text)
  );
- }, [query, users]);
+ });
+ }, [query, users, genderFilter]);
 
  const loadUsers = async (search = "", silent = false) => {
  const requestId = ++usersRequestRef.current;
@@ -335,7 +344,15 @@ export default function User360Page() {
  style={{ color: "#000000", WebkitTextFillColor: "#000000" }}
  />
  </div>
- <p className="mt-3 text-xs font-semibold text-muted-foreground">{totalUsers} users</p>
+ <div className="mt-3 flex items-center gap-2">
+ <label htmlFor="gender-filter" className="sr-only">Filter users by gender</label>
+ <select id="gender-filter" value={genderFilter} onChange={(event) => setGenderFilter(event.target.value as "all" | "male" | "female")} className="h-9 flex-1 rounded-lg border border-border bg-background px-2 text-xs font-semibold text-foreground outline-none focus:border-rose-400">
+ <option value="all">All</option>
+ <option value="male">Male</option>
+ <option value="female">Female</option>
+ </select>
+ <p className="shrink-0 text-xs font-semibold text-muted-foreground">{filteredUsers.length} users</p>
+ </div>
  </div>
  <div className="max-h-[680px] overflow-y-auto p-2">
  {loadingUsers ? (

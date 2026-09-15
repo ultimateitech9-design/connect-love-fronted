@@ -388,6 +388,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
   const [dismissedProfileIds, setDismissedProfileIds] = useState<Set<string>>(new Set());
  const [lastSwipedProfile, setLastSwipedProfile] = useState<any | null>(null);
  const [canUsePremiumDiscoveryActions, setCanUsePremiumDiscoveryActions] = useState(false);
+ const [currentPlan, setCurrentPlan] = useState<"free" | "gold" | "diamond">("free");
  const [lockedDiscoveryFeature, setLockedDiscoveryFeature] = useState<"rewind" | "first-impression" | null>(null);
   const isDesktop = useDesktopLayout();
   const loadSecondaryPanels = useSecondaryPanels();
@@ -413,9 +414,11 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
         const woman = ["female", "woman", "women", "girl", "ladies", "f"].includes(gender);
         const paid = ["gold", "platinum"].includes(String(user.plan || "free").toLowerCase());
         const active = paid && (!user.planExpiresAt || new Date(user.planExpiresAt).getTime() > Date.now());
+        const rawPlan = String(user.plan || "free").toLowerCase();
+        setCurrentPlan(active ? (rawPlan === "platinum" ? "diamond" : rawPlan === "gold" ? "gold" : "free") : "free");
         setCanUsePremiumDiscoveryActions(woman || active);
       })
-      .catch(() => setCanUsePremiumDiscoveryActions(false));
+      .catch(() => { setCurrentPlan("free"); setCanUsePremiumDiscoveryActions(false); });
   }, [token]);
 
   useEffect(() => {
@@ -492,6 +495,8 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  };
 
  const matchLimitPrompt = Boolean(upgradePrompt && /plan allows.*matches|match with more people/i.test(upgradePrompt));
+ const dailyLikeLimit = currentPlan === "diamond" ? 40 : currentPlan === "gold" ? 20 : 10;
+ const currentPlanLabel = currentPlan === "diamond" ? "Diamond" : currentPlan === "gold" ? "Gold" : "Free";
 
  return (
  <>
@@ -524,7 +529,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
     <button type="button" onClick={closeUpgradePrompt} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200" aria-label="Close plan popup"><X className="h-4 w-4" /></button>
     <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-amber-100 to-yellow-200 text-amber-600 shadow-lg"><Crown className="h-8 w-8 fill-current" /></div>
     <h2 id="like-limit-title" className="mt-5 text-2xl font-bold text-slate-900">{matchLimitPrompt ? "Match Limit Completed" : "Daily Likes Completed"}</h2>
-    <p className="mt-2 text-sm leading-6 text-slate-600">{matchLimitPrompt ? "The Free plan allows 2 active matches. Activate Gold for up to 10 matches or Diamond for up to 20 matches." : "You have used all 10 Likes available on the Free plan today. Activate Gold or Diamond to continue now, or wait until tomorrow for your Likes to reset."}</p>
+    <p className="mt-2 text-sm leading-6 text-slate-600">{matchLimitPrompt ? "The Free plan allows 2 active matches. Activate Gold for up to 10 matches or Diamond for up to 20 matches." : `You have used all ${dailyLikeLimit} Likes available on the ${currentPlanLabel} plan today. ${currentPlan === "free" ? "Activate Gold or Diamond to continue now, or wait until tomorrow for your Likes to reset." : currentPlan === "gold" ? "Activate Diamond to continue with more Likes, or wait until tomorrow for your Likes to reset." : "Your Diamond Likes reset tomorrow."}`}</p>
     <button type="button" onClick={() => { window.location.href = "/user/premium"; }} className="mt-6 h-12 w-full rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-lg shadow-rose-500/25 hover:brightness-105">Activate Plan</button>
    </div>
   </div>

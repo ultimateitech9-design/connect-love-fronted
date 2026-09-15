@@ -24,7 +24,7 @@ export function HeaderLanguageDropdown({ mobile = false, compact = false }: { mo
         }}
         aria-label="Website language"
         translate="no"
-        className={`${compact ? "absolute inset-0 h-full w-full cursor-pointer opacity-0" : mobile ? "h-11 w-full" : "h-9 w-[7.5rem]"} cursor-pointer bg-transparent text-xs font-semibold outline-none`}
+        className={`${compact ? "absolute inset-0 h-full w-full cursor-pointer opacity-0" : mobile ? "h-11 w-full" : "h-9 w-[7.5rem]"} cursor-pointer bg-transparent text-xs font-semibold outline-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
       >
         {APP_LANGUAGES.map((language) => (
           <option key={language.code} value={language.code} translate="no" className="notranslate">{language.name}</option>

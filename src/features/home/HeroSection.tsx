@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+
 import { Download, Play, Star, X, Heart } from "lucide-react";
 import { LanguageSelector } from "@/features/i18n/LanguageSelector";
 
@@ -24,21 +24,11 @@ export function HeroSection({ onSignupClick }: HeroSectionProps) {
     >
       {/* Background Video */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <Image
-          src="/hero-couple.webp"
-          alt="Indian singles building a meaningful connection on ConnectLove"
-          fill
-          priority
-          quality={72}
-          sizes="100vw"
-          className="object-cover object-center"
-        />
         <video
           autoPlay
           loop
           muted
           playsInline
-          poster="/hero-couple.webp"
           preload="auto"
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 block max-w-none opacity-85"

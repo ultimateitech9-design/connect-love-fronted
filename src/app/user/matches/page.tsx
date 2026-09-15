@@ -64,6 +64,7 @@ export default function MatchesDashboard() {
  const exhaustedTabs = useRef(new Set<MatchTab>());
  const nextOffsets = useRef<Record<MatchTab, number>>({ active: 0, received: 0, pending: 0, blocked: 0 });
  const selectedTab = useRef<MatchTab>('active');
+ const syncInFlight = useRef(false);
 
  useEffect(() => {
    const token = getToken();
@@ -115,20 +116,33 @@ export default function MatchesDashboard() {
  };
 
  const syncNewMatches = async () => {
+   if (syncInFlight.current) return;
    const token = getToken();
    if (!token) return;
+   syncInFlight.current = true;
    try {
      const response = await apiFetch('/matches/summary', { headers: { Authorization: `Bearer ${token}` } });
      if (!response.ok) return;
      const latestSummary = await response.json() as MatchSummary;
      const changedTabs: MatchTab[] = [];
-     if (latestSummary.active > summary.active) changedTabs.push('active');
-     if (latestSummary.received > summary.received) changedTabs.push('received');
-     if (latestSummary.sent > summary.sent) changedTabs.push('pending');
-     if (latestSummary.blocked > summary.blocked) changedTabs.push('blocked');
-     await Promise.all(changedTabs.map(prependLatestMatches));
+     if (latestSummary.active !== summary.active) changedTabs.push('active');
+     if (latestSummary.received !== summary.received) changedTabs.push('received');
+     if (latestSummary.sent !== summary.sent) changedTabs.push('pending');
+     if (latestSummary.blocked !== summary.blocked) changedTabs.push('blocked');
+
+     // Keep the visible tab fresh even when only a profile/status changed
+     // without changing the aggregate count.
+     const tabsToRefresh = new Set<MatchTab>(changedTabs);
+     if (loadedTabs.current.has(selectedTab.current)) tabsToRefresh.add(selectedTab.current);
+     await Promise.all([...tabsToRefresh].map(async (tab) => {
+       loadedTabs.current.delete(tab);
+       await loadTab(tab, true);
+     }));
      setSummary(latestSummary);
    } catch {}
+   finally {
+     syncInFlight.current = false;
+   }
  };
 
  const appendTabMatches = (tab: MatchTab, matches: DBMatch[]) => {
@@ -259,9 +273,11 @@ export default function MatchesDashboard() {
    const onVisible = () => {
      if (document.visibilityState === 'visible') void syncNewMatches();
    };
+   const interval = window.setInterval(() => void syncNewMatches(), 5000);
    window.addEventListener('focus', onFocus);
    document.addEventListener('visibilitychange', onVisible);
    return () => {
+     window.clearInterval(interval);
      window.removeEventListener('focus', onFocus);
      document.removeEventListener('visibilitychange', onVisible);
    };

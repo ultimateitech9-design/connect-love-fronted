@@ -4,6 +4,7 @@ import { API_ORIGIN } from "@/config/runtime";
 
 import { FormEvent, useState } from "react";
 import { ImagePlus, Loader2, Mail, MessageSquare, Phone, Send, X } from "lucide-react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 
 const API_BASE = API_ORIGIN;
 
@@ -72,10 +73,7 @@ export function ContactUsForm() {
       return;
     }
 
-    if (!/^\d{8,15}$/.test(form.phone)) {
-      setError("Please enter a valid phone number for a support call.");
-      return;
-    }
+    if (!form.phone || !isValidPhoneNumber(form.phone)) { setError("Please enter a valid phone number with country code, e.g. +91 9876543210."); return; }
 
     setSubmitting(true);
     try {
@@ -167,17 +165,7 @@ export function ContactUsForm() {
             Call Number
             <div className="relative mt-2">
               <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                type="tel"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                autoComplete="tel"
-                maxLength={15}
-                value={form.phone}
-                onChange={(event) => updateField("phone", event.target.value.replace(/\D/g, "").slice(0, 15))}
-                placeholder="0000000"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm font-normal text-slate-900 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
-              />
+              <PhoneInput international defaultCountry="IN" countryCallingCodeEditable={false} value={form.phone || undefined} onChange={(value) => updateField("phone", value ?? "")} onBlur={() => { if (form.phone && !isValidPhoneNumber(form.phone)) setError("Please enter a valid phone number with country code, e.g. +91 9876543210."); }} placeholder="+91 9876543210" aria-label="Call Number with country code" className="international-phone-input w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-normal text-slate-900 outline-none transition focus-within:border-rose-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-rose-100" />
             </div>
           </label>
           <label className="block text-sm font-semibold text-slate-700">

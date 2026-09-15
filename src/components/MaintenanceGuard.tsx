@@ -8,7 +8,7 @@ import { API_ORIGIN } from "@/config/runtime";
 
 export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [maintenanceMode, setMaintenanceMode] = useState<boolean | null>(null);
+  const [maintenanceMode, setMaintenanceMode] = useState<boolean>(false);
   const superAdminRoute = pathname.startsWith("/super-admin")
     || pathname === "/management/super-admin";
 
@@ -45,14 +45,6 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [superAdminRoute]);
-
-  if (!superAdminRoute && maintenanceMode === null) {
-    return (
-      <main className="grid min-h-dvh place-items-center bg-white">
-        <BrandLogo className="h-14 w-14 animate-pulse shadow-lg shadow-rose-500/20" priority />
-      </main>
-    );
-  }
 
   if (!superAdminRoute && maintenanceMode) {
     return (
