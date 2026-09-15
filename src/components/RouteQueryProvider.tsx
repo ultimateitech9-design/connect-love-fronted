@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { LiveDataSync } from "@/components/LiveDataSync";
 import { QueryProvider } from "@/components/QueryProvider";
 
 const dataRoutes = [
@@ -19,9 +18,5 @@ export function RouteQueryProvider({ children }: { children: React.ReactNode }) 
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
 
-  const enableLiveSync = needsQueryClient
-    && !pathname.startsWith("/management/")
-    && !pathname.startsWith("/user/messages")
-    && pathname !== "/super-admin/user-360";
-  return <QueryProvider>{enableLiveSync ? <LiveDataSync /> : null}{children}</QueryProvider>;
+  return <QueryProvider>{children}</QueryProvider>;
 }

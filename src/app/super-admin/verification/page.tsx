@@ -74,8 +74,7 @@ export default function VerificationPage() {
 
  useEffect(() => {
    void fetchQueue();
-   const timer = window.setInterval(() => { void fetchQueue(true); }, 10000);
-   return () => window.clearInterval(timer);
+   return undefined;
  }, []);
 
  const filteredQueue = useMemo(

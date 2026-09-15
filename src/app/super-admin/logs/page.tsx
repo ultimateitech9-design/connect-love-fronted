@@ -93,8 +93,7 @@ export default function LogsPage() {
 
   useEffect(() => {
     fetchLogs();
-    const interval = window.setInterval(fetchLogs, 30_000);
-    return () => window.clearInterval(interval);
+    return undefined;
   }, []);
 
   const filteredLogs = useMemo(() => allLogs.filter((log) => {

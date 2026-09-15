@@ -92,8 +92,7 @@ export default function UsersPage() {
 
  useEffect(() => {
  fetchUsers(true);
- const interval = window.setInterval(() => fetchUsers(false), 15_000);
- return () => window.clearInterval(interval);
+ return undefined;
  }, []);
 
  const filtered = list.filter(

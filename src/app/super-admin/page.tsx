@@ -122,12 +122,10 @@ export default function HomePage() {
  void fetchStats(Boolean(cached && cached.token === token));
  void fetchLogs();
  const refresh = () => { if (document.visibilityState === "visible") { void fetchStats(true); void fetchLogs(); } };
- const interval = window.setInterval(refresh, 30_000);
  window.addEventListener("focus", refresh);
  document.addEventListener("visibilitychange", refresh);
  return () => {
  active = false;
- window.clearInterval(interval);
  window.removeEventListener("focus", refresh);
  document.removeEventListener("visibilitychange", refresh);
  };

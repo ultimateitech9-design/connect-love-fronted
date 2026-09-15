@@ -1987,11 +1987,9 @@ export default function Messages() {
    const refreshWhenVisible = () => {
      if (document.visibilityState === "visible") void refreshWalletBalance();
    };
-   const interval = window.setInterval(refreshOnFocus, 3000);
    window.addEventListener("focus", refreshOnFocus);
    document.addEventListener("visibilitychange", refreshWhenVisible);
    return () => {
-     window.clearInterval(interval);
      window.removeEventListener("focus", refreshOnFocus);
      document.removeEventListener("visibilitychange", refreshWhenVisible);
    };
