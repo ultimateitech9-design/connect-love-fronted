@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { Users, Heart, DollarSign, Flag, UserCheck, Activity, Shield } from "lucide-react";
 import { api } from "@/lib/api";
+import { getManagementToken } from "@/lib/auth";
+
+let dashboardSnapshot: { token: string; data: Awaited<ReturnType<typeof api.dashboard>>; updatedAt: Date } | null = null;
 
 const activityModuleColor: Record<string, string> = {
  "Verification": "text-emerald-600 bg-emerald-50",
@@ -45,6 +48,8 @@ export default function HomePage() {
  const [error, setError] = useState("");
  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
  const [activityPage, setActivityPage] = useState(1);
+ const statsInFlight = useRef(false);
+ const logsInFlight = useRef(false);
 
  const handleCardClick = (label: string) => {
    switch (label) {
@@ -68,33 +73,60 @@ export default function HomePage() {
  };
 
  const fetchStats = async (silent = false) => {
+ if (statsInFlight.current) return;
+ statsInFlight.current = true;
+ const token = getManagementToken();
  if (!silent) setLoading(true);
  setError("");
  try {
  const data = await api.dashboard();
+ if (token !== getManagementToken()) return;
  setStats(data.stats);
  setGrowth(data.growth || []);
+ const updatedAt = new Date();
+ setLastRefresh(updatedAt);
+ if (token) dashboardSnapshot = { token, data, updatedAt };
+ } catch {
+ setError("Failed to load data from backend. Is the backend server running?");
+ } finally {
+ statsInFlight.current = false;
+ setLoading(false);
+ }
+ };
+
+ useEffect(() => {
+ let active = true;
+ const cached = dashboardSnapshot;
+ const token = getManagementToken();
+ if (cached && cached.token === token) {
+ setStats(cached.data.stats);
+ setGrowth(cached.data.growth || []);
+ setLastRefresh(cached.updatedAt);
+ setLoading(false);
+ }
+ const fetchLogs = async () => {
+ if (logsInFlight.current) return;
+ logsInFlight.current = true;
+ try {
  const logs = await api.logs();
+ if (!active || token !== getManagementToken()) return;
  setActivityLog(logs.logs.map((log) => ({
  action: log.activity,
  time: log.createdAt ? new Date(log.createdAt).toLocaleString() : log.action,
  module: log.module || log.user,
  })));
- setLastRefresh(new Date());
  } catch {
- setError("Failed to load data from backend. Is the backend server running?");
- } finally {
- if (!silent) setLoading(false);
- }
+ // Activity failures must not hide dashboard statistics.
+ } finally { logsInFlight.current = false; }
  };
-
- useEffect(() => {
- void fetchStats();
- const refresh = () => { if (document.visibilityState === "visible") void fetchStats(true); };
- const interval = window.setInterval(refresh, 5_000);
+ void fetchStats(Boolean(cached && cached.token === token));
+ void fetchLogs();
+ const refresh = () => { if (document.visibilityState === "visible") { void fetchStats(true); void fetchLogs(); } };
+ const interval = window.setInterval(refresh, 30_000);
  window.addEventListener("focus", refresh);
  document.addEventListener("visibilitychange", refresh);
  return () => {
+ active = false;
  window.clearInterval(interval);
  window.removeEventListener("focus", refresh);
  document.removeEventListener("visibilitychange", refresh);
@@ -123,7 +155,7 @@ export default function HomePage() {
 
  {/* Live stats from backend */}
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
- {loading
+ {loading && stats.length === 0
  ? Array.from({ length: 6 }).map((_, i) => (
  <div key={i} className="rounded-3xl border border-border bg-card p-5 shadow-card animate-pulse h-28" />
  ))

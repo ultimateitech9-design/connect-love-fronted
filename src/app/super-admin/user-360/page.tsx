@@ -110,6 +110,7 @@ export default function User360Page() {
  const [loadingUsers, setLoadingUsers] = useState(true);
  const [totalUsers, setTotalUsers] = useState(0);
  const usersRequestRef = useRef(0);
+ const usersInFlightRef = useRef<number | null>(null);
  const detailsRequestRef = useRef(0);
  const [loadingDetails, setLoadingDetails] = useState(false);
  const [saving, setSaving] = useState(false);
@@ -145,7 +146,9 @@ export default function User360Page() {
  }, [filteredUsers]);
 
  const loadUsers = async (search = "", silent = false) => {
+ if (silent && usersInFlightRef.current !== null) return;
  const requestId = ++usersRequestRef.current;
+ usersInFlightRef.current = requestId;
  if (!silent) setLoadingUsers(true);
  setError("");
  try {
@@ -158,13 +161,16 @@ export default function User360Page() {
  allUsers = Array.from(new Map([...allUsers, ...(res.users as UserRow[])].map((user) => [user.id, user])).values());
  setUsers(allUsers);
  setTotalUsers(res.total);
- hasMore = res.hasMore;
+ // Show the first page while the remaining pages load in the background.
+ setLoadingUsers(false);
+ hasMore = res.hasMore && res.users.length > 0;
  page += 1;
  }
  } catch {
- setError("Users load nahi hue. Backend/session check karein.");
+ if (requestId === usersRequestRef.current) setError("Users load nahi hue. Backend/session check karein.");
  } finally {
- if (requestId === usersRequestRef.current && !silent) setLoadingUsers(false);
+ if (usersInFlightRef.current === requestId) usersInFlightRef.current = null;
+ if (requestId === usersRequestRef.current) setLoadingUsers(false);
  }
  };
 
@@ -208,14 +214,16 @@ export default function User360Page() {
  };
 
  useEffect(() => {
- const timer = window.setTimeout(() => void loadUsers(query), 250);
+ const timer = query.trim() ? window.setTimeout(() => void loadUsers(query), 250) : null;
+ if (timer === null) void loadUsers(query);
  const refresh = () => { if (document.visibilityState === "visible") void loadUsers(query, true); };
  const interval = window.setInterval(refresh, 5_000);
  window.addEventListener("focus", refresh);
  document.addEventListener("visibilitychange", refresh);
  return () => {
  usersRequestRef.current += 1;
- window.clearTimeout(timer);
+ usersInFlightRef.current = null;
+ if (timer !== null) window.clearTimeout(timer);
  window.clearInterval(interval);
  window.removeEventListener("focus", refresh);
  document.removeEventListener("visibilitychange", refresh);
@@ -368,7 +376,7 @@ export default function User360Page() {
  </div>
  </div>
  <div className="max-h-[680px] overflow-y-auto p-2">
- {loadingUsers ? (
+ {loadingUsers && filteredUsers.length === 0 ? (
  Array.from({ length: 6 }).map((_, index) => <div key={index} className="mb-2 h-16 animate-pulse rounded-xl bg-muted" />)
  ) : filteredUsers.length === 0 ? (
  <p className="py-10 text-center text-sm text-muted-foreground">No users found.</p>
