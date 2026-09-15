@@ -25,7 +25,7 @@ export function RightRail() {
   const [recentMatches, setRecentMatches] = useState<any[]>([]);
   const token = getToken() || "";
   const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser(token);
-  const { matches: activeMatches } = useMatches(token, "active", { limit: 10 });
+  const { matches: activeMatches } = useMatches(token, "active", { limit: 9 });
 
   useEffect(() => {
     if (currentUser) {
@@ -55,8 +55,8 @@ export function RightRail() {
                 photo: profile.photo || "",
               };
             }).filter((match: any) => match.name && match.name !== "Unknown" && match.name !== "Someone");
-            // The API returns newest matches first; keep this preview to ten.
-            setRecentMatches(displayMatches.slice(0, 10));
+            // Newest matches first, including older matches when there are no new ones.
+            setRecentMatches(displayMatches.slice(0, 9));
       } catch {
         setRecentMatches([]);
       }
@@ -111,7 +111,7 @@ export function RightRail() {
           </Link>
         </div>
         <ul className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
-          {recentMatches.length > 0 ? recentMatches.map((m) => (
+          {recentMatches.length > 0 ? recentMatches.slice(0, 9).map((m) => (
             <li key={m.id} className="flex items-center gap-3">
               <div className="relative">
                 <Avatar className="h-[44px] w-[44px]" style={{ border: "2px solid rgba(236,72,153,0.2)" }}>
