@@ -32,12 +32,12 @@ const BIO_SUGGESTIONS = [
 const PROFESSION_SUGGESTIONS = ["Software Engineer", "Business Owner", "Government Employee", "Doctor", "Teacher", "Lawyer", "Accountant", "Banker", "Designer", "Photographer", "Student", "Self Employed", "Freelancer", "Homemaker"];
 const HEIGHT_SUGGESTIONS = ["4'10\"", "5'0\"", "5'2\"", "5'4\"", "5'6\"", "5'8\"", "5'10\"", "6'0\"", "6'2\""];
 const ZODIAC_SIGNS = [
- { sign: "Capricorn", emoji: "♑", from: 1222 }, { sign: "Aquarius", emoji: "♒", from: 120 },
- { sign: "Pisces", emoji: "♓", from: 219 }, { sign: "Aries", emoji: "♈", from: 321 },
- { sign: "Taurus", emoji: "♉", from: 420 }, { sign: "Gemini", emoji: "♊", from: 521 },
- { sign: "Cancer", emoji: "♋", from: 621 }, { sign: "Leo", emoji: "♌", from: 723 },
- { sign: "Virgo", emoji: "♍", from: 823 }, { sign: "Libra", emoji: "♎", from: 923 },
- { sign: "Scorpio", emoji: "♏", from: 1023 }, { sign: "Sagittarius", emoji: "♐", from: 1122 },
+ { sign: "Capricorn", emoji: "â™‘", from: 1222 }, { sign: "Aquarius", emoji: "â™’", from: 120 },
+ { sign: "Pisces", emoji: "â™“", from: 219 }, { sign: "Aries", emoji: "â™ˆ", from: 321 },
+ { sign: "Taurus", emoji: "â™‰", from: 420 }, { sign: "Gemini", emoji: "â™Š", from: 521 },
+ { sign: "Cancer", emoji: "â™‹", from: 621 }, { sign: "Leo", emoji: "â™Œ", from: 723 },
+ { sign: "Virgo", emoji: "â™", from: 823 }, { sign: "Libra", emoji: "â™Ž", from: 923 },
+ { sign: "Scorpio", emoji: "â™", from: 1023 }, { sign: "Sagittarius", emoji: "â™", from: 1122 },
 ] as const;
 const ZODIAC_DROPDOWN_ORDER = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'] as const;
 
@@ -97,8 +97,8 @@ export default function ProfilePage() {
  const [savedCompletion, setSavedCompletion] = useState(0);
  const fileInputRef = useRef<HTMLInputElement>(null);
 
- // â”€â”€ localStorage key for avatar cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
- // â”€â”€ Fetch profile on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ // Ã¢â€â‚¬Ã¢â€â‚¬ localStorage key for avatar cache Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+ // Ã¢â€â‚¬Ã¢â€â‚¬ Fetch profile on mount Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
  useEffect(() => {
  const token = getToken();
  if (!token) {
@@ -346,7 +346,7 @@ export default function ProfilePage() {
    </div>
  )}
  <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
- {/* â”€â”€ Main profile card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+ {/* Ã¢â€â‚¬Ã¢â€â‚¬ Main profile card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
  <section className="min-w-0 space-y-5 overflow-hidden rounded-2xl bg-white p-3 shadow-lg min-[380px]:p-4 sm:space-y-6 sm:p-6" style={{ border: "1px solid rgba(236,72,153,0.15)" }}>
   <header className="mb-6 flex min-w-0 flex-col gap-4 sm:mb-8 sm:gap-6">
     <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -572,7 +572,7 @@ export default function ProfilePage() {
  value={profile.bio ?? ""}
  onChange={(e) => set("bio", e.target.value)}
  maxLength={250}
- placeholder="Tell potential matches about yourselfâ€¦"
+ placeholder="Tell potential matches about yourselfÃ¢â‚¬Â¦"
  className={`min-h-[100px] bg-white text-slate-800 placeholder:text-slate-400 border transition-all ${
  isEmpty("bio") && !isLocked ? "border-rose-400 focus:ring-rose-300" : "border-slate-200 focus:ring-rose-200"
  }`}
@@ -651,13 +651,13 @@ export default function ProfilePage() {
  disabled={saving || isLocked}
  >
  {saving && <Loader2 className="h-[16px] w-[16px] animate-spin" />}
- {saving ? "Savingâ€¦" : "Save changes"}
+ {saving ? "SavingÃ¢â‚¬Â¦" : "Save changes"}
  </Button>
  </div>
  </div>
  </section>
 
- {/* â”€â”€ Right sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+ {/* Ã¢â€â‚¬Ã¢â€â‚¬ Right sidebar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
  <aside className="space-y-4">
  {/* Profile completion meter */}
  <div className="rounded-2xl bg-card p-5 shadow-lg border border-border">
@@ -688,10 +688,10 @@ export default function ProfilePage() {
  </div>
  {savedCompletion < 100 && (
  <p className="mt-3 text-xs text-muted-foreground">
- {100 - savedCompletion}% to go â€” complete your profile to get more matches!
+ {100 - savedCompletion}% to go Ã¢â‚¬â€ complete your profile to get more matches!
  </p>
  )}
- {/* Missing fields checklist â€” based on live (unsaved) data */}
+ {/* Missing fields checklist Ã¢â‚¬â€ based on live (unsaved) data */}
  {liveCompletion < 100 && (
  <ul className="mt-4 space-y-2">
  {COMPLETION_FIELDS.filter((f) => isEmpty(f)).map((f) => (
@@ -709,12 +709,12 @@ export default function ProfilePage() {
  <div className="rounded-2xl bg-card p-5 shadow-lg border border-border">
  <h3 className="text-base font-semibold text-foreground">Profile insights</h3>
  <div className="mt-4 space-y-3">
- <Stat icon={Eye} label="Profile views (7d)" value={insights ? String(insights.profileViews7d) : "â€”"} />
- <Stat icon={HeartIcon} label="Likes received" value={insights ? String(insights.likesReceived) : "â€”"} />
+ <Stat icon={Eye} label="Profile views (7d)" value={insights ? String(insights.profileViews7d) : "Ã¢â‚¬â€"} />
+ <Stat icon={HeartIcon} label="Likes received" value={insights ? String(insights.likesReceived) : "Ã¢â‚¬â€"} />
  <Stat
  icon={Sparkles}
  label="Compatibility avg."
- value={insights ? (insights.compatibilityAverage === null ? "N/A" : `${insights.compatibilityAverage}%`) : "â€”"}
+ value={insights ? (insights.compatibilityAverage === null ? "N/A" : `${insights.compatibilityAverage}%`) : "Ã¢â‚¬â€"}
  />
  </div>
  </div>
@@ -743,13 +743,30 @@ export default function ProfilePage() {
  {planExpiry && Number.isFinite(planExpiry.getTime()) && <p className="mt-3 text-xs font-medium text-slate-600">Active until {planExpiry.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>}
  </div>}
 
+ {/* Upgrade plan CTA: keep this directly below the current plan card. */}
+ <div className="overflow-hidden rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-fuchsia-600 via-violet-600 to-purple-700 p-5 text-white shadow-lg shadow-fuchsia-500/20">
+ <div className="flex items-start gap-3">
+ <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/20">
+ <Sparkles className="h-5 w-5" />
+ </div>
+ <div className="min-w-0">
+ <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-fuchsia-100">Upgrade your plan</p>
+ <h3 className="mt-0.5 text-lg font-black">Unlock more connections</h3>
+ </div>
+ </div>
+ <p className="mt-3 text-xs leading-relaxed text-fuchsia-50">Get more visibility, likes, and premium features to make meaningful connections faster.</p>
+ <Link href="/user/premium" className="mt-4 block">
+ <Button className="h-10 w-full rounded-xl bg-white text-xs font-black text-violet-700 shadow-md hover:bg-fuchsia-50">View Upgrade Plans</Button>
+ </Link>
+ </div>
+
  {/* Premium tip: hide it when Gold or Diamond is currently active. */}
  {!hasPaidPlan && <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg, #fff0f3, #fce7f3)", border: "1px solid rgba(236,72,153,0.25)" }}>
  <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
  <Sparkles className="h-[16px] w-[16px] text-rose-400" /> Premium tip
  </p>
  <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
- Add a short video to your profile â€” premium users with video get 3.2Ã— more matches.
+ Add a short video to your profile Ã¢â‚¬â€ premium users with video get 3.2Ãƒâ€” more matches.
  </p>
  <Link href="/user/premium">
  <Button className="mt-4 w-full text-white rounded-lg h-[36px] text-xs" style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}>
@@ -763,7 +780,7 @@ export default function ProfilePage() {
  );
 }
 
-// â”€â”€ Helper components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Helper components Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function RequiredField({
  label, value, required, onChange, type = "text", placeholder, disabled, suggestions,

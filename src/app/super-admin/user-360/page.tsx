@@ -110,6 +110,7 @@ export default function User360Page() {
  const [loadingUsers, setLoadingUsers] = useState(true);
  const [totalUsers, setTotalUsers] = useState(0);
  const usersRequestRef = useRef(0);
+ const detailsRequestRef = useRef(0);
  const [loadingDetails, setLoadingDetails] = useState(false);
  const [saving, setSaving] = useState(false);
  const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -124,7 +125,7 @@ export default function User360Page() {
  const gender = String(user.gender || "").trim().toLowerCase();
  const matchesGender = genderFilter === "all" || (genderFilter === "male"
    ? ["male", "man", "men", "boy", "m"].includes(gender)
-   : ["female", "woman", "women", "girl", "f", "femaley"].includes(gender));
+   : ["female", "woman", "women", "girl", "ladies", "f"].includes(gender));
  if (!matchesGender) return false;
  if (!text) return true;
  return (
@@ -139,6 +140,10 @@ export default function User360Page() {
  });
  }, [query, users, genderFilter]);
 
+ useEffect(() => {
+ setSelectedId((current) => filteredUsers.some((user) => user.id === current) ? current : filteredUsers[0]?.id || "");
+ }, [filteredUsers]);
+
  const loadUsers = async (search = "", silent = false) => {
  const requestId = ++usersRequestRef.current;
  if (!silent) setLoadingUsers(true);
@@ -148,16 +153,13 @@ export default function User360Page() {
  let hasMore = true;
  let allUsers: UserRow[] = [];
  while (hasMore) {
- const res = await api.users(search, page, 100);
+ const res = await api.users(search, page, 100, undefined, genderFilter);
  if (requestId !== usersRequestRef.current) return;
  allUsers = Array.from(new Map([...allUsers, ...(res.users as UserRow[])].map((user) => [user.id, user])).values());
  setUsers(allUsers);
  setTotalUsers(res.total);
  hasMore = res.hasMore;
  page += 1;
- }
- if (allUsers[0] && (!selectedId || !allUsers.some((user) => user.id === selectedId))) {
- setSelectedId(allUsers[0].id);
  }
  } catch {
  setError("Users load nahi hue. Backend/session check karein.");
@@ -168,6 +170,7 @@ export default function User360Page() {
 
  const loadDetails = async (id: string, silent = false) => {
  if (!id) return;
+ const requestId = ++detailsRequestRef.current;
  if (!silent) {
  setLoadingDetails(true);
  setError("");
@@ -175,6 +178,7 @@ export default function User360Page() {
  }
  try {
  const res = await api.userDetails(id);
+ if (requestId !== detailsRequestRef.current) return;
  const user = res.user;
  setDetails(user);
  setForm({
@@ -197,9 +201,9 @@ export default function User360Page() {
  photos: Array.isArray(user.photos) ? user.photos.join("\n") : "",
  });
  } catch {
- setError("User details load nahi hue.");
+ if (requestId === detailsRequestRef.current) setError("User details load nahi hue.");
  } finally {
- if (!silent) setLoadingDetails(false);
+ if (requestId === detailsRequestRef.current) setLoadingDetails(false);
  }
  };
 
@@ -210,14 +214,23 @@ export default function User360Page() {
  window.addEventListener("focus", refresh);
  document.addEventListener("visibilitychange", refresh);
  return () => {
+ usersRequestRef.current += 1;
  window.clearTimeout(timer);
  window.clearInterval(interval);
  window.removeEventListener("focus", refresh);
  document.removeEventListener("visibilitychange", refresh);
  };
- }, [query]);
+ }, [query, genderFilter]);
  useEffect(() => {
- if (!selectedId) return;
+ detailsRequestRef.current += 1;
+ setDetails(null);
+ setConfirmDelete(false);
+ if (!selectedId) {
+ setDetails(null);
+ setForm(emptyForm);
+ setConfirmDelete(false);
+ return;
+ }
  void loadDetails(selectedId);
  const refresh = () => {
  const tag = document.activeElement?.tagName || "";
