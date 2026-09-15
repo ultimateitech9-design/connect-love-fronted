@@ -131,11 +131,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   gtag('config', 'G-LSFFV3G704');
 }, 5000);`}
         </Script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('connect-love-theme')||'light';document.documentElement.classList.toggle('dark',t==='dark');document.documentElement.style.colorScheme=t}catch(e){}})();`,
-          }}
-        />
+        <Script id="connectlove-theme-init" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem('connect-love-theme')||'light';document.documentElement.classList.toggle('dark',t==='dark');document.documentElement.style.colorScheme=t}catch(e){}})();`}
+        </Script>
       </head>
       <body>
         <RouteQueryProvider>
