@@ -1,13 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { LiveDataSync } from "@/components/LiveDataSync";
-
-const QueryProvider = dynamic(
-  () => import("@/components/QueryProvider").then((module) => module.QueryProvider),
-  { ssr: false },
-);
+import { QueryProvider } from "@/components/QueryProvider";
 
 const dataRoutes = [
   "/user",
@@ -27,5 +22,5 @@ export function RouteQueryProvider({ children }: { children: React.ReactNode }) 
   const enableLiveSync = needsQueryClient
     && !pathname.startsWith("/management/")
     && !pathname.startsWith("/user/messages");
-  return enableLiveSync ? <QueryProvider><LiveDataSync />{children}</QueryProvider> : <>{children}</>;
+  return <QueryProvider>{enableLiveSync ? <LiveDataSync /> : null}{children}</QueryProvider>;
 }
