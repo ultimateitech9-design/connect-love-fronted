@@ -34,14 +34,12 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
     };
 
     void checkStatus();
-    const interval = window.setInterval(checkStatus, 5_000);
     const handleVisibility = () => {
       if (document.visibilityState === "visible") void checkStatus();
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => {
       active = false;
-      window.clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [superAdminRoute]);

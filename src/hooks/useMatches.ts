@@ -100,7 +100,7 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  enabled: !!token && isEnabled && cacheHydrated,
  staleTime: filter === 'messages' ? Infinity : 30_000,
  gcTime: 24 * 60 * 60_000,
- refetchInterval: filter === 'messages' ? false : 5_000,
+ refetchInterval: false,
  refetchOnWindowFocus: filter === 'messages' ? false : 'always',
  refetchOnMount: filter === 'messages' ? false : 'always',
  refetchOnReconnect: filter === 'messages' ? false : 'always',

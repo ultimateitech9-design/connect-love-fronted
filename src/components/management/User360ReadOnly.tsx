@@ -100,12 +100,10 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
 
     void loadAllUsers();
     const refresh = () => { if (document.visibilityState === "visible") void loadAllUsers(true); };
-    const interval = window.setInterval(refresh, 5_000);
     window.addEventListener("focus", refresh);
     document.addEventListener("visibilitychange", refresh);
     return () => {
       alive = false;
-      window.clearInterval(interval);
       window.removeEventListener("focus", refresh);
       document.removeEventListener("visibilitychange", refresh);
     };
@@ -132,11 +130,9 @@ export function User360ReadOnly({ title = "User 360", subtitle = "Read-only user
     const refresh = () => {
       if (document.visibilityState === "visible" && document.activeElement?.tagName !== "SELECT") loadDetails(true);
     };
-    const interval = window.setInterval(refresh, 5_000);
     window.addEventListener("focus", refresh);
     return () => {
       alive = false;
-      window.clearInterval(interval);
       window.removeEventListener("focus", refresh);
     };
   }, [selectedId]);

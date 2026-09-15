@@ -273,11 +273,9 @@ export default function MatchesDashboard() {
    const onVisible = () => {
      if (document.visibilityState === 'visible') void syncNewMatches();
    };
-   const interval = window.setInterval(() => void syncNewMatches(), 5000);
    window.addEventListener('focus', onFocus);
    document.addEventListener('visibilitychange', onVisible);
    return () => {
-     window.clearInterval(interval);
      window.removeEventListener('focus', onFocus);
      document.removeEventListener('visibilitychange', onVisible);
    };

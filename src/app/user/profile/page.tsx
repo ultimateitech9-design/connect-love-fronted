@@ -165,12 +165,10 @@ export default function ProfilePage() {
   });
  };
  refreshInsights();
- const interval = window.setInterval(refreshInsights, 5_000);
  window.addEventListener("focus", refreshInsights);
  return () => {
   cancelled = true;
-  window.clearInterval(interval);
-  window.removeEventListener("focus", refreshInsights);
+ window.removeEventListener("focus", refreshInsights);
  };
  }, []);
 

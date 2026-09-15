@@ -43,12 +43,10 @@ export default function Overview() {
         .catch(() => { if (active) setError("Failed to load support data from backend."); });
     };
     loadOverview();
-    const interval = window.setInterval(loadOverview, 5_000);
     window.addEventListener("focus", loadOverview);
     document.addEventListener("visibilitychange", loadOverview);
     return () => {
       active = false;
-      window.clearInterval(interval);
       window.removeEventListener("focus", loadOverview);
       document.removeEventListener("visibilitychange", loadOverview);
     };

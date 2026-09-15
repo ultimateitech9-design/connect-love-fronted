@@ -217,14 +217,12 @@ export default function User360Page() {
  const timer = query.trim() ? window.setTimeout(() => void loadUsers(query), 250) : null;
  if (timer === null) void loadUsers(query);
  const refresh = () => { if (document.visibilityState === "visible") void loadUsers(query, true); };
- const interval = window.setInterval(refresh, 5_000);
  window.addEventListener("focus", refresh);
  document.addEventListener("visibilitychange", refresh);
  return () => {
  usersRequestRef.current += 1;
  usersInFlightRef.current = null;
  if (timer !== null) window.clearTimeout(timer);
- window.clearInterval(interval);
  window.removeEventListener("focus", refresh);
  document.removeEventListener("visibilitychange", refresh);
  };
@@ -244,10 +242,8 @@ export default function User360Page() {
  const tag = document.activeElement?.tagName || "";
  if (document.visibilityState === "visible" && !["INPUT", "SELECT", "TEXTAREA"].includes(tag)) void loadDetails(selectedId, true);
  };
- const interval = window.setInterval(refresh, 5_000);
  window.addEventListener("focus", refresh);
  return () => {
- window.clearInterval(interval);
  window.removeEventListener("focus", refresh);
  };
  }, [selectedId]);

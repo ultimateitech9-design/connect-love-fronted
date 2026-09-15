@@ -19,7 +19,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
    defaultOptions: {
     queries: {
      staleTime: 3_000,
-     refetchInterval: 5_000,
+      refetchInterval: false,
      refetchIntervalInBackground: false,
      refetchOnMount: 'always',
      refetchOnWindowFocus: 'always',
