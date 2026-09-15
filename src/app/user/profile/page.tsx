@@ -32,12 +32,12 @@ const BIO_SUGGESTIONS = [
 const PROFESSION_SUGGESTIONS = ["Software Engineer", "Business Owner", "Government Employee", "Doctor", "Teacher", "Lawyer", "Accountant", "Banker", "Designer", "Photographer", "Student", "Self Employed", "Freelancer", "Homemaker"];
 const HEIGHT_SUGGESTIONS = ["4'10\"", "5'0\"", "5'2\"", "5'4\"", "5'6\"", "5'8\"", "5'10\"", "6'0\"", "6'2\""];
 const ZODIAC_SIGNS = [
- { sign: "Capricorn", emoji: "â™‘", from: 1222 }, { sign: "Aquarius", emoji: "â™’", from: 120 },
- { sign: "Pisces", emoji: "â™“", from: 219 }, { sign: "Aries", emoji: "â™ˆ", from: 321 },
- { sign: "Taurus", emoji: "â™‰", from: 420 }, { sign: "Gemini", emoji: "â™Š", from: 521 },
- { sign: "Cancer", emoji: "â™‹", from: 621 }, { sign: "Leo", emoji: "â™Œ", from: 723 },
- { sign: "Virgo", emoji: "â™", from: 823 }, { sign: "Libra", emoji: "â™Ž", from: 923 },
- { sign: "Scorpio", emoji: "â™", from: 1023 }, { sign: "Sagittarius", emoji: "â™", from: 1122 },
+ { sign: "Capricorn", emoji: "\u2651", from: 1222 }, { sign: "Aquarius", emoji: "\u2652", from: 120 },
+ { sign: "Pisces", emoji: "\u2653", from: 219 }, { sign: "Aries", emoji: "\u2648", from: 321 },
+ { sign: "Taurus", emoji: "\u2649", from: 420 }, { sign: "Gemini", emoji: "\u264A", from: 521 },
+ { sign: "Cancer", emoji: "\u264B", from: 621 }, { sign: "Leo", emoji: "\u264C", from: 723 },
+ { sign: "Virgo", emoji: "\u264D", from: 823 }, { sign: "Libra", emoji: "\u264E", from: 923 },
+ { sign: "Scorpio", emoji: "\u264F", from: 1023 }, { sign: "Sagittarius", emoji: "\u2650", from: 1122 },
 ] as const;
 const ZODIAC_DROPDOWN_ORDER = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'] as const;
 
