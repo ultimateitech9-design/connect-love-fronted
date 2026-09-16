@@ -89,6 +89,28 @@ const roleValueMap: Record<CreatableRole, "user" | "admin" | "sales" | "support"
  Sales: "sales",
  Support: "support",
 };
+function getVisiblePages(currentPage: number, totalPages: number): Array<number | "ellipsis-left" | "ellipsis-right"> {
+ if (totalPages <= 7) {
+   return Array.from({ length: totalPages }, (_, index) => index + 1);
+ }
+
+ const pages = new Set<number>([1, totalPages, currentPage]);
+ for (let pageNumber = currentPage - 2; pageNumber <= currentPage + 2; pageNumber += 1) {
+   if (pageNumber > 1 && pageNumber < totalPages) pages.add(pageNumber);
+ }
+
+ const orderedPages = [...pages].sort((a, b) => a - b);
+ const visiblePages: Array<number | "ellipsis-left" | "ellipsis-right"> = [];
+ orderedPages.forEach((pageNumber, index) => {
+   const previousPage = orderedPages[index - 1];
+   if (previousPage && pageNumber - previousPage > 1) {
+     visiblePages.push(index === 1 ? "ellipsis-left" : "ellipsis-right");
+   }
+   visiblePages.push(pageNumber);
+ });
+
+ return visiblePages;
+}
 
 export default function UsersPage() {
  const [premiumOnly, setPremiumOnly] = useState<boolean | null>(null);
@@ -229,6 +251,7 @@ export default function UsersPage() {
 
  const pageCount = Math.max(1, Math.ceil(filteredRows.length / perPage));
  const pageRows = filteredRows.slice((page - 1) * perPage, page * perPage);
+ const visiblePages = getVisiblePages(page, pageCount);
  useEffect(() => { setPage(1); }, [query, status, roleFilter, perPage]);
  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
 
@@ -501,21 +524,21 @@ export default function UsersPage() {
  </button>
  <button onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page === 1} className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted disabled:opacity-40">
  <ChevronLeft className="h-4 w-4" />
- </button>
- {Array.from({ length: Math.min(pageCount, 5) }, (_, index) => index + 1).map((pageNumber) => (
+ </button> {visiblePages.map((pageItem) => pageItem === "ellipsis-left" || pageItem === "ellipsis-right" ? (
+ <span key={pageItem} className="px-2 text-muted-foreground" aria-hidden="true">...</span>
+ ) : (
  <button
- key={pageNumber}
- onClick={() => setPage(pageNumber)}
+ key={pageItem}
+ onClick={() => setPage(pageItem)}
+ aria-current={pageItem === page ? "page" : undefined}
  className={
  "h-8 w-8 rounded-md text-sm font-medium flex items-center justify-center " +
- (pageNumber === page ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted")
+ (pageItem === page ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted")
  }
  >
- {pageNumber}
+ {pageItem}
  </button>
- ))}
- {pageCount > 5 && <span className="px-2 text-muted-foreground">...</span>}
- <button onClick={() => setPage((value) => Math.min(pageCount, value + 1))} disabled={page === pageCount} className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted disabled:opacity-40">
+ ))} <button onClick={() => setPage((value) => Math.min(pageCount, value + 1))} disabled={page === pageCount} className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted disabled:opacity-40">
  <ChevronRight className="h-4 w-4" />
  </button>
  <button onClick={() => setPage(pageCount)} disabled={page === pageCount} className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted disabled:opacity-40">

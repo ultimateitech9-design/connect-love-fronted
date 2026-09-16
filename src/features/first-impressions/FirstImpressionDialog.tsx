@@ -31,8 +31,8 @@ export function FirstImpressionDialog({ open, profile, onClose, onSent, canSend 
     }
     setSending(true);
     try {
-      const result = await sendFirstImpression(profile.id, content);
-      toast.success(`First Impression sent to ${profile.name}. ${result.remainingToday} left today.`);
+      await sendFirstImpression(profile.id, content);
+      toast.success(`Your First Impression was sent to ${profile.name}.`);
       onClose();
       onSent?.();
     } catch (error) {
