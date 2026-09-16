@@ -444,7 +444,7 @@ export default function User360Page() {
  <SelectField label="Plan" value={form.plan} onChange={(value) => updateField("plan", value)} options={["free", "gold", "platinum"]} />
  <SelectField label="Status" value={form.status} onChange={(value) => updateField("status", value)} options={["active", "suspended", "banned", "pending_verification"]} />
  <TextField label="Birth Date" value={form.birthDate} onChange={(value) => updateField("birthDate", value)} type="date" />
- <TextField label="Gender" value={form.gender} onChange={(value) => updateField("gender", value)} />
+ <SelectField label="Gender" value={form.gender} onChange={(value) => updateField("gender", value)} options={["male", "female", "non-binary"]} />
  <TextField label="Profession" value={form.profession} onChange={(value) => updateField("profession", value)} />
  <TextField label="Height" value={form.height} onChange={(value) => updateField("height", value)} />
  <TextField label="City" value={form.city} onChange={(value) => updateField("city", value)} />
