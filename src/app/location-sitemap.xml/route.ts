@@ -1,10 +1,13 @@
-import { getLocationSitemapCount, escapeSitemapXml } from "@/lib/locationSitemap";
+import {
+  escapeSitemapXml,
+  getLocationSitemapCount,
+  LOCATION_SITEMAP_LAST_MODIFIED,
+} from "@/lib/locationSitemap";
 import { SITE_URL } from "@/lib/seo";
 
 export const dynamic = "force-static";
 
 export function GET() {
-  const lastModified = new Date().toISOString();
   const sitemaps = Array.from({ length: getLocationSitemapCount() }, (_, id) =>
     new URL(`/location-sitemaps/${id}.xml`, SITE_URL).toString(),
   );
@@ -13,7 +16,7 @@ export function GET() {
     '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...sitemaps.map(
       (url) =>
-        `  <sitemap><loc>${escapeSitemapXml(url)}</loc><lastmod>${lastModified}</lastmod></sitemap>`,
+        `  <sitemap><loc>${escapeSitemapXml(url)}</loc><lastmod>${LOCATION_SITEMAP_LAST_MODIFIED}</lastmod></sitemap>`,
     ),
     "</sitemapindex>",
   ].join("\n");

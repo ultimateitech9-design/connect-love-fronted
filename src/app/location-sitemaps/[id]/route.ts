@@ -2,6 +2,7 @@ import {
   escapeSitemapXml,
   getLocationSitemapCount,
   getLocationSitemapUrls,
+  LOCATION_SITEMAP_LAST_MODIFIED,
   LOCATION_SITEMAP_URL_LIMIT,
 } from "@/lib/locationSitemap";
 
@@ -28,7 +29,7 @@ export async function GET(
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls.map(
       (url) =>
-        `  <url><loc>${escapeSitemapXml(url)}</loc><lastmod>${new Date().toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
+        `  <url><loc>${escapeSitemapXml(url)}</loc><lastmod>${LOCATION_SITEMAP_LAST_MODIFIED}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
     ),
     "</urlset>",
   ].join("\n");

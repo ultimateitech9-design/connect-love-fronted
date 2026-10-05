@@ -9,6 +9,10 @@ import {
 } from "@/lib/worldCities";
 
 export const LOCATION_SITEMAP_URL_LIMIT = 50_000;
+// Keep lastmod tied to the location dataset, not to the build/request time.
+// A fresh timestamp on every build falsely tells crawlers that every page
+// changed, even when the location content did not.
+export const LOCATION_SITEMAP_LAST_MODIFIED = WORLD_CITIES_DATA.generatedAt;
 
 export function getIndiaSitemapUrls() {
   return [...new Set(INDIA_DATING_LOCATIONS.map(datingLocationPath))]
