@@ -41,9 +41,11 @@ function readableApiError(value: unknown): string | null {
 export function StepProfilePhotos({
   profile,
   onNext,
+  onSkip,
 }: {
   profile: PhotoProfile;
   onNext: (value: { photos: string[] }) => void;
+  onSkip: (value: { photos: string[] }) => void | Promise<void>;
 }) {
   const [photos, setPhotos] = useState<string[]>(profile.photos || []);
   const [message, setMessage] = useState("");
@@ -87,6 +89,15 @@ export function StepProfilePhotos({
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-5 py-3 font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
       >
         Continue to video KYC
+      </button>
+
+      <button
+        type="button"
+        disabled={!photos.length}
+        onClick={() => void onSkip({ photos })}
+        className="mx-auto block rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Skip KYC
       </button>
     </div>
   );

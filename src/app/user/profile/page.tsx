@@ -97,8 +97,8 @@ export default function ProfilePage() {
  const [savedCompletion, setSavedCompletion] = useState(0);
  const fileInputRef = useRef<HTMLInputElement>(null);
 
- // Ã¢â€â‚¬Ã¢â€â‚¬ localStorage key for avatar cache Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
- // Ã¢â€â‚¬Ã¢â€â‚¬ Fetch profile on mount Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+ // 
+ // 
  useEffect(() => {
  const token = getToken();
  if (!token) {
@@ -242,9 +242,11 @@ export default function ProfilePage() {
 
       // Preserve the current photos
       const merged = {
+        ...profile,
         ...updated,
+        ...updatePayload,
         photos: profile.photos || [],
-        dob: updated.birthDate || updated.dob,
+        dob: updated.birthDate || updatePayload.birthDate || updated.dob || profile.dob,
         personality: updated.personalityWords ? updated.personalityWords.join(", ") : (updated.personality || ""),
         interests: updated.interests ? (Array.isArray(updated.interests) ? updated.interests.join(", ") : updated.interests) : "",
         hobbies: updated.hobbies ? (Array.isArray(updated.hobbies) ? updated.hobbies.join(", ") : updated.hobbies) : ""
@@ -432,6 +434,7 @@ export default function ProfilePage() {
  international
  defaultCountry="IN"
  countryCallingCodeEditable={false}
+  limitMaxLength
  disabled={isLocked}
  value={profile.phone ?? ""}
  placeholder="Enter phone number"
@@ -570,7 +573,7 @@ export default function ProfilePage() {
  value={profile.bio ?? ""}
  onChange={(e) => set("bio", e.target.value)}
  maxLength={250}
- placeholder="Tell potential matches about yourselfÃ¢â‚¬Â¦"
+  placeholder="Tell potential matches about yourself..."
  className={`min-h-[100px] bg-white text-slate-800 placeholder:text-slate-400 border transition-all ${
  isEmpty("bio") && !isLocked ? "border-rose-400 focus:ring-rose-300" : "border-slate-200 focus:ring-rose-200"
  }`}
@@ -649,7 +652,7 @@ export default function ProfilePage() {
  disabled={saving || isLocked}
  >
  {saving && <Loader2 className="h-[16px] w-[16px] animate-spin" />}
- {saving ? "SavingÃ¢â‚¬Â¦" : "Save changes"}
+ {saving ? "Saving..." : "Save changes"}
  </Button>
  </div>
  </div>
@@ -686,7 +689,7 @@ export default function ProfilePage() {
  </div>
  {savedCompletion < 100 && (
  <p className="mt-3 text-xs text-muted-foreground">
- {100 - savedCompletion}% to go Ã¢â‚¬â€ complete your profile to get more matches!
+  {100 - savedCompletion}% to go - complete your profile to get more matches!
  </p>
  )}
  {/* Missing fields checklist Ã¢â‚¬â€ based on live (unsaved) data */}
@@ -707,12 +710,12 @@ export default function ProfilePage() {
  <div className="rounded-2xl bg-card p-5 shadow-lg border border-border">
  <h3 className="text-base font-semibold text-foreground">Profile insights</h3>
  <div className="mt-4 space-y-3">
- <Stat icon={Eye} label="Profile views (7d)" value={insights ? String(insights.profileViews7d) : "Ã¢â‚¬â€"} />
- <Stat icon={HeartIcon} label="Likes received" value={insights ? String(insights.likesReceived) : "Ã¢â‚¬â€"} />
+ <Stat icon={Eye} label="Profile views (7d)" value={insights ? String(insights.profileViews7d) : "-"} />
+ <Stat icon={HeartIcon} label="Likes received" value={insights ? String(insights.likesReceived) : "-"} />
  <Stat
  icon={Sparkles}
  label="Compatibility avg."
- value={insights ? (insights.compatibilityAverage === null ? "N/A" : `${insights.compatibilityAverage}%`) : "Ã¢â‚¬â€"}
+ value={insights ? (insights.compatibilityAverage === null ? "N/A" : `${insights.compatibilityAverage}%`) : "-"}
  />
  </div>
  </div>
@@ -764,7 +767,7 @@ export default function ProfilePage() {
  <Sparkles className="h-[16px] w-[16px] text-rose-400" /> Premium tip
  </p>
  <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
- Add a short video to your profile Ã¢â‚¬â€ premium users with video get 3.2Ãƒâ€” more matches.
+ Add a short video to your profile &mdash; premium users with video get 3.2&times; more matches.
  </p>
  <Link href="/user/premium">
  <Button className="mt-4 w-full text-white rounded-lg h-[36px] text-xs" style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}>
@@ -778,7 +781,7 @@ export default function ProfilePage() {
  );
 }
 
-// Ã¢â€â‚¬Ã¢â€â‚¬ Helper components Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// 
 
 function RequiredField({
  label, value, required, onChange, type = "text", placeholder, disabled, suggestions,

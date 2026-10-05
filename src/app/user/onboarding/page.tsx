@@ -171,6 +171,7 @@ export default function OnboardingPage() {
                 <StepProfilePhotos
                   profile={profile}
                   onNext={(val) => handleNext(val)}
+                  onSkip={(val) => handleNext(val, true)}
                 />
               )}
               {currentStepIndex === 1 && (

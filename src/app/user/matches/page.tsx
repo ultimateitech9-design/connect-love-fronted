@@ -223,6 +223,14 @@ export default function MatchesDashboard() {
    }
  };
 
+ useEffect(() => {
+   const requestedTab = new URLSearchParams(window.location.search).get("tab");
+   if (requestedTab === "received" || requestedTab === "pending" || requestedTab === "blocked" || requestedTab === "active") {
+     selectedTab.current = requestedTab;
+     setMainTab(requestedTab);
+   }
+ }, []);
+
  const refreshCurrentTab = async () => {
    loadedTabs.current.delete(mainTab);
    await Promise.all([loadTab(mainTab, true), refreshSummary()]);
@@ -248,9 +256,13 @@ export default function MatchesDashboard() {
      exhaustedTabs.current = new Set(cached.exhaustedTabs);
      nextOffsets.current = { ...cached.nextOffsets };
      setIsLoading(false);
+     const requestedTab = new URLSearchParams(window.location.search).get('tab') as MatchTab | null;
+     if (requestedTab && requestedTab !== 'active' && !loadedTabs.current.has(requestedTab)) void loadTab(requestedTab);
      return;
    }
-   void Promise.all([loadTab('active'), refreshSummary()]);
+   const requestedTab = new URLSearchParams(window.location.search).get('tab');
+   const initialTab: MatchTab = requestedTab === 'received' || requestedTab === 'pending' || requestedTab === 'blocked' ? requestedTab : 'active';
+   void Promise.all([loadTab(initialTab), refreshSummary()]);
  }, []);
 
  useEffect(() => {

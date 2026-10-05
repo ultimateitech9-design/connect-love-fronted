@@ -79,7 +79,7 @@ export function TopNav() {
      title: "New Match Request!",
      body: "Someone liked your profile. Check it out!",
      time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-     link: "/user/matches",
+     link: "/user/matches?tab=received",
      count: 1,
    })),
    ...visibleActiveMatches.filter((m: any) => Number(m.unreadCount) > 0).map((m: any) => ({

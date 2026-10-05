@@ -1,7 +1,7 @@
 "use client";
 import { API_ORIGIN, WEBRTC_ICE_SERVERS, apiFetch } from "@/config/runtime";
 
-import { cloneElement, createContext, isValidElement, useContext, useState, useEffect, useRef, useCallback, useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from "react";
+import { Fragment, cloneElement, createContext, isValidElement, useContext, useState, useEffect, useRef, useCallback, useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,6 +24,7 @@ import { useChatWebSocket } from "@/hooks/useChatWebSocket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MESSAGE_REACTIONS, reportMessage } from "@/features/messages/messageActionsApi";
+import { getStoredTheme, type AppTheme } from "@/features/theme/theme";
 
 const API_URL = API_ORIGIN;
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
@@ -38,6 +39,23 @@ const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 const CHAT_THEME_STORAGE_KEY = "connect-love-chat-theme";
 const UNLOCKED_CHAT_THEMES_STORAGE_KEY = "connect-love-unlocked-chat-themes";
 const MUTED_CHATS_STORAGE_KEY = "connect-love-muted-chats";
+
+function getMessageDateKey(value?: string | Date | null) {
+ const date = value ? new Date(value) : null;
+ if (!date || Number.isNaN(date.getTime())) return "";
+ return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
+function formatMessageDate(value?: string | Date | null) {
+ const date = value ? new Date(value) : null;
+ if (!date || Number.isNaN(date.getTime())) return "";
+ const today = new Date();
+ if (getMessageDateKey(date) === getMessageDateKey(today)) return "Today";
+ const yesterday = new Date(today);
+ yesterday.setDate(today.getDate() - 1);
+ if (getMessageDateKey(date) === getMessageDateKey(yesterday)) return "Yesterday";
+ return date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
 
 declare global {
  interface Window {
@@ -1834,7 +1852,14 @@ function LockedFirstImpressionReply() {
 }
 
 export default function Messages() {
+  const [appTheme, setAppTheme] = useState<AppTheme>("light");
   const [activeId, setActiveId] = useState<string | null>(null);
+  useEffect(() => {
+    setAppTheme(getStoredTheme());
+    const syncTheme = (event: Event) => setAppTheme((event as CustomEvent<AppTheme>).detail || getStoredTheme());
+    window.addEventListener("connect-love-theme-change", syncTheme);
+    return () => window.removeEventListener("connect-love-theme-change", syncTheme);
+  }, []);
   const [firstImpressions, setFirstImpressions] = useState<InboxFirstImpression[]>([]);
   const [firstImpressionsUnlocked, setFirstImpressionsUnlocked] = useState(false);
   const [activeFirstImpressionId, setActiveFirstImpressionId] = useState<string | null>(null);
@@ -2017,17 +2042,19 @@ export default function Messages() {
  }, []);
  const selectedTheme = CHAT_THEMES.find((theme) => theme.id === selectedThemeId) || FREE_CHAT_THEMES[0];
  const isDarkTheme = selectedTheme.id === "3d-stars" || selectedTheme.id === "3d-fire" || selectedTheme.id === "3d-galaxy";
+ const isAppDark = appTheme === "dark";
+ const chatUsesDarkColors = isAppDark || isDarkTheme;
  const chatThemeStyle = {
    "--chat-accent": selectedTheme.colors.accent,
    "--chat-outgoing": selectedTheme.colors.outgoing,
-   "--chat-incoming": selectedTheme.colors.incoming,
-   "--chat-panel": selectedTheme.colors.panel,
-   "--chat-input": selectedTheme.colors.input,
-   "--chat-bg": selectedTheme.colors.background,
-   "--chat-selected": isDarkTheme ? "rgba(255,255,255,.14)" : "rgba(15,23,42,.08)",
-   "--chat-hover": isDarkTheme ? "rgba(255,255,255,.09)" : "rgba(15,23,42,.05)",
-   "--chat-text": isDarkTheme ? "#f8fafc" : "#0f172a",
-   "--chat-text-muted": isDarkTheme ? "#94a3b8" : "#64748b",
+   "--chat-incoming": isAppDark ? "#1f2937" : selectedTheme.colors.incoming,
+   "--chat-panel": isAppDark ? "#111827" : selectedTheme.colors.panel,
+   "--chat-input": isAppDark ? "#1f2937" : selectedTheme.colors.input,
+   "--chat-bg": isAppDark ? "linear-gradient(135deg,#0f172a,#111827)" : selectedTheme.colors.background,
+   "--chat-selected": chatUsesDarkColors ? "rgba(255,255,255,.14)" : "rgba(15,23,42,.08)",
+   "--chat-hover": chatUsesDarkColors ? "rgba(255,255,255,.09)" : "rgba(15,23,42,.05)",
+   "--chat-text": chatUsesDarkColors ? "#f8fafc" : "#0f172a",
+   "--chat-text-muted": chatUsesDarkColors ? "#94a3b8" : "#64748b",
  } as React.CSSProperties;
 
  const [myId, setMyId] = useState<string | null>(null);
@@ -3638,7 +3665,7 @@ export default function Messages() {
     </span>
   </div>
 )}
-{renderedMessages.map((m: any) => {
+{renderedMessages.map((m: any, messageIndex: number) => {
   const isMe = String(m.senderId) === String(myId);
   const isGift = isGiftMessage(m.content);
   const isGif = isGifMessage(m.content);
@@ -3646,6 +3673,9 @@ export default function Messages() {
   const isDeleted = !!m.deletedForEveryone;
   const isSingleEmoji = !replyMessage && !isDeleted && isSingleEmojiMessage(m.content);
   const isSelected = selectedMessageIds.has(m.id);
+  const previousMessage = messageIndex > 0 ? renderedMessages[messageIndex - 1] : null;
+  const showDateSeparator = !previousMessage || getMessageDateKey(previousMessage.createdAt) !== getMessageDateKey(m.createdAt);
+  const messageDateLabel = formatMessageDate(m.createdAt);
 
   if (m.content.startsWith("[CONTROL:DISAPPEARING_MODE:")) {
     const modeMatch = m.content.match(/\[CONTROL:DISAPPEARING_MODE:(.+)\]/);
@@ -3653,16 +3683,21 @@ export default function Messages() {
     const modeText = mode === "after-view" ? "After View" : mode === "24h" ? "24 Hours" : mode === "7d" ? "7 Days" : "Off";
     const displaySender = isMe ? "You" : active.name;
     return (
-      <div key={m.id} className="flex justify-center w-full my-2 relative z-10">
+      <Fragment key={m.id}>
+        {showDateSeparator && messageDateLabel && <div className="flex justify-center py-2"><span className="rounded-md border border-border bg-[var(--chat-input)] px-3 py-1 text-[11px] font-semibold text-[var(--chat-text-muted)] shadow-sm">{messageDateLabel}</span></div>}
+      <div className="flex justify-center w-full my-2 relative z-10">
         <span className="bg-slate-100/80 text-slate-500 text-[10px] font-bold px-3 py-1 rounded-full border border-slate-200/50 shadow-sm backdrop-blur-sm">
           ⚙️ {displaySender} set messages to disappear: <strong className="text-slate-800">{modeText}</strong>
         </span>
       </div>
+      </Fragment>
     );
   }
 
   return (
-  isMe ? (
+  <Fragment key={m.id}>
+    {showDateSeparator && messageDateLabel && <div className="flex justify-center py-2"><span className="rounded-md border border-border bg-[var(--chat-input)] px-3 py-1 text-[11px] font-semibold text-[var(--chat-text-muted)] shadow-sm">{messageDateLabel}</span></div>}
+  {isMe ? (
  <div key={m.id} className={cn("relative flex w-full my-2 items-center justify-end gap-2 rounded-lg px-1 py-1", isSelected && "bg-emerald-100/35")}>
    {selectedMessageIds.size > 0 && (
      <button
@@ -3920,7 +3955,8 @@ export default function Messages() {
    </ContextMenuContent>
    </ContextMenu>
  </div>
- )
+ )}
+  </Fragment>
   );
 })}
  <div className="relative z-10 flex min-h-8 w-full justify-start" aria-live="polite">

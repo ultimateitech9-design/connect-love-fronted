@@ -1,6 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+
+
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState, useDeferredValue } from "react";
 import { BadgeCheck, Crown, Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
@@ -11,6 +13,7 @@ import { formatDistance } from "@/lib/distance";
 import { INTERESTED_IN_OPTIONS } from "@/features/discovery/gender-options";
 import { AgeRangeSlider } from "@/features/discovery/AgeRangeSlider";
 import { CampaignOfferCard } from "@/features/user/CampaignOfferCard";
+import { ProfileCard } from "@/features/user/ProfileCard";
 import { ConnectLoveChatbot } from "@/features/chatbot/ConnectLoveChatbot";
 import { apiFetch } from "@/config/runtime";
 import { recordDiscoveryProfileView } from "@/features/discovery/api";
@@ -30,10 +33,6 @@ const defaultFilters: DiscoverFilters = {
 const FiltersPanel = dynamic(() => import("@/features/user/FiltersPanel").then((mod) => mod.FiltersPanel), {
   ssr: false,
   loading: () => <FiltersPanelShell />,
-});
-const ProfileCard = dynamic(() => import("@/features/user/ProfileCard").then((mod) => mod.ProfileCard), {
-  ssr: false,
-  loading: () => <ProfileCardShell />,
 });
 const RightRail = dynamic(() => import("@/features/user/RightRail").then((mod) => mod.RightRail), {
   ssr: false,

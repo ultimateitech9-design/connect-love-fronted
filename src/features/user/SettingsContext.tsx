@@ -3,7 +3,7 @@ import { API_ORIGIN } from "@/config/runtime";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
-import { getStoredTheme, THEME_STORAGE_KEY, type AppTheme } from "@/features/theme/theme";
+import { applyTheme, getStoredTheme, THEME_STORAGE_KEY, type AppTheme } from "@/features/theme/theme";
 
 export interface UserSettings {
  showOnlineStatus: boolean;
@@ -95,6 +95,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
  }, []);
 
  const updateSetting = async (key: keyof UserSettings, value: boolean | string) => {
+ if (key === "darkMode" && typeof value === "boolean") {
+   applyTheme(value ? "dark" : "light");
+ }
  setSettings((prev) => ({ ...prev, [key]: value }));
  const token = getToken();
  if (!token) return;
