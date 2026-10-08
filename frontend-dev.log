@@ -1,5 +1,0 @@
-
-> dev
-> set NODE_OPTIONS=--max-old-space-size=2048 && next dev --port 3002
-
-[?25h
