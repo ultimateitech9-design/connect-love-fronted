@@ -3,6 +3,7 @@ import { SITE_URL } from "@/lib/seo";
 import {
   isWorldCityIndexable,
   WORLD_CITIES,
+  WORLD_CITIES_DATA,
   WORLD_COUNTRIES,
   worldCityPath,
   worldCountryPath,
