@@ -177,14 +177,22 @@ export function getDatingLocation(kind: string, slug: string) {
 
 export function getRelatedDatingLocations(location: DatingLocation) {
   if (location.kind === "city") {
-    const sameState = INDIA_CITIES.filter(
-      (city) => city.stateName === location.stateName && city.slug !== location.slug,
-    );
+    const stateCities = INDIA_CITIES.filter((city) => city.stateName === location.stateName);
     const parentState = INDIA_STATES.find((state) => state.name === location.stateName);
-    return [...(parentState ? [parentState] : []), ...sameState].slice(0, 8);
+    // Take the cities either side of this one in the state list (wrapping
+    // around) instead of the same first few for every page, so each city page
+    // links to different siblings and every city is linked from some sibling.
+    const index = stateCities.findIndex((city) => city.slug === location.slug);
+    const siblingCount = Math.min(7, stateCities.length - 1);
+    const siblings = Array.from({ length: siblingCount }, (_, offset) => {
+      const step = offset % 2 === 0 ? offset / 2 + 1 : -(offset + 1) / 2;
+      return stateCities[(index + step + stateCities.length) % stateCities.length];
+    });
+    return [...(parentState ? [parentState] : []), ...siblings];
   }
 
+  // State pages are the hub for their cities, so link every one of them.
   const stateCities = INDIA_CITIES.filter((city) => city.stateName === location.name);
-  if (stateCities.length) return stateCities.slice(0, 8);
+  if (stateCities.length) return stateCities;
   return INDIA_STATES.filter((state) => state.slug !== location.slug).slice(0, 8);
 }

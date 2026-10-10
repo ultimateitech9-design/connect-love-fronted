@@ -44,10 +44,10 @@ export default async function LocationTypePage({
   const isCity = type === "city";
   return (
     <LocationDirectoryPage
-      title={isCity ? "Dating in Indian cities" : "Dating across Indian states"}
+      title={isCity ? "All Cities" : "Dating across Indian states"}
       description={
         isCity
-          ? "Choose a city to explore local dating, compatible singles and meaningful relationship opportunities near you."
+          ? "Choose a city to open local dating search with the city filter already applied."
           : "Choose an Indian state or union territory to explore local singles and intentional online dating."
       }
       locations={isCity ? INDIA_CITIES : INDIA_STATES}

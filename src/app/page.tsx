@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Navbar } from "@/features/home/Navbar";
 import { HeroSection } from "@/features/home/HeroSection";
@@ -7,6 +8,20 @@ import { HomeSeoContent } from "@/features/home/HomeSeoContent";
 import { SafetySection } from "@/features/home/SafetySection";
 import { Footer } from "@/features/home/Footer";
 import { HomeSearchEffects } from "@/features/home/HomeSearchEffects";
+import { TopCitiesSection } from "@/features/home/TopCitiesSection";
+import { createPublicMetadata, HOME_DESCRIPTION, HOME_KEYWORDS, HOME_TITLE } from "@/lib/seo";
+
+const homeMetadata = createPublicMetadata({
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
+  path: "/",
+  keywords: HOME_KEYWORDS,
+});
+
+export const metadata: Metadata = {
+  alternates: homeMetadata.alternates,
+  robots: homeMetadata.robots,
+};
 
 export default function HomePage() {
   return (
@@ -21,6 +36,7 @@ export default function HomePage() {
         <HeroSection />
         <AboutSection />
         <FeaturesSection />
+        <TopCitiesSection />
         <HomeSeoContent />
         <SafetySection />
       </main>

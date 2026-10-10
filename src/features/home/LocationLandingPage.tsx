@@ -183,7 +183,9 @@ export function LocationLandingPage({
                   Explore nearby
                 </span>
                 <h2 className="mt-2 text-3xl font-black tracking-tight">
-                  More dating locations
+                  {location.kind === "state"
+                    ? `All ${relatedLocations.length} cities in ${location.name}`
+                    : `More dating locations in ${location.stateName ?? "India"}`}
                 </h2>
               </div>
               <Link href="/register" className="font-bold text-rose-600 hover:text-rose-500">
