@@ -2,51 +2,84 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  CheckCircle2,
   Heart,
   MapPin,
   ShieldCheck,
-  Sparkles,
-  UsersRound,
 } from "lucide-react";
 import { Footer } from "@/features/home/Footer";
 import { Navbar } from "@/features/home/Navbar";
 import {
   datingLocationPath,
   type DatingLocation,
+  type IndiaCityFacts,
+  INDIA_CITY_GEO_DATA,
+  type NearbyDatingLocation,
 } from "@/lib/indiaLocations";
 
 type LocationLandingPageProps = {
   location: DatingLocation;
-  relatedLocations: DatingLocation[];
+  relatedLocations: NearbyDatingLocation[];
+  facts?: IndiaCityFacts;
 };
 
-const steps = [
-  {
-    icon: UsersRound,
-    title: "Create your profile",
-    text: "Share your interests, values, lifestyle and the kind of relationship you want.",
-  },
-  {
-    icon: Sparkles,
-    title: "Discover compatible people",
-    text: "Explore profiles using preferences, location signals and relationship intent.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Connect more safely",
-    text: "Use verification signals, mutual matches, privacy controls, block and report tools.",
-  },
-];
+
+const formatNumber = (value: number) => value.toLocaleString("en-IN");
+
+function ordinal(value: number) {
+  const mod100 = value % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${value}th`;
+  return `${value}${["th", "st", "nd", "rd"][value % 10] ?? "th"}`;
+}
+
+function cityFactSentences(location: DatingLocation, facts: IndiaCityFacts) {
+  const geo = location.geo;
+  if (!geo) return [];
+  const sentences: string[] = [];
+  const district = geo.district && geo.district !== location.name ? geo.district : "";
+
+  if (geo.area) {
+    sentences.push(
+      `${location.name} is an administrative area in ${location.stateName}${geo.population > 0 ? ` with about ${formatNumber(geo.population)} residents across its towns and villages` : ""}.`,
+    );
+  } else if (geo.population > 0) {
+    sentences.push(
+      `${location.name}${district ? ` in ${district} district` : ""} has about ${formatNumber(geo.population)} residents${facts.stateRank ? `, making it the ${ordinal(facts.stateRank)} largest of the ${facts.stateTownCount} ${location.stateName} towns listed on ConnectLove` : ""}.`,
+    );
+  } else if (district) {
+    sentences.push(`${location.name} is in ${district} district of ${location.stateName}.`);
+  }
+
+  if (facts.largestInState && facts.distanceToLargestKm !== undefined) {
+    sentences.push(
+      `${facts.largestInState.name}, the largest listed city in ${location.stateName}, is roughly ${formatNumber(facts.distanceToLargestKm)} km away.`,
+    );
+  }
+  if (facts.nearestLarger && facts.nearestLarger.slug !== facts.largestInState?.slug) {
+    sentences.push(
+      `The nearest bigger city is ${facts.nearestLarger.name}${facts.nearestLarger.stateName !== location.stateName ? ` in ${facts.nearestLarger.stateName}` : ""}, about ${formatNumber(facts.nearestLarger.distanceKm ?? 0)} km away.`,
+    );
+  }
+  if (facts.districtNeighbours.length) {
+    sentences.push(
+      `Other places in the same district include ${facts.districtNeighbours.map((city) => city.name).join(", ")}.`,
+    );
+  }
+  sentences.push(
+    `${location.name} sits at ${geo.latitude.toFixed(2)}°N, ${geo.longitude.toFixed(2)}°E.`,
+  );
+  return sentences;
+}
 
 export function LocationLandingPage({
   location,
   relatedLocations,
+  facts,
 }: LocationLandingPageProps) {
   const placeContext =
     location.kind === "city" && location.stateName
       ? `${location.name}, ${location.stateName}`
       : location.name;
+  const factSentences = facts ? cityFactSentences(location, facts) : [];
 
   return (
     <div className="min-h-screen bg-white text-slate-950 dark:bg-[#090910] dark:text-white">
@@ -109,69 +142,58 @@ export function LocationLandingPage({
           </div>
         </section>
 
-        <section className="bg-white py-16 dark:bg-[#090910]">
-          <div className="mx-auto w-[90vw] max-w-7xl">
-            <div className="mx-auto max-w-3xl text-center">
+        {factSentences.length ? (
+          <section className="bg-white py-16 dark:bg-[#090910]">
+            <div className="mx-auto w-[90vw] max-w-4xl">
               <span className="text-sm font-bold uppercase tracking-[0.2em] text-rose-500">
-                Local dating, clearer intent
+                Local context
               </span>
               <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
-                How ConnectLove helps you meet people in {location.name}
+                {location.name} at a glance
               </h2>
-              <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">
-                Location is one part of a good match. Interests, values, relationship goals,
-                lifestyle and respectful communication also matter.
+              <p className="mt-5 text-lg leading-8 text-slate-600 dark:text-slate-300">
+                {factSentences.join(" ")}
               </p>
+              {facts?.districtNeighbours.length ? (
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {facts.districtNeighbours.map((city) => (
+                    <Link
+                      key={city.slug}
+                      href={datingLocationPath(city)}
+                      className="rounded-full border border-rose-200 px-4 py-1.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:border-rose-400/30 dark:text-rose-300 dark:hover:bg-rose-400/10"
+                    >
+                      Dating in {city.name}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
             </div>
+          </section>
+        ) : null}
 
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {steps.map(({ icon: Icon, title, text }) => (
-                <article
-                  key={title}
-                  className="rounded-3xl border border-rose-100 bg-rose-50/40 p-7 shadow-sm dark:border-white/10 dark:bg-white/[0.04]"
-                >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500 text-white shadow-lg shadow-rose-500/20">
-                    <Icon className="h-6 w-6" />
-                  </span>
-                  <h3 className="mt-5 text-xl font-bold">{title}</h3>
-                  <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">{text}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-y border-slate-200 bg-slate-50 py-16 dark:border-white/10 dark:bg-white/[0.025]">
-          <div className="mx-auto grid w-[90vw] max-w-7xl items-center gap-10 lg:grid-cols-2">
+        <section className="border-y border-slate-200 bg-slate-50 py-12 dark:border-white/10 dark:bg-white/[0.025]">
+          <div className="mx-auto flex w-[90vw] max-w-4xl flex-col gap-5 sm:flex-row sm:items-start">
+            <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+              <ShieldCheck className="h-6 w-6" />
+            </span>
             <div>
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
-                <ShieldCheck className="h-6 w-6" />
-              </span>
-              <h2 className="mt-5 text-3xl font-black tracking-tight">
-                Safer dating in {location.name}
+              <h2 className="text-2xl font-black tracking-tight">
+                Meeting people in {location.name}
               </h2>
-              <p className="mt-4 leading-7 text-slate-600 dark:text-slate-300">
-                No dating platform can guarantee another person&apos;s identity or intentions.
-                Review profiles carefully, keep early conversations on-platform, avoid sending
-                money and meet in a populated public place when you are ready.
+              <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">
+                Build an honest profile, match with people whose goals fit yours and keep early
+                conversations on ConnectLove. When you decide to meet, choose a busy public place
+                and tell someone you trust. See{" "}
+                <Link href="/features" className="font-semibold text-rose-600 hover:underline dark:text-rose-300">
+                  how ConnectLove works
+                </Link>{" "}
+                and our{" "}
+                <Link href="/safety" className="font-semibold text-rose-600 hover:underline dark:text-rose-300">
+                  dating safety guide
+                </Link>
+                .
               </p>
             </div>
-            <ul className="space-y-4">
-              {[
-                "Look for complete profiles and verification signals.",
-                "Never share OTPs, passwords or financial information.",
-                "Tell someone you trust before meeting in person.",
-                "Block and report suspicious or disrespectful behaviour.",
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/[0.04]"
-                >
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-                  <span className="text-slate-700 dark:text-slate-200">{item}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </section>
 
@@ -185,7 +207,7 @@ export function LocationLandingPage({
                 <h2 className="mt-2 text-3xl font-black tracking-tight">
                   {location.kind === "state"
                     ? `All ${relatedLocations.length} cities in ${location.name}`
-                    : `More dating locations in ${location.stateName ?? "India"}`}
+                    : `Places near ${location.name}`}
                 </h2>
               </div>
               <Link href="/register" className="font-bold text-rose-600 hover:text-rose-500">
@@ -202,14 +224,31 @@ export function LocationLandingPage({
                 >
                   <span>
                     <span className="block font-bold">{related.name}</span>
-                    <span className="mt-1 block text-xs capitalize text-slate-500 dark:text-slate-400">
-                      {related.kind} dating
+                    <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+                      {related.distanceKm !== undefined
+                        ? `${related.stateName !== location.stateName ? `${related.stateName} · ` : ""}${formatNumber(related.distanceKm)} km away`
+                        : related.kind === "state"
+                          ? "State dating"
+                          : "City dating"}
                     </span>
                   </span>
                   <Heart className="h-5 w-5 text-rose-400 transition group-hover:fill-rose-400" />
                 </Link>
               ))}
             </div>
+            {location.geo ? (
+              <p className="mt-9 text-xs leading-6 text-slate-500 dark:text-slate-400">
+                Location data:{" "}
+                <a href={INDIA_CITY_GEO_DATA.sourceUrl} target="_blank" rel="noreferrer" className="font-semibold text-rose-600 hover:underline dark:text-rose-300">
+                  GeoNames
+                </a>{" "}
+                under{" "}
+                <a href={INDIA_CITY_GEO_DATA.licenseUrl} target="_blank" rel="noreferrer" className="font-semibold text-rose-600 hover:underline dark:text-rose-300">
+                  Creative Commons Attribution 4.0
+                </a>
+                . Population figures are GeoNames estimates.
+              </p>
+            ) : null}
           </div>
         </section>
       </main>

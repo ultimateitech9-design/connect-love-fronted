@@ -26,8 +26,13 @@ const homeMetadata = createPublicMetadata({
   keywords: HOME_KEYWORDS,
 });
 
+// Canonical URL and robots are page-specific. Inheriting the home page's
+// values here would point every page without its own metadata (login,
+// register, 404) at the home page as its canonical.
+const { alternates: _homeAlternates, robots: _homeRobots, ...sharedMetadata } = homeMetadata;
+
 export const metadata: Metadata = {
-  ...homeMetadata,
+  ...sharedMetadata,
   metadataBase: new URL(SITE_URL),
   title: {
     default: HOME_TITLE,

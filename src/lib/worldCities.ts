@@ -97,3 +97,60 @@ export function getRelatedWorldCities(city: WorldCity, limit = 8) {
       candidate.countryCode === city.countryCode && candidate.id !== city.id,
   ).slice(0, limit);
 }
+
+export type NearbyWorldCity = WorldCity & { distanceKm: number };
+
+export type WorldCityFacts = {
+  countryRank: number;
+  countryCityCount: number;
+  regionRank: number;
+  regionCityCount: number;
+  largestInCountry: WorldCity;
+  distanceToLargestKm: number;
+  nearestLarger?: NearbyWorldCity;
+  hemisphere: string;
+};
+
+function distanceKm(a: WorldCity, b: WorldCity) {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLon = toRad(b.longitude - a.longitude);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.latitude)) * Math.cos(toRad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+  return Math.round(6371 * 2 * Math.asin(Math.sqrt(h)));
+}
+
+// Closest listed cities by great-circle distance, across borders. Unlike the
+// country top list, this differs for every city, so each page links to its
+// real neighbours and every city receives internal links from nearby pages.
+export function getNearbyWorldCities(city: WorldCity, limit = 8): NearbyWorldCity[] {
+  return WORLD_CITIES.filter((candidate) => candidate.id !== city.id)
+    .map((candidate) => ({ ...candidate, distanceKm: distanceKm(city, candidate) }))
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, limit);
+}
+
+// Factual context derived from the GeoNames dataset (WORLD_CITIES is sorted by
+// population, so list order is population rank).
+export function getWorldCityFacts(city: WorldCity): WorldCityFacts {
+  const countryCities = getWorldCitiesForCountry(city.countrySlug);
+  const regionCities = city.adminName
+    ? countryCities.filter((candidate) => candidate.adminName === city.adminName)
+    : [city];
+  const largestInCountry = countryCities[0];
+  const nearestLarger = WORLD_CITIES.filter((candidate) => candidate.population > city.population)
+    .map((candidate) => ({ ...candidate, distanceKm: distanceKm(city, candidate) }))
+    .sort((a, b) => a.distanceKm - b.distanceKm)[0];
+
+  return {
+    countryRank: countryCities.indexOf(city) + 1,
+    countryCityCount: countryCities.length,
+    regionRank: regionCities.indexOf(city) + 1,
+    regionCityCount: regionCities.length,
+    largestInCountry,
+    distanceToLargestKm: distanceKm(city, largestInCountry),
+    nearestLarger,
+    hemisphere: `${city.latitude >= 0 ? "Northern" : "Southern"} and ${city.longitude >= 0 ? "Eastern" : "Western"} hemispheres`,
+  };
+}

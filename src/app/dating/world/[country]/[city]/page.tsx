@@ -4,8 +4,9 @@ import { WorldCityLandingPage } from "@/features/home/WorldCityLandingPage";
 import { getCitySearchPhrases } from "@/lib/globalSearchPhrases";
 import { createPublicMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 import {
-  getRelatedWorldCities,
+  getNearbyWorldCities,
   getWorldCity,
+  getWorldCityFacts,
   isWorldCityIndexable,
   WORLD_CITIES,
   worldCityPath,
@@ -65,7 +66,8 @@ export default async function WorldCityPage({ params }: WorldCityPageProps) {
   if (!city) notFound();
 
   const canonicalUrl = new URL(worldCityPath(city), SITE_URL).toString();
-  const relatedCities = getRelatedWorldCities(city);
+  const nearbyCities = getNearbyWorldCities(city);
+  const facts = getWorldCityFacts(city);
   const faq = [
     {
       question: `How can I meet singles in ${city.name}?`,
@@ -74,6 +76,13 @@ export default async function WorldCityPage({ params }: WorldCityPageProps) {
     {
       question: `Is ConnectLove available in ${city.countryName}?`,
       answer: `Yes. ConnectLove is available worldwide, including ${city.countryName}. Features and profile availability can vary by location, device and account status.`,
+    },
+    {
+      question: `Which cities are near ${city.name}?`,
+      answer: `The closest listed cities to ${city.name} are ${nearbyCities
+        .slice(0, 4)
+        .map((nearby) => `${nearby.name} (${nearby.distanceKm.toLocaleString("en-US")} km)`)
+        .join(", ")}. Members can widen their discovery distance to include people in these places.`,
     },
     {
       question: `How can I date more safely in ${city.name}?`,
@@ -153,7 +162,7 @@ export default async function WorldCityPage({ params }: WorldCityPageProps) {
           __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
         }}
       />
-      <WorldCityLandingPage city={city} relatedCities={relatedCities} />
+      <WorldCityLandingPage city={city} nearbyCities={nearbyCities} facts={facts} />
     </>
   );
 }

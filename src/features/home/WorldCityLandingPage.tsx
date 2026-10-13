@@ -1,18 +1,17 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  CheckCircle2,
   Earth,
   Heart,
   MapPin,
   ShieldCheck,
-  Sparkles,
-  UsersRound,
 } from "lucide-react";
 import { Footer } from "@/features/home/Footer";
 import { Navbar } from "@/features/home/Navbar";
 import {
+  type NearbyWorldCity,
   type WorldCity,
+  type WorldCityFacts,
   WORLD_CITIES_DATA,
   worldCityPath,
   worldCountryPath,
@@ -20,7 +19,8 @@ import {
 
 type WorldCityLandingPageProps = {
   city: WorldCity;
-  relatedCities: WorldCity[];
+  nearbyCities: NearbyWorldCity[];
+  facts: WorldCityFacts;
 };
 
 function cityScale(population: number) {
@@ -30,14 +30,61 @@ function cityScale(population: number) {
   return "regional city";
 }
 
+const formatNumber = (value: number) => value.toLocaleString("en-US");
+
+function ordinal(value: number) {
+  const mod100 = value % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${value}th`;
+  return `${value}${["th", "st", "nd", "rd"][value % 10] ?? "th"}`;
+}
+
+function cityFactSentences(city: WorldCity, facts: WorldCityFacts, nearby: NearbyWorldCity[]) {
+  const sentences: string[] = [];
+  sentences.push(
+    facts.countryRank === 1
+      ? `${city.name} is the most populous place in ${city.countryName} in our directory, with about ${formatNumber(city.population)} residents.`
+      : `With about ${formatNumber(city.population)} residents, ${city.name} is the ${ordinal(facts.countryRank)} largest of the ${formatNumber(facts.countryCityCount)} ${city.countryName} cities listed on ConnectLove.`,
+  );
+  if (city.adminName && facts.regionCityCount > 1) {
+    sentences.push(
+      facts.regionRank === 1
+        ? `It is the largest listed city in ${city.adminName}, which has ${facts.regionCityCount} cities in this directory.`
+        : `Within ${city.adminName} it ranks ${ordinal(facts.regionRank)} by population among ${facts.regionCityCount} listed cities.`,
+    );
+  }
+  if (facts.countryRank !== 1) {
+    sentences.push(
+      `${facts.largestInCountry.name}, the largest listed city in ${city.countryName}, is roughly ${formatNumber(facts.distanceToLargestKm)} km away.`,
+    );
+  }
+  if (facts.nearestLarger && facts.nearestLarger.id !== facts.largestInCountry.id) {
+    sentences.push(
+      `The nearest larger city is ${facts.nearestLarger.name}${facts.nearestLarger.countryCode !== city.countryCode ? ` in ${facts.nearestLarger.countryName}` : ""}, about ${formatNumber(facts.nearestLarger.distanceKm)} km away.`,
+    );
+  }
+  const closest = nearby[0];
+  const alreadyMentioned = [facts.largestInCountry.id, facts.nearestLarger?.id];
+  if (closest && !alreadyMentioned.includes(closest.id)) {
+    sentences.push(
+      `The closest listed city is ${closest.name}${closest.countryCode !== city.countryCode ? `, ${closest.countryName}` : ""} at around ${formatNumber(closest.distanceKm)} km, so a wider discovery distance can include people there too.`,
+    );
+  }
+  sentences.push(
+    `${city.name} sits at ${Math.abs(city.latitude).toFixed(2)}°${city.latitude >= 0 ? "N" : "S"}, ${Math.abs(city.longitude).toFixed(2)}°${city.longitude >= 0 ? "E" : "W"}, in the ${facts.hemisphere}.`,
+  );
+  return sentences;
+}
+
 export function WorldCityLandingPage({
   city,
-  relatedCities,
+  nearbyCities,
+  facts,
 }: WorldCityLandingPageProps) {
   const area = city.adminName
     ? `${city.name}, ${city.adminName}, ${city.countryName}`
     : `${city.name}, ${city.countryName}`;
   const scale = cityScale(city.population);
+  const factSentences = cityFactSentences(city, facts, nearbyCities);
 
   return (
     <div className="min-h-screen bg-white text-slate-950 dark:bg-[#090910] dark:text-white">
@@ -115,6 +162,16 @@ export function WorldCityLandingPage({
                   <dd className="mt-1 font-bold">{city.countryName}</dd>
                 </div>
                 <div>
+                  <dt className="text-slate-500 dark:text-slate-400">Population</dt>
+                  <dd className="mt-1 font-bold">About {formatNumber(city.population)}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500 dark:text-slate-400">Size in {city.countryName}</dt>
+                  <dd className="mt-1 font-bold">
+                    {ordinal(facts.countryRank)} of {formatNumber(facts.countryCityCount)} listed cities
+                  </dd>
+                </div>
+                <div>
                   <dt className="text-slate-500 dark:text-slate-400">Location context</dt>
                   <dd className="mt-1 font-bold capitalize">{scale}</dd>
                 </div>
@@ -126,106 +183,46 @@ export function WorldCityLandingPage({
               </p>
             </aside>
 
+            <div className="space-y-8">
             <article className="rounded-3xl border border-slate-200 p-7 sm:p-9 dark:border-white/10">
               <span className="text-sm font-bold uppercase tracking-[0.18em] text-rose-500">
-                Dating with intention
+                Local context
               </span>
               <h2 className="mt-3 text-3xl font-black tracking-tight">
-                Looking for a lover near you in {city.name}?
+                {city.name} at a glance
               </h2>
-              <div className="mt-5 space-y-5 text-base leading-8 text-slate-600 dark:text-slate-300">
-                <p>
-                  Start with a complete and truthful profile. Clear photos, current interests,
-                  lifestyle information and an honest relationship goal help other adults
-                  understand whether a conversation may be worthwhile. Compatibility is about
-                  more than distance, so consider values, communication style, availability and
-                  expectations as well as location.
-                </p>
-                <p>
-                  A thoughtful first message is more useful than sending the same line to many
-                  people. Read the profile, mention a genuine shared interest and ask one open
-                  question. Give the other person space to respond and accept a decline without
-                  pressure. Respectful communication improves the experience for everyone using
-                  online dating in {city.name}.
-                </p>
-                <p>
-                  ConnectLove can help people discover profiles and communicate, but it cannot
-                  guarantee identity, intentions, compatibility or a relationship outcome.
-                  Profile availability in {area} changes as members join, adjust discovery
-                  settings, travel, pause accounts or change visibility.
-                </p>
-              </div>
+              <p className="mt-5 text-base leading-8 text-slate-600 dark:text-slate-300">
+                {factSentences.join(" ")}
+              </p>
             </article>
-          </div>
-        </section>
 
-        <section className="border-y border-slate-200 bg-slate-50 py-16 dark:border-white/10 dark:bg-white/[0.025]">
-          <div className="mx-auto w-[90vw] max-w-7xl">
-            <div className="mx-auto max-w-3xl text-center">
-              <span className="text-sm font-bold uppercase tracking-[0.18em] text-rose-500">
-                A clearer path to connection
-              </span>
-              <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
-                How local discovery works
-              </h2>
-            </div>
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {[
-                {
-                  icon: UsersRound,
-                  title: "Build an authentic profile",
-                  text: `Describe your interests, lifestyle and relationship goals so people around ${city.name} have useful context.`,
-                },
-                {
-                  icon: Sparkles,
-                  title: "Explore compatible people",
-                  text: "Use available discovery preferences while considering shared values and intent, not only proximity.",
-                },
-                {
-                  icon: Heart,
-                  title: "Connect respectfully",
-                  text: "A mutual match opens the conversation. Move at a comfortable pace and communicate boundaries clearly.",
-                },
-              ].map(({ icon: Icon, title, text }) => (
-                <article key={title} className="rounded-3xl border border-slate-200 bg-white p-7 dark:border-white/10 dark:bg-white/[0.04]">
-                  <Icon className="h-7 w-7 text-rose-500" />
-                  <h3 className="mt-5 text-xl font-bold">{title}</h3>
-                  <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">{text}</p>
-                </article>
-              ))}
             </div>
           </div>
         </section>
 
-        <section className="py-16">
-          <div className="mx-auto grid w-[90vw] max-w-7xl gap-10 lg:grid-cols-2">
+        <section className="border-y border-slate-200 bg-slate-50 py-12 dark:border-white/10 dark:bg-white/[0.025]">
+          <div className="mx-auto flex w-[90vw] max-w-4xl flex-col gap-5 sm:flex-row sm:items-start">
+            <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
+              <ShieldCheck className="h-6 w-6" />
+            </span>
             <div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
-                <ShieldCheck className="h-6 w-6" />
-              </span>
-              <h2 className="mt-5 text-3xl font-black tracking-tight">
-                Meet more safely in {city.name}
+              <h2 className="text-2xl font-black tracking-tight">
+                Meeting people in {city.name}
               </h2>
-              <p className="mt-4 leading-8 text-slate-600 dark:text-slate-300">
-                Online and offline interactions require judgment. Protect sensitive information,
-                watch for requests involving money or urgency, and choose a populated public
-                location if both adults decide to meet. Local laws, customs and emergency
-                resources vary across {city.countryName}, so use appropriate local guidance.
+              <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">
+                Build an honest profile, match with people whose goals fit yours and keep early
+                conversations on ConnectLove. When you decide to meet, choose a busy public place
+                and follow local guidance in {city.countryName}. See{" "}
+                <Link href="/features" className="font-semibold text-rose-600 hover:underline dark:text-rose-300">
+                  how ConnectLove works
+                </Link>{" "}
+                and our{" "}
+                <Link href="/safety" className="font-semibold text-rose-600 hover:underline dark:text-rose-300">
+                  dating safety guide
+                </Link>
+                .
               </p>
             </div>
-            <ul className="space-y-4">
-              {[
-                "Never share passwords, one-time codes or banking information.",
-                "Be cautious of sudden emergencies, investment pitches and money requests.",
-                "Arrange independent transport and tell someone you trust before meeting.",
-                "Use block and report tools when behaviour feels suspicious or disrespectful.",
-              ].map((item) => (
-                <li key={item} className="flex gap-3 rounded-2xl border border-slate-200 p-4 dark:border-white/10">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-                  <span className="text-slate-700 dark:text-slate-200">{item}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </section>
 
@@ -237,7 +234,7 @@ export function WorldCityLandingPage({
                   More in {city.countryName}
                 </span>
                 <h2 className="mt-2 text-3xl font-black tracking-tight">
-                  Explore nearby dating locations
+                  Cities closest to {city.name}
                 </h2>
               </div>
               <Link href={worldCountryPath({ slug: city.countrySlug })} className="font-bold text-rose-600 hover:text-rose-500">
@@ -245,7 +242,7 @@ export function WorldCityLandingPage({
               </Link>
             </div>
             <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {relatedCities.map((related) => (
+              {nearbyCities.map((related) => (
                 <Link
                   key={related.id}
                   href={worldCityPath(related)}
@@ -254,7 +251,10 @@ export function WorldCityLandingPage({
                   <span>
                     <span className="block font-bold">{related.name}</span>
                     <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
-                      {related.adminName || related.countryName}
+                      {related.countryCode === city.countryCode
+                        ? related.adminName || related.countryName
+                        : related.countryName}{" "}
+                      · {formatNumber(related.distanceKm)} km away
                     </span>
                   </span>
                   <Heart className="h-5 w-5 text-rose-400" />
