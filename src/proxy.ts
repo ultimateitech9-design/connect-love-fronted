@@ -22,7 +22,7 @@ export function proxy(request: NextRequest) {
     const authHint = request.cookies.get("sm_auth")?.value;
     if (!authHint) {
       const url = request.nextUrl.clone();
-      url.pathname = "/";
+      url.pathname = "/login";
       url.searchParams.set("reason", "unauthenticated");
       return NextResponse.redirect(url);
     }

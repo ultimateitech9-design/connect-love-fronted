@@ -5,7 +5,8 @@ import { useState, useEffect, useRef, type MouseEvent } from "react";
 import Link from "next/link";
 import { Menu, X, User } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
-import { isAuthenticated } from "@/lib/auth";
+import { clearToken, getToken, isAuthenticated } from "@/lib/auth";
+import { API_ORIGIN } from "@/config/runtime";
 import { navLinks } from "./marketingPages";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
 import { getStoredTheme, type AppTheme } from "@/features/theme/theme";
@@ -23,7 +24,21 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  const navbarRef = useRef<HTMLElement>(null);
 
  useEffect(() => {
- setLoggedIn(isAuthenticated());
+ const controller = new AbortController();
+ const authenticated = isAuthenticated();
+ setLoggedIn(authenticated);
+ const token = getToken();
+ if (authenticated && token) {
+  fetch(`${API_ORIGIN}/users/me`, {
+   headers: { Authorization: `Bearer ${token}` },
+   signal: controller.signal,
+  }).then((response) => {
+   if ((response.status === 401 || response.status === 403) && getToken() === token) {
+    clearToken();
+    setLoggedIn(false);
+   }
+  }).catch(() => {});
+ }
  const syncAuth = () => setLoggedIn(isAuthenticated());
  setActiveTheme(getStoredTheme());
  const syncTheme = (event: Event) => {
@@ -35,6 +50,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  window.addEventListener("pageshow", syncAuth);
  window.addEventListener("connect-love-theme-change", syncTheme);
  return () => {
+  controller.abort();
   window.removeEventListener("connect-love-auth-change", syncAuth);
   window.removeEventListener("storage", syncAuth);
   window.removeEventListener("focus", syncAuth);
@@ -152,14 +168,14 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
           <ThemeToggle className="dark:bg-slate-900" />
           {loggedIn ? (
             <Link
-              href={isAuthenticated() ? "/user" : "/login"}
+              href="/user/discover"
               onClick={(event) => {
                 if (!isAuthenticated()) {
                   event.preventDefault();
                   goToLogin();
                 }
               }}
-              aria-label={isAuthenticated() ? "Open account" : "Sign in"}
+              aria-label="Open dashboard"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-all duration-300 hover:scale-105 hover:bg-slate-200 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
             >
               <User className="h-5 w-5" />
@@ -242,8 +258,14 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
               <HeaderLanguageDropdown mobile />
               {loggedIn ? (
                 <Link
-                  href={isAuthenticated() ? "/user" : "/login"}
-                  onClick={() => setMobileOpen(false)}
+                  href="/user/discover"
+                  onClick={(event) => {
+                    setMobileOpen(false);
+                    if (!isAuthenticated()) {
+                      event.preventDefault();
+                      goToLogin();
+                    }
+                  }}
                   className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white rounded-full bg-gradient-to-r from-rose-500 to-pink-600 shadow-md shadow-rose-500/25"
                 >
                   <User className="h-4 w-4" />

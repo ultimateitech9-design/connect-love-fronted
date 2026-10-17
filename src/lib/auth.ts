@@ -100,7 +100,22 @@ export function clearToken(): void {
 
 /** Return true when a valid-looking token is present */
 export function isAuthenticated(): boolean {
- return !!getToken();
+ const token = getToken();
+ if (!token) return false;
+ try {
+  const encoded = token.split(".")[1];
+  const payload = JSON.parse(atob(encoded.replace(/-/g, "+").replace(/_/g, "/")));
+  if (typeof payload.exp !== "number" || payload.exp * 1000 <= Date.now() || payload.role !== "user") {
+   clearToken();
+   return false;
+  }
+  // Storage can outlive the routing cookie. Restore it before following /user links.
+  if (!getCookie(COOKIE_NAME)) setCookie(COOKIE_NAME, "1", 30);
+  return true;
+ } catch {
+  clearToken();
+  return false;
+ }
 }
 
 /**

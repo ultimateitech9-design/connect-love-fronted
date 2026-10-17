@@ -19,7 +19,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
  if (!token) {
  setLoading(true);
  clearToken();
- router.replace("/?reason=unauthenticated");
+ router.replace("/login?reason=unauthenticated");
  return;
  }
 
@@ -64,7 +64,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
  if (cancelled) return;
  if (error.status === 401 || error.status === 403) {
   clearToken();
-  router.replace("/");
+  router.replace("/login?reason=unauthenticated");
   return;
  }
  setLoading(false);
