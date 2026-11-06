@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, type MouseEvent } from "react";
 import Link from "next/link";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, Download } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { clearToken, getToken, isAuthenticated } from "@/lib/auth";
 import { API_ORIGIN } from "@/config/runtime";
@@ -16,6 +16,8 @@ interface NavbarProps {
  onLoginClick?: () => void;
  onSignupClick?: () => void;
 }
+
+const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.connectlove";
 
 export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
  const [mobileOpen, setMobileOpen] = useState(false);
@@ -148,7 +150,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-8 lg:flex">
+        <nav className="hidden items-center gap-8 xl:flex">
           {navLinks.map((link) => (
             <Link
               href={link.href}
@@ -163,7 +165,17 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         </nav>
 
         {/* Desktop actions */}
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-3 xl:flex">
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="App Download — ConnectLove on Google Play"
+            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/10"
+          >
+            <Download className="h-4 w-4" aria-hidden="true" />
+            App Download
+          </a>
           <HeaderLanguageDropdown />
           <ThemeToggle className="dark:bg-slate-900" />
           {loggedIn ? (
@@ -203,10 +215,10 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         </div>
 
         {/* Mobile menu button */}
-        <ThemeToggle className="absolute right-16 dark:bg-slate-900 sm:right-20 lg:hidden" />
+        <ThemeToggle className="absolute right-16 dark:bg-slate-900 sm:right-20 xl:hidden" />
         <button
           type="button"
-          className={`absolute right-4 top-1/2 z-[120] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl transition-all duration-300 sm:right-6 lg:hidden ${
+          className={`absolute right-4 top-1/2 z-[120] flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl transition-all duration-300 sm:right-6 xl:hidden ${
             mobileOpen
               ? "text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
               : "text-slate-900 hover:bg-slate-100 dark:text-white dark:hover:bg-white/10"
@@ -224,7 +236,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
       <div
         aria-hidden={!mobileOpen}
         onClick={() => setMobileOpen(false)}
-        className={`fixed inset-0 z-[105] bg-slate-950/45 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[105] bg-slate-950/45 backdrop-blur-[2px] transition-opacity duration-300 xl:hidden ${
           mobileOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
         }`}
       />
@@ -233,7 +245,7 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
         aria-label="Mobile navigation"
         aria-hidden={!mobileOpen}
         inert={!mobileOpen}
-        className={`fixed right-0 top-0 z-[110] flex h-dvh w-[min(84vw,22rem)] flex-col border-l border-slate-200 bg-white text-slate-900 shadow-2xl transition-transform duration-300 ease-out dark:border-white/10 dark:bg-slate-950 dark:text-white lg:hidden ${
+        className={`fixed right-0 top-0 z-[110] flex h-dvh w-[min(84vw,22rem)] flex-col border-l border-slate-200 bg-white text-slate-900 shadow-2xl transition-transform duration-300 ease-out dark:border-white/10 dark:bg-slate-950 dark:text-white xl:hidden ${
           mobileOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -256,6 +268,17 @@ export function Navbar({ onLoginClick, onSignupClick }: NavbarProps) {
           </nav>
             <div className="flex shrink-0 flex-col gap-3 border-t border-slate-100 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 dark:border-white/10">
               <HeaderLanguageDropdown mobile />
+              <a
+                href={PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileOpen(false)}
+                aria-label="App Download — ConnectLove on Google Play"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-rose-200 py-3 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500 dark:border-rose-500/30 dark:text-rose-400 dark:hover:bg-rose-500/10"
+              >
+                <Download className="h-4 w-4" aria-hidden="true" />
+                App Download
+              </a>
               {loggedIn ? (
                 <Link
                   href="/user/discover"
