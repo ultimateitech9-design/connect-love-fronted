@@ -4,11 +4,12 @@ import { API_ORIGIN } from "@/config/runtime";
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Instagram, Facebook, Linkedin, Youtube, ArrowRight, Heart } from "lucide-react";
+import { Instagram, Facebook, Linkedin, Youtube, ArrowRight, Download } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { footerLinkGroups } from "./marketingPages";
 
 const API_BASE = API_ORIGIN;
+const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.connectlove";
 function GooglePlayIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
@@ -25,7 +26,7 @@ const socialLinks = [
   { label: "Facebook", href: "https://www.facebook.com/connectloveofficial/", icon: Facebook },
   { label: "LinkedIn", href: "https://www.linkedin.com/company/connect-love-official/", icon: Linkedin },
   { label: "YouTube", href: "https://www.youtube.com/@ConnectLove-Official", icon: Youtube },
-  { label: "Get ConnectLove on Google Play", href: "https://play.google.com/store/apps/details?id=com.connectlove", icon: GooglePlayIcon },
+  { label: "Get ConnectLove on Google Play", href: PLAY_STORE_URL, icon: GooglePlayIcon },
 ];
 
 export function Footer() {
@@ -107,6 +108,40 @@ export function Footer() {
             Creating a space for genuine emotional connection. We prioritize safety, authenticity and lasting love over addictive, superficial swiping.
           </p>
           
+          {/* App download */}
+          <div className="mt-7 flex flex-wrap items-center gap-4">
+            <a
+              href={PLAY_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="App Download — ConnectLove on Google Play"
+              className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900 px-5 py-3.5 text-white shadow-lg transition-colors hover:border-rose-400/50 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-400"
+            >
+              <Download className="h-6 w-6 shrink-0 text-rose-400" aria-hidden="true" />
+              <span className="text-left">
+                <span className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400">Get it on Google Play</span>
+                <span className="block text-sm font-bold">App Download</span>
+              </span>
+            </a>
+            <a
+              href={PLAY_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Scan or open QR code to download ConnectLove on Google Play"
+              className="flex shrink-0 flex-col items-center gap-2 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-400"
+            >
+              <img
+                src="/images/connectlove-play-store-qr.png"
+                alt="QR code for the ConnectLove app on Google Play"
+                width={112}
+                height={112}
+                loading="lazy"
+                className="h-28 w-28 rounded-lg bg-white"
+              />
+              <span className="text-[11px] text-slate-400">Scan to install</span>
+            </a>
+          </div>
+
           {/* Social links */}
           <div className="mt-8 flex items-center gap-3">
             {socialLinks.map(({ label, href, icon: Icon }) => (
