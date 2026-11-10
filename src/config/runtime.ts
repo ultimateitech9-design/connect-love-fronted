@@ -80,6 +80,28 @@ export const WEBRTC_ICE_SERVERS: RTCIceServer[] = [
     : []),
 ];
 
+let cachedIceServers: { servers: RTCIceServer[]; expiresAt: number } | null = null;
+
+// Short-lived STUN/TURN credentials from the backend (self-hosted coturn).
+// Falls back to the build-time servers above if the request fails, so a call
+// still works on networks that allow a direct connection.
+export async function fetchIceServers(token: string): Promise<RTCIceServer[]> {
+  if (cachedIceServers && cachedIceServers.expiresAt > Date.now()) return cachedIceServers.servers;
+  try {
+    const response = await apiFetch("/webrtc/ice-servers", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error(`ICE servers unavailable (${response.status})`);
+    const data = (await response.json()) as { iceServers?: RTCIceServer[]; ttl?: number };
+    if (!data.iceServers?.length) return WEBRTC_ICE_SERVERS;
+    // Refresh well before the credentials expire.
+    cachedIceServers = { servers: data.iceServers, expiresAt: Date.now() + ((data.ttl ?? 3600) * 1000) / 2 };
+    return data.iceServers;
+  } catch {
+    return WEBRTC_ICE_SERVERS;
+  }
+}
+
 function windowPort(fallback: string): string {
   return typeof window !== "undefined" ? window.location.port || fallback : fallback;
 }

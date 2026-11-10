@@ -1,5 +1,5 @@
 "use client";
-import { API_ORIGIN, WEBRTC_ICE_SERVERS, apiFetch } from "@/config/runtime";
+import { API_ORIGIN, WEBRTC_ICE_SERVERS, apiFetch, fetchIceServers } from "@/config/runtime";
 
 import { Fragment, cloneElement, createContext, isValidElement, useContext, useState, useEffect, useRef, useCallback, useLayoutEffect, useMemo, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -1956,6 +1956,7 @@ export default function Messages() {
  const peerRef = useRef<RTCPeerConnection | null>(null);
  const activeCallRef = useRef<ActiveCall | null>(null);
  const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+ const iceServersRef = useRef<RTCIceServer[]>(WEBRTC_ICE_SERVERS);
  const queryClient = useQueryClient();
 
  useEffect(() => {
@@ -2796,7 +2797,7 @@ export default function Messages() {
  const createPeer = useCallback((otherUserId: string, callId: string) => {
    peerRef.current?.close();
    const peer = new RTCPeerConnection({
-     iceServers: WEBRTC_ICE_SERVERS,
+     iceServers: iceServersRef.current,
      iceCandidatePoolSize: 10,
    });
    peerRef.current = peer;
@@ -2879,6 +2880,7 @@ export default function Messages() {
    if (!socket || !active) return;
    try {
      await ensureLocalMedia(callType);
+     iceServersRef.current = await fetchIceServers(token);
      socket.emit(
        "startVideoCall",
        { conversationId: active.id, receiverId: active.userId, callType },
@@ -2892,13 +2894,14 @@ export default function Messages() {
    } catch {
      alert(callType === "video" ? "Camera or microphone permission is required for video calls." : "Microphone permission is required for audio calls.");
    }
- }, [active, canUseChatMedia, ensureLocalMedia, socket, stopCallMedia]);
+ }, [active, canUseChatMedia, ensureLocalMedia, socket, stopCallMedia, token]);
 
  const acceptIncomingCall = useCallback(async () => {
    if (!socket || !incomingCall) return;
    const callType = incomingCall.callType === "audio" ? "audio" : "video";
    try {
      await ensureLocalMedia(callType);
+     iceServersRef.current = await fetchIceServers(token);
      const acceptedCall: ActiveCall = {
        id: incomingCall.call.id,
        conversationId: incomingCall.conversationId,
@@ -2920,7 +2923,7 @@ export default function Messages() {
    } catch {
      alert(callType === "video" ? "Camera or microphone permission is required for video calls." : "Microphone permission is required for audio calls.");
    }
- }, [ensureLocalMedia, incomingCall, socket]);
+ }, [ensureLocalMedia, incomingCall, socket, token]);
 
  const endVideoCall = useCallback((status: "ended" | "rejected" | "missed" = "ended") => {
    if (socket && activeCall) {
