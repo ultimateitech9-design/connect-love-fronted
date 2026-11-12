@@ -8,7 +8,6 @@ import {
   getIndiaCityFacts,
   getRelatedDatingLocations,
   INDIA_CITY_REDIRECTS,
-  INDIA_DATING_LOCATIONS,
 } from "@/lib/indiaLocations";
 import { createPublicMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 
@@ -16,17 +15,14 @@ type LocationPageProps = {
   params: Promise<{ type: string; slug: string }>;
 };
 
-export const dynamicParams = false;
+export const dynamicParams = true;
+export const revalidate = 86_400;
 
+// Rendered on first request and cached for a day (ISR) rather than
+// prerendering ~1,700 locations on every deploy. Unknown slugs still 404 and
+// old names still redirect, because both are resolved per request.
 export function generateStaticParams() {
-  return [
-    ...INDIA_DATING_LOCATIONS.map((location) => ({
-      type: location.kind,
-      slug: location.slug,
-    })),
-    // Old names / spelling variants: rendered only as permanent redirects.
-    ...[...INDIA_CITY_REDIRECTS.keys()].map((slug) => ({ type: "city", slug })),
-  ];
+  return [];
 }
 
 function resolveLocation(type: string, slug: string) {

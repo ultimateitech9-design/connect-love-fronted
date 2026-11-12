@@ -8,7 +8,6 @@ import {
   getWorldCity,
   getWorldCityFacts,
   isWorldCityIndexable,
-  WORLD_CITIES,
   worldCityPath,
 } from "@/lib/worldCities";
 
@@ -19,11 +18,11 @@ type WorldCityPageProps = {
 export const dynamicParams = true;
 export const revalidate = 86_400;
 
+// Rendered on first request and cached for a day (ISR) instead of
+// prerendering all 5,000 cities on every deploy, which made each frontend
+// build several minutes longer on the 2-CPU server.
 export function generateStaticParams() {
-  return WORLD_CITIES.filter(isWorldCityIndexable).map((city) => ({
-    country: city.countrySlug,
-    city: city.slug,
-  }));
+  return [];
 }
 
 export async function generateMetadata({
