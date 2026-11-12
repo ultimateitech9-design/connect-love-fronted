@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { io, type Socket } from "socket.io-client";
-import { Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
+import { Ear, Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { API_ORIGIN, SOCKET_ORIGIN, WEBRTC_ICE_SERVERS, fetchIceServers } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { startCallSound } from "./ringtone";
+import { applyRoute, detectRouting, resetRoute, type AudioRoute, type RoutingSupport } from "./audioRoute";
 
 type CallType = "audio" | "video";
 
@@ -68,6 +69,9 @@ const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
   autoGainControl: true,
 };
 const VIDEO_MAX_BITRATE = 1_500_000;
+// Both tiles are mirrored like a selfie view. A plain transform works in every
+// mobile browser (the CSS "scale" property did not on some phones).
+const MIRRORED = { transform: "scaleX(-1)" } as const;
 
 function userIdFromToken(token: string) {
   try {
@@ -145,6 +149,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  // Earpiece vs loudspeaker, where the browser lets us choose (see audioRoute.ts).
+  const [routing, setRouting] = useState<RoutingSupport>({ mode: "none" });
+  const [route, setRoute] = useState<AudioRoute>("speaker");
   const [swapped, setSwapped] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -238,6 +245,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
     localStreamRef.current = null;
     remoteStreamRef.current = null;
     isSpeakerOnRef.current = true;
+    resetRoute();
+    setRoute("speaker");
     setIsMicOn(true);
     setIsCameraOn(true);
     setIsSpeakerOn(true);
@@ -259,6 +268,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
         // Faces in motion: keep the frame rate smooth rather than maximum sharpness.
         track.contentHint = "motion";
       });
+      // Like a phone call: voice calls start on the earpiece, video calls on the loudspeaker.
+      setRouting(await detectRouting());
+      setRoute(callType === "audio" ? "earpiece" : "speaker");
     }
     setIsCameraOn(callType === "video");
     return localStreamRef.current;
@@ -385,12 +397,23 @@ export function CallProvider({ children }: { children: ReactNode }) {
     setIsCameraOn(next);
   }, [isCameraOn]);
 
+  const canRoute = routing.mode !== "none";
+
+  useEffect(() => {
+    if (!activeCall || !canRoute) return;
+    void applyRoute(routing, route, remoteAudioRef.current);
+  }, [activeCall?.id, canRoute, route, routing]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const toggleSpeaker = useCallback(() => {
+    if (canRoute) {
+      setRoute((current) => (current === "earpiece" ? "speaker" : "earpiece"));
+      return;
+    }
     const next = !isSpeakerOn;
     isSpeakerOnRef.current = next;
     setIsSpeakerOn(next);
     attachStreams();
-  }, [attachStreams, isSpeakerOn]);
+  }, [attachStreams, canRoute, isSpeakerOn]);
 
   const toggleFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
@@ -609,12 +632,13 @@ export function CallProvider({ children }: { children: ReactNode }) {
             <>
               <video
                 ref={mainVideoRef}
+                style={MIRRORED}
                 autoPlay
                 playsInline
                 muted
                 className={cn(
                   // Both tiles are mirrored, like a selfie view, on both sides of the call.
-                  "absolute inset-0 block !h-full !w-full -scale-x-100 object-cover object-center",
+                  "absolute inset-0 block !h-full !w-full object-cover object-center",
                   mainIsLocal && !localVideoVisible && "invisible",
                 )}
               />
@@ -629,11 +653,12 @@ export function CallProvider({ children }: { children: ReactNode }) {
               >
                 <video
                   ref={pipVideoRef}
+                  style={MIRRORED}
                   autoPlay
                   playsInline
                   muted
                   className={cn(
-                    "absolute inset-0 block !h-full !w-full -scale-x-100 object-cover object-center",
+                    "absolute inset-0 block !h-full !w-full object-cover object-center",
                     !mainIsLocal && !localVideoVisible && "invisible",
                   )}
                 />
@@ -670,9 +695,20 @@ export function CallProvider({ children }: { children: ReactNode }) {
                   {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
                 </Button>
               )}
-              <Button type="button" onClick={toggleSpeaker} className={controlButton(isSpeakerOn)} title={isSpeakerOn ? "Mute speaker" : "Turn speaker on"}>
-                {isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-              </Button>
+              {canRoute ? (
+                <Button
+                  type="button"
+                  onClick={toggleSpeaker}
+                  className={controlButton(route === "earpiece")}
+                  title={route === "earpiece" ? "Switch to loudspeaker" : "Switch to earpiece"}
+                >
+                  {route === "earpiece" ? <Ear className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                </Button>
+              ) : (
+                <Button type="button" onClick={toggleSpeaker} className={controlButton(isSpeakerOn)} title={isSpeakerOn ? "Mute speaker" : "Turn speaker on"}>
+                  {isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+                </Button>
+              )}
               {activeCall.callType === "video" && (
                 <Button type="button" onClick={toggleFullscreen} className={controlButton(true)} title={isFullscreen ? "Exit full screen" : "Full screen"}>
                   {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
