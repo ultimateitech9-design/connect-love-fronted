@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { io, type Socket } from "socket.io-client";
-import { Ear, Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
+import { Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { API_ORIGIN, SOCKET_ORIGIN, WEBRTC_ICE_SERVERS, fetchIceServers } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { startCallSound } from "./ringtone";
-import { applyRoute, detectRouting, resetRoute, type AudioRoute, type RoutingSupport } from "./audioRoute";
 
 type CallType = "audio" | "video";
 
@@ -149,9 +148,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
-  // Earpiece vs loudspeaker, where the browser lets us choose (see audioRoute.ts).
-  const [routing, setRouting] = useState<RoutingSupport>({ mode: "none" });
-  const [route, setRoute] = useState<AudioRoute>("speaker");
+  // Phones get no speaker button: mobile browsers always play WebRTC audio on
+  // the loudspeaker (or Bluetooth) and give web pages no earpiece control, so
+  // a toggle there could only mute. On laptops it mutes the call audio.
+  const [isPhone, setIsPhone] = useState(false);
   const [swapped, setSwapped] = useState(false);
   // "contain" when the video and its tile differ in orientation (a phone's
   // portrait video on a landscape laptop screen), so nothing is cropped.
@@ -249,8 +249,6 @@ export function CallProvider({ children }: { children: ReactNode }) {
     localStreamRef.current = null;
     remoteStreamRef.current = null;
     isSpeakerOnRef.current = true;
-    resetRoute();
-    setRoute("speaker");
     setIsMicOn(true);
     setIsCameraOn(true);
     setIsSpeakerOn(true);
@@ -272,9 +270,6 @@ export function CallProvider({ children }: { children: ReactNode }) {
         // Faces in motion: keep the frame rate smooth rather than maximum sharpness.
         track.contentHint = "motion";
       });
-      // Like a phone call: voice calls start on the earpiece, video calls on the loudspeaker.
-      setRouting(await detectRouting());
-      setRoute(callType === "audio" ? "earpiece" : "speaker");
     }
     setIsCameraOn(callType === "video");
     return localStreamRef.current;
@@ -401,23 +396,16 @@ export function CallProvider({ children }: { children: ReactNode }) {
     setIsCameraOn(next);
   }, [isCameraOn]);
 
-  const canRoute = routing.mode !== "none";
-
   useEffect(() => {
-    if (!activeCall || !canRoute) return;
-    void applyRoute(routing, route, remoteAudioRef.current);
-  }, [activeCall?.id, canRoute, route, routing]); // eslint-disable-line react-hooks/exhaustive-deps
+    setIsPhone(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
 
   const toggleSpeaker = useCallback(() => {
-    if (canRoute) {
-      setRoute((current) => (current === "earpiece" ? "speaker" : "earpiece"));
-      return;
-    }
     const next = !isSpeakerOn;
     isSpeakerOnRef.current = next;
     setIsSpeakerOn(next);
     attachStreams();
-  }, [attachStreams, canRoute, isSpeakerOn]);
+  }, [attachStreams, isSpeakerOn]);
 
   const toggleFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
@@ -725,17 +713,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
                   {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
                 </Button>
               )}
-              {canRoute ? (
-                <Button
-                  type="button"
-                  onClick={toggleSpeaker}
-                  className={controlButton(route === "earpiece")}
-                  title={route === "earpiece" ? "Switch to loudspeaker" : "Switch to earpiece"}
-                >
-                  {route === "earpiece" ? <Ear className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                </Button>
-              ) : (
-                <Button type="button" onClick={toggleSpeaker} className={controlButton(isSpeakerOn)} title={isSpeakerOn ? "Mute speaker" : "Turn speaker on"}>
+              {!isPhone && (
+                <Button type="button" onClick={toggleSpeaker} className={controlButton(isSpeakerOn)} title={isSpeakerOn ? "Mute call audio" : "Unmute call audio"}>
                   {isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
                 </Button>
               )}
