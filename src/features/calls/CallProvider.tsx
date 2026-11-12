@@ -153,6 +153,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const [routing, setRouting] = useState<RoutingSupport>({ mode: "none" });
   const [route, setRoute] = useState<AudioRoute>("speaker");
   const [swapped, setSwapped] = useState(false);
+  // "contain" when the video and its tile differ in orientation (a phone's
+  // portrait video on a landscape laptop screen), so nothing is cropped.
+  const [fit, setFit] = useState<{ main: "cover" | "contain"; pip: "cover" | "contain" }>({ main: "cover", pip: "cover" });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
@@ -238,6 +241,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   const stopCallMedia = useCallback(() => {
     pendingStartRef.current = null;
+    setFit({ main: "cover", pip: "cover" });
     peerRef.current?.close();
     peerRef.current = null;
     pendingIceCandidatesRef.current = [];
@@ -573,6 +577,26 @@ export function CallProvider({ children }: { children: ReactNode }) {
     };
   }, [activeCall]);
 
+  const updateFit = useCallback(() => {
+    const fitFor = (video: HTMLVideoElement | null): "cover" | "contain" => {
+      if (!video?.videoWidth || !video.videoHeight || !video.clientWidth || !video.clientHeight) return "cover";
+      const videoIsPortrait = video.videoHeight > video.videoWidth;
+      const tileIsPortrait = video.clientHeight > video.clientWidth;
+      return videoIsPortrait === tileIsPortrait ? "cover" : "contain";
+    };
+    const next = { main: fitFor(mainVideoRef.current), pip: fitFor(pipVideoRef.current) };
+    setFit((current) => (current.main === next.main && current.pip === next.pip ? current : next));
+  }, []);
+
+  // Re-check when streams swap or the window is resized/rotated. Video
+  // "resize" events (the sender rotating the phone) call updateFit directly.
+  useEffect(() => {
+    if (!activeCall) return;
+    updateFit();
+    window.addEventListener("resize", updateFit);
+    return () => window.removeEventListener("resize", updateFit);
+  }, [activeCall, swapped, updateFit]);
+
   // --- UI -------------------------------------------------------------------
   // Call screens sit above every other overlay (the chatbot uses z-[9999]).
 
@@ -636,9 +660,12 @@ export function CallProvider({ children }: { children: ReactNode }) {
                 autoPlay
                 playsInline
                 muted
+                onLoadedMetadata={updateFit}
+                onResize={updateFit}
                 className={cn(
                   // Both tiles are mirrored, like a selfie view, on both sides of the call.
-                  "absolute inset-0 block !h-full !w-full object-cover object-center",
+                  "absolute inset-0 block !h-full !w-full object-center",
+                  fit.main === "contain" ? "object-contain" : "object-cover",
                   mainIsLocal && !localVideoVisible && "invisible",
                 )}
               />
@@ -657,8 +684,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
                   autoPlay
                   playsInline
                   muted
+                  onLoadedMetadata={updateFit}
+                  onResize={updateFit}
                   className={cn(
-                    "absolute inset-0 block !h-full !w-full object-cover object-center",
+                    "absolute inset-0 block !h-full !w-full object-center",
+                    fit.pip === "contain" ? "object-contain" : "object-cover",
                     !mainIsLocal && !localVideoVisible && "invisible",
                   )}
                 />
