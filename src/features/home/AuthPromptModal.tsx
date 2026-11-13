@@ -24,7 +24,7 @@ export function AuthPromptModal() {
   useEffect(() => {
     const excludedRoutes = [
       "/login", "/register", "/forgot-password", "/user", "/discover",
-      "/admin", "/super-admin", "/management", "/sales", "/support",
+      "/admin", "/super-admin", "/management", "/sales", "/support", "/agent",
     ];
     const isExcludedRoute = excludedRoutes.some(
       (route) => pathname === route || pathname.startsWith(`${route}/`),

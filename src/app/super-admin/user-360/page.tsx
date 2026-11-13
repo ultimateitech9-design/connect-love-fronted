@@ -2,9 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, BadgeCheck, Camera, Save, Search, Trash2, UserRoundSearch, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, apiFetch } from "@/lib/api";
+import { ProfilePhotoManager } from "@/components/management/ProfilePhotoManager";
+import { RegistrationSource, type RegistrationOrigin } from "@/components/management/RegistrationSource";
+import { UserActivityPanel } from "@/features/management/UserActivityPanel";
+import type { UserActivity } from "@/features/management/userActivity";
 
-type UserRow = {
+type UserRow = RegistrationOrigin & {
  id: string;
  name: string;
  email: string;
@@ -114,15 +118,20 @@ export default function User360Page() {
  const detailsRequestRef = useRef(0);
  const [loadingDetails, setLoadingDetails] = useState(false);
  const [saving, setSaving] = useState(false);
+ const [photoBusy, setPhotoBusy] = useState(false);
+ const dirtyRef = useRef(false);
  const [updatingStatus, setUpdatingStatus] = useState(false);
  const [deleting, setDeleting] = useState(false);
  const [error, setError] = useState("");
  const [message, setMessage] = useState("");
  const [confirmDelete, setConfirmDelete] = useState(false);
 
+ const [sourceFilter, setSourceFilter] = useState("all");
  const filteredUsers = useMemo(() => {
  const text = query.toLowerCase().trim();
  return users.filter((user) => {
+ if (sourceFilter === "agent" && !user.createdByAgentId) return false;
+ if (sourceFilter === "direct" && user.createdByAgentId) return false;
  const gender = String(user.gender || "").trim().toLowerCase();
  const matchesGender = genderFilter === "all" || (genderFilter === "male"
    ? ["male", "man", "men", "boy", "m"].includes(gender)
@@ -136,10 +145,12 @@ export default function User360Page() {
    String(user.phone || "").toLowerCase().includes(text) ||
    user.id.toLowerCase().includes(text) ||
    user.role.toLowerCase().includes(text) ||
-   user.plan.toLowerCase().includes(text)
+   user.plan.toLowerCase().includes(text) ||
+   String(user.createdByAgent?.name || "").toLowerCase().includes(text) ||
+   String(user.createdByAgent?.email || "").toLowerCase().includes(text)
  );
  });
- }, [query, users, genderFilter]);
+ }, [query, users, genderFilter, sourceFilter]);
 
  useEffect(() => {
  setSelectedId((current) => filteredUsers.some((user) => user.id === current) ? current : filteredUsers[0]?.id || "");
@@ -175,7 +186,7 @@ export default function User360Page() {
  };
 
  const loadDetails = async (id: string, silent = false) => {
- if (!id) return;
+ if (!id || (silent && dirtyRef.current)) return;
  const requestId = ++detailsRequestRef.current;
  if (!silent) {
  setLoadingDetails(true);
@@ -186,7 +197,9 @@ export default function User360Page() {
  const res = await api.userDetails(id);
  if (requestId !== detailsRequestRef.current) return;
  const user = res.user;
+ if (silent && dirtyRef.current) return;
  setDetails(user);
+ if (!silent) dirtyRef.current = false;
  setForm({
  name: user.name || "",
  email: user.email || "",
@@ -229,6 +242,7 @@ export default function User360Page() {
  }, [query, genderFilter]);
  useEffect(() => {
  detailsRequestRef.current += 1;
+ setPhotoBusy(false);
  setDetails(null);
  setConfirmDelete(false);
  if (!selectedId) {
@@ -249,10 +263,11 @@ export default function User360Page() {
  }, [selectedId]);
 
  const updateField = (key: keyof UserForm, value: string | boolean) => {
+ dirtyRef.current = true;
  setForm((current) => ({ ...current, [key]: value }));
  };
 
- const handleStatusChange = async (status: "active" | "suspended") => {
+ const handleStatusChange = async (status: "active" | "suspended" | "banned" | "pending_verification") => {
  if (!selectedId || updatingStatus) return;
  setUpdatingStatus(true);
  setError("");
@@ -262,7 +277,7 @@ export default function User360Page() {
  setForm((current) => ({ ...current, status }));
  setDetails((current: any) => current ? { ...current, status } : current);
  setUsers((current) => current.map((user) => user.id === selectedId ? { ...user, status } : user));
- setMessage(status === "active" ? "User account active ho gaya." : "User account suspend ho gaya.");
+ setMessage(`User status updated: ${status.replaceAll("_", " ")}.`);
  } catch {
  setError("User status update nahi hua.");
  } finally {
@@ -271,7 +286,7 @@ export default function User360Page() {
  };
 
  const handleSave = async () => {
- if (!selectedId) return;
+ if (!selectedId || photoBusy) return;
  setSaving(true);
  setError("");
  setMessage("");
@@ -340,7 +355,7 @@ export default function User360Page() {
  <h1 className="text-3xl font-bold tracking-tight text-foreground">User 360</h1>
  <p className="mt-2 text-sm text-muted-foreground">Full user profile, photos, plan, status, edit controls, and delete action in one place.</p>
  </div>
- <button onClick={handleSave} disabled={!details || saving} className="inline-flex h-11 items-center gap-2 rounded-xl bg-rose-500 px-5 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition hover:bg-rose-600 disabled:opacity-50">
+ <button onClick={handleSave} disabled={!details || saving || photoBusy} className="inline-flex h-11 items-center gap-2 rounded-xl bg-rose-500 px-5 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition hover:bg-rose-600 disabled:opacity-50">
  <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Changes"}
  </button>
  </header>
@@ -371,18 +386,20 @@ export default function User360Page() {
  <p className="shrink-0 text-xs font-semibold text-muted-foreground">{filteredUsers.length} users</p>
  </div>
  </div>
+ <div className="px-4 pb-3"><select aria-label="Registration source" value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} className="h-9 w-full rounded-lg border border-border bg-background px-2 text-xs text-foreground"><option value="all">All registrations</option><option value="agent">Agent-created users</option><option value="direct">Direct / platform</option></select></div>
  <div className="max-h-[680px] overflow-y-auto p-2">
  {loadingUsers && filteredUsers.length === 0 ? (
  Array.from({ length: 6 }).map((_, index) => <div key={index} className="mb-2 h-16 animate-pulse rounded-xl bg-muted" />)
  ) : filteredUsers.length === 0 ? (
  <p className="py-10 text-center text-sm text-muted-foreground">No users found.</p>
  ) : filteredUsers.map((user) => (
- <button key={user.id} onClick={() => setSelectedId(user.id)} className={`mb-1 flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${selectedId === user.id ? "bg-rose-50 ring-1 ring-rose-100" : "hover:bg-muted/70"}`}>
+ <button key={user.id} disabled={photoBusy || saving} onClick={() => setSelectedId(user.id)} className={`mb-1 flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${selectedId === user.id ? "bg-rose-50 ring-1 ring-rose-100" : "hover:bg-muted/70"}`}>
  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 text-sm font-bold text-white">{initials(user.name)}</div>
  <div className="min-w-0 flex-1">
  <p className="truncate text-sm font-bold text-foreground">{user.name}</p>
  <p className="truncate font-mono text-[10px] font-semibold text-rose-600" title={user.id}>ID: {user.id}</p>
  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+ <RegistrationSource user={user} />
  {(user.mobile || user.phone) && <p className="truncate text-[11px] font-medium text-muted-foreground">{user.mobile || user.phone}</p>}
  <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-500">{formatPlan(user.plan)}</p>
  </div>
@@ -411,17 +428,18 @@ export default function User360Page() {
  <div className="mt-3 flex flex-wrap gap-2">
  <Pill label="Plan" value={formatPlan(form.plan)} />
  <Pill label="Role" value={form.role} />
+ <RegistrationSource user={details} />
  <label className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-bold ${form.status === "active" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}>
  <span>Status:</span>
  <select
  aria-label="User account status"
- value={form.status === "suspended" ? "suspended" : "active"}
- onChange={(event) => void handleStatusChange(event.target.value as "active" | "suspended")}
+ value={form.status}
+ onChange={(event) => void handleStatusChange(event.target.value as "active" | "suspended" | "banned" | "pending_verification")}
  disabled={updatingStatus}
  className="cursor-pointer bg-transparent font-bold capitalize outline-none disabled:cursor-wait disabled:opacity-60"
  >
  <option value="active">Active</option>
- <option value="suspended">Suspended</option>
+ <option value="suspended">Suspended</option><option value="banned">Banned</option><option value="pending_verification">Pending verification</option>
  </select>
  </label>
  <Pill label="Joined" value={toDateInput(details.joined) || "-"} />
@@ -456,21 +474,18 @@ export default function User360Page() {
  <TextArea label="Interests (comma separated)" value={form.interests} onChange={(value) => updateField("interests", value)} />
  <TextArea label="Hobbies (comma separated)" value={form.hobbies} onChange={(value) => updateField("hobbies", value)} />
  <TextArea label="Personality (comma separated)" value={form.personality} onChange={(value) => updateField("personality", value)} />
- <TextArea label="Photo URLs / base64, one per line" value={form.photos} onChange={(value) => updateField("photos", value)} rows={6} />
+
  </div>
  </div>
 
  <aside className="space-y-6">
  <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
  <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-foreground"><Camera className="h-5 w-5 text-rose-500" /> Photos</h3>
- {selectedPhotos.length === 0 ? <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">No photos added.</div> : (
- <div className="grid grid-cols-2 gap-3">
- {selectedPhotos.map((photo, index) => <img key={`${photo}-${index}`} src={photo} alt={`${form.name} ${index + 1}`} className="aspect-square rounded-xl border border-border object-cover" />)}
- </div>
- )}
+ <ProfilePhotoManager key={selectedId} name={form.name} photos={selectedPhotos} disabled={saving} onBusyChange={busy => { dirtyRef.current = true; setPhotoBusy(busy); }} onChange={photos => { dirtyRef.current = true; setForm(current => ({ ...current, photos: photos.join("\n"), isVerified: (photos[0] || null) !== (selectedPhotos[0] || null) ? false : current.isVerified })); }} />
  </div>
  <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
  <h3 className="mb-4 text-lg font-bold text-foreground">Profile Snapshot</h3>
+ <div className="mb-4"><p className="mb-2 text-xs font-bold text-muted-foreground">Registration source</p><RegistrationSource user={details} detailed /></div>
  <Info label="Age" value={details.age ? `${details.age}` : "-"} />
  <Info label="Last Active" value={toDateInput(details.lastActive) || "-"} />
  <Info label="City" value={form.city || "-"} />
@@ -479,6 +494,7 @@ export default function User360Page() {
  </div>
  </aside>
  </div>
+ <div className="rounded-2xl border border-border bg-card p-5"><UserActivityPanel userId={selectedId} initial={details.activity} loadPage={page => apiFetch<UserActivity>(`/users/${selectedId}/activity?page=${page}`)} /></div>
  </>
  ) : null}
  </section>

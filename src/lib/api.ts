@@ -89,7 +89,7 @@ export const api = {
    if (search.trim()) params.set("search", search.trim());
    if (filter) params.set("filter", filter);
    if (gender && gender !== "all") params.set("gender", gender);
-   return apiFetch<{ total: number; page: number; limit: number; hasMore: boolean; users: { id: string; name: string; email: string; mobile?: string; phone?: string; role: string; plan: string; gender?: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string }[] }>(`/users?${params.toString()}`);
+   return apiFetch<{ total: number; page: number; limit: number; hasMore: boolean; users: { id: string; name: string; email: string; mobile?: string; phone?: string; role: string; plan: string; gender?: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string; registrationSource?: string; createdByAgentId?: string | null; createdByAgent?: { id: string; name: string; email: string } | null }[] }>(`/users?${params.toString()}`);
  },
  verification: () => apiFetch<{ queue: { id: string; name: string; email?: string; idType: string; priority: string; status: string; date?: string; documents?: string[]; photo?: string | null; birthDate?: string | null; matchScore?: number }[] }>("/verification"),
  payments: () => apiFetch<{
@@ -144,7 +144,7 @@ export const api = {
  createUser: (body: { name: string; email: string; password: string; role: string }) => apiFetch<{ user: unknown; message?: string }>("/users", { method: "POST", body: JSON.stringify(body) }),
  createManagementUser: (body: { name: string; email: string; password: string; role: "user" | "admin" | "sales" | "support" }) => managementFetch<{ user: unknown; message: string }>("/admin/management-users", { method: "POST", body: JSON.stringify(body) }),
  banUser: (id: string, banned: boolean) => apiFetch<{ success: boolean }>(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: banned ? "banned" : "active" }) }),
- updateUserStatus: (id: string, status: "active" | "suspended") => apiFetch<{ success: boolean; user: any }>(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+ updateUserStatus: (id: string, status: "active" | "suspended" | "banned" | "pending_verification") => apiFetch<{ success: boolean; user: any }>(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
  deleteUser: (id: string) => apiFetch<{ success: boolean }>(`/users/${id}`, { method: "DELETE" }),
  userDetails: (id: string) => apiFetch<{ user: any }>(`/users/${id}`),
  updateUser: (id: string, body: Record<string, unknown>) => apiFetch<{ success: boolean; user: any; message?: string }>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(body) }),

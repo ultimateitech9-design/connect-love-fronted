@@ -107,6 +107,7 @@ export function Footer() {
           <p className="mt-5 text-sm text-slate-400 leading-relaxed max-w-sm">
             Creating a space for genuine emotional connection. We prioritize safety, authenticity and lasting love over addictive, superficial swiping.
           </p>
+          <Link href="/agent/login" className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-rose-300 transition-colors hover:text-white">Agent workspace <ArrowRight className="h-3 w-3" /></Link>
           
           {/* App download */}
           <div className="mt-7 flex flex-wrap items-center gap-4">

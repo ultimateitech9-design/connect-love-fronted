@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
+import { RegistrationSource, type RegistrationOrigin } from "@/components/management/RegistrationSource";
 import {
  Ban,
  ChevronLeft,
@@ -29,7 +30,7 @@ type Role = string;
 type CreatableRole = "User" | "Admin" | "Sales" | "Support";
 type RoleFilter = "All" | Role;
 
-interface Row {
+interface Row extends RegistrationOrigin {
  id: string;
  name: string;
  email: string;
@@ -69,7 +70,7 @@ function normalizeStatus(value?: string): Status {
  return "Under Review";
 }
 
-function buildRow(u: { id: string; name: string; email: string; role: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string }, i: number): Row {
+function buildRow(u: RegistrationOrigin & { id: string; name: string; email: string; role: string; account: string; city: string; joined: string; lastActive: string; isVerified: boolean; status: string }, i: number): Row {
  const parts = u.name.trim().split(" ");
  const initials = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
  const color = avatarColors[i % avatarColors.length];
@@ -78,7 +79,7 @@ function buildRow(u: { id: string; name: string; email: string; role: string; ac
  const status = normalizeStatus(u.status);
  
  const role = labelize(u.role);
- return { id: u.id, name: u.name, email: u.email, account, role, verification, city: u.city || "-", joinDate: formatDate(u.joined), lastActive: formatDate(u.lastActive), status, initials: initials.toUpperCase(), color };
+ return { registrationSource: u.registrationSource, createdByAgentId: u.createdByAgentId, createdByAgent: u.createdByAgent, id: u.id, name: u.name, email: u.email, account, role, verification, city: u.city || "-", joinDate: formatDate(u.joined), lastActive: formatDate(u.lastActive), status, initials: initials.toUpperCase(), color };
 
 }
 
@@ -117,6 +118,7 @@ export default function UsersPage() {
  const [perPage, setPerPage] = useState(10);
  const [page, setPage] = useState(1);
  const [status, setStatus] = useState<StatusFilter>("All");
+ const [sourceFilter, setSourceFilter] = useState("all");
  const [roleFilter, setRoleFilter] = useState<RoleFilter>("All");
  const [query, setQuery] = useState("");
  const [rows, setRows] = useState<Row[]>([]);
@@ -231,7 +233,9 @@ export default function UsersPage() {
  };
 
  useEffect(() => {
-   setPremiumOnly(new URLSearchParams(window.location.search).get("filter") === "premium");
+   const params = new URLSearchParams(window.location.search);
+   setPremiumOnly(params.get("filter") === "premium");
+   if (params.get("source") === "agent") setSourceFilter("agent");
  }, []);
  useEffect(() => { fetchUsers(); }, [premiumOnly]);
 
@@ -239,20 +243,23 @@ export default function UsersPage() {
  return rows.filter((row) => {
  const matchesStatus = status === "All" || row.status === status;
  const matchesRole = roleFilter === "All" || row.role === roleFilter;
+ const matchesSource = sourceFilter === "all" || (sourceFilter === "agent" ? Boolean(row.createdByAgentId) : !row.createdByAgentId);
  const queryText = query.toLowerCase().trim();
  const matchesQuery =
  !queryText ||
  row.name.toLowerCase().includes(queryText) ||
- row.email.toLowerCase().includes(queryText);
+ row.email.toLowerCase().includes(queryText) ||
+ String(row.createdByAgent?.name || "").toLowerCase().includes(queryText) ||
+ String(row.createdByAgent?.email || "").toLowerCase().includes(queryText);
 
- return matchesStatus && matchesRole && matchesQuery;
+ return matchesStatus && matchesRole && matchesSource && matchesQuery;
  });
- }, [query, status, roleFilter, rows]);
+ }, [query, status, roleFilter, sourceFilter, rows]);
 
  const pageCount = Math.max(1, Math.ceil(filteredRows.length / perPage));
  const pageRows = filteredRows.slice((page - 1) * perPage, page * perPage);
  const visiblePages = getVisiblePages(page, pageCount);
- useEffect(() => { setPage(1); }, [query, status, roleFilter, perPage]);
+ useEffect(() => { setPage(1); }, [query, status, roleFilter, sourceFilter, perPage]);
  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [page, pageCount]);
 
  return (
@@ -342,6 +349,7 @@ export default function UsersPage() {
         />
       </div>
 
+      <select aria-label="Registration source" value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} className="h-10 rounded-xl border border-border bg-card px-3 text-xs text-foreground"><option value="all">All registrations</option><option value="agent">Agent-created users</option><option value="direct">Direct / platform</option></select>
       {/* Status Dropdown */}
       <div className="relative w-full sm:w-[160px]">
         <select
@@ -380,9 +388,9 @@ export default function UsersPage() {
       </div>
 
       {/* Clear All */}
-      {(status !== "All" || roleFilter !== "All" || query !== "") && (
+      {(status !== "All" || roleFilter !== "All" || sourceFilter !== "all" || query !== "") && (
         <button
-          onClick={() => { setStatus("All"); setRoleFilter("All"); setQuery(""); }}
+          onClick={() => { setStatus("All"); setRoleFilter("All"); setSourceFilter("all"); setQuery(""); }}
           className="text-xs text-secondary font-medium hover:underline px-2 cursor-pointer"
         >
           Clear all
@@ -434,7 +442,7 @@ export default function UsersPage() {
  </div>
  <div className="min-w-0">
  <p className={"truncate text-sm font-semibold text-foreground " + (row.muted ? "line-through" : "")}>{row.name}</p>
- <p className="truncate text-[11px] text-muted-foreground">{row.email}</p>
+ <p className="truncate text-[11px] text-muted-foreground">{row.email}</p><RegistrationSource user={row} />
  </div>
  </div>
  </td>
@@ -661,7 +669,7 @@ function UserDetailsModal({ user, loading, onClose }: { user: any; loading: bool
                       {user.status || "Active"}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p><div className="mt-2"><RegistrationSource user={user} detailed /></div>
                   <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
                     <span className="text-[11px] font-semibold text-foreground px-2 py-0.5 rounded-full bg-muted border border-border">
                       Role: {user.role ? user.role.toUpperCase() : "USER"}
