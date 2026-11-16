@@ -127,6 +127,7 @@ export default function User360Page() {
  const [confirmDelete, setConfirmDelete] = useState(false);
 
  const [sourceFilter, setSourceFilter] = useState("all");
+ useEffect(() => { const id = new URLSearchParams(window.location.search).get("user"); if (id) setQuery(id); }, []);
  const filteredUsers = useMemo(() => {
  const text = query.toLowerCase().trim();
  return users.filter((user) => {
