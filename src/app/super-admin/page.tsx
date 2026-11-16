@@ -54,12 +54,16 @@ export default function HomePage() {
  const handleCardClick = (label: string) => {
    switch (label) {
      case "Agent-created Users":
-     case "Registered Agents":
        router.push("/super-admin/users?source=agent");
        break;
+     case "Registered Agents":
+       router.push("/super-admin/agents");
+       break;
      case "Total Users":
+       router.push("/super-admin/accounts?status=all");
+       break;
      case "Active Users":
-       router.push("/super-admin/users");
+       router.push("/super-admin/accounts?status=active");
        break;
      case "Premium Users":
        router.push("/super-admin/users?filter=premium");

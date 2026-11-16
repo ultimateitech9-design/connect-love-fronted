@@ -236,6 +236,7 @@ export default function UsersPage() {
    const params = new URLSearchParams(window.location.search);
    setPremiumOnly(params.get("filter") === "premium");
    if (params.get("source") === "agent") setSourceFilter("agent");
+   if (params.get("creator")) setQuery(params.get("creator") || "");
  }, []);
  useEffect(() => { fetchUsers(); }, [premiumOnly]);
 

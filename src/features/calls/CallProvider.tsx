@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { io, type Socket } from "socket.io-client";
-import { Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
+import { FlipHorizontal2, Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { API_ORIGIN, SOCKET_ORIGIN, WEBRTC_ICE_SERVERS, fetchIceServers } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { startCallSound } from "./ringtone";
+import { useCallDevices } from "./useCallDevices";
 
 type CallType = "audio" | "video";
 
@@ -147,11 +148,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(true);
-  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
-  // Phones get no speaker button: mobile browsers always play WebRTC audio on
-  // the loudspeaker (or Bluetooth) and give web pages no earpiece control, so
-  // a toggle there could only mute. On laptops it mutes the call audio.
-  const [isPhone, setIsPhone] = useState(false);
+  const [isCallAudioOn, setIsCallAudioOn] = useState(true);
+  const [needsAudioGesture, setNeedsAudioGesture] = useState(false);
+  const [fullscreenAvailable, setFullscreenAvailable] = useState(false);
   const [swapped, setSwapped] = useState(false);
   // "contain" when the video and its tile differ in orientation (a phone's
   // portrait video on a landscape laptop screen), so nothing is cropped.
@@ -170,7 +169,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const activeCallRef = useRef<ActiveCall | null>(null);
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const iceServersRef = useRef<RTCIceServer[]>(WEBRTC_ICE_SERVERS);
-  const isSpeakerOnRef = useRef(true);
+  const isCallAudioOnRef = useRef(true);
   const pendingStartRef = useRef<StartCallOptions | null>(null);
   const swappedRef = useRef(false);
 
@@ -206,6 +205,15 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const nextSocket = io(SOCKET_ORIGIN, { auth: { token }, query: { userId, token } });
     setSocket(nextSocket);
     return () => {
+      const call = activeCallRef.current;
+      if (call) nextSocket.emit("endVideoCall", { callId: call.id, otherUserId: call.otherUser.id, status: "ended" });
+      peerRef.current?.close();
+      peerRef.current = null;
+      localStreamRef.current?.getTracks().forEach(track => track.stop());
+      localStreamRef.current = null;
+      remoteStreamRef.current = null;
+      activeCallRef.current = null;
+      pendingStartRef.current = null;
       nextSocket.disconnect();
       setSocket(null);
     };
@@ -228,11 +236,13 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const audio = remoteAudioRef.current;
     if (audio && remote) {
       if (audio.srcObject !== remote) audio.srcObject = remote;
-      audio.muted = !isSpeakerOnRef.current;
-      audio.volume = isSpeakerOnRef.current ? 1 : 0;
-      if (isSpeakerOnRef.current) void audio.play().catch(() => undefined);
+      audio.muted = !isCallAudioOnRef.current;
+      audio.volume = isCallAudioOnRef.current ? 1 : 0;
+      if (isCallAudioOnRef.current) void audio.play().then(() => setNeedsAudioGesture(false)).catch(() => { if (activeCallRef.current && audio.srcObject === remote && isCallAudioOnRef.current) setNeedsAudioGesture(true); });
     }
   }, []);
+
+  const callDevices = useCallDevices({ callId: activeCall?.id, localStream: localStreamRef, peer: peerRef, audio: remoteAudioRef, onStreamsChanged: attachStreams });
 
   useEffect(() => {
     swappedRef.current = swapped;
@@ -248,10 +258,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
     localStreamRef.current?.getTracks().forEach((track) => track.stop());
     localStreamRef.current = null;
     remoteStreamRef.current = null;
-    isSpeakerOnRef.current = true;
+    isCallAudioOnRef.current = true;
     setIsMicOn(true);
     setIsCameraOn(true);
-    setIsSpeakerOn(true);
+    setIsCallAudioOn(true);
+    setNeedsAudioGesture(false);
     setSwapped(false);
     setCall(null);
     setIncomingCall(null);
@@ -397,21 +408,21 @@ export function CallProvider({ children }: { children: ReactNode }) {
   }, [isCameraOn]);
 
   useEffect(() => {
-    setIsPhone(window.matchMedia("(pointer: coarse)").matches);
+    setFullscreenAvailable(Boolean(document.fullscreenEnabled && document.documentElement.requestFullscreen));
   }, []);
 
-  const toggleSpeaker = useCallback(() => {
-    const next = !isSpeakerOn;
-    isSpeakerOnRef.current = next;
-    setIsSpeakerOn(next);
+  const toggleCallAudio = useCallback(() => {
+    const next = !isCallAudioOn;
+    isCallAudioOnRef.current = next;
+    setIsCallAudioOn(next);
     attachStreams();
-  }, [attachStreams, isSpeakerOn]);
+  }, [attachStreams, isCallAudioOn]);
 
   const toggleFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
       void document.exitFullscreen().catch(() => undefined);
     } else {
-      void overlayRef.current?.requestFullscreen?.().catch(() => undefined);
+      void overlayRef.current?.requestFullscreen?.().catch(() => toast.error("Full screen is not available in this browser."));
     }
   }, []);
 
@@ -600,8 +611,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
   // Which tile shows the local camera, so it can be hidden when the camera is off.
   const mainIsLocal = swapped;
 
+  const controlCaption = "pointer-events-none absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap text-[9px] font-medium text-white/85";
   const controlButton = (active: boolean) => cn(
-    "h-11 w-11 rounded-full p-0 text-white sm:h-12 sm:w-12",
+    "relative h-11 w-11 shrink-0 rounded-full p-0 text-white sm:h-12 sm:w-12",
     active ? "bg-white/15 hover:bg-white/25" : "bg-white text-slate-950 hover:bg-white/90",
   );
 
@@ -698,34 +710,30 @@ export function CallProvider({ children }: { children: ReactNode }) {
             </div>
           )}
 
-          <div className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] rounded-full bg-black/40 px-3 py-1.5 text-sm backdrop-blur-md sm:left-5 sm:top-[max(1.25rem,env(safe-area-inset-top))]">
-            <span className="font-semibold">{activeCall.otherUser.name}</span>
-            <span className="ml-2 tabular-nums text-white/80">{statusLabel}</span>
+          <div className={cn("absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] rounded-2xl bg-black/40 px-3 py-1.5 text-sm backdrop-blur-md sm:left-5 sm:top-[max(1.25rem,env(safe-area-inset-top))]", activeCall.callType === "video" ? "max-w-[calc(100%-9rem)] sm:max-w-[60vw]" : "max-w-[calc(100%-1.5rem)]")}>
+            <span className="block truncate font-semibold">{activeCall.otherUser.name}</span>
+            <span className="block text-xs tabular-nums text-white/80">{statusLabel}</span>
           </div>
 
+
           <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-16 sm:gap-4 sm:px-4 sm:pb-[max(2rem,env(safe-area-inset-bottom))] sm:pt-24">
-            <div className="flex items-center gap-2 rounded-full bg-black/40 p-1.5 backdrop-blur-md sm:gap-3 sm:p-2">
-              <Button type="button" onClick={toggleMicrophone} className={controlButton(isMicOn)} title={isMicOn ? "Mute microphone" : "Unmute microphone"}>
-                {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+            {needsAudioGesture && <Button type="button" className="rounded-full bg-rose-600 text-white hover:bg-rose-500" onClick={() => { isCallAudioOnRef.current = true; setIsCallAudioOn(true); attachStreams(); }}>Enable call sound</Button>}
+            {callDevices.error && <p role="alert" className="max-w-md rounded-xl bg-slate-900/95 px-4 py-2 text-xs text-rose-200">{callDevices.error}</p>}
+            <div role="toolbar" aria-label="Call controls" className="flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-6 rounded-2xl bg-black/40 px-1.5 pb-5 pt-1.5 backdrop-blur-md sm:gap-x-3 sm:px-2 sm:pt-2">
+              <Button type="button" disabled={callDevices.busy} onClick={toggleMicrophone} className={controlButton(isMicOn)} aria-label={isMicOn ? "Mute microphone" : "Unmute microphone"} title={isMicOn ? "Mute microphone" : "Unmute microphone"} aria-pressed={!isMicOn}>
+                {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}<span className={controlCaption}>Mic</span>
               </Button>
-              {activeCall.callType === "video" && (
-                <Button type="button" onClick={toggleCamera} className={controlButton(isCameraOn)} title={isCameraOn ? "Turn camera off" : "Turn camera on"}>
-                  {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+              {activeCall.callType === "video" && <>
+                <Button type="button" disabled={callDevices.busy} onClick={toggleCamera} className={controlButton(isCameraOn)} aria-label={isCameraOn ? "Turn camera off" : "Turn camera on"} title={isCameraOn ? "Turn camera off" : "Turn camera on"} aria-pressed={!isCameraOn}>
+                  {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}<span className={controlCaption}>Camera</span>
                 </Button>
-              )}
-              {!isPhone && (
-                <Button type="button" onClick={toggleSpeaker} className={controlButton(isSpeakerOn)} title={isSpeakerOn ? "Mute call audio" : "Unmute call audio"}>
-                  {isSpeakerOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-                </Button>
-              )}
-              {activeCall.callType === "video" && (
-                <Button type="button" onClick={toggleFullscreen} className={controlButton(true)} title={isFullscreen ? "Exit full screen" : "Full screen"}>
-                  {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-                </Button>
-              )}
-              <Button type="button" onClick={() => endCall("ended")} className="h-11 w-11 rounded-full bg-red-600 p-0 text-white hover:bg-red-700 sm:h-12 sm:w-12" title="End call">
-                <PhoneOff className="h-5 w-5 sm:h-6 sm:w-6" />
+                {callDevices.cameras.length > 1 && <Button type="button" disabled={callDevices.busy || !isCameraOn} onClick={() => void callDevices.flipCamera()} className={controlButton(true)} aria-label="Switch front / back camera" title="Switch front / back camera"><FlipHorizontal2 className="h-5 w-5" /><span className={controlCaption}>Flip</span></Button>}
+              </>}
+              <Button type="button" onClick={toggleCallAudio} className={controlButton(isCallAudioOn)} aria-label={isCallAudioOn ? "Mute call audio" : "Unmute call audio"} title={isCallAudioOn ? "Mute call audio" : "Unmute call audio"} aria-pressed={!isCallAudioOn}>
+                {isCallAudioOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}<span className={controlCaption}>Sound</span>
               </Button>
+              {fullscreenAvailable && <Button type="button" onClick={toggleFullscreen} className={controlButton(true)} aria-label={isFullscreen ? "Exit full screen" : "Full screen"} title={isFullscreen ? "Exit full screen" : "Full screen"}>{isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}<span className={controlCaption}>{isFullscreen ? "Shrink" : "Expand"}</span></Button>}
+              <Button type="button" onClick={() => endCall()} className="relative h-11 w-11 shrink-0 rounded-full bg-red-600 p-0 text-white hover:bg-red-500 sm:h-12 sm:w-12" aria-label="End call" title="End call"><PhoneOff className="h-5 w-5" /><span className={controlCaption}>End</span></Button>
             </div>
           </div>
         </div>

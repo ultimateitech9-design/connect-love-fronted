@@ -34,6 +34,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 const nav = [
   { to: "/super-admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/super-admin/users", label: "User Management", icon: Users },
+  { to: "/super-admin/agents", label: "Registered Agents", icon: Users },
   { to: "/super-admin/user-360", label: "User 360", icon: UserRoundSearch },
   { to: "/super-admin/verification", label: "Verification", icon: ShieldCheck },
   { to: "/super-admin/payments", label: "Payments", icon: CreditCard },
