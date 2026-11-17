@@ -1,4 +1,5 @@
 import { API_ORIGIN } from '@/config/runtime';
+import type { PayoutApi } from '@/features/payouts/WithdrawPanel';
 import type { UserActivity } from '@/features/management/userActivity';
 
 const KEY = 'connectlove_agent_token';
@@ -6,10 +7,10 @@ export const agentToken = () => typeof window === 'undefined' ? null : sessionSt
 export const saveAgentToken = (token: string) => sessionStorage.setItem(KEY, token);
 export const clearAgentToken = () => sessionStorage.removeItem(KEY);
 export class AgentApiError extends Error { constructor(message: string, public status: number) { super(message); } }
-export async function agentRequest<T>(path: string, body?: unknown): Promise<T> {
+export async function agentRequest<T>(path: string, body?: unknown, method?: 'PATCH' | 'DELETE'): Promise<T> {
   const token = agentToken();
   const response = await fetch(`${API_ORIGIN}/agents${path}`, {
-    method: body === undefined ? 'GET' : 'POST', cache: 'no-store',
+    method: method ?? (body === undefined ? 'GET' : 'POST'), cache: 'no-store',
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
@@ -30,3 +31,14 @@ export type ManagedUser = { id: string; name: string; email: string; phone?: str
 export type UsersResult = { users: ManagedUser[]; total: number; totalAccounts: number; activeAccounts: number; page: number; pages: number };
 export type UserDraft = { name: string; email: string; password: string; birthDate: string; gender: string; city: string; phone: string; profession: string; bio: string; photos: string[] };
 export const emptyDraft = (): UserDraft => ({ name: '', email: '', password: '', birthDate: '', gender: 'female', city: '', phone: '', profession: '', bio: '', photos: [] });
+
+/** Withdrawal endpoints for agents, in the shape WithdrawPanel expects. */
+export const agentPayoutApi: PayoutApi = {
+  balance: async () => (await agentRequest<AgentEarnings>('/earnings')).balance,
+  listAccounts: () => agentRequest('/payout-accounts'),
+  createAccount: (input) => agentRequest('/payout-accounts', input),
+  updateAccount: (id, input) => agentRequest(`/payout-accounts/${id}`, input, 'PATCH'),
+  deleteAccount: (id) => agentRequest(`/payout-accounts/${id}`, undefined, 'DELETE'),
+  withdrawals: () => agentRequest('/withdrawals'),
+  withdraw: (body) => agentRequest('/withdrawals', body),
+};
