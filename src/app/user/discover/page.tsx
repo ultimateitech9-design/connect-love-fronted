@@ -340,7 +340,9 @@ function matchesNonDistanceFilters(p: any, filters: DiscoverFilters, onlyShowVer
     const query = filters.search.toLowerCase().trim();
     const nameMatch = p.name && p.name.toLowerCase().includes(query);
     const usernameMatch = p.username && p.username.toLowerCase().includes(query);
-    if (!nameMatch && !usernameMatch) return false;
+    const locationMatch = p.city?.toLowerCase().includes(query);
+    const professionMatch = p.profession?.toLowerCase().includes(query);
+    if (!nameMatch && !usernameMatch && !locationMatch && !professionMatch) return false;
   }
   if ((p.age ?? 0) < filters.ageMin || (p.age ?? 0) > filters.ageMax) return false;
   if ((filters.verifiedOnly || onlyShowVerifiedProfiles) && !p.isVerified && !p.verified) return false;
@@ -398,10 +400,10 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
     // Render the first card quickly on mobile/slow networks. The discovery hook
     // continuously refills the queue after swipes, so a large initial payload
     // only delays first paint without improving the experience.
-    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, limit: 4 }),
-    [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance],
+    () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, interests: filters.interests, verifiedOnly: filters.verifiedOnly, limit: 12 }),
+    [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance, filters.interests, filters.verifiedOnly],
   );
- const { profiles, loading, swipeLeft, swipeRight, swipeSuper, undoSwipe, refreshProfiles, upgradePrompt, closeUpgradePrompt } = useDiscovery(token, requestFilters);
+ const { profiles, loading, error: discoveryError, hasMore, swipeLeft, swipeRight, swipeSuper, undoSwipe, refreshProfiles, upgradePrompt, closeUpgradePrompt } = useDiscovery(token, requestFilters);
 
   useEffect(() => {
     if (!token) return;
@@ -504,7 +506,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  <div className="space-y-4">
  <MobileFilters filters={filters} onChange={setFilters} effectiveMaxDistance={effectiveMaxDistance} />
  <div className="flex min-w-0 items-start justify-center">
- {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} canUsePremiumActions={canUsePremiumDiscoveryActions} onPremiumActionLocked={setLockedDiscoveryFeature} />}
+ {visibleProfiles.length === 0 && discoveryError ? <div role="alert" className="w-full max-w-[460px] rounded-3xl border border-border bg-card p-8 text-center"><p className="text-foreground">Profiles could not load. Retrying automatically...</p><button onClick={refreshProfiles} className="mt-4 rounded-xl bg-rose-500 px-5 py-3 font-semibold text-white">Try again</button></div> : visibleProfiles.length === 0 && (loading || hasMore) ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} canUsePremiumActions={canUsePremiumDiscoveryActions} onPremiumActionLocked={setLockedDiscoveryFeature} />}
  </div>
  </div>
  ) : (
@@ -515,7 +517,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  <FiltersPanelShell />
  )}
  <div className="flex min-w-0 items-start justify-center pt-1 sm:pt-2">
- {loading ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} canUsePremiumActions={canUsePremiumDiscoveryActions} onPremiumActionLocked={setLockedDiscoveryFeature} />}
+ {visibleProfiles.length === 0 && discoveryError ? <div role="alert" className="w-full max-w-[460px] rounded-3xl border border-border bg-card p-8 text-center"><p className="text-foreground">Profiles could not load. Retrying automatically...</p><button onClick={refreshProfiles} className="mt-4 rounded-xl bg-rose-500 px-5 py-3 font-semibold text-white">Try again</button></div> : visibleProfiles.length === 0 && (loading || hasMore) ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} canUsePremiumActions={canUsePremiumDiscoveryActions} onPremiumActionLocked={setLockedDiscoveryFeature} />}
  </div>
  <div className="hidden min-w-0 lg:block">
  {loadSecondaryPanels ? <RightRail /> : <RightRailShell />}

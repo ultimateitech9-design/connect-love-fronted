@@ -1,6 +1,10 @@
 import { directFetch } from "@/lib/api";
 
 export type DiscoveryFilters = {
+  interests?: string[];
+  verifiedOnly?: boolean;
+  cursor?: string;
+  queue?: boolean;
   interestedIn?: "female" | "male" | "non-binary" | "prefer-not" | "everyone";
   search?: string;
   ageMin?: number;
@@ -18,7 +22,7 @@ export function getDiscoveryProfiles(filters: DiscoveryFilters, signal?: AbortSi
     if (value !== undefined && value !== "" && (!Array.isArray(value) || value.length > 0)) params.set(key, String(value));
   });
   const query = params.toString();
-  return directFetch<any[]>(`/discovery${query ? `?${query}` : ""}`, { signal });
+  return directFetch<any>(`/discovery${query ? `?${query}` : ""}`, { signal });
 }
 
 export function swipeProfile(receiverId: string, action: "like" | "pass" | "superlike") {
