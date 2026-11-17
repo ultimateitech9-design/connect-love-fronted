@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { startCallSound } from "./ringtone";
+import { UpgradeCallsDialog, type UpgradeReason } from "./UpgradeCallsDialog";
 import { useCallDevices } from "./useCallDevices";
 
 type CallType = "audio" | "video";
@@ -19,7 +20,8 @@ export type CallParticipant = { id: string; name: string; photo?: string | null 
 
 type ActiveCall = {
   id: string;
-  conversationId: string;
+  /** Null for direct (paid, no match) calls. */
+  conversationId: string | null;
   otherUser: CallParticipant;
   direction: "incoming" | "outgoing";
   status: "ringing" | "active";
@@ -29,9 +31,11 @@ type ActiveCall = {
 
 type IncomingCall = {
   callId: string;
-  conversationId: string;
+  conversationId: string | null;
   caller: CallParticipant;
   callType: CallType;
+  /** True for a direct call from someone the user has not matched with. */
+  direct: boolean;
 };
 
 type StartCallOptions = {
@@ -40,15 +44,31 @@ type StartCallOptions = {
   callType: CallType;
 };
 
+type StartDirectCallOptions = {
+  otherUser: CallParticipant;
+  callType: CallType;
+};
+
+type PendingStart = { conversationId: string | null; otherUser: CallParticipant; callType: CallType };
+
+/** error: shown to the user. upgrade: the upgrade popup was opened instead. */
+type StartResult = { error?: string; upgrade?: boolean };
+
 type CallContextValue = {
-  /** Resolves with the server's error message when the call could not start. */
-  startCall: (options: StartCallOptions) => Promise<{ error?: string }>;
+  /** Call between matched users (Messages). */
+  startCall: (options: StartCallOptions) => Promise<StartResult>;
+  /** Paid call to someone without a match (Discover). */
+  startDirectCall: (options: StartDirectCallOptions) => Promise<StartResult>;
+  /** Open the coin-pack popup, e.g. from a "Buy coins" link. */
+  openUpgrade: () => void;
   ready: boolean;
   inCall: boolean;
 };
 
 const CallContext = createContext<CallContextValue>({
   startCall: async () => ({ error: "Calls are not available on this page." }),
+  startDirectCall: async () => ({ error: "Calls are not available on this page." }),
+  openUpgrade: () => undefined,
   ready: false,
   inCall: false,
 });
@@ -170,7 +190,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const iceServersRef = useRef<RTCIceServer[]>(WEBRTC_ICE_SERVERS);
   const isCallAudioOnRef = useRef(true);
-  const pendingStartRef = useRef<StartCallOptions | null>(null);
+  const pendingStartRef = useRef<PendingStart | null>(null);
+  const pendingResolveRef = useRef<((result: StartResult) => void) | null>(null);
+  const myUserIdRef = useRef("");
+  // Why the coin-pack popup is open (null = closed).
+  const [upgradeReason, setUpgradeReason] = useState<UpgradeReason | null>(null);
   const swappedRef = useRef(false);
 
   const setCall = useCallback((call: ActiveCall | null) => {
@@ -184,6 +208,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const pending = pendingStartRef.current;
     if (!pending || !call?.id || activeCallRef.current) return;
     pendingStartRef.current = null;
+    pendingResolveRef.current?.({});
+    pendingResolveRef.current = null;
     setCall({
       id: call.id,
       conversationId: pending.conversationId,
@@ -202,6 +228,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     if (!token) return;
     tokenRef.current = token;
     const userId = userIdFromToken(token);
+    myUserIdRef.current = userId;
     const nextSocket = io(SOCKET_ORIGIN, { auth: { token }, query: { userId, token } });
     setSocket(nextSocket);
     return () => {
@@ -338,33 +365,49 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   // --- Actions ------------------------------------------------------------
 
-  const startCall = useCallback(async ({ conversationId, otherUser, callType }: StartCallOptions) => {
+  // Emits a call-start event. Errors arrive as the acknowledgement; success as
+  // the "videoCallStarted" event (handled by markStarted, which resolves too).
+  const beginCall = useCallback(async (event: "startVideoCall" | "startDirectCall", data: Record<string, unknown>, pending: PendingStart): Promise<StartResult> => {
     if (!socket) return { error: "Connecting… please try again in a moment." };
     if (activeCallRef.current) return { error: "You are already in a call." };
     try {
-      await ensureLocalMedia(callType);
+      await ensureLocalMedia(pending.callType);
     } catch {
       return {
-        error: callType === "video"
+        error: pending.callType === "video"
           ? "Camera or microphone permission is required for video calls."
           : "Microphone permission is required for audio calls.",
       };
     }
     iceServersRef.current = await fetchIceServers(tokenRef.current);
-    pendingStartRef.current = { conversationId, otherUser, callType };
-    return new Promise<{ error?: string }>((resolve) => {
-      socket.emit("startVideoCall", { conversationId, receiverId: otherUser.id, callType }, (response: any) => {
+    pendingStartRef.current = pending;
+    return new Promise<StartResult>((resolve) => {
+      pendingResolveRef.current = resolve;
+      socket.emit(event, data, (response: any) => {
         if (response?.error) {
           pendingStartRef.current = null;
+          pendingResolveRef.current = null;
           stopCallMedia();
+          if (response.code === "UPGRADE_REQUIRED") {
+            setUpgradeReason("free_used");
+            resolve({ error: response.error, upgrade: true });
+            return;
+          }
           resolve({ error: response.error });
           return;
         }
         markStarted(response?.data?.call ?? response?.call);
-        resolve({});
       });
     });
   }, [ensureLocalMedia, markStarted, socket, stopCallMedia]);
+
+  const startCall = useCallback(({ conversationId, otherUser, callType }: StartCallOptions) => (
+    beginCall("startVideoCall", { conversationId, receiverId: otherUser.id, callType }, { conversationId, otherUser, callType })
+  ), [beginCall]);
+
+  const startDirectCall = useCallback(({ otherUser, callType }: StartDirectCallOptions) => (
+    beginCall("startDirectCall", { receiverId: otherUser.id, callType }, { conversationId: null, otherUser, callType })
+  ), [beginCall]);
 
   const acceptIncomingCall = useCallback(async () => {
     if (!socket || !incomingCall) return;
@@ -446,6 +489,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
         conversationId: payload.conversationId,
         caller: participantFrom(payload.caller, payload.callerId),
         callType: payload.callType === "audio" ? "audio" : "video",
+        direct: payload.mode === "direct" || payload.call?.mode === "direct",
       });
     };
 
@@ -497,6 +541,14 @@ export function CallProvider({ children }: { children: ReactNode }) {
       setIncomingCall((incoming) => (incoming && (!endedId || incoming.callId === endedId) ? null : incoming));
       if (call && (!endedId || call.id === endedId)) {
         if (payload?.endedBy === "plan_limit") toast.info("Call ended: your plan's call time limit was reached.");
+        // Direct calls cut by the server: offer coins to the caller, inform the receiver.
+        const iAmCaller = payload?.call?.callerId === myUserIdRef.current;
+        if (payload?.endedBy === "free_limit" || payload?.endedBy === "coins_exhausted") {
+          if (iAmCaller) setUpgradeReason(payload.endedBy);
+          else toast.info("Call ended: the caller's call time ran out.");
+        } else if (payload?.endedBy === "disconnected") {
+          toast.info("Call ended: the other person went offline.");
+        }
         stopCallMedia();
       }
     };
@@ -540,6 +592,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
           conversationId: call.conversationId,
           caller: participantFrom(call.callerProfile, call.callerId),
           callType: call.callType === "audio" ? "audio" : "video",
+          direct: call.mode === "direct",
         });
       } catch {
         // Ignore: the next poll or a socket event will deliver the call.
@@ -618,8 +671,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <CallContext.Provider value={{ startCall, ready: Boolean(socket), inCall: Boolean(activeCall) }}>
+    <CallContext.Provider value={{ startCall, startDirectCall, openUpgrade: () => setUpgradeReason("manual"), ready: Boolean(socket), inCall: Boolean(activeCall) }}>
       {children}
+
+      <UpgradeCallsDialog reason={upgradeReason} onClose={() => setUpgradeReason(null)} />
 
       {incomingCall && !activeCall && typeof document !== "undefined" && createPortal((
         <div className="fixed inset-0 z-[10060] flex items-center justify-center bg-black/70 p-4">
@@ -633,6 +688,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
             <h3 className="text-xl font-bold text-foreground">{incomingCall.caller.name}</h3>
             <p className="mt-1 text-sm font-medium text-muted-foreground">
               Incoming {incomingCall.callType === "audio" ? "voice" : "video"} call
+              {incomingCall.direct ? " · from Discover" : ""}
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <Button variant="outline" className="rounded-full" onClick={() => endCall("rejected")}>

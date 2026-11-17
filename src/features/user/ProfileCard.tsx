@@ -2,6 +2,7 @@ import { API_ORIGIN } from "@/config/runtime";
 import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, type PanInfo } from "framer-motion";
 import { BadgeCheck, ChevronLeft, ChevronRight, MapPin, X, Heart, Star, Loader2, RotateCcw, Send } from "lucide-react";
+import { DirectCallButtons } from "@/features/calls/DirectCallButtons";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
 import { formatDistance } from "@/lib/distance";
@@ -683,6 +684,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
         >
           <Send className="h-5 w-5 -rotate-12" strokeWidth={2} />
         </button>
+        <DirectCallButtons profile={profile} />
       </div>
 
       <p className="mt-4 text-center text-xs text-slate-400">

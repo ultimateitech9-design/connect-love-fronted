@@ -17,6 +17,7 @@ import { ProfileCard } from "@/features/user/ProfileCard";
 import { ConnectLoveChatbot } from "@/features/chatbot/ConnectLoveChatbot";
 import { apiFetch } from "@/config/runtime";
 import { recordDiscoveryProfileView } from "@/features/discovery/api";
+import { DirectCallButtons } from "@/features/calls/DirectCallButtons";
 
 const DISTANCE_STEP_KM = 100;
 const DISTANCE_OPTIONS_KM = [1, 5, 10, 25, 50, 100, 250, 500, 10000];
@@ -317,6 +318,7 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
         <button type="button" onClick={() => advance("like")} className="grid h-12 w-12 place-items-center rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/20" aria-label="Like">
           <Heart className="h-6 w-6" fill="currentColor" />
         </button>
+        <DirectCallButtons profile={profile} />
       </div>
     </div>
   );

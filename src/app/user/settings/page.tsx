@@ -1,11 +1,11 @@
 "use client";
 import { API_ORIGIN } from "@/config/runtime";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
  Eye, MapPin, Bell, Heart, ShieldCheck,
  Lock, Trash2, UserX, Download, ChevronRight,
- Moon, Smartphone,
+ Moon, Smartphone, PhoneCall,
 } from "lucide-react";
 
 import { useSettings, UserSettings } from "@/features/user/SettingsContext";
@@ -115,6 +115,43 @@ function DangerRow({ label, desc, icon: Icon, danger = false, onClick }: { label
  );
 }
 
+const directCallsToggle: Toggle = {
+ id: "allowDirectCalls" as Toggle["id"],
+ label: "Calls from people you haven't matched with",
+ desc: "Let anyone on Discover call you. Turn off to receive calls only from your matches.",
+ icon: PhoneCall,
+};
+
+// Stored on the server (direct-calls preferences), not in local settings.
+function DirectCallsSetting() {
+ const [allow, setAllow] = useState<boolean | null>(null);
+
+ useEffect(() => {
+   fetch(`${API_ORIGIN}/direct-calls/summary`, { headers: { Authorization: `Bearer ${getToken()}` }, cache: "no-store" })
+     .then((res) => (res.ok ? res.json() : null))
+     .then((data) => setAllow(data ? Boolean(data.allowDirectCalls) : true))
+     .catch(() => setAllow(true));
+ }, []);
+
+ const update = async (next: boolean) => {
+   const previous = allow;
+   setAllow(next);
+   try {
+     const res = await fetch(`${API_ORIGIN}/direct-calls/preferences`, {
+       method: "PATCH",
+       headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+       body: JSON.stringify({ allowDirectCalls: next }),
+     });
+     if (!res.ok) throw new Error();
+   } catch {
+     setAllow(previous);
+   }
+ };
+
+ if (allow === null) return null;
+ return <ToggleRow toggle={directCallsToggle} checked={allow} onChange={(v) => void update(v)} />;
+}
+
 export default function SettingsPage() {
  const { settings, updateSetting } = useSettings();
  const [accountMessage, setAccountMessage] = useState("");
@@ -202,6 +239,7 @@ export default function SettingsPage() {
  {/* Privacy & Visibility */}
  <SectionCard title="Privacy & Visibility" subtitle="Control what others see on your profile.">
  {privacyToggles.map((t) => <ToggleRow key={t.id} toggle={t} checked={!!settings[t.id]} onChange={(v) => updateSetting(t.id, v)} />)}
+ <DirectCallsSetting />
  </SectionCard>
 
  {/* Notifications */}
