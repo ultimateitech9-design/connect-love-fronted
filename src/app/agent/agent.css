@@ -501,7 +501,7 @@
 }
 .ag-stats {
   display:grid;
-  grid-template-columns:1fr 1fr 1.4fr;
+  grid-template-columns:1fr 1fr 1fr 1.4fr;
   gap:18px;
   margin-bottom:28px;
 }

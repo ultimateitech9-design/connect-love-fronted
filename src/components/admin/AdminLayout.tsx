@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useCallback, useState } from "react";
-import {
+import { PhoneCall,
   LayoutDashboard,
   Users,
   UserRoundSearch,
@@ -43,6 +43,7 @@ const nav = [
   { to: "/super-admin/transactions", label: "Transactions", icon: WalletCards },
   { to: "/super-admin/withdrawals", label: "Withdrawals", icon: Banknote },
   { to: "/super-admin/gift-coins", label: "Gift Coins", icon: Gift },
+  { to: "/super-admin/direct-calls", label: "Direct Calls", icon: PhoneCall },
   { to: "/super-admin/reports", label: "Reports", icon: Flag },
   { to: "/super-admin/complaints", label: "Complaints", icon: MessageSquareWarning },
   { to: "/super-admin/notifications", label: "Campaigns", icon: Bell },

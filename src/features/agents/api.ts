@@ -18,6 +18,14 @@ export async function agentRequest<T>(path: string, body?: unknown): Promise<T> 
   return data;
 }
 export type Agent = { id: string; name: string; email: string };
+export type AgentEarnings = {
+  balance: number;
+  thisMonth: number;
+  allTime: number;
+  paidMinutes: number;
+  byUser: Array<{ userId: string; name: string | null; coins: number; minutes: number }>;
+  recent: Array<{ id: string; createdAt: string; coins: number; label: string | null; name: string | null }>;
+};
 export type ManagedUser = { id: string; name: string; email: string; phone?: string; birthDate: string; gender: string; city: string; profession?: string; bio?: string; photos?: string[]; status: string; createdAt: string; onboardingCompleted: boolean; agentEmailChangedAt?: string | null; activity?: UserActivity };
 export type UsersResult = { users: ManagedUser[]; total: number; totalAccounts: number; activeAccounts: number; page: number; pages: number };
 export type UserDraft = { name: string; email: string; password: string; birthDate: string; gender: string; city: string; phone: string; profession: string; bio: string; photos: string[] };
