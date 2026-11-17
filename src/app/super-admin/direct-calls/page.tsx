@@ -16,12 +16,14 @@ type Settings = {
   agentPercent: number;
   maxCallsPerReceiverPerDay: number;
   packs: number[];
+  giftAmounts: number[];
+  giftReceiverPercent: number;
 };
 
 type Totals = { minutes: number; paidCalls: number; coins: number; receiverCoins: number; agentCoins: number; platformCoins: number };
 type Stats = { month: Totals & { answeredCalls: number; freeCalls: number }; allTime: Totals };
 
-type NumberField = Exclude<keyof Settings, "enabled" | "packs">;
+type NumberField = Exclude<keyof Settings, "enabled" | "packs" | "giftAmounts">;
 
 const FIELDS: Array<{ key: NumberField; label: string; hint: string; suffix: string }> = [
   { key: "videoRatePerMinute", label: "Video call rate", hint: "Coins charged per started minute", suffix: "coins/min" },
@@ -32,6 +34,7 @@ const FIELDS: Array<{ key: NumberField; label: string; hint: string; suffix: str
   { key: "receiverPercent", label: "Receiver share", hint: "Gets the agent share too when there is no agent", suffix: "%" },
   { key: "agentPercent", label: "Agent share", hint: "Agent who created the receiver's account", suffix: "%" },
   { key: "maxCallsPerReceiverPerDay", label: "Calls to one person per day", hint: "Spam limit per caller", suffix: "calls" },
+  { key: "giftReceiverPercent", label: "Call gift: receiver share", hint: "Rest of each in-call gift goes to the platform", suffix: "%" },
 ];
 
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -47,6 +50,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 export default function DirectCallsAdminPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [packsText, setPacksText] = useState("");
+  const [giftsText, setGiftsText] = useState("");
   const [stats, setStats] = useState<Stats | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -54,7 +58,7 @@ export default function DirectCallsAdminPage() {
 
   useEffect(() => {
     managementFetch<Settings>("/direct-calls/admin/settings")
-      .then((data) => { setSettings(data); setPacksText(data.packs.join(", ")); })
+      .then((data) => { setSettings(data); setPacksText(data.packs.join(", ")); setGiftsText((data.giftAmounts ?? []).join(", ")); })
       .catch((reason) => setError(reason instanceof Error ? reason.message : "Settings could not be loaded."));
     managementFetch<Stats>("/direct-calls/admin/stats").then(setStats).catch(() => undefined);
   }, []);
@@ -65,13 +69,15 @@ export default function DirectCallsAdminPage() {
     setError("");
     setSaved(false);
     const packs = packsText.split(",").map((value) => Number(value.trim())).filter((value) => value > 0);
+    const giftAmounts = giftsText.split(",").map((value) => Number(value.trim())).filter((value) => value > 0);
     if (settings.receiverPercent + settings.agentPercent > 100) return setError("Receiver and agent shares cannot be more than 100%.");
     if (!window.confirm("Save direct call settings? They apply to new calls immediately.")) return;
     setSaving(true);
     try {
-      const next = await managementFetch<Settings>("/direct-calls/admin/settings", { method: "PATCH", body: JSON.stringify({ ...settings, packs }) });
+      const next = await managementFetch<Settings>("/direct-calls/admin/settings", { method: "PATCH", body: JSON.stringify({ ...settings, packs, giftAmounts }) });
       setSettings(next);
       setPacksText(next.packs.join(", "));
+      setGiftsText(next.giftAmounts.join(", "));
       setSaved(true);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Settings could not be saved.");
@@ -131,6 +137,11 @@ export default function DirectCallsAdminPage() {
               <input value={packsText} onChange={(event) => setPacksText(event.target.value)} placeholder="299, 499, 999" className="h-11 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm font-bold outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100" />
             </div>
             <span className="mt-1 block text-xs text-muted-foreground">Comma separated coin amounts (1 coin = ₹1), up to 6 packs.</span>
+          </label>
+          <label className="block md:col-span-2">
+            <span className="mb-1 block text-sm font-semibold">Gift amounts during calls</span>
+            <input value={giftsText} onChange={(event) => setGiftsText(event.target.value)} placeholder="100, 250, 500, 1000" className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm font-bold outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100" />
+            <span className="mt-1 block text-xs text-muted-foreground">Comma separated coin amounts shown on the call screen, up to 6.</span>
           </label>
         </div>
 

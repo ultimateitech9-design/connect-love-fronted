@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { io, type Socket } from "socket.io-client";
-import { Flag, FlipHorizontal2, Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
+import { Flag, FlipHorizontal2, Gift, Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { API_ORIGIN, SOCKET_ORIGIN, WEBRTC_ICE_SERVERS, fetchIceServers } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
@@ -190,6 +190,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
   // the caller's coins run out. Null when the call has no limit.
   const [callLimit, setCallLimit] = useState<CallLimit | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  // In-call gifts (coins), configured by the super admin.
+  const [giftAmounts, setGiftAmounts] = useState<number[]>([100, 250, 500, 1000]);
+  const [giftOpen, setGiftOpen] = useState(false);
+  const [sendingGift, setSendingGift] = useState<number | null>(null);
   const lowTimeWarnedRef = useRef(false);
 
   const tokenRef = useRef("");
@@ -455,6 +459,32 @@ export function CallProvider({ children }: { children: ReactNode }) {
     stopCallMedia();
   }, [incomingCall, socket, stopCallMedia]);
 
+  // Load the gift amounts once a call starts.
+  useEffect(() => {
+    if (!activeCall?.id) return;
+    fetch(`${API_ORIGIN}/direct-calls/summary`, { headers: { Authorization: `Bearer ${tokenRef.current}` }, cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (Array.isArray(data?.giftAmounts) && data.giftAmounts.length) setGiftAmounts(data.giftAmounts); })
+      .catch(() => undefined);
+  }, [activeCall?.id]);
+
+  const sendGift = useCallback((coins: number) => {
+    const call = activeCallRef.current;
+    if (!socket || !call || sendingGift) return;
+    setSendingGift(coins);
+    socket.emit("sendCallGift", { callId: call.id, amount: coins }, (response: any) => {
+      setSendingGift(null);
+      if (response?.error) {
+        if (response.code === "UPGRADE_REQUIRED") setUpgradeReason("manual");
+        toast.error(response.error);
+        return;
+      }
+      setGiftOpen(false);
+      toast.success(`🎁 Gift of ${coins} coins sent to ${call.otherUser.name}.`);
+      window.dispatchEvent(new Event("connect-love-wallet-changed"));
+    });
+  }, [sendingGift, socket]);
+
   const toggleMicrophone = useCallback(() => {
     const next = !isMicOn;
     localStreamRef.current?.getAudioTracks().forEach((track) => { track.enabled = next; });
@@ -590,6 +620,12 @@ export function CallProvider({ children }: { children: ReactNode }) {
       if (payload.minutesLeft > 0) lowTimeWarnedRef.current = false;
     };
 
+    const handleGiftReceived = (payload: { callId: string; senderName: string; coins: number }) => {
+      if (payload?.callId !== activeCallRef.current?.id) return;
+      toast.success(`🎁 ${payload.senderName} sent you a gift of ${payload.coins} coins!`);
+      window.dispatchEvent(new Event("connect-love-wallet-changed"));
+    };
+
     const handleAnsweredElsewhere = (payload: { callId: string }) => {
       setIncomingCall((incoming) => (incoming?.callId === payload.callId ? null : incoming));
     };
@@ -600,6 +636,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     socket.on("videoSignal", handleSignal);
     socket.on("videoCallEnded", handleEnded);
     socket.on("callBilling", handleBilling);
+    socket.on("callGiftReceived", handleGiftReceived);
     socket.on("videoCallAnsweredElsewhere", handleAnsweredElsewhere);
     return () => {
       socket.off("videoCallStarted", handleStarted);
@@ -608,6 +645,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       socket.off("videoSignal", handleSignal);
       socket.off("videoCallEnded", handleEnded);
       socket.off("callBilling", handleBilling);
+      socket.off("callGiftReceived", handleGiftReceived);
       socket.off("videoCallAnsweredElsewhere", handleAnsweredElsewhere);
     };
   }, [createPeer, markStarted, setCall, socket, stopCallMedia]);
@@ -705,7 +743,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     ? ""
     : callLimit.isFreeTrial
       ? `Free call · ${formatDuration(secondsLeft)} left`
-      : `₹${callLimit.ratePerMinute}/min · ${formatDuration(secondsLeft)} left`;
+      : `${callLimit.ratePerMinute} coins/min · ${formatDuration(secondsLeft)} left`;
 
   // Warn once when 30 seconds remain on a time-limited call.
   useEffect(() => {
@@ -874,6 +912,20 @@ export function CallProvider({ children }: { children: ReactNode }) {
                 {isCallAudioOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}<span className={controlCaption}>Sound</span>
               </Button>
               {fullscreenAvailable && <Button type="button" onClick={toggleFullscreen} className={controlButton(true)} aria-label={isFullscreen ? "Exit full screen" : "Full screen"} title={isFullscreen ? "Exit full screen" : "Full screen"}>{isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}<span className={controlCaption}>{isFullscreen ? "Shrink" : "Expand"}</span></Button>}
+              {activeCall.status === "active" && (
+                <div className="relative">
+                  <Button type="button" onClick={() => setGiftOpen((open) => !open)} className={controlButton(true)} aria-label="Send a gift" title="Send a gift" aria-expanded={giftOpen}><Gift className="h-5 w-5" /><span className={controlCaption}>Gift</span></Button>
+                  {giftOpen && (
+                    <div role="menu" className="absolute bottom-full left-1/2 mb-3 flex -translate-x-1/2 gap-1.5 rounded-2xl bg-white p-2 text-slate-900 shadow-2xl">
+                      {giftAmounts.map((coins) => (
+                        <button key={coins} type="button" role="menuitem" disabled={sendingGift !== null} onClick={() => sendGift(coins)} className="min-w-14 rounded-xl bg-rose-50 px-3 py-2 text-sm font-bold text-rose-600 hover:bg-rose-100 disabled:opacity-50">
+                          {sendingGift === coins ? "…" : `🎁 ${coins}`}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <Button type="button" onClick={() => setReportOpen(true)} className={controlButton(true)} aria-label="Report or block" title="Report or block"><Flag className="h-5 w-5" /><span className={controlCaption}>Report</span></Button>
               <Button type="button" onClick={() => endCall()} className="relative h-11 w-11 shrink-0 rounded-full bg-red-600 p-0 text-white hover:bg-red-500 sm:h-12 sm:w-12" aria-label="End call" title="End call"><PhoneOff className="h-5 w-5" /><span className={controlCaption}>End</span></Button>
             </div>

@@ -30,7 +30,7 @@ const HEADINGS: Record<UpgradeReason, { title: string; text: (s: Summary | null)
     title: "Free calls used up",
     text: (s) => `You've used all ${s?.freeCallsPerMonth ?? 7} free calls this month. Buy coins to keep calling.`,
   },
-  manual: { title: "Buy coins for calls", text: () => "Call anyone, even without a match, for as long as your coins last." },
+  manual: { title: "Buy coins", text: () => "Use coins for calls and gifts." },
   low_time: { title: "Your call is about to end", text: () => "Add coins now and your call keeps going without interruption." },
 };
 
@@ -59,7 +59,7 @@ export function UpgradeCallsDialog({ reason, onClose }: { reason: UpgradeReason 
     if (buying) return;
     setBuying(coins);
     try {
-      const added = await buyCoins(coins, `${coins} coins for calls`);
+      const added = await buyCoins(coins, `${coins} coins`);
       if (added) {
         toast.success(`${added} coins added. You can call now!`);
         onClose();
@@ -99,8 +99,8 @@ export function UpgradeCallsDialog({ reason, onClose }: { reason: UpgradeReason 
         <p className="mt-1 text-sm text-muted-foreground">{heading.text(summary)}</p>
 
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Video className="h-3.5 w-3.5" /> ₹{videoRate}/min video</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Phone className="h-3.5 w-3.5" /> ₹{audioRate}/min audio</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Video className="h-3.5 w-3.5" /> {videoRate} coins/min video</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Phone className="h-3.5 w-3.5" /> {audioRate} coins/min audio</span>
           {summary && <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Coins className="h-3.5 w-3.5" /> Balance {summary.balance}</span>}
         </div>
 

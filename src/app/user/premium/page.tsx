@@ -188,8 +188,8 @@ export default function PremiumPage() {
  <div className="mx-auto mb-8 max-w-6xl px-4">
   <Link href="/user/wallet" className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 transition hover:shadow-md dark:border-amber-500/30 dark:bg-amber-500/10 sm:flex-row sm:items-center">
    <span>
-    <span className="block font-bold text-slate-900 dark:text-white">📞 Call coin plans: ₹299 · ₹499 · ₹999</span>
-    <span className="block text-sm text-slate-600 dark:text-slate-300">Voice and video call anyone from Discover, even without a match. Coins also work for gifts.</span>
+    <span className="block font-bold text-slate-900 dark:text-white">🪙 Coin plans: ₹299 · ₹499 · ₹999</span>
+    <span className="block text-sm text-slate-600 dark:text-slate-300">Use coins for voice and video calls and for gifts.</span>
    </span>
    <span className="shrink-0 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-2 text-sm font-bold text-white">Open wallet</span>
   </Link>
