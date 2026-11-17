@@ -4,7 +4,7 @@ import { API_ORIGIN } from "@/config/runtime";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCheck, Heart, MessageCircle, Pencil, Settings, LogOut, Trash2, UserRound } from "lucide-react";
+import { Banknote, Bell, CheckCheck, Heart, MessageCircle, Pencil, Settings, LogOut, Trash2, UserRound } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,10 @@ const notifColor = {
  match: "bg-rose-50 border-rose-200",
  message: "bg-pink-50 border-pink-200",
  profile: "bg-purple-50 border-purple-200",
+ wallet: "bg-emerald-50 border-emerald-200",
 };
+
+type WithdrawalUpdate = { id: string; coins: number; amountPaise: number | null; status: string; createdAt: string; account: string | null };
 
 export function TopNav() {
  const pathname = usePathname();
@@ -53,6 +56,26 @@ export function TopNav() {
 
  const { matches: activeMatches, loading: activeMatchesLoading } = useMatches(token, "active", { enabled: loadNavData, all: true });
  const { matches: receivedMatches } = useMatches(token, "received", { enabled: loadNavData });
+ // Paid / rejected withdrawals show in the bell (also emailed by the server).
+ const [withdrawalUpdates, setWithdrawalUpdates] = useState<WithdrawalUpdate[]>([]);
+ useEffect(() => {
+   if (!loadNavData || !token) return;
+   let cancelled = false;
+   const load = () => {
+     fetch(`${API}/wallet/withdrawals`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
+       .then((res) => (res.ok ? res.json() : null))
+       .then((data) => {
+         if (cancelled || !data?.items) return;
+         const monthAgo = Date.now() - 30 * 86_400_000;
+         setWithdrawalUpdates(data.items.filter((item: WithdrawalUpdate) => item.status !== "pending" && new Date(item.createdAt).getTime() > monthAgo));
+       })
+       .catch(() => undefined);
+   };
+   load();
+   const timer = window.setInterval(load, 120_000);
+   window.addEventListener("focus", load);
+   return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener("focus", load); };
+ }, [loadNavData, token]);
  const { data: navUser } = useCurrentUser(token, loadNavData);
 
  // Locked conversations are intentionally absent from the Messages list, so
@@ -92,7 +115,18 @@ export function TopNav() {
      time: new Date(m.lastMessageTime || m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
      link: `/user/messages?id=${m.id}`,
      count: Number(m.unreadCount) || 1,
-   }))
+   })),
+   ...withdrawalUpdates.map((w) => ({
+     id: `withdrawal-${w.id}-${w.status}`,
+     type: "wallet" as const,
+     title: w.status === "completed" ? "Withdrawal paid" : "Withdrawal not processed",
+     body: w.status === "completed"
+       ? `₹${((w.amountPaise ?? w.coins * 100) / 100).toLocaleString("en-IN")} sent to ${w.account || "your account"}.`
+       : `${w.coins} coins were returned to your earnings. Check your account details and try again.`,
+     time: new Date(w.createdAt).toLocaleDateString([], { day: "numeric", month: "short" }),
+     link: "/user/withdraw",
+     count: 1,
+   })),
  ];
  const visibleNotifications = realNotifications.filter((notification) => {
   if (clearedNotificationIds.has(notification.id)) return false;
@@ -381,7 +415,7 @@ export function TopNav() {
  >
  <Link href={n.link} className="flex w-full min-w-0 flex-1 items-start gap-3" onClick={() => { handleNotificationRead(n.id); setNotifOpen(false); }}>
  <div className={cn("mt-0.5 flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full border", notifColor[n.type as keyof typeof notifColor])}>
- {n.type === "match" ? <Heart className="h-4 w-4 text-rose-600" /> : n.type === "message" ? <MessageCircle className="h-4 w-4 text-pink-600" /> : <Pencil className="h-4 w-4 text-purple-600" />}
+ {n.type === "match" ? <Heart className="h-4 w-4 text-rose-600" /> : n.type === "message" ? <MessageCircle className="h-4 w-4 text-pink-600" /> : n.type === "wallet" ? <Banknote className="h-4 w-4 text-emerald-600" /> : <Pencil className="h-4 w-4 text-purple-600" />}
  </div>
  <div className="min-w-[0px] flex-1">
  <div className="flex items-start justify-between gap-2">
