@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /** Why the popup opened: free trial time ended, coins ran out, monthly free calls used, or opened by the user. */
-export type UpgradeReason = "free_limit" | "coins_exhausted" | "free_used" | "manual";
+export type UpgradeReason = "free_limit" | "coins_exhausted" | "free_used" | "low_time" | "manual";
 
 type Summary = {
   videoRatePerMinute: number;
@@ -31,6 +31,7 @@ const HEADINGS: Record<UpgradeReason, { title: string; text: (s: Summary | null)
     text: (s) => `You've used all ${s?.freeCallsPerMonth ?? 7} free calls this month. Buy coins to keep calling.`,
   },
   manual: { title: "Buy coins for calls", text: () => "Call anyone, even without a match, for as long as your coins last." },
+  low_time: { title: "Your call is about to end", text: () => "Add coins now and your call keeps going without interruption." },
 };
 
 function loadCheckout(): Promise<boolean> {

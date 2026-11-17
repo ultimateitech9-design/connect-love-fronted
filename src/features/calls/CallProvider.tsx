@@ -49,6 +49,14 @@ type StartDirectCallOptions = {
   callType: CallType;
 };
 
+type CallLimit = {
+  endsAt: number;
+  isFreeTrial: boolean;
+  ratePerMinute?: number;
+  /** Only the caller pays, so only the caller is offered more coins. */
+  canTopUp: boolean;
+};
+
 type PendingStart = { conversationId: string | null; otherUser: CallParticipant; callType: CallType };
 
 /** error: shown to the user. upgrade: the upgrade popup was opened instead. */
@@ -177,6 +185,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const [fit, setFit] = useState<{ main: "cover" | "contain"; pip: "cover" | "contain" }>({ main: "cover", pip: "cover" });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  // Time limit of a direct call, from the server: when the free allowance or
+  // the caller's coins run out. Null when the call has no limit.
+  const [callLimit, setCallLimit] = useState<CallLimit | null>(null);
+  const lowTimeWarnedRef = useRef(false);
 
   const tokenRef = useRef("");
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -291,6 +303,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
     setIsCallAudioOn(true);
     setNeedsAudioGesture(false);
     setSwapped(false);
+    setCallLimit(null);
+    lowTimeWarnedRef.current = false;
     setCall(null);
     setIncomingCall(null);
     if (typeof document !== "undefined" && document.fullscreenElement) {
@@ -493,7 +507,20 @@ export function CallProvider({ children }: { children: ReactNode }) {
       });
     };
 
-    const handleAccepted = async () => {
+    const handleAccepted = async (payload: any) => {
+      // Direct calls: the server says how long this call can last.
+      const billing = payload?.billing;
+      const forThisCall = payload?.call?.id === activeCallRef.current?.id;
+      if (billing && forThisCall) {
+        const iAmCaller = payload.call.callerId === myUserIdRef.current;
+        if (billing.isFreeTrial && billing.limitSeconds) {
+          setCallLimit({ endsAt: Date.now() + billing.limitSeconds * 1000, isFreeTrial: true, canTopUp: iAmCaller });
+        } else if (iAmCaller && typeof billing.minutesLeft === "number") {
+          // The first minute was just charged; each later minute is charged a
+          // minute apart, and the call ends when one cannot be paid.
+          setCallLimit({ endsAt: Date.now() + (1 + billing.minutesLeft) * 60_000, isFreeTrial: false, ratePerMinute: billing.ratePerMinute, canTopUp: true });
+        }
+      }
       const current = activeCallRef.current;
       if (!current || current.direction !== "outgoing" || current.status === "active") return;
       setCall({ ...current, status: "active" });
@@ -553,6 +580,13 @@ export function CallProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    // A paid minute was charged: recompute when the coins run out.
+    const handleBilling = (payload: any) => {
+      if (payload?.callId !== activeCallRef.current?.id || typeof payload.minutesLeft !== "number") return;
+      setCallLimit({ endsAt: Date.now() + (1 + payload.minutesLeft) * 60_000, isFreeTrial: false, ratePerMinute: payload.ratePerMinute, canTopUp: true });
+      if (payload.minutesLeft > 0) lowTimeWarnedRef.current = false;
+    };
+
     const handleAnsweredElsewhere = (payload: { callId: string }) => {
       setIncomingCall((incoming) => (incoming?.callId === payload.callId ? null : incoming));
     };
@@ -562,6 +596,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     socket.on("videoCallAccepted", handleAccepted);
     socket.on("videoSignal", handleSignal);
     socket.on("videoCallEnded", handleEnded);
+    socket.on("callBilling", handleBilling);
     socket.on("videoCallAnsweredElsewhere", handleAnsweredElsewhere);
     return () => {
       socket.off("videoCallStarted", handleStarted);
@@ -569,6 +604,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       socket.off("videoCallAccepted", handleAccepted);
       socket.off("videoSignal", handleSignal);
       socket.off("videoCallEnded", handleEnded);
+      socket.off("callBilling", handleBilling);
       socket.off("videoCallAnsweredElsewhere", handleAnsweredElsewhere);
     };
   }, [createPeer, markStarted, setCall, socket, stopCallMedia]);
@@ -659,6 +695,23 @@ export function CallProvider({ children }: { children: ReactNode }) {
       : activeCall.connectedAt
         ? formatDuration(Math.max(0, Math.floor((now - activeCall.connectedAt) / 1000)))
         : "Connecting…";
+
+  const secondsLeft = callLimit ? Math.max(0, Math.ceil((callLimit.endsAt - now) / 1000)) : null;
+  const lowTime = secondsLeft !== null && secondsLeft <= 30;
+  const limitLabel = !callLimit || secondsLeft === null
+    ? ""
+    : callLimit.isFreeTrial
+      ? `Free call · ${formatDuration(secondsLeft)} left`
+      : `₹${callLimit.ratePerMinute}/min · ${formatDuration(secondsLeft)} left`;
+
+  // Warn once when 30 seconds remain on a time-limited call.
+  useEffect(() => {
+    if (!lowTime || lowTimeWarnedRef.current || !callLimit) return;
+    lowTimeWarnedRef.current = true;
+    toast.warning(callLimit.canTopUp
+      ? (callLimit.isFreeTrial ? "Free call ends in 30 seconds." : "Your coins run out in 30 seconds. Add coins to keep talking.")
+      : "This call will end in 30 seconds.");
+  }, [callLimit, lowTime]);
 
   const localVideoVisible = activeCall?.callType === "video" && isCameraOn;
   // Which tile shows the local camera, so it can be hidden when the camera is off.
@@ -769,6 +822,27 @@ export function CallProvider({ children }: { children: ReactNode }) {
           <div className={cn("absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] rounded-2xl bg-black/40 px-3 py-1.5 text-sm backdrop-blur-md sm:left-5 sm:top-[max(1.25rem,env(safe-area-inset-top))]", activeCall.callType === "video" ? "max-w-[calc(100%-9rem)] sm:max-w-[60vw]" : "max-w-[calc(100%-1.5rem)]")}>
             <span className="block truncate font-semibold">{activeCall.otherUser.name}</span>
             <span className="block text-xs tabular-nums text-white/80">{statusLabel}</span>
+            {limitLabel && (
+              <span
+                role={lowTime ? "status" : undefined}
+                className={cn(
+                  "mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums",
+                  lowTime ? "animate-pulse bg-rose-600 text-white" : "bg-white/15 text-white/90",
+                )}
+              >
+                {limitLabel}
+              </span>
+            )}
+            {/* Topping up extends a paid call; a free call's time is fixed by the server. */}
+            {lowTime && callLimit?.canTopUp && !callLimit.isFreeTrial && (
+              <button
+                type="button"
+                onClick={() => setUpgradeReason("low_time")}
+                className="mt-1 ml-1 inline-flex rounded-full bg-white px-2.5 py-0.5 text-[11px] font-bold text-rose-600 hover:bg-white/90"
+              >
+                Add coins
+              </button>
+            )}
           </div>
 
 
