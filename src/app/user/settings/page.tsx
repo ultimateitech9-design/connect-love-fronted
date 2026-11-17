@@ -11,6 +11,7 @@ import {
 import { useSettings, UserSettings } from "@/features/user/SettingsContext";
 import { getToken, clearToken } from "@/lib/auth";
 import { LanguageSelector } from "@/features/i18n/LanguageSelector";
+import { EmailManagement } from "@/features/user/EmailManagement";
 
 interface Toggle {
  id: keyof UserSettings;
@@ -214,7 +215,9 @@ export default function SettingsPage() {
  </SectionCard>
 
  {/* Account */}
- <SectionCard title="Account" subtitle="Manage your account data and access.">
+ <EmailManagement />
+
+ <SectionCard title="Account & Security" subtitle="Manage your account data and access.">
  <DangerRow
  label="Download my data"
  desc="Get a copy of your ConnectLove data."

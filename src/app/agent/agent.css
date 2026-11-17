@@ -1299,3 +1299,4 @@
 .ag-draft-photo > span { display: block; padding: 7px 5px; font-size: 11px; text-align: center; color: #846579; }
 .ag-draft-photo > button { position: absolute; top: 5px; right: 5px; display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid #eedce8; border-radius: 50%; background: white; color: #a62246; cursor: pointer; }
 .ag-draft-photo > button:focus-visible { outline: 2px solid #bc2d60; outline-offset: 2px; }
+.ag-email-change { display: block; margin-top: 5px; color: #b6285a; font-size: 12px; font-weight: 700; }
