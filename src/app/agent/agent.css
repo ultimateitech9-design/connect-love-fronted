@@ -1300,3 +1300,4 @@
 .ag-draft-photo > button { position: absolute; top: 5px; right: 5px; display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid #eedce8; border-radius: 50%; background: white; color: #a62246; cursor: pointer; }
 .ag-draft-photo > button:focus-visible { outline: 2px solid #bc2d60; outline-offset: 2px; }
 .ag-email-change { display: block; margin-top: 5px; color: #b6285a; font-size: 12px; font-weight: 700; }
+.ag-email-changed-badge { display: inline-flex; align-items: center; margin-left: 8px; padding: 3px 7px; border: 1px solid #f4cddd; border-radius: 999px; background: #fff0f6; color: #b6285a; font-size: 10px; font-weight: 700; line-height: 1.3; vertical-align: middle; white-space: nowrap; }
