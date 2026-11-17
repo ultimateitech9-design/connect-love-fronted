@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { io, type Socket } from "socket.io-client";
-import { FlipHorizontal2, Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
+import { Flag, FlipHorizontal2, Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { API_ORIGIN, SOCKET_ORIGIN, WEBRTC_ICE_SERVERS, fetchIceServers } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { startCallSound } from "./ringtone";
 import { UpgradeCallsDialog, type UpgradeReason } from "./UpgradeCallsDialog";
+import { ReportCallDialog } from "./ReportCallDialog";
 import { useCallDevices } from "./useCallDevices";
 
 type CallType = "audio" | "video";
@@ -188,6 +189,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
   // Time limit of a direct call, from the server: when the free allowance or
   // the caller's coins run out. Null when the call has no limit.
   const [callLimit, setCallLimit] = useState<CallLimit | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const lowTimeWarnedRef = useRef(false);
 
   const tokenRef = useRef("");
@@ -728,6 +730,14 @@ export function CallProvider({ children }: { children: ReactNode }) {
       {children}
 
       <UpgradeCallsDialog reason={upgradeReason} onClose={() => setUpgradeReason(null)} />
+      {reportOpen && activeCall && (
+        <ReportCallDialog
+          callId={activeCall.id}
+          otherUser={activeCall.otherUser}
+          onClose={() => setReportOpen(false)}
+          onDone={() => { setReportOpen(false); endCall(); }}
+        />
+      )}
 
       {incomingCall && !activeCall && typeof document !== "undefined" && createPortal((
         <div className="fixed inset-0 z-[10060] flex items-center justify-center bg-black/70 p-4">
@@ -863,6 +873,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
                 {isCallAudioOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}<span className={controlCaption}>Sound</span>
               </Button>
               {fullscreenAvailable && <Button type="button" onClick={toggleFullscreen} className={controlButton(true)} aria-label={isFullscreen ? "Exit full screen" : "Full screen"} title={isFullscreen ? "Exit full screen" : "Full screen"}>{isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}<span className={controlCaption}>{isFullscreen ? "Shrink" : "Expand"}</span></Button>}
+              <Button type="button" onClick={() => setReportOpen(true)} className={controlButton(true)} aria-label="Report or block" title="Report or block"><Flag className="h-5 w-5" /><span className={controlCaption}>Report</span></Button>
               <Button type="button" onClick={() => endCall()} className="relative h-11 w-11 shrink-0 rounded-full bg-red-600 p-0 text-white hover:bg-red-500 sm:h-12 sm:w-12" aria-label="End call" title="End call"><PhoneOff className="h-5 w-5" /><span className={controlCaption}>End</span></Button>
             </div>
           </div>
