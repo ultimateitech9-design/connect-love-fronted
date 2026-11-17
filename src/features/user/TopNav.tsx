@@ -23,6 +23,7 @@ const navItems = [
  { to: "/user/discover", label: "Discover" },
  { to: "/user/matches", label: "Matches" },
  { to: "/user/messages", label: "Messages" },
+ { to: "/user/calls", label: "Calls" },
  { to: "/user/profile", label: "Profile" },
 ];
 
@@ -429,7 +430,7 @@ export function TopNav() {
  </div>
  </div>
  </header>
- {!pathname.startsWith("/user/messages") && <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-rose-100 bg-white/95 px-2 pt-2 shadow-[0_-8px_24px_rgba(236,72,153,0.08)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95 md:hidden" aria-label="User navigation">
+ {!pathname.startsWith("/user/messages") && <nav className="safe-bottom fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-rose-100 bg-white/95 px-2 pt-2 shadow-[0_-8px_24px_rgba(236,72,153,0.08)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95 md:hidden" aria-label="User navigation">
  {navItems.map((item) => {
  const active = pathname.startsWith(item.to);
  return (
