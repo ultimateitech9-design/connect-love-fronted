@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
+import { WalletChip } from "@/features/wallet/WalletChip";
 import { HeaderLanguageDropdown } from "@/features/i18n/HeaderLanguageDropdown";
 import { cacheAvatarUrl, getCachedAvatarUrl } from "@/lib/avatarCache";
 
@@ -105,7 +106,7 @@ export function TopNav() {
  const totalUnread = unseenNotifications.reduce((sum, notification) => sum + notification.count, 0);
 
  useEffect(() => {
-  const routes = [...navItems.map((item) => item.to), "/user/settings", "/user/premium"];
+  const routes = [...navItems.map((item) => item.to), "/user/settings", "/user/premium", "/user/wallet"];
   const timers = routes.map((route, index) => window.setTimeout(() => router.prefetch(route), index * 150));
   return () => timers.forEach(window.clearTimeout);
  }, [router]);
@@ -305,6 +306,7 @@ export function TopNav() {
  <div className="flex min-w-0 items-center gap-1 min-[380px]:gap-2 sm:gap-3">
  <div className="sm:hidden"><HeaderLanguageDropdown compact /></div>
  <div className="hidden sm:block"><HeaderLanguageDropdown /></div>
+ <WalletChip />
  <ThemeToggle className="h-8 w-8 sm:h-9 sm:w-9" />
  {/* Notification Bell */}
  <div className="relative" ref={notifRef}>

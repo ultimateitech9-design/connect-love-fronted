@@ -6,6 +6,7 @@ import { Coins, Loader2, Phone, Video, X } from "lucide-react";
 import { toast } from "sonner";
 import { API_ORIGIN } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
+import { buyCoins } from "@/features/wallet/buyCoins";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,6 @@ type Summary = {
   balance: number;
 };
 
-type RazorpayCheckout = new (options: Record<string, unknown>) => { open: () => void };
 
 const HEADINGS: Record<UpgradeReason, { title: string; text: (s: Summary | null) => string }> = {
   free_limit: { title: "Your free call time is over", text: () => "Buy coins to keep talking without a time limit." },
@@ -34,23 +34,6 @@ const HEADINGS: Record<UpgradeReason, { title: string; text: (s: Summary | null)
   low_time: { title: "Your call is about to end", text: () => "Add coins now and your call keeps going without interruption." },
 };
 
-function loadCheckout(): Promise<boolean> {
-  if ((window as { Razorpay?: RazorpayCheckout }).Razorpay) return Promise.resolve(true);
-  return new Promise((resolve) => {
-    const src = "https://checkout.razorpay.com/v1/checkout.js";
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
-    if (existing) {
-      existing.addEventListener("load", () => resolve(true), { once: true });
-      existing.addEventListener("error", () => resolve(false), { once: true });
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = src;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
 
 export function UpgradeCallsDialog({ reason, onClose }: { reason: UpgradeReason | null; onClose: () => void }) {
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -75,47 +58,15 @@ export function UpgradeCallsDialog({ reason, onClose }: { reason: UpgradeReason 
   const buy = async (coins: number) => {
     if (buying) return;
     setBuying(coins);
-    const token = getToken();
     try {
-      if (!(await loadCheckout())) throw new Error("Payment checkout could not be loaded.");
-      const orderResponse = await fetch(`${API_ORIGIN}/wallet/razorpay/order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ coins }),
-      });
-      const order = await orderResponse.json().catch(() => null);
-      if (!orderResponse.ok) throw new Error(order?.message || "Payment could not be started.");
-      const Checkout = (window as { Razorpay?: RazorpayCheckout }).Razorpay!;
-      new Checkout({
-        key: order.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        name: "ConnectLove",
-        description: `${order.coins} coins for calls`,
-        order_id: order.orderId,
-        prefill: { name: order.customer?.name, email: order.customer?.email },
-        theme: { color: "#ff2d78" },
-        handler: async (payment: Record<string, string>) => {
-          try {
-            const verified = await fetch(`${API_ORIGIN}/wallet/razorpay/verify`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-              body: JSON.stringify(payment),
-            });
-            const data = await verified.json().catch(() => null);
-            if (!verified.ok) throw new Error(data?.message || "Payment verification failed.");
-            toast.success(`${data?.coinsAdded || coins} coins added. You can call now!`);
-            onClose();
-          } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Payment verification failed.");
-          } finally {
-            setBuying(null);
-          }
-        },
-        modal: { ondismiss: () => setBuying(null) },
-      }).open();
+      const added = await buyCoins(coins, `${coins} coins for calls`);
+      if (added) {
+        toast.success(`${added} coins added. You can call now!`);
+        onClose();
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Payment failed.");
+    } finally {
       setBuying(null);
     }
   };

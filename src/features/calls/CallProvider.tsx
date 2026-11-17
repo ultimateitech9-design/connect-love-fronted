@@ -292,6 +292,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   const stopCallMedia = useCallback(() => {
     pendingStartRef.current = null;
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("connect-love-wallet-changed"));
     setFit({ main: "cover", pip: "cover" });
     peerRef.current?.close();
     peerRef.current = null;
