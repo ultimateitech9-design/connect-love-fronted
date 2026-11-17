@@ -99,9 +99,11 @@ export function UpgradeCallsDialog({ reason, onClose }: { reason: UpgradeReason 
         <p className="mt-1 text-sm text-muted-foreground">{heading.text(summary)}</p>
 
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Video className="h-3.5 w-3.5" /> {videoRate} coins/min video</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Phone className="h-3.5 w-3.5" /> {audioRate} coins/min audio</span>
-          {summary && <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Coins className="h-3.5 w-3.5" /> Balance {summary.balance}</span>}
+          {summary && <>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Coins className="h-3.5 w-3.5" /> Your talk time</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Video className="h-3.5 w-3.5" /> ~{Math.floor(summary.balance / videoRate)} min video</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-foreground"><Phone className="h-3.5 w-3.5" /> ~{Math.floor(summary.balance / audioRate)} min audio</span>
+          </>}
         </div>
 
         <div className="mt-5 space-y-3">

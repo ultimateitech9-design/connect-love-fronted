@@ -737,13 +737,17 @@ export function CallProvider({ children }: { children: ReactNode }) {
         ? formatDuration(Math.max(0, Math.floor((now - activeCall.connectedAt) / 1000)))
         : "Connecting…";
 
+  // Refresh the clock as soon as a new limit arrives, not at the next tick.
+  useEffect(() => {
+    if (callLimit) setNow(Date.now());
+  }, [callLimit]);
   const secondsLeft = callLimit ? Math.max(0, Math.ceil((callLimit.endsAt - now) / 1000)) : null;
   const lowTime = secondsLeft !== null && secondsLeft <= 30;
   const limitLabel = !callLimit || secondsLeft === null
     ? ""
     : callLimit.isFreeTrial
       ? `Free call · ${formatDuration(secondsLeft)} left`
-      : `${callLimit.ratePerMinute} coins/min · ${formatDuration(secondsLeft)} left`;
+      : `Talk time · ${formatDuration(secondsLeft)} left`;
 
   // Warn once when 30 seconds remain on a time-limited call.
   useEffect(() => {

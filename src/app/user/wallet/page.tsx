@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, Banknote, Coins, Loader2, Phone, Video, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Banknote, Coins, Loader2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { API_ORIGIN } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
@@ -109,7 +109,7 @@ export default function WalletPage() {
       <section className="rounded-3xl border border-border bg-card p-5">
         <h2 className="text-lg font-bold text-foreground">Coin plans</h2>
         <p className="text-sm text-muted-foreground">
-          Use coins for calls and gifts. Calls use <span className="inline-flex items-center gap-1"><Video className="h-3.5 w-3.5" /> {videoRate} coins/min</span> or <span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {audioRate} coins/min</span>.
+          Use coins for calls and gifts. Each plan shows the talk time it gives.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {packs.map((pack) => (
