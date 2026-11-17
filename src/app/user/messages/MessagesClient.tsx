@@ -2347,8 +2347,19 @@ export default function Messages() {
 
  const startCall = async (callType: "audio" | "video") => {
    if (!canUseChatMedia) {
-     setLockedChatFeature("call");
-     return;
+     // A plan can be purchased while this chat is already open. Confirm the
+     // latest entitlement before showing the upgrade screen instead of using
+     // an outdated value loaded when the page first opened.
+     try {
+       const response = await fetch(`${API_URL}/users/me`, { headers: { Authorization: `Bearer ${token}` } });
+       const user = response.ok ? await response.json() : null;
+       const gender = String(user?.gender || "").trim().toLowerCase();
+       const woman = ["female", "woman", "women", "girl", "ladies", "f"].includes(gender);
+       const paidPlan = ["gold", "platinum", "diamond"].includes(String(user?.plan || "free").toLowerCase());
+       const planActive = paidPlan && (!user?.planExpiresAt || new Date(user.planExpiresAt).getTime() > Date.now());
+       if (woman || planActive) setCanUseChatMedia(true);
+       else { setLockedChatFeature("call"); return; }
+     } catch { setLockedChatFeature("call"); return; }
    }
    if (!active) return;
    const { error } = await callApi.startCall({
