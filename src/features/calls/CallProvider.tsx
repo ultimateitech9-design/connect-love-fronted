@@ -28,6 +28,8 @@ type ActiveCall = {
   status: "ringing" | "active";
   callType: CallType;
   connectedAt: number | null;
+  /** Outgoing only: false when the other person was offline, so it only says "Calling…". */
+  reachable?: boolean;
 };
 
 type IncomingCall = {
@@ -222,7 +224,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   // The server confirms a started call both as the emit acknowledgement and as
   // a "videoCallStarted" event; whichever arrives first opens the call screen.
-  const markStarted = useCallback((call: any) => {
+  const markStarted = useCallback((call: any, receiverOnline?: boolean) => {
     const pending = pendingStartRef.current;
     if (!pending || !call?.id || activeCallRef.current) return;
     pendingStartRef.current = null;
@@ -236,6 +238,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       status: "ringing",
       callType: pending.callType,
       connectedAt: null,
+      reachable: receiverOnline !== false,
     });
   }, [setCall]);
 
@@ -417,7 +420,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
           resolve({ error: response.error });
           return;
         }
-        markStarted(response?.data?.call ?? response?.call);
+        markStarted(response?.data?.call ?? response?.call, response?.data?.receiverOnline ?? response?.receiverOnline);
       });
     });
   }, [ensureLocalMedia, markStarted, socket, stopCallMedia]);
@@ -527,7 +530,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!socket) return;
 
-    const handleStarted = (payload: any) => markStarted(payload?.call);
+    const handleStarted = (payload: any) => markStarted(payload?.call, payload?.receiverOnline);
 
     const handleIncoming = (payload: any) => {
       if (activeCallRef.current) return;
@@ -599,7 +602,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
       const endedId = payload?.call?.id;
       const call = activeCallRef.current;
       setIncomingCall((incoming) => (incoming && (!endedId || incoming.callId === endedId) ? null : incoming));
+      // Missed calls feed the bell and the Calls dot.
+      window.dispatchEvent(new Event("connect-love-calls-changed"));
       if (call && (!endedId || call.id === endedId)) {
+        if (payload?.endedBy === "no_answer" && call.direction === "outgoing") toast.info(`${call.otherUser.name} didn't answer.`);
         if (payload?.endedBy === "plan_limit") toast.info("Call ended: your plan's call time limit was reached.");
         // Direct calls cut by the server: offer coins to the caller, inform the receiver.
         const iAmCaller = payload?.call?.callerId === myUserIdRef.current;
@@ -732,7 +738,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const statusLabel = !activeCall
     ? ""
     : activeCall.status === "ringing"
-      ? "Ringing…"
+      ? (activeCall.direction === "outgoing" && activeCall.reachable === false ? "Calling…" : "Ringing…")
       : activeCall.connectedAt
         ? formatDuration(Math.max(0, Math.floor((now - activeCall.connectedAt) / 1000)))
         : "Connecting…";
@@ -920,12 +926,16 @@ export function CallProvider({ children }: { children: ReactNode }) {
                 <div className="relative">
                   <Button type="button" onClick={() => setGiftOpen((open) => !open)} className={controlButton(true)} aria-label="Send a gift" title="Send a gift" aria-expanded={giftOpen}><Gift className="h-5 w-5" /><span className={controlCaption}>Gift</span></Button>
                   {giftOpen && (
-                    <div role="menu" className="absolute bottom-full left-1/2 mb-3 flex -translate-x-1/2 gap-1.5 rounded-2xl bg-white p-2 text-slate-900 shadow-2xl">
-                      {giftAmounts.map((coins) => (
-                        <button key={coins} type="button" role="menuitem" disabled={sendingGift !== null} onClick={() => sendGift(coins)} className="min-w-14 rounded-xl bg-rose-50 px-3 py-2 text-sm font-bold text-rose-600 hover:bg-rose-100 disabled:opacity-50">
-                          {sendingGift === coins ? "…" : `🎁 ${coins}`}
-                        </button>
-                      ))}
+                    <div role="menu" aria-label="Send a gift" className="absolute bottom-full left-1/2 mb-3 w-max -translate-x-1/2 rounded-2xl bg-white p-2.5 text-slate-900 shadow-2xl">
+                      <p className="mb-2 px-1 text-center text-xs font-bold text-slate-500">Send a gift</p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {giftAmounts.map((coins) => (
+                          <button key={coins} type="button" role="menuitem" disabled={sendingGift !== null} onClick={() => sendGift(coins)} className="flex min-w-[84px] flex-col items-center whitespace-nowrap rounded-xl bg-rose-50 px-3 py-2 text-rose-600 hover:bg-rose-100 disabled:opacity-50">
+                            <span className="text-sm font-bold">{sendingGift === coins ? "…" : `🎁 ${coins.toLocaleString("en-IN")}`}</span>
+                            <span className="text-[10px] font-semibold text-rose-400">coins</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

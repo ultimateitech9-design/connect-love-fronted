@@ -4,7 +4,7 @@ import { API_ORIGIN } from "@/config/runtime";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { Banknote, Bell, CheckCheck, Heart, MessageCircle, Pencil, Settings, LogOut, Trash2, UserRound } from "lucide-react";
+import { Banknote, Bell, CheckCheck, Heart, MessageCircle, Pencil, PhoneMissed, Settings, LogOut, Trash2, UserRound } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -35,7 +35,23 @@ const notifColor = {
  message: "bg-pink-50 border-pink-200",
  profile: "bg-purple-50 border-purple-200",
  wallet: "bg-emerald-50 border-emerald-200",
+ call: "bg-sky-50 border-sky-200",
 };
+
+/** Chat previews of call logs are stored as JSON; show them as plain words. */
+function previewText(text: unknown): string {
+ const value = String(text || "");
+ if (!value.startsWith("__call_log__:")) return value;
+ try {
+   const log = JSON.parse(value.slice("__call_log__:".length));
+   const kind = log.callType === "video" ? "video" : "voice";
+   return log.status === "missed" || log.status === "rejected" ? `Missed ${kind} call` : `${kind === "video" ? "Video" : "Voice"} call`;
+ } catch {
+   return "Call";
+ }
+}
+
+type MissedCall = { id: string; callType: "audio" | "video"; createdAt: string; caller: { id: string; name: string } };
 
 type WithdrawalUpdate = { id: string; coins: number; amountPaise: number | null; status: string; createdAt: string; account: string | null };
 
@@ -83,6 +99,29 @@ export function TopNav() {
    window.addEventListener("focus", load);
    return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener("focus", load); };
  }, [loadNavData, token]);
+ // Missed calls since the Calls page was last opened: bell items + Calls dot.
+ const [missedCalls, setMissedCalls] = useState<MissedCall[]>([]);
+ useEffect(() => {
+   if (!loadNavData || !token) return;
+   let cancelled = false;
+   const load = () => {
+     fetch(`${API}/video-calls/missed`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
+       .then((res) => (res.ok ? res.json() : null))
+       .then((data) => { if (!cancelled && Array.isArray(data?.items)) setMissedCalls(data.items); })
+       .catch(() => undefined);
+   };
+   load();
+   const timer = window.setInterval(load, 60_000);
+   window.addEventListener("focus", load);
+   window.addEventListener("connect-love-calls-changed", load);
+   return () => {
+     cancelled = true;
+     window.clearInterval(timer);
+     window.removeEventListener("focus", load);
+     window.removeEventListener("connect-love-calls-changed", load);
+   };
+ }, [loadNavData, token]);
+ const missedCallsCount = pathname.startsWith("/user/calls") ? 0 : missedCalls.length;
  const { data: navUser } = useCurrentUser(token, loadNavData);
 
  // Locked conversations are intentionally absent from the Messages list, so
@@ -118,10 +157,19 @@ export function TopNav() {
      id: `msg-${m.id}-${m.lastMessageTime || m.updatedAt || m.unreadCount}`,
      type: "message" as const,
      title: `New Message (${m.unreadCount})`,
-     body: m.lastMessage || "You have unread messages.",
+     body: previewText(m.lastMessage) || "You have unread messages.",
      time: new Date(m.lastMessageTime || m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
      link: `/user/messages?id=${m.id}`,
      count: Number(m.unreadCount) || 1,
+   })),
+   ...missedCalls.map((c) => ({
+     id: `missed-call-${c.id}`,
+     type: "call" as const,
+     title: "Missed call",
+     body: `${c.caller.name} tried to ${c.callType === "video" ? "video" : "voice"} call you.`,
+     time: new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+     link: "/user/calls",
+     count: 1,
    })),
    ...withdrawalUpdates.map((w) => ({
      id: `withdrawal-${w.id}-${w.status}`,
@@ -312,8 +360,9 @@ export function TopNav() {
  const active = pathname.startsWith(i.to);
  const isMessages = i.label === "Messages";
  const isMatches = i.label === "Matches";
+ const isCalls = i.label === "Calls";
 
- const hasIndicator = (isMessages && unreadMessagesCount > 0) || (isMatches && newMatchesCount > 0);
+ const hasIndicator = (isMessages && unreadMessagesCount > 0) || (isMatches && newMatchesCount > 0) || (isCalls && missedCallsCount > 0);
  const isBold = hasIndicator;
 
  return (
@@ -332,8 +381,8 @@ export function TopNav() {
  <span className="grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
  {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
  </span>
- ) : isMatches && newMatchesCount > 0 ? (
- <span className="h-2 w-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50 animate-pulse" />
+ ) : (isMatches && newMatchesCount > 0) || (isCalls && missedCallsCount > 0) ? (
+ <span className="h-2 w-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50 animate-pulse" aria-label={isCalls ? `${missedCallsCount} missed calls` : undefined} />
  ) : null}
  {active && (
  <span className="absolute -bottom-[22px] left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-rose-500 to-pink-500" />
@@ -422,7 +471,7 @@ export function TopNav() {
  >
  <Link href={n.link} className="flex w-full min-w-0 flex-1 items-start gap-3" onClick={() => { handleNotificationRead(n.id); setNotifOpen(false); }}>
  <div className={cn("mt-0.5 flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full border", notifColor[n.type as keyof typeof notifColor])}>
- {n.type === "match" ? <Heart className="h-4 w-4 text-rose-600" /> : n.type === "message" ? <MessageCircle className="h-4 w-4 text-pink-600" /> : n.type === "wallet" ? <Banknote className="h-4 w-4 text-emerald-600" /> : <Pencil className="h-4 w-4 text-purple-600" />}
+ {n.type === "match" ? <Heart className="h-4 w-4 text-rose-600" /> : n.type === "message" ? <MessageCircle className="h-4 w-4 text-pink-600" /> : n.type === "wallet" ? <Banknote className="h-4 w-4 text-emerald-600" /> : n.type === "call" ? <PhoneMissed className="h-4 w-4 text-sky-600" /> : <Pencil className="h-4 w-4 text-purple-600" />}
  </div>
  <div className="min-w-[0px] flex-1">
  <div className="flex items-start justify-between gap-2">
@@ -483,7 +532,7 @@ export function TopNav() {
  <span className="absolute right-[14%] top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
  {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
  </span>
- ) : item.label === "Matches" && newMatchesCount > 0 ? (
+ ) : (item.label === "Matches" && newMatchesCount > 0) || (item.label === "Calls" && missedCallsCount > 0) ? (
  <span className="absolute right-[18%] top-2 h-2 w-2 rounded-full bg-rose-500" />
  ) : null}
  </Link>

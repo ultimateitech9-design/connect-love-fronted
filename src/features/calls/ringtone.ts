@@ -6,13 +6,14 @@
 // - outgoing: the standard telephone ringback tone (400+450 Hz, ring-ring),
 //   synthesised with Web Audio
 const INCOMING_RINGTONE_URL = "/sounds/incoming-call.mp3";
+// 50 ms of silence, used to unlock the <audio> element on the first tap.
+const SILENCE_URL = "data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA";
 let ringtoneElement: HTMLAudioElement | null = null;
 
 function ringtone(): HTMLAudioElement | null {
   if (typeof window === "undefined") return null;
   if (!ringtoneElement) {
-    ringtoneElement = new Audio(INCOMING_RINGTONE_URL);
-    ringtoneElement.loop = true;
+    ringtoneElement = new Audio();
     ringtoneElement.preload = "auto";
   }
   return ringtoneElement;
@@ -35,15 +36,15 @@ if (typeof window !== "undefined") {
   const unlock = () => {
     void audioContext()?.resume().catch(() => undefined);
     // iOS Safari only lets an <audio> element play later if it was started
-    // once during a user gesture: play it silently and stop straight away.
+    // once during a user gesture. Start it with silence, never the ringtone,
+    // so nothing is heard when the user just taps around.
     const audio = ringtone();
     if (audio && audio.paused) {
-      audio.muted = true;
-      void audio.play().then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.muted = false;
-      }).catch(() => { audio.muted = false; });
+      audio.loop = false;
+      audio.src = SILENCE_URL;
+      void audio.play().then(() => audio.pause()).catch(() => undefined);
+      // Warm the cache so a real call rings without a download delay.
+      void fetch(INCOMING_RINGTONE_URL).catch(() => undefined);
     }
     window.removeEventListener("pointerdown", unlock);
     window.removeEventListener("keydown", unlock);
@@ -99,6 +100,8 @@ export function startCallSound(kind: "incoming" | "outgoing"): () => void {
   if (!audio) return startSynthSound("incoming");
   let stopped = false;
   let stopFallback: (() => void) | null = null;
+  if (!audio.src.endsWith(INCOMING_RINGTONE_URL)) audio.src = INCOMING_RINGTONE_URL;
+  audio.loop = true;
   audio.currentTime = 0;
   audio.muted = false;
   audio.volume = 1;

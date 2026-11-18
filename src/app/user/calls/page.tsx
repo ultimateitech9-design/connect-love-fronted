@@ -80,6 +80,13 @@ export default function CallsPage() {
     return response.json() as Promise<{ items: CallItem[]; nextCursor: string | null }>;
   }, []);
 
+  // Opening Calls clears the missed-call dot and bell items.
+  useEffect(() => {
+    fetch(`${API_ORIGIN}/video-calls/missed/seen`, { method: "POST", headers: { Authorization: `Bearer ${getToken()}` } })
+      .then(() => window.dispatchEvent(new Event("connect-love-calls-changed")))
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
