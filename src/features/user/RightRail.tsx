@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Sparkles, Zap } from "lucide-react";
 import { BoostDialog } from "@/features/boost/BoostDialog";
 import { getToken } from "@/lib/auth";
@@ -11,7 +10,6 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useMatches } from "@/hooks/useMatches";
 import { getCachedAvatarUrl } from "@/lib/avatarCache";
 import { calculateProfileCompletion } from "@/lib/profileCompletion";
-import { hasActivePaidPlan } from "@/lib/subscription";
 import { matchFriends, onlineMatchFriends } from './matchFriends';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import boostStyles from './BoostButton.module.css';
@@ -27,7 +25,7 @@ export function RightRail() {
     // Presence is pushed by GlobalPresence; this observer must never fetch.
     queryKey: ['online-friends', viewerId], queryFn: skipToken, enabled: false, initialData: [],
   });
-  const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser(token);
+  const { data: currentUser } = useCurrentUser(token);
   const { matches: activeMatches } = useMatches(token, "active", { all: true });
   const recentMatches = useMemo(() => {
     try {
@@ -145,8 +143,8 @@ export function RightRail() {
         </div>
       </section>}
 
-        {/* Upgrade Ad: only members without an active paid plan see this. */}
-        {!currentUserLoading && !hasActivePaidPlan(currentUser) && <div
+        {/* Keep plan options accessible for free and paid members alike. */}
+        <div
           className="mt-6 rounded-xl p-4 text-center"
           style={{
             background: "linear-gradient(135deg, #fff0f3, #fce7f3)",
@@ -158,15 +156,10 @@ export function RightRail() {
           <p className="mt-1 text-xs text-rose-700/90 dark:text-rose-300/90 mb-3">
             See who liked you and get more matches.
           </p>
-          <Link href="/user/premium" className="block">
-            <Button
-              className="w-full text-white h-[36px] text-xs rounded-lg"
-              style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}
-            >
-              Upgrade Now
-            </Button>
+          <Link href="/user/premium" className="flex h-9 w-full items-center justify-center rounded-lg text-xs font-semibold text-white transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500" style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}>
+            Upgrade Now
           </Link>
-        </div>}
+        </div>
     </div>
   );
 }
