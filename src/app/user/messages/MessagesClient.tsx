@@ -64,15 +64,6 @@ declare global {
  }
 }
 
-function loadWalletCheckout() {
- if (window.Razorpay) return Promise.resolve(true);
- return new Promise<boolean>((resolve) => {
-  const existing = document.querySelector<HTMLScriptElement>('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
-  if (existing) { existing.addEventListener("load", () => resolve(true), { once: true }); existing.addEventListener("error", () => resolve(false), { once: true }); return; }
-  const script = document.createElement("script"); script.src = "https://checkout.razorpay.com/v1/checkout.js"; script.onload = () => resolve(true); script.onerror = () => resolve(false); document.body.appendChild(script);
- });
-}
-
 type LightweightMenuContextValue = {
   open: boolean;
   x: number;
@@ -1986,6 +1977,12 @@ export default function Messages() {
  useEffect(() => { void refreshWalletBalance(); }, [refreshWalletBalance]);
 
  useEffect(() => {
+   const refresh = () => void refreshWalletBalance();
+   window.addEventListener("connect-love-wallet-changed", refresh);
+   return () => window.removeEventListener("connect-love-wallet-changed", refresh);
+ }, [refreshWalletBalance]);
+
+ useEffect(() => {
    if (activePickerTab !== "gift") return;
    void refreshWalletBalance();
    const refreshOnFocus = () => void refreshWalletBalance();
@@ -2947,45 +2944,8 @@ export default function Messages() {
    queryClient.invalidateQueries({ queryKey: ['messages', id] });
  };
 
- const rechargeCoins = async () => {
-   if (!token || coinActionPending) return;
-   const input = prompt("How many coins do you want to recharge? ₹1 = 1 coin.", "100");
-   if (input === null) return;
-   const amount = Number(input);
-   if (!Number.isInteger(amount) || amount < 10 || amount > 100000) {
-     toast.error("Enter a valid coin amount between 10 and 100000.");
-     return;
-   }
-   setCoinActionPending(true);
-   try {
-     const loaded = await loadWalletCheckout();
-     if (!loaded || !window.Razorpay) throw new Error("Payment checkout could not be loaded.");
-     const orderResponse = await fetch(`${API_URL}/wallet/razorpay/order`, {
-       method: "POST",
-       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-       body: JSON.stringify({ coins: amount }),
-     });
-     const order = await orderResponse.json().catch(() => null);
-     if (!orderResponse.ok) throw new Error(order?.message || "Recharge could not be started.");
-     const checkout = new window.Razorpay({
-      key: order.keyId, amount: order.amount, currency: order.currency, name: "ConnectLove", description: `${order.coins} wallet coins`, order_id: order.orderId,
-      prefill: { name: order.customer?.name, email: order.customer?.email }, theme: { color: "#ff2d78" },
-      handler: async (payment: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
-       try {
-        const verified = await fetch(`${API_URL}/wallet/razorpay/verify`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(payment) });
-        const data = await verified.json().catch(() => null); if (!verified.ok) throw new Error(data?.message || "Payment verification failed.");
-        setCoinBalance(Number(data.coinBalance) || 0); toast.success(`${data.coinsAdded || amount} coins added successfully.`);
-       } catch (error) { toast.error(error instanceof Error ? error.message : "Payment verification failed."); }
-       finally { setCoinActionPending(false); }
-      },
-      modal: { ondismiss: () => setCoinActionPending(false) },
-     });
-     checkout.open();
-   } catch (error) {
-     toast.error(error instanceof Error ? error.message : "Recharge failed.");
-     setCoinActionPending(false);
-   }
- };
+ // Same coin packs (with coupon code) as the wallet page and call popup.
+ const rechargeCoins = () => callApi.openUpgrade();
 
  const withdrawGiftEarnings = async () => {
    if (typeof window !== "undefined") window.location.href = "/user/withdraw";
