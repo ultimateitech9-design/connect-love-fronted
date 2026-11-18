@@ -61,7 +61,19 @@ function outcomeText(call: CallItem) {
 }
 
 export default function CallsPage() {
-  const { startCall, startDirectCall, ready, inCall } = useCall();
+  const { startCall, startDirectCall, callContactsOnline, ready, inCall } = useCall();
+  const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set());
+
+  // Green "Active" dot for people who are online now.
+  useEffect(() => {
+    if (!ready) return;
+    let cancelled = false;
+    const load = () => { void callContactsOnline().then((ids) => { if (!cancelled) setOnlineIds(new Set(ids)); }); };
+    load();
+    const timer = window.setInterval(load, 15_000);
+    window.addEventListener("focus", load);
+    return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener("focus", load); };
+  }, [callContactsOnline, ready]);
   const [filter, setFilter] = useState<Filter>("all");
   const [items, setItems] = useState<CallItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -170,15 +182,24 @@ export default function CallsPage() {
               const missed = call.outcome === "missed";
               const DirectionIcon = missed ? PhoneMissed : call.direction === "incoming" ? PhoneIncoming : PhoneOutgoing;
               const TypeIcon = call.callType === "video" ? Video : Phone;
+              const online = Boolean(call.otherUser && onlineIds.has(String(call.otherUser.id)));
               return (
                 <li key={call.id} className="flex items-center gap-3 px-4 py-3">
-                  <Avatar className="h-11 w-11 shrink-0">
-                    <AvatarImage src={call.otherUser?.photo || undefined} alt={call.otherUser?.name || "User"} />
-                    <AvatarFallback>{call.otherUser?.name?.[0]?.toUpperCase() || "?"}</AvatarFallback>
-                  </Avatar>
+                  <span className="relative shrink-0">
+                    <Avatar className="h-11 w-11">
+                      <AvatarImage src={call.otherUser?.photo || undefined} alt={call.otherUser?.name || "User"} />
+                      <AvatarFallback>{call.otherUser?.name?.[0]?.toUpperCase() || "?"}</AvatarFallback>
+                    </Avatar>
+                    {online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-card bg-emerald-500" aria-hidden="true" />}
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <p className={cn("truncate font-semibold", missed ? "text-rose-600" : "text-foreground")}>
-                      {call.otherUser?.name || "Deleted user"}
+                    <p className="flex min-w-0 items-center gap-2">
+                      <span className={cn("truncate font-semibold", missed ? "text-rose-600" : "text-foreground")}>{call.otherUser?.name || "Deleted user"}</span>
+                      {online && (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Active
+                        </span>
+                      )}
                     </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
                       <DirectionIcon className={cn("h-3.5 w-3.5", missed ? "text-rose-500" : "")} aria-label={call.direction} />

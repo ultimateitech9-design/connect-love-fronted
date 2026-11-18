@@ -2,12 +2,14 @@ type AgeRangeSliderProps = {
   minAge: number;
   maxAge: number;
   onChange: (minAge: number, maxAge: number) => void;
+  /** Hide the "Showing ages" line when the parent already shows the range. */
+  hideCaption?: boolean;
 };
 
 const MIN_AGE = 18;
 const MAX_AGE = 90;
 
-export function AgeRangeSlider({ minAge, maxAge, onChange }: AgeRangeSliderProps) {
+export function AgeRangeSlider({ minAge, maxAge, onChange, hideCaption = false }: AgeRangeSliderProps) {
   const left = ((minAge - MIN_AGE) / (MAX_AGE - MIN_AGE)) * 100;
   const right = 100 - ((maxAge - MIN_AGE) / (MAX_AGE - MIN_AGE)) * 100;
 
@@ -35,7 +37,7 @@ export function AgeRangeSlider({ minAge, maxAge, onChange }: AgeRangeSliderProps
           min={MIN_AGE} max={MAX_AGE} step={1}
           className="age-range-thumb age-range-thumb-max absolute inset-x-0 top-0 h-5 w-full appearance-none bg-transparent" />
       </div>
-      <p className="text-[10px] text-muted-foreground">Showing ages {minAge}–{maxAge}</p>
+      {!hideCaption && <p className="text-[10px] text-muted-foreground">Showing ages {minAge}–{maxAge}</p>}
     </div>
   );
 }

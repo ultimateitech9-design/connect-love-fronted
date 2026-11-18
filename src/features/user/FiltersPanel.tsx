@@ -1,6 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
-import { Calendar, MapPin, Target, BadgeCheck, Search, X, Users } from "lucide-react";
+import { BadgeCheck, Calendar, Heart, MapPin, RotateCcw, Search, Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { INTERESTED_IN_OPTIONS, type InterestedIn } from "@/features/discovery/gender-options";
 import { AgeRangeSlider } from "@/features/discovery/AgeRangeSlider";
@@ -21,18 +20,12 @@ export { DEFAULT_DISCOVER_FILTERS as defaultFilters } from '@/features/discovery
 const ANYWHERE_DISTANCE_KM = 10000;
 const DISTANCE_OPTIONS_KM = [1, 5, 10, 25, 50, 100, 250, 500, 10000];
 const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"];
+// "Prefer not to say" is a profile answer, not something people search for.
+const SHOW_ME_OPTIONS = INTERESTED_IN_OPTIONS.filter((option) => option.value !== "prefer-not");
 
 function formatDistanceLabel(distance: number) {
-  return distance >= ANYWHERE_DISTANCE_KM ? "Anywhere" : `${distance} km`;
+  return distance >= ANYWHERE_DISTANCE_KM ? "Anywhere" : `Up to ${distance} km`;
 }
-
-const filtersMeta = [
-  { id: "age", label: "Age Range", icon: Calendar },
-  { id: "distance", label: "Distance", icon: MapPin },
-  { id: "interestedIn", label: "Interested In", icon: Users },
-  { id: "goals", label: "Relationship Goals", icon: Target },
-  { id: "verified", label: "Verified Only", icon: BadgeCheck },
-];
 
 interface FiltersPanelProps {
   filters: DiscoverFilters;
@@ -43,198 +36,161 @@ interface FiltersPanelProps {
   effectiveMaxDistance?: number;
 }
 
-export function FiltersPanel({ filters, onChange, onApply, onReset, availableGoals = [], effectiveMaxDistance = filters.maxDistance }: FiltersPanelProps) {
-  const [active, setActive] = useState("age");
+/** One filter: an icon, a name, the current value on the right, and its control below. */
+function Section({ icon: Icon, title, value, children }: { icon: React.ElementType; title: string; value?: string; children: React.ReactNode }) {
+  return (
+    <section className="border-t border-border/70 py-3.5 first:border-t-0 first:pt-0">
+      <div className="mb-2.5 flex items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
+          <Icon className="h-4 w-4 text-rose-500" />
+          {title}
+        </h3>
+        {value && <span className="truncate text-xs font-semibold text-rose-600">{value}</span>}
+      </div>
+      {children}
+    </section>
+  );
+}
 
-  const allGoals = RELATIONSHIP_GOALS;
+function Chip({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={cn(
+        "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+        selected
+          ? "border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300"
+          : "border-border bg-card text-muted-foreground hover:border-rose-200 hover:text-foreground",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
 
+export function FiltersPanel({ filters, onChange, onApply, onReset }: FiltersPanelProps) {
   const update = <K extends keyof DiscoverFilters>(key: K, value: DiscoverFilters[K]) => {
     onChange({ ...filters, [key]: value });
   };
+  const toggleGoal = (goal: string) =>
+    update("goals", filters.goals.includes(goal) ? filters.goals.filter((g) => g !== goal) : [...filters.goals, goal]);
 
-  const toggleArray = (arr: string[], value: string) =>
-    arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
+  const showMeLabel = SHOW_ME_OPTIONS.find((option) => option.value === filters.interestedIn)?.label ?? "Everyone";
+  const goalsLabel = filters.goals.length === 0 ? "Any" : filters.goals.length === 1 ? filters.goals[0] : `${filters.goals.length} selected`;
 
   return (
-    <aside className="flex h-full flex-col rounded-2xl bg-card p-6 shadow-lg border border-border">
-      <div className="border-b pb-4" style={{ borderColor: "rgba(236,72,153,0.15)" }}>
-        <h2 className="text-xl font-bold text-foreground">Filters</h2>
-        <p className="mt-1 text-xs text-muted-foreground">Refine your matches</p>
+    <aside className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-lg">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-foreground">Filters</h2>
+          <p className="text-xs text-muted-foreground">Who do you want to see?</p>
+        </div>
+        <button
+          type="button"
+          onClick={onReset}
+          className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/20"
+          title="Reset all filters"
+        >
+          <RotateCcw className="h-3.5 w-3.5" /> Reset
+        </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="mt-4 relative">
-        <label htmlFor="discover-search" className="sr-only">
-          Search matches by name
-        </label>
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-muted-foreground" />
-        </div>
+      <div className="relative mt-4">
+        <label htmlFor="discover-search" className="sr-only">Search by name</label>
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           id="discover-search"
           type="text"
           value={filters.search}
           onChange={(e) => update("search", e.target.value)}
-          placeholder="Search by name..."
-          className="w-full pl-9 pr-8 py-2 text-sm rounded-xl border border-input bg-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus:border-rose-400 transition-colors text-foreground"
+          placeholder="Search by name"
+          className="h-10 w-full rounded-xl border border-input bg-background pl-9 pr-8 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus:border-rose-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
         {filters.search && (
-          <button
-            type="button"
-            onClick={() => update("search", "")}
-            className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
-            aria-label="Clear search"
-          >
+          <button type="button" onClick={() => update("search", "")} className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted-foreground hover:text-foreground" aria-label="Clear search">
             <X className="h-4 w-4" />
           </button>
         )}
       </div>
 
-      <nav className="mt-4 space-y-1">
-        {filtersMeta.map((f) => {
-          const Icon = f.icon;
-          const isActive = active === f.id;
-          return (
-            <button
-              type="button"
-              key={f.id}
-              onClick={() => setActive(f.id)}
-              aria-pressed={isActive}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-rose-50 text-rose-700"
-                  : "text-muted-foreground hover:bg-pink-50 hover:text-rose-700 dark:hover:bg-rose-950/20",
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {f.label}
-            </button>
-          );
-        })}
-      </nav>
+      <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-0.5">
+        <Section icon={Calendar} title="Age" value={`${filters.ageMin}–${filters.ageMax} yrs`}>
+          <AgeRangeSlider
+            minAge={filters.ageMin}
+            maxAge={filters.ageMax}
+            onChange={(ageMin, ageMax) => onChange({ ...filters, ageMin, ageMax })}
+            hideCaption
+          />
+        </Section>
 
-      <div className="mt-4 flex-1 rounded-xl p-4 bg-muted/30 border border-border">
-        {active === "age" && (
-          <div className="space-y-4">
-            <p className="text-sm font-semibold text-foreground">Age Range</p>
-            <AgeRangeSlider
-              minAge={filters.ageMin}
-              maxAge={filters.ageMax}
-              onChange={(ageMin, ageMax) => onChange({ ...filters, ageMin, ageMax })}
-            />
+        <Section icon={MapPin} title="Distance" value={formatDistanceLabel(filters.maxDistance)}>
+          <input
+            type="range"
+            aria-label="Maximum distance"
+            value={Math.max(0, DISTANCE_OPTIONS_KM.indexOf(filters.maxDistance))}
+            onChange={(e) => update("maxDistance", DISTANCE_OPTIONS_KM[Number(e.target.value)])}
+            min={0}
+            max={DISTANCE_OPTIONS_KM.length - 1}
+            step={1}
+            className="h-2 w-full accent-rose-600"
+          />
+          <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+            <span>Nearby</span>
+            <span>Anywhere</span>
           </div>
-        )}
+        </Section>
 
-        {active === "distance" && (
-          <div className="space-y-4">
-            <p className="text-sm font-semibold text-foreground">Max Distance</p>
-            <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
-              <span>1 km</span>
-              <span className="font-semibold text-rose-500">{formatDistanceLabel(filters.maxDistance)}</span>
-            </div>
-            <input
-              type="range"
-              aria-label="Maximum distance"
-              value={Math.max(0, DISTANCE_OPTIONS_KM.indexOf(filters.maxDistance))}
-              onChange={(e) => update("maxDistance", DISTANCE_OPTIONS_KM[Number(e.target.value)])}
-              min={0}
-              max={DISTANCE_OPTIONS_KM.length - 1}
-              step={1}
-              className="h-2 w-full accent-rose-600"
-            />
-            <p className="text-[10px] text-muted-foreground">
-              Showing profiles within {formatDistanceLabel(filters.maxDistance)}.
-            </p>
+        <Section icon={Users} title="Show me" value={showMeLabel}>
+          <div className="flex flex-wrap gap-1.5">
+            {SHOW_ME_OPTIONS.map((option) => (
+              <Chip key={option.value} selected={filters.interestedIn === option.value} onClick={() => update("interestedIn", option.value)}>
+                {option.label}
+              </Chip>
+            ))}
           </div>
-        )}
+        </Section>
 
-        {active === "interestedIn" && (
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-foreground">Interested In</p>
-            <div className="flex flex-wrap gap-2">
-              {INTERESTED_IN_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => update("interestedIn", option.value)}
-                  aria-pressed={filters.interestedIn === option.value}
-                  className={cn(
-                    "rounded-full border px-3 py-2 text-xs font-medium transition",
-                    filters.interestedIn === option.value
-                      ? "border-rose-600 bg-rose-100 text-rose-700 dark:text-rose-300"
-                      : "border-border bg-card text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+        <Section icon={Heart} title="Looking for" value={goalsLabel}>
+          <div className="flex flex-wrap gap-1.5">
+            {RELATIONSHIP_GOALS.map((goal) => (
+              <Chip key={goal} selected={filters.goals.includes(goal)} onClick={() => toggleGoal(goal)}>
+                {goal}
+              </Chip>
+            ))}
           </div>
-        )}
+          <p className="mt-1.5 text-[10px] text-muted-foreground">Pick one or more. None selected shows everyone.</p>
+        </Section>
 
-        {active === "goals" && (
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-foreground">Relationship Goals</p>
-            <div className="flex flex-wrap gap-2">
-              {allGoals.map((goal) => (
-                <label
-                  key={goal}
-                  className={cn(
-                    "flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                    filters.goals.includes(goal)
-                      ? "border-pink-600 bg-pink-100 text-pink-700 dark:text-pink-300"
-                      : "border-border bg-card text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.goals.includes(goal)}
-                    onChange={() => update("goals", toggleArray(filters.goals, goal))}
-                    className="sr-only"
-                    aria-label={`Relationship goal ${goal}`}
-                  />
-                  {goal}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {active === "verified" && (
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">Show verified profiles only</span>
+        <section className="border-t border-border/70 py-3.5">
+          <label className="flex cursor-pointer items-center justify-between gap-3">
+            <span>
+              <span className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
+                <BadgeCheck className="h-4 w-4 text-rose-500" /> Verified profiles only
+              </span>
+              <span className="mt-0.5 block pl-6 text-[10px] text-muted-foreground">Only people with a verified badge</span>
+            </span>
             <button
               type="button"
               role="switch"
-              aria-label="Show verified profiles only"
+              aria-label="Verified profiles only"
               aria-checked={filters.verifiedOnly}
               onClick={() => update("verifiedOnly", !filters.verifiedOnly)}
-              className={cn(
-                "relative h-6 w-11 rounded-full transition-colors",
-                filters.verifiedOnly ? "bg-rose-600" : "bg-slate-300",
-              )}
+              className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors", filters.verifiedOnly ? "bg-rose-600" : "bg-slate-300 dark:bg-slate-600")}
             >
-              <span
-                className={cn(
-                  "absolute top-1 h-4 w-4 rounded-full bg-white transition-transform",
-                  filters.verifiedOnly ? "left-6" : "left-1",
-                )}
-              />
+              <span className={cn("absolute top-1 h-4 w-4 rounded-full bg-white transition-transform", filters.verifiedOnly ? "left-6" : "left-1")} />
             </button>
-          </div>
-        )}
+          </label>
+        </section>
       </div>
 
-      <button type="button" onClick={onApply} className="mt-4 h-11 w-full rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-sm transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500">
-        Apply filters
-      </button>
       <button
         type="button"
-        onClick={onReset}
-        className="mt-2 h-[44px] w-full rounded-xl bg-card border border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800 dark:hover:bg-rose-950/20 font-medium"
+        onClick={onApply}
+        className="mt-3 h-11 w-full rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-sm transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
       >
-        Reset Filters
+        Show results
       </button>
     </aside>
   );

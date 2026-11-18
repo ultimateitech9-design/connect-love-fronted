@@ -72,6 +72,8 @@ type CallContextValue = {
   startDirectCall: (options: StartDirectCallOptions) => Promise<StartResult>;
   /** Open the coin-pack popup, e.g. from a "Buy coins" link. */
   openUpgrade: () => void;
+  /** Ids of online people among the user's call partners. */
+  callContactsOnline: () => Promise<string[]>;
   ready: boolean;
   inCall: boolean;
 };
@@ -80,6 +82,7 @@ const CallContext = createContext<CallContextValue>({
   startCall: async () => ({ error: "Calls are not available on this page." }),
   startDirectCall: async () => ({ error: "Calls are not available on this page." }),
   openUpgrade: () => undefined,
+  callContactsOnline: async () => [],
   ready: false,
   inCall: false,
 });
@@ -429,6 +432,13 @@ export function CallProvider({ children }: { children: ReactNode }) {
     beginCall("startVideoCall", { conversationId, receiverId: otherUser.id, callType }, { conversationId, otherUser, callType })
   ), [beginCall]);
 
+  const callContactsOnline = useCallback(() => new Promise<string[]>((resolve) => {
+    if (!socket?.connected) { resolve([]); return; }
+    socket.timeout(5000).emit("callContactsOnline", (error: Error | null, response?: { userIds?: string[] }) => {
+      resolve(!error && Array.isArray(response?.userIds) ? response.userIds.map(String) : []);
+    });
+  }), [socket]);
+
   const startDirectCall = useCallback(({ otherUser, callType }: StartDirectCallOptions) => (
     beginCall("startDirectCall", { receiverId: otherUser.id, callType }, { conversationId: null, otherUser, callType })
   ), [beginCall]);
@@ -644,6 +654,12 @@ export function CallProvider({ children }: { children: ReactNode }) {
     socket.on("callBilling", handleBilling);
     socket.on("callGiftReceived", handleGiftReceived);
     socket.on("videoCallAnsweredElsewhere", handleAnsweredElsewhere);
+    // The other person came online while we were calling: now it rings.
+    const handleRinging = (payload: { callId: string }) => {
+      const current = activeCallRef.current;
+      if (current?.id === payload?.callId && current.status === "ringing") setCall({ ...current, reachable: true });
+    };
+    socket.on("callRinging", handleRinging);
     return () => {
       socket.off("videoCallStarted", handleStarted);
       socket.off("incomingVideoCall", handleIncoming);
@@ -653,6 +669,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       socket.off("callBilling", handleBilling);
       socket.off("callGiftReceived", handleGiftReceived);
       socket.off("videoCallAnsweredElsewhere", handleAnsweredElsewhere);
+      socket.off("callRinging", handleRinging);
     };
   }, [createPeer, markStarted, setCall, socket, stopCallMedia]);
 
@@ -775,7 +792,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <CallContext.Provider value={{ startCall, startDirectCall, openUpgrade: () => setUpgradeReason("manual"), ready: Boolean(socket), inCall: Boolean(activeCall) }}>
+    <CallContext.Provider value={{ startCall, startDirectCall, openUpgrade: () => setUpgradeReason("manual"), callContactsOnline, ready: Boolean(socket), inCall: Boolean(activeCall) }}>
       {children}
 
       <UpgradeCallsDialog reason={upgradeReason} onClose={() => setUpgradeReason(null)} />
