@@ -9,10 +9,12 @@ import { useCall } from "./CallProvider";
 type Props = {
   profile: { id: string; name: string; photo?: string | null; photos?: string[] };
   className?: string;
+  /** Small glass buttons drawn over the profile photo. */
+  overlay?: boolean;
 };
 
 /** Audio and video call buttons for a Discover profile (paid direct call, no match needed). */
-export function DirectCallButtons({ profile, className }: Props) {
+export function DirectCallButtons({ profile, className, overlay = false }: Props) {
   const { startDirectCall, ready, inCall } = useCall();
   const [starting, setStarting] = useState<"audio" | "video" | null>(null);
 
@@ -31,29 +33,34 @@ export function DirectCallButtons({ profile, className }: Props) {
     }
   };
 
-  const buttonClass = "grid h-11 w-11 place-items-center rounded-full border-2 border-border bg-card shadow-md transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 sm:h-[48px] sm:w-[48px]";
+  // Over the photo the card handles taps and drags itself, so keep them here.
+  const keep = overlay ? { onPointerDown: (event: React.PointerEvent) => event.stopPropagation(), onMouseDown: (event: React.MouseEvent) => event.stopPropagation(), onTouchStart: (event: React.TouchEvent) => event.stopPropagation() } : {};
+  const iconClass = overlay ? "h-4 w-4" : "h-5 w-5";
+  const buttonClass = overlay
+    ? "grid h-9 w-9 place-items-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg backdrop-blur-md transition hover:scale-105 hover:bg-black/60 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+    : "grid h-11 w-11 place-items-center rounded-full border-2 border-border bg-card shadow-md transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100 sm:h-[48px] sm:w-[48px]";
 
   return (
-    <div className={cn("flex items-center gap-3 sm:gap-4", className)}>
+    <div className={cn("flex items-center", overlay ? "gap-2" : "gap-3 sm:gap-4", className)} {...keep}>
       <button
         type="button"
-        onClick={() => void call("audio")}
+        onClick={(event) => { event.stopPropagation(); void call("audio"); }}
         disabled={!ready || inCall || starting !== null}
-        className={cn(buttonClass, "text-emerald-500 hover:border-emerald-300")}
+        className={cn(buttonClass, !overlay && "text-emerald-500 hover:border-emerald-300")}
         aria-label={`Voice call ${profile.name}`}
         title="Voice call"
       >
-        {starting === "audio" ? <Loader2 className="h-5 w-5 animate-spin" /> : <Phone className="h-5 w-5" strokeWidth={2.5} />}
+        {starting === "audio" ? <Loader2 className={cn(iconClass, "animate-spin")} /> : <Phone className={iconClass} strokeWidth={2.5} />}
       </button>
       <button
         type="button"
-        onClick={() => void call("video")}
+        onClick={(event) => { event.stopPropagation(); void call("video"); }}
         disabled={!ready || inCall || starting !== null}
-        className={cn(buttonClass, "text-violet-500 hover:border-violet-300")}
+        className={cn(buttonClass, !overlay && "text-violet-500 hover:border-violet-300")}
         aria-label={`Video call ${profile.name}`}
         title="Video call"
       >
-        {starting === "video" ? <Loader2 className="h-5 w-5 animate-spin" /> : <Video className="h-5 w-5" strokeWidth={2.5} />}
+        {starting === "video" ? <Loader2 className={cn(iconClass, "animate-spin")} /> : <Video className={iconClass} strokeWidth={2.5} />}
       </button>
     </div>
   );

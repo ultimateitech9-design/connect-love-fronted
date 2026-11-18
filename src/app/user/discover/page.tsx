@@ -245,6 +245,7 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
 
   return (
     <div className="mx-auto w-full max-w-[min(92vw,420px)]">
+      <div className="relative">
       <button
         type="button"
         onClick={() => setPhotoIndex((value) => photos.length > 1 ? (value + 1) % photos.length : 0)}
@@ -284,12 +285,6 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
             ))}
           </div>
         )}
-        {profile.kycMatched === true && (
-          <p className="pointer-events-none absolute right-4 top-5 z-10 inline-flex items-center gap-1 rounded-full border border-emerald-300/50 bg-black/55 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-300 shadow-lg backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
-            KYC Verified
-          </p>
-        )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-4 text-white">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-2xl font-semibold leading-tight">{profile.name}{profile.age ? `, ${profile.age}` : ""}</h2>
@@ -307,6 +302,16 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
           {profile.goals && <span className="mt-2 inline-flex rounded-md bg-white/20 px-2 py-1 text-xs font-semibold">{profile.goals}</span>}
         </div>
       </button>
+      <div className="absolute right-4 top-5 z-10 flex flex-col items-end gap-2">
+        {profile.kycMatched === true && (
+          <p className="pointer-events-none inline-flex items-center gap-1 rounded-full border border-emerald-300/50 bg-black/55 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-300 shadow-lg backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
+            KYC Verified
+          </p>
+        )}
+        <DirectCallButtons profile={profile} overlay />
+      </div>
+      </div>
       <div className="mt-4 flex items-center justify-center gap-4">
         <button type="button" onClick={() => advance("pass")} className="grid h-12 w-12 place-items-center rounded-full border border-border bg-card text-muted-foreground shadow-sm" aria-label="Pass">
           <X className="h-6 w-6" />
@@ -317,7 +322,6 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
         <button type="button" onClick={() => advance("like")} className="grid h-12 w-12 place-items-center rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/20" aria-label="Like">
           <Heart className="h-6 w-6" fill="currentColor" />
         </button>
-        <DirectCallButtons profile={profile} />
       </div>
     </div>
   );

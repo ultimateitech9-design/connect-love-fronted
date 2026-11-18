@@ -425,10 +425,15 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
             )}
           </AnimatePresence>
 
-          {!showDetails && profile.kycMatched === true && (
-            <div className="pointer-events-none absolute right-4 top-5 z-20 inline-flex items-center gap-1 rounded-full border border-emerald-300/50 bg-black/55 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-300 shadow-lg backdrop-blur-md sm:right-5 sm:top-6">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
-              KYC Verified
+          {!showDetails && (
+            <div className="absolute right-4 top-5 z-30 flex flex-col items-end gap-2 sm:right-5 sm:top-6">
+              {profile.kycMatched === true && (
+                <div className="pointer-events-none inline-flex items-center gap-1 rounded-full border border-emerald-300/50 bg-black/55 px-2.5 py-1 text-[10px] font-bold tracking-wide text-emerald-300 shadow-lg backdrop-blur-md">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />
+                  KYC Verified
+                </div>
+              )}
+              <DirectCallButtons profile={profile} overlay />
             </div>
           )}
 
@@ -685,7 +690,6 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
         >
           <Send className="h-5 w-5 -rotate-12" strokeWidth={2} />
         </button>
-        <DirectCallButtons profile={profile} />
       </div>
 
       <p className="mt-4 text-center text-xs text-slate-400">
