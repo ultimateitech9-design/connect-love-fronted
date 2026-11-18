@@ -134,7 +134,23 @@ export default function PremiumPage() {
    modal: { confirm_close: true, ondismiss: () => setSelected(null) },
    handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
     try {
-     await directFetch("/payments/razorpay/verify", { method: "POST", body: JSON.stringify(response) });
+     // Verification is idempotent: retry an interrupted callback before showing pending.
+     let verified = false;
+     let verificationError: unknown;
+     for (let attempt = 0; attempt < 3; attempt++) {
+       try {
+         await directFetch("/payments/razorpay/verify", { method: "POST", body: JSON.stringify(response) });
+         verified = true; break;
+       } catch (error) {
+         verificationError = error;
+         if (attempt < 2) await new Promise(resolve => window.setTimeout(resolve, 500 * (attempt + 1)));
+       }
+     }
+     if (!verified) throw verificationError;
+     window.dispatchEvent(new Event('billingChanged'));
+     setCheckoutPlan(null);
+     const updatedUser = await directFetch('/users/me').catch(() => null);
+     if (updatedUser) queryClient.setQueryData(['current-user'], updatedUser);
      toast.success(`${plan.name} activated for 30 days!`);
      await queryClient.invalidateQueries({ type: "active" });
     } catch {

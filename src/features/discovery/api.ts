@@ -32,6 +32,16 @@ export function swipeProfile(receiverId: string, action: "like" | "pass" | "supe
   });
 }
 
+export function searchDiscoveryProfiles(filters: DiscoveryFilters, signal?: AbortSignal) {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '' && (!Array.isArray(value) || value.length)) params.set(key, String(value));
+  });
+  return directFetch<{ items: any[]; hasMore: boolean; nextCursor: string | null }>(
+    '/discovery/search?' + params.toString(), { signal },
+  );
+}
+
 export function undoSwipeProfile(receiverId: string) {
   return directFetch<{ deleted: boolean }>(`/matches/swipe/${receiverId}`, { method: "DELETE" });
 }

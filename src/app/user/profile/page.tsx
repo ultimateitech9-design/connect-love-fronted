@@ -96,6 +96,23 @@ export default function ProfilePage() {
  const [saveMsg, setSaveMsg] = useState<{ ok: boolean; text: string } | null>(null);
  const [savedCompletion, setSavedCompletion] = useState(0);
  const fileInputRef = useRef<HTMLInputElement>(null);
+ useEffect(() => {
+   let cancelled = false;
+   const syncPlan = async () => {
+     const token = getToken();
+     if (!token) return;
+     try {
+       const response = await apiFetch('/payments/razorpay/membership', { headers: { Authorization: 'Bearer ' + token } });
+       if (!response.ok) return;
+       const current = await response.json();
+       if (!cancelled) setProfile(previous => ({ ...previous, plan: current.plan, planExpiresAt: current.planExpiresAt, planBadge: current.planBadge, isVerified: current.isVerified }));
+     } catch { /* Keep existing plan during a temporary network failure. */ }
+   };
+   window.addEventListener('billingChanged', syncPlan);
+   window.addEventListener('focus', syncPlan);
+   const timer = window.setInterval(syncPlan, 30000);
+   return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener('billingChanged', syncPlan); window.removeEventListener('focus', syncPlan); };
+ }, []);
 
  // 
  // 
@@ -356,8 +373,8 @@ export default function ProfilePage() {
             {profile.name || "Your Name"}
             {profile.dob ? `, ${new Date().getFullYear() - new Date(profile.dob).getFullYear()}` : ""}
           </h1>
-          {profile.planBadge && (
-            <BadgeCheck className="h-5 w-5 shrink-0 fill-blue-500 text-white sm:h-6 sm:w-6" aria-label="Verified by administrator" />
+          {hasPaidPlan && (
+            <BadgeCheck className="h-5 w-5 shrink-0 fill-blue-500 text-white sm:h-6 sm:w-6" aria-label={planName + " plan member"} />
           )}
         </div>
         <p className="text-sm text-slate-500 capitalize mt-1 font-medium">

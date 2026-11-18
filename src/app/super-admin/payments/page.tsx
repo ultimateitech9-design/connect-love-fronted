@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { subscribeBillingUpdates } from "@/lib/billingUpdates";
 import { 
   DollarSign, 
   Receipt, 
@@ -47,8 +48,11 @@ export default function PaymentsPage() {
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const fetchPaymentsData = async () => {
-    setLoading(true);
+  const fetching = useRef(false);
+  const fetchPaymentsData = async (silent = false) => {
+    if (fetching.current) return;
+    fetching.current = true;
+    if (!silent) setLoading(true);
     setError("");
     try {
       const res = await api.payments();
@@ -57,12 +61,18 @@ export default function PaymentsPage() {
     } catch {
       setError("Failed to load subscription and transaction data.");
     } finally {
+      fetching.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPaymentsData();
+    void fetchPaymentsData();
+    const refresh = () => { void fetchPaymentsData(true); };
+    const unsubscribe = subscribeBillingUpdates(refresh, true);
+    const timer = window.setInterval(refresh, 15000);
+    window.addEventListener('focus', refresh);
+    return () => { unsubscribe(); window.clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, []);
 
   const handleRefund = async (transactionId: string) => {

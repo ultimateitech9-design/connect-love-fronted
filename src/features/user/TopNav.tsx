@@ -13,6 +13,8 @@ import { directFetch } from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { subscribeBillingUpdates } from "@/lib/billingUpdates";
+import { useQueryClient } from "@tanstack/react-query";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
 import { WalletChip } from "@/features/wallet/WalletChip";
 import { HeaderLanguageDropdown } from "@/features/i18n/HeaderLanguageDropdown";
@@ -38,6 +40,11 @@ const notifColor = {
 type WithdrawalUpdate = { id: string; coins: number; amountPaise: number | null; status: string; createdAt: string; account: string | null };
 
 export function TopNav() {
+ const billingQueries = useQueryClient();
+ useEffect(() => subscribeBillingUpdates(() => {
+   void billingQueries.invalidateQueries({ queryKey: ['current-user'] });
+   window.dispatchEvent(new Event('billingChanged'));
+ }), [billingQueries]);
  const pathname = usePathname();
  const router = useRouter();
  const token = getToken() || "";
