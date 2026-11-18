@@ -3,8 +3,37 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, BadgeCheck, Loader2, Search } from 'lucide-react';
 import { ProfileCard } from '@/features/user/ProfileCard';
-import { getDiscoveryProfileDetails, searchDiscoveryProfiles, swipeProfile, type DiscoveryFilters } from './api';
+import { clearDiscoverySearchCache, getDiscoverySearchThumbnail, getDiscoveryProfileDetails, searchDiscoveryProfiles, swipeProfile, type DiscoveryFilters } from './api';
+import { getToken } from '@/lib/auth';
 import { toast } from 'sonner';
+
+const thumbnails = new Map<string, { photo: string | null; at: number }>();
+function SearchPhoto({ profile }: { profile: any }) {
+  const [photo, setPhoto] = useState<string | null>(profile.photo || null);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (profile.photo || !profile.hasPhoto) return;
+    const key = (getToken() || '') + ':' + profile.id;
+    const cached = thumbnails.get(key);
+    if (cached && Date.now() - cached.at < 30000) { setPhoto(cached.photo); return; }
+    const controller = new AbortController();
+    const load = () => {
+      void getDiscoverySearchThumbnail(profile.id, controller.signal).then(data => {
+        if (controller.signal.aborted) return;
+        if (thumbnails.size >= 100) thumbnails.delete(thumbnails.keys().next().value!);
+        thumbnails.set(key, { photo: data.photo, at: Date.now() }); setPhoto(data.photo);
+      }).catch(() => {});
+    };
+    const observer = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { observer?.disconnect(); load(); }
+    }, { rootMargin: '100px' }) : null;
+    if (observer && ref.current) observer.observe(ref.current); else load();
+    return () => { controller.abort(); observer?.disconnect(); };
+  }, [profile.id, profile.photo, profile.hasPhoto]);
+  return <span ref={ref} className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-rose-500/10 font-bold text-rose-500">
+    {photo ? <img src={photo} alt="" className="h-full w-full object-cover" /> : profile.name?.charAt(0)}
+  </span>;
+}
 
 export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremiumActions }: {
   filters: DiscoveryFilters; pending: boolean; onUpgrade: (message: string) => void; canUsePremiumActions: boolean;
@@ -49,11 +78,12 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
   }, [key, pending]);
 
   const open = async (profile: any) => {
-    setSelected(profile);
+    const cached = thumbnails.get((getToken() || '') + ':' + profile.id);
+    setSelected({ ...profile, photo: profile.photo || cached?.photo || null });
     const run = generation.current;
     try {
       const details = await getDiscoveryProfileDetails(profile.id);
-      if (run === generation.current) setSelected((current: any) => current?.id === profile.id ? { ...current, photos: details.photos || current.photos } : current);
+      if (run === generation.current) setSelected((current: any) => current?.id === profile.id ? { ...current, ...details, photos: details.photos || current.photos } : current);
     } catch { /* The result already includes the primary card photo. */ }
   };
   const act = async (id: string, action: string) => {
@@ -66,6 +96,7 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
     actingRef.current = true; setActing(true);
     try {
       const result = await swipeProfile(id, action === 'right' || action === 'like' ? 'like' : action === 'super' || action === 'superlike' ? 'superlike' : 'pass');
+      clearDiscoverySearchCache();
       if (run !== generation.current) return true;
       setItems(previous => previous.filter(profile => profile.id !== id)); setSelected(null);
       if (result?.status === 'MATCHED') window.location.href = '/user/messages?id=' + result.id;
@@ -86,7 +117,7 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
     <p className="mt-1 text-sm text-muted-foreground">People matching “{filters.search}” within your current filters. Select a profile to open it.</p>
     {pending ? <p role="status" className="py-8 text-center text-muted-foreground">Searching...</p> : <>
       <div className="mt-4 space-y-2">{items.map(profile => <button type="button" key={profile.id} onClick={() => void open(profile)} className="flex w-full items-center gap-3 rounded-2xl border border-border bg-background p-3 text-left transition hover:border-rose-300 hover:bg-rose-500/5 focus-visible:outline-rose-500">
-        {profile.photo ? <img src={profile.photo} alt="" className="h-14 w-14 shrink-0 rounded-xl object-cover" /> : <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-rose-500/10 font-bold text-rose-500">{profile.name?.charAt(0)}</span>}
+        <SearchPhoto profile={profile} />
         <span className="min-w-0 flex-1"><span className="flex items-center gap-1 font-semibold text-foreground"><span className="truncate">{profile.name}, {profile.age}</span>{profile.isVerified && <BadgeCheck size={16} className="shrink-0 text-blue-500" />}</span><span className="block truncate text-xs text-muted-foreground">{[profile.city, profile.profession].filter(Boolean).join(' · ')}</span></span>
         <span className="shrink-0 text-xs font-semibold text-rose-500">View profile</span>
       </button>)}</div>

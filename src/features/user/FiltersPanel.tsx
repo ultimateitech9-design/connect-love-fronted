@@ -1,6 +1,6 @@
 import * as React from "react";
-import { useMemo, useState } from "react";
-import { Calendar, MapPin, Heart, Target, BadgeCheck, Search, X, Users } from "lucide-react";
+import { useState } from "react";
+import { Calendar, MapPin, Target, BadgeCheck, Search, X, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { INTERESTED_IN_OPTIONS, type InterestedIn } from "@/features/discovery/gender-options";
 import { AgeRangeSlider } from "@/features/discovery/AgeRangeSlider";
@@ -16,16 +16,7 @@ export interface DiscoverFilters {
   verifiedOnly: boolean;
 }
 
-export const defaultFilters: DiscoverFilters = {
-  search: "",
-  ageMin: 18,
-  ageMax: 90,
-  maxDistance: 10000,
-  interestedIn: "everyone",
-  interests: [],
-  goals: [],
-  verifiedOnly: false,
-};
+export { DEFAULT_DISCOVER_FILTERS as defaultFilters } from '@/features/discovery/filterPreferences';
 
 const ANYWHERE_DISTANCE_KM = 10000;
 const DISTANCE_OPTIONS_KM = [1, 5, 10, 25, 50, 100, 250, 500, 10000];
@@ -39,7 +30,6 @@ const filtersMeta = [
   { id: "age", label: "Age Range", icon: Calendar },
   { id: "distance", label: "Distance", icon: MapPin },
   { id: "interestedIn", label: "Interested In", icon: Users },
-  { id: "interests", label: "Interests", icon: Heart },
   { id: "goals", label: "Relationship Goals", icon: Target },
   { id: "verified", label: "Verified Only", icon: BadgeCheck },
 ];
@@ -47,18 +37,15 @@ const filtersMeta = [
 interface FiltersPanelProps {
   filters: DiscoverFilters;
   onChange: (next: DiscoverFilters) => void;
-  availableInterests?: string[];
+  onApply: () => void;
+  onReset: () => void;
   availableGoals?: string[];
   effectiveMaxDistance?: number;
 }
 
-export function FiltersPanel({ filters, onChange, availableInterests = [], availableGoals = [], effectiveMaxDistance = filters.maxDistance }: FiltersPanelProps) {
+export function FiltersPanel({ filters, onChange, onApply, onReset, availableGoals = [], effectiveMaxDistance = filters.maxDistance }: FiltersPanelProps) {
   const [active, setActive] = useState("age");
 
-  const allInterests = useMemo(
-    () => Array.from(new Set(availableInterests)).sort(),
-    [availableInterests],
-  );
   const allGoals = RELATIONSHIP_GOALS;
 
   const update = <K extends keyof DiscoverFilters>(key: K, value: DiscoverFilters[K]) => {
@@ -162,34 +149,6 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
           </div>
         )}
 
-        {active === "interests" && (
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-foreground">Select Interests</p>
-            <div className="flex flex-wrap gap-2">
-              {allInterests.map((interest) => (
-                <label
-                  key={interest}
-                  className={cn(
-                    "flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                    filters.interests.includes(interest)
-                      ? "border-rose-600 bg-rose-100 text-rose-700 dark:text-rose-300"
-                      : "border-border bg-card text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.interests.includes(interest)}
-                    onChange={() => update("interests", toggleArray(filters.interests, interest))}
-                    className="sr-only"
-                    aria-label={`Interest ${interest}`}
-                  />
-                  {interest}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-
         {active === "interestedIn" && (
           <div className="space-y-3">
             <p className="text-sm font-semibold text-foreground">Interested In</p>
@@ -267,10 +226,13 @@ export function FiltersPanel({ filters, onChange, availableInterests = [], avail
         )}
       </div>
 
+      <button type="button" onClick={onApply} className="mt-4 h-11 w-full rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-sm transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500">
+        Apply filters
+      </button>
       <button
         type="button"
-        onClick={() => onChange(defaultFilters)}
-        className="mt-4 h-[44px] w-full bg-card border border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800 dark:hover:bg-rose-950/20 font-medium"
+        onClick={onReset}
+        className="mt-2 h-[44px] w-full rounded-xl bg-card border border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800 dark:hover:bg-rose-950/20 font-medium"
       >
         Reset Filters
       </button>

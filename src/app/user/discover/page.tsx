@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BadgeCheck, Crown, Heart, MapPin, SlidersHorizontal, Star, X } from "lucide-react";
 import type { DiscoverFilters } from "@/features/user/FiltersPanel";
 import { useDiscovery } from "@/hooks/useDiscovery";
+import { useDiscoverPreferences } from "@/hooks/useDiscoverPreferences";
 import { getToken } from "@/lib/auth";
 import { formatDistance } from "@/lib/distance";
 import { INTERESTED_IN_OPTIONS } from "@/features/discovery/gender-options";
@@ -22,16 +23,6 @@ import { DiscoverSearchResults } from "@/features/discovery/DiscoverSearchResult
 
 const DISTANCE_STEP_KM = 100;
 const DISTANCE_OPTIONS_KM = [1, 5, 10, 25, 50, 100, 250, 500, 10000];
-const defaultFilters: DiscoverFilters = {
-  search: "",
-  ageMin: 18,
-  ageMax: 90,
-  maxDistance: 10000,
-  interestedIn: "everyone",
-  interests: [],
-  goals: [],
-  verifiedOnly: false,
-};
 const FiltersPanel = dynamic(() => import("@/features/user/FiltersPanel").then((mod) => mod.FiltersPanel), {
   ssr: false,
   loading: () => <FiltersPanelShell />,
@@ -119,10 +110,14 @@ function isOptimizableImage(src: string) {
 function MobileFilters({
   filters,
   onChange,
+  onApply,
+  onReset,
   effectiveMaxDistance,
 }: {
   filters: DiscoverFilters;
   onChange: (next: DiscoverFilters) => void;
+  onApply: () => void;
+  onReset: () => void;
   effectiveMaxDistance: number;
 }) {
   const update = <K extends keyof DiscoverFilters>(key: K, value: DiscoverFilters[K]) => {
@@ -198,10 +193,13 @@ function MobileFilters({
           >
             {filters.verifiedOnly ? "Verified only: On" : "Verified only: Off"}
           </button>
-          <button type="button" onClick={() => onChange(defaultFilters)} className="text-xs font-semibold text-rose-700">
+          <button type="button" onClick={onReset} className="text-xs font-semibold text-rose-700">
             Reset
           </button>
         </div>
+        <button type="button" onClick={onApply} className="h-11 w-full rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-sm">
+          Apply filters
+        </button>
       </div>
     </details>
   );
@@ -388,7 +386,8 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
 }
 
  export default function Discover() {
-  const [filters, setFilters] = useState<DiscoverFilters>(defaultFilters);
+ const token = getToken() || "";
+ const { filters, draft: draftFilters, change: changeFilters, apply: applyPreferences, reset: resetPreferences, ready: filtersReady } = useDiscoverPreferences(token);
   const [dismissedProfileIds, setDismissedProfileIds] = useState<Set<string>>(new Set());
  const [lastSwipedProfile, setLastSwipedProfile] = useState<any | null>(null);
  const [canUsePremiumDiscoveryActions, setCanUsePremiumDiscoveryActions] = useState(false);
@@ -399,11 +398,10 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
   const normalizedSearch = filters.search.trim().replace(/\s+/g, ' ');
   const [deferredSearch, setDebouncedSearch] = useState('');
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedSearch(normalizedSearch), 350);
+    const timer = window.setTimeout(() => setDebouncedSearch(normalizedSearch), 180);
     return () => window.clearTimeout(timer);
   }, [normalizedSearch]);
   const searchMode = Boolean(normalizedSearch);
- const token = getToken() || "";
   const locationSyncStarted = useRef(false);
   const requestFilters = useMemo(
     // Render the first card quickly on mobile/slow networks. The discovery hook
@@ -412,7 +410,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
     () => ({ search: deferredSearch, ageMin: filters.ageMin, ageMax: filters.ageMax, interestedIn: filters.interestedIn, goals: filters.goals, maxDistance: filters.maxDistance, interests: filters.interests, verifiedOnly: filters.verifiedOnly, limit: 12 }),
     [deferredSearch, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance, filters.interests, filters.verifiedOnly],
   );
- const { profiles, loading, error: discoveryError, hasMore, swipeLeft, swipeRight, swipeSuper, undoSwipe, refreshProfiles, upgradePrompt: queueUpgradePrompt, closeUpgradePrompt: closeQueueUpgradePrompt } = useDiscovery(searchMode ? '' : token, requestFilters);
+ const { profiles, loading, error: discoveryError, hasMore, swipeLeft, swipeRight, swipeSuper, undoSwipe, refreshProfiles, upgradePrompt: queueUpgradePrompt, closeUpgradePrompt: closeQueueUpgradePrompt } = useDiscovery(searchMode || !filtersReady ? '' : token, requestFilters);
  const [searchUpgradePrompt, setSearchUpgradePrompt] = useState<string | null>(null);
  const upgradePrompt = searchUpgradePrompt || queueUpgradePrompt;
  const closeUpgradePrompt = () => { setSearchUpgradePrompt(null); closeQueueUpgradePrompt(); };
@@ -477,8 +475,17 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
     () => filtered.filter((profile: any) => !dismissedProfileIds.has(profile.id)),
     [dismissedProfileIds, filtered],
   );
- const availableInterests = useMemo(() => profiles.flatMap((p: any) => p.interests || []), [profiles]);
  const availableGoals = useMemo(() => profiles.map((p: any) => p.goals).filter(Boolean), [profiles]);
+ const applySelectedFilters = () => {
+   applyPreferences();
+   setDismissedProfileIds(new Set());
+   setLastSwipedProfile(null);
+ };
+ const resetSelectedFilters = () => {
+   resetPreferences();
+   setDismissedProfileIds(new Set());
+   setLastSwipedProfile(null);
+ };
  
  const handleSwipe = async (id: string, action: string) => {
    setLastSwipedProfile(visibleProfiles.find((profile: any) => profile.id === id) ?? null);
@@ -516,7 +523,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  <CampaignOfferCard />
  {!isDesktop ? (
  <div className="space-y-4">
- <MobileFilters filters={filters} onChange={setFilters} effectiveMaxDistance={effectiveMaxDistance} />
+ <MobileFilters filters={draftFilters} onChange={changeFilters} onApply={applySelectedFilters} onReset={resetSelectedFilters} effectiveMaxDistance={draftFilters.maxDistance} />
  <div className="flex min-w-0 items-start justify-center">
  {searchMode ? <DiscoverSearchResults filters={requestFilters} pending={normalizedSearch !== deferredSearch} onUpgrade={setSearchUpgradePrompt} canUsePremiumActions={canUsePremiumDiscoveryActions} /> : visibleProfiles.length === 0 && discoveryError ? <div role="alert" className="w-full max-w-[460px] rounded-3xl border border-border bg-card p-8 text-center"><p className="text-foreground">Profiles could not load. Retrying automatically...</p><button onClick={refreshProfiles} className="mt-4 rounded-xl bg-rose-500 px-5 py-3 font-semibold text-white">Try again</button></div> : visibleProfiles.length === 0 && (loading || hasMore) ? <ProfileCardShell /> : <ProfileCard profiles={visibleProfiles} onAction={handleSwipe} onUndo={handleUndo} canUndo={Boolean(lastSwipedProfile)} canUsePremiumActions={canUsePremiumDiscoveryActions} onPremiumActionLocked={setLockedDiscoveryFeature} />}
  </div>
@@ -524,7 +531,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  ) : (
  <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(260px,320px)]">
  {loadSecondaryPanels ? (
- <FiltersPanel filters={filters} onChange={setFilters} availableInterests={availableInterests} availableGoals={availableGoals} effectiveMaxDistance={effectiveMaxDistance} />
+ <FiltersPanel filters={draftFilters} onChange={changeFilters} onApply={applySelectedFilters} onReset={resetSelectedFilters} availableGoals={availableGoals} effectiveMaxDistance={draftFilters.maxDistance} />
  ) : (
  <FiltersPanelShell />
  )}
