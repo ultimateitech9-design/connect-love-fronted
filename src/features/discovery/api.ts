@@ -69,6 +69,10 @@ export function recordDiscoveryProfileView(userId: string) {
   return directFetch<{ recorded: boolean }>(`/users/${userId}/view`, { method: "POST" });
 }
 
+export function recordProfileDetailView(userId: string) {
+  return directFetch<{ recorded: boolean }>('/users/' + encodeURIComponent(userId) + '/detail-view', { method: 'POST' });
+}
+
 export function getDiscoveryProfileDetails(userId: string, signal?: AbortSignal) {
   return directFetch<any>(`/users/${userId}/details`, { signal });
 }

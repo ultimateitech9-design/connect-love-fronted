@@ -84,7 +84,11 @@ export function GlobalPresence() {
 
     socket.on("connect", () => {
       queryClient.invalidateQueries({ queryKey: ["matches"] });
+      queryClient.invalidateQueries({ queryKey: ['profile-visitors'] });
       refreshOnline();
+    });
+    socket.on('profileVisitorsChanged', () => {
+      void queryClient.invalidateQueries({ queryKey: ['profile-visitors'] });
     });
     socket.on("disconnect", () => {
       clearOnline();

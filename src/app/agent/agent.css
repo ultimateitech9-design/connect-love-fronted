@@ -502,17 +502,17 @@
 .ag-stats {
   display:grid;
   grid-template-columns:1fr 1fr 1fr 1.4fr;
-  gap:18px;
-  margin-bottom:28px;
+  gap:14px;
+  margin-bottom:20px;
 }
 .ag-stats article {
   background:white;
   border:1px solid var(--ag-line);
   border-radius:16px;
-  padding:24px;
+  padding:16px;
   display:flex;
   justify-content:space-between;
-  gap:12px;
+  gap:8px;
 }
 .ag-stats article span:not(.ag-stat-icon) {
   font-size:11px;
@@ -520,11 +520,11 @@
 }
 .ag-stats strong {
   display:block;
-  font-size:34px;
-  line-height:1.4;
+  font-size:28px;
+  line-height:1.2;
   letter-spacing:-1px;
   font-weight:600;
-  margin:7px 0;
+  margin:5px 0;
 }
 .ag-stats small {
   display:block;
@@ -533,14 +533,19 @@
   line-height:1.6;
 }
 .ag-stat-icon {
-  width:43px;
-  height:43px;
+  width:34px;
+  height:34px;
+  flex-shrink:0;
   display:grid;
   place-items:center;
   color:#c66389;
   background:#fcf0f6;
   border:1px solid #f6e5ee;
-  border-radius:13px;
+  border-radius:10px;
+}
+.ag-stat-icon svg {
+  width:19px;
+  height:19px;
 }
 .ag-stats article.ag-stat-accent {
   background:linear-gradient(120deg,#381a36,#60324c);
@@ -552,12 +557,12 @@
   color:#d2a8c0;
 }
 .ag-stat-accent h3 {
-  font-size:18px;
-  line-height:1.5;
+  font-size:16px;
+  line-height:1.3;
   font-weight:500;
   max-width:200px;
   color:#fff1f7;
-  margin:13px 0;
+  margin:7px 0;
 }
 .ag-stats .ag-stat-accent small {
   color:#be98af;
@@ -567,9 +572,15 @@
   color:#bb6b9450;
   transform:rotate(-15deg);
 }
+.ag-stat-hearts svg:first-child {
+  width:32px;
+  height:32px;
+}
 .ag-stat-hearts svg:last-child {
-  margin-top:8px;
-  margin-left:37px;
+  width:19px;
+  height:19px;
+  margin-top:5px;
+  margin-left:27px;
 }
 .ag-panel {
   background:white;
@@ -1170,7 +1181,7 @@
     padding:11px 15px;
   }
   .ag-stats article {
-    padding:17px 14px;
+    padding:12px;
   }
   .ag-stat-icon {
     width:32px;
@@ -1181,7 +1192,7 @@
     width:18px;
   }
   .ag-stats strong {
-    font-size:28px;
+    font-size:24px;
   }
   .ag-stats article span:not(.ag-stat-icon) {
     font-size:10px;

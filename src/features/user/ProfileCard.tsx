@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
 import { formatDistance } from "@/lib/distance";
 import { FirstImpressionDialog } from "@/features/first-impressions/FirstImpressionDialog";
-import { recordDiscoveryProfileView } from "@/features/discovery/api";
+import { recordDiscoveryProfileView, recordProfileDetailView } from "@/features/discovery/api";
 
 export interface Profile {
   id: string;
@@ -263,6 +263,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
     // those immediately and refresh the complete profile in the background.
     setDetailedProfile(profile);
     setShowDetails(true);
+    void recordProfileDetailView(profile.id).catch(() => {});
     void fetchDetails();
   };
 

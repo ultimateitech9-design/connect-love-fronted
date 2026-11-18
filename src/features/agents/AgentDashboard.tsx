@@ -6,7 +6,8 @@ import { ArrowDownToLine, ArrowLeft, ArrowRight, Banknote, Check, ChevronDown, C
 import { BrandLogo } from '@/components/BrandLogo';
 import { AgentApiError, agentPayoutApi, agentRequest, agentToken, clearAgentToken, emptyDraft, type Agent, type AgentEarnings, type ManagedUser, type UserDraft, type UsersResult } from './api';
 import { WithdrawPanel } from '@/features/payouts/WithdrawPanel';
-import { CSV_FIELDS, downloadCsv, parseUsersCsv } from './csv';
+import { CSV_EXPORT_FIELDS, downloadCsv, exportUserRow, parseUsersCsv, registeredUserExportRows } from './csv';
+import { downloadUserWorkbook } from './userWorkbook';
 import { prepareAgentPhoto } from './photo';
 import { AgentUserDetails as UserDetails } from './AgentUserDetails';
 
@@ -23,11 +24,13 @@ export function AgentDashboard() {
   const [selected, setSelected] = useState<ManagedUser | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [drafts, setDrafts] = useState<UserDraft[]>([emptyDraft()]);
   const [consent, setConsent] = useState(false);
   const [credentials, setCredentials] = useState<string[][]>([]);
+  const detailsRequest = useRef(0);
   const csvInput = useRef<HTMLInputElement>(null);
   const createPanel = useRef<HTMLElement>(null);
   const [createScroll, setCreateScroll] = useState(0);
@@ -66,7 +69,7 @@ export function AgentDashboard() {
     if (!file) return;
     setError(''); setMessage('');
     try {
-      if (file.size > 1024 * 1024) throw new Error('Please choose a CSV smaller than 1 MB.');
+      if (file.size > 9_500_000) throw new Error('Please choose a CSV smaller than 9.5 MB.');
       const imported = parseUsersCsv(await file.text());
       const blank = drafts.length === 1 && Object.entries(drafts[0]).every(([key, value]) => key === 'gender' || (Array.isArray(value) ? !value.length : !value));
       const combined = blank ? imported : [...drafts, ...imported];
@@ -102,8 +105,9 @@ export function AgentDashboard() {
     setBusy(true); setError(''); setMessage('');
     try {
       if (new Blob([JSON.stringify(drafts)]).size > 9_500_000) throw new Error('This batch contains too many large photos. Use smaller photos or create fewer accounts at a time.');
-      const result = await agentRequest<{ message: string }>('/users/bulk', { users: drafts, consentConfirmed: consent });
-      setCredentials(drafts.map(({ name, email, password }) => [name, email, password]));
+      const result = await agentRequest<{ message: string; users: Partial<ManagedUser>[] }>('/users/bulk', { users: drafts, consentConfirmed: consent });
+      const createdByEmail = new Map(result.users.map(user => [user.email?.toLowerCase(), user]));
+      setCredentials(drafts.map(draft => exportUserRow({ ...draft, ...createdByEmail.get(draft.email.trim().toLowerCase()), password: draft.password })));
       setMessage(result.message); setPhotoErrors({}); setDrafts([emptyDraft()]); setConsent(false); setTab('users'); setSearch(''); setPage(1); setRefresh(value => value + 1);
     } catch (err) { fail(err); }
     finally { setBusy(false); }
@@ -113,10 +117,26 @@ export function AgentDashboard() {
     try { await agentRequest('/auth/logout', {}); clearAgentToken(); setCredentials([]); router.replace('/agent/login'); }
     catch (err) { fail(err); } finally { setBusy(false); }
   }
+  async function downloadRegisteredUsers() {
+    if (exporting) return;
+    setExporting(true); setError(''); setMessage('');
+    try {
+      const rows = await registeredUserExportRows(cursor => agentRequest('/users/export' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')));
+      await downloadUserWorkbook(rows);
+      setMessage((rows.length - 1) + ' registered user details downloaded.');
+    } catch (err) { fail(err); }
+    finally { setExporting(false); }
+  }
   async function showDetails(user: ManagedUser) {
+    const request = ++detailsRequest.current;
     setError('');
-    try { const result = await agentRequest<{ user: ManagedUser }>(`/users/${user.id}`); setSelected(result.user); }
-    catch (err) { fail(err); }
+    try {
+      const result = await agentRequest<{ user: ManagedUser }>(`/users/${user.id}`);
+      if (request !== detailsRequest.current) return;
+      if (result.user.id !== user.id) throw new Error('User details did not match the selected account.');
+      setSelected(result.user);
+    }
+    catch (err) { if (request === detailsRequest.current) fail(err); }
   }
   if (!agent) return <main className="ag-loading">{error ? <div role="alert"><p>{error}</p><button className="ag-secondary" onClick={() => window.location.reload()}>Try again</button><Link href="/agent/login">Back to sign in</Link></div> : <><Loader2 className="animate-spin" />Opening your workspace…</>}</main>;
   return <div className="ag-dashboard">
@@ -127,10 +147,10 @@ export function AgentDashboard() {
       <div className="ag-agent"><span className="ag-avatar">{agent.name.slice(0, 1).toUpperCase()}</span><div><strong>{agent.name}</strong><small>{agent.email}</small></div><button aria-label="Sign out" title="Sign out" disabled={busy} onClick={logout}><LogOut size={18} /></button></div>
     </aside>
     <main className="ag-main"><header className="ag-topbar"><span>Workspace <span className="ag-muted">/ {tab === 'users' ? 'My users' : 'Create accounts'}</span></span><span className="ag-private"><ShieldCheck size={15} />Private workspace</span></header>
-      <div className="ag-content"><div className="ag-page-heading"><div><span className="ag-eyebrow">YOUR CONNECTIONS, IN ONE PLACE</span><h1>{tab === 'users' ? `Hello, ${agent.name.split(' ')[0]}.` : tab === 'withdraw' ? 'Withdraw your earnings.' : 'A new beginning starts here.'}</h1><p className="ag-muted">{tab === 'users' ? 'Create accounts, keep track of profiles, and help people connect.' : tab === 'withdraw' ? 'Transfer your call earnings to your bank account or UPI.' : 'Add one person or a whole batch. Give each user their own login.'}</p></div>{tab === 'users' && <button className="ag-primary" onClick={openCreate}><Plus size={18} /> Create accounts</button>}</div>
+      <div className="ag-content"><div className="ag-page-heading"><div><span className="ag-eyebrow">YOUR CONNECTIONS, IN ONE PLACE</span><h1>{tab === 'users' ? `Hello, ${agent.name.split(' ')[0]}.` : tab === 'withdraw' ? 'Withdraw your earnings.' : 'A new beginning starts here.'}</h1><p className="ag-muted">{tab === 'users' ? 'Create accounts, keep track of profiles, and help people connect.' : tab === 'withdraw' ? 'Transfer your call earnings to your bank account or UPI.' : 'Add one person or a whole batch. Give each user their own login.'}</p></div>{tab === 'users' && <div className="ag-actions"><button type="button" className="ag-secondary" disabled={exporting} onClick={() => void downloadRegisteredUsers()}>{exporting ? <Loader2 size={16} className="animate-spin" /> : <ArrowDownToLine size={16} />}{exporting ? 'Downloading...' : 'Download user details'}</button><button className="ag-primary" onClick={openCreate}><Plus size={18} /> Create accounts</button></div>}</div>
       {error && <div role="alert" className="ag-alert ag-error">{error}<button aria-label="Dismiss error" onClick={() => setError('')}><X size={16} /></button></div>}
       {message && <div role="status" className="ag-alert ag-success"><span>{message}</span><button aria-label="Dismiss message" onClick={() => setMessage('')}><X size={16} /></button></div>}
-      {credentials.length > 0 && <section className="ag-credentials"><div><strong><Check size={18} /> Login details are ready</strong><p>Download and share each login privately with its user. Passwords are available only during this visit.</p></div><button className="ag-secondary" onClick={() => downloadCsv('connectlove-user-logins.csv', [['name', 'email', 'password'], ...credentials])}><ArrowDownToLine size={16} />Download logins</button><button aria-label="Clear login details" onClick={() => setCredentials([])}><X size={18} /></button></section>}
+      {credentials.length > 0 && <section className="ag-credentials"><div><strong><Check size={18} /> Last created batch</strong><p>Includes: {credentials.map(row => row[CSV_EXPORT_FIELDS.indexOf('name')]).join(', ')}. Share logins privately; initial passwords are available only during this visit.</p></div><button className="ag-secondary" onClick={() => downloadCsv('connectlove-created-batch.csv', [[...CSV_EXPORT_FIELDS], ...credentials])}><ArrowDownToLine size={16} />Download created batch</button><button aria-label="Clear login details" onClick={() => setCredentials([])}><X size={18} /></button></section>}
       <div className="ag-stats"><article><div><span>Total accounts</span><strong>{data?.totalAccounts ?? '—'}</strong><small>Created by you</small></div><span className="ag-stat-icon"><Users size={23} /></span></article><article><div><span>Active accounts</span><strong>{data?.activeAccounts ?? '—'}</strong><small>Available in Discover filters</small></div><span className="ag-stat-icon"><Heart size={23} /></span></article><article><div><span>Call earnings</span><strong>{earnings ? earnings.balance.toLocaleString() : '—'}</strong><small>Coins in your wallet · {earnings ? earnings.thisMonth.toLocaleString() : '—'} this month</small></div><span className="ag-stat-icon"><Coins size={23} /></span></article><article className="ag-stat-accent"><div><span>Better together</span><h3>One batch. More possibilities.</h3><small>Create up to 25 accounts at a time.</small></div><LayersIcon /></article></div>
       {earnings && earnings.allTime > 0 && <section className="ag-panel"><div className="ag-panel-header"><div><h2>Call earnings <span className="ag-count">{earnings.allTime.toLocaleString()}</span></h2><p className="ag-muted">Your share of paid calls to users you created: {earnings.paidMinutes.toLocaleString()} paid minutes so far.</p></div></div>
         <div className="grid gap-6 px-7 pb-6 pt-4 md:grid-cols-2">
@@ -140,7 +160,7 @@ export function AgentDashboard() {
       </section>}
       {tab === 'withdraw' ? <section className="ag-panel"><div className="mx-auto max-w-xl px-7 py-6"><WithdrawPanel api={agentPayoutApi} earningsLabel="Call earnings available" /></div></section> : tab === 'users' ? <section className="ag-panel"><div className="ag-panel-header"><div><h2>Your users <span className="ag-count">{data?.totalAccounts ?? 0}</span></h2><p className="ag-muted">Only accounts you created appear here.</p></div><label className="ag-search"><Search size={17} /><input aria-label="Search your users" placeholder="Search name, email or city" value={search} onChange={event => { setSearch(event.target.value); setPage(1); }} /></label></div>
         {loading ? <div className="ag-empty" role="status"><Loader2 className="animate-spin" /><p>Loading your users…</p></div> : !data?.users.length ? <div className="ag-empty"><span className="ag-empty-icon"><Users size={30} /></span><h3>{search ? 'No matching users' : 'Your first connection starts here'}</h3><p>{search ? 'Try another name, email or city.' : 'Create your first user account or import a CSV to get started.'}</p>{!search && <button className="ag-primary" onClick={openCreate}><Plus size={17} />Add your first user</button>}</div> : <><div className="ag-table-wrap"><table><thead><tr><th>User</th><th>Location</th><th>Status</th><th>Joined</th><th><span className="sr-only">Details</span></th></tr></thead><tbody>{data.users.map(user => <tr key={user.id}><td><div className="ag-user-cell"><span className="ag-avatar">{user.name.charAt(0).toUpperCase()}</span><div><button className="ag-user-name" onClick={() => void showDetails(user)}><strong>{user.name}</strong></button>{user.agentEmailChangedAt && <span className="ag-email-changed-badge" title={`Email changed by user on ${new Date(user.agentEmailChangedAt).toLocaleString('en-IN')}`}>Email changed</span>}<small>{user.email}</small></div></div></td><td>{user.city}<small className="ag-cell-small">{user.gender}</small></td><td><span className={`ag-status ${user.status === 'active' ? 'ag-status-active' : ''}`}>{user.status.replaceAll('_', ' ')}</span></td><td>{new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td><td><button className="ag-detail-btn" onClick={() => void showDetails(user)}>View details <ArrowRight size={14} /></button></td></tr>)}</tbody></table></div><div className="ag-pagination"><span>{data.total} {search ? 'matching' : ''} accounts · Page {page} of {data.pages}</span><div><button className="ag-secondary" disabled={page <= 1 || loading} onClick={() => setPage(value => value - 1)}><ArrowLeft size={15} />Previous</button><button className="ag-secondary" disabled={page >= data.pages || loading} onClick={() => setPage(value => value + 1)}>Next<ArrowRight size={15} /></button></div></div></>}
-      </section> : <section ref={createPanel} className="ag-panel ag-create-panel"><div className="ag-panel-header"><div><h2>Create user accounts</h2><p className="ag-muted">Review each profile before adding it to ConnectLove.</p></div><div className="ag-actions"><button className="ag-secondary" onClick={() => downloadCsv('connectlove-users-template.csv', [[...CSV_FIELDS], ['Example User', 'user@example.com', 'ReplaceWithStrongPassword', '1998-04-15', 'female', 'Mumbai', '', '', '']])}><ArrowDownToLine size={16} />CSV template</button><button className="ag-secondary" disabled={busy || photoBusy} onClick={() => csvInput.current?.click()}><Upload size={16} />Import CSV</button><input ref={csvInput} hidden type="file" accept=".csv,text/csv" onChange={event => void importCsv(event.target.files?.[0])} /></div></div>
+      </section> : <section ref={createPanel} className="ag-panel ag-create-panel"><div className="ag-panel-header"><div><h2>Create user accounts</h2><p className="ag-muted">Review each profile before adding it to ConnectLove.</p></div><div className="ag-actions"><button className="ag-secondary" disabled={busy || photoBusy} onClick={() => csvInput.current?.click()}><Upload size={16} />Import CSV</button><input ref={csvInput} hidden type="file" accept=".csv,text/csv" onChange={event => void importCsv(event.target.files?.[0])} /></div></div>
         <form onSubmit={create} className="ag-create-form"><p className="ag-info">Users can sign in at the regular login page with their email and assigned password. Profiles appear in Discover according to age, gender, location and privacy filters. Users complete their remaining onboarding after signing in.</p>
           <fieldset disabled={busy || photoBusy} className="ag-batch-fields">{drafts.map((draft, index) => <section className="ag-draft" key={index}><div className="ag-draft-heading"><h3><span>{String(index + 1).padStart(2, '0')}</span>User profile</h3><button type="button" className="ag-remove" disabled={drafts.length === 1} aria-label={`Remove user ${index + 1}`} onClick={() => removeDraft(index)}><Trash2 size={16} />Remove</button></div>
             <div className="ag-field-grid"><label>Full name *<input required minLength={2} maxLength={150} placeholder="Full name" value={draft.name} onChange={event => update(index, 'name', event.target.value)} /></label><label>Email address *<input required type="email" maxLength={255} placeholder="user@gmail.com" value={draft.email} onChange={event => update(index, 'email', event.target.value)} /></label><TemporaryPasswordField value={draft.password} userNumber={index + 1} onChange={value => update(index, 'password', value)} /><label>Date of birth *<input required type="date" max={adultDate()} value={draft.birthDate} onChange={event => update(index, 'birthDate', event.target.value)} /></label><label>Gender *<div className="ag-select"><select value={draft.gender} onChange={event => update(index, 'gender', event.target.value)}><option value="female">Female</option><option value="male">Male</option><option value="non-binary">Non-binary</option><option value="prefer-not">Prefer not to say</option></select><ChevronDown size={16} /></div></label><label>City *<input required minLength={2} maxLength={150} placeholder="e.g. Mumbai" value={draft.city} onChange={event => update(index, 'city', event.target.value)} /></label><label>Phone <span className="ag-optional">optional</span><input type="tel" maxLength={30} placeholder="+91" value={draft.phone} onChange={event => update(index, 'phone', event.target.value)} /></label><label>Profession <span className="ag-optional">optional</span><input maxLength={150} placeholder="What do they do?" value={draft.profession} onChange={event => update(index, 'profession', event.target.value)} /></label><label className="ag-full-width">About them <span className="ag-optional">optional</span><textarea maxLength={500} rows={2} placeholder="A little about their interests and personality…" value={draft.bio} onChange={event => update(index, 'bio', event.target.value)} /></label></div>
@@ -160,7 +180,7 @@ export function AgentDashboard() {
       </section>}
       <footer className="ag-workspace-footer">ConnectLove Agent Workspace <span>Made for meaningful connections.</span></footer></div>
     </main>
-    {selected && <UserDetails user={selected} onClose={() => setSelected(null)} onSaved={user => { setSelected(user); setRefresh(value => value + 1); }} onRemoved={() => { setSelected(null); setRefresh(value => value + 1); setMessage('User permanently deleted.'); }} />}
+    {selected && <UserDetails key={selected.id} user={selected} onClose={() => { detailsRequest.current++; setSelected(null); }} onSaved={user => { setSelected(user); setRefresh(value => value + 1); }} onRemoved={() => { setSelected(null); setRefresh(value => value + 1); setMessage('User permanently deleted.'); }} />}
   </div>;
 }
 function TemporaryPasswordField({ value, onChange, userNumber }: { value: string; onChange: (value: string) => void; userNumber: number }) {

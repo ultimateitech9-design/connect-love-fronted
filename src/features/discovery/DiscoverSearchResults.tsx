@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, BadgeCheck, Loader2, Search } from 'lucide-react';
 import { ProfileCard } from '@/features/user/ProfileCard';
-import { clearDiscoverySearchCache, getDiscoverySearchThumbnail, getDiscoveryProfileDetails, searchDiscoveryProfiles, swipeProfile, type DiscoveryFilters } from './api';
+import { clearDiscoverySearchCache, getDiscoverySearchThumbnail, getDiscoveryProfileDetails, recordProfileDetailView, searchDiscoveryProfiles, swipeProfile, type DiscoveryFilters } from './api';
 import { getToken } from '@/lib/auth';
 import { toast } from 'sonner';
 
@@ -78,6 +78,7 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
   }, [key, pending]);
 
   const open = async (profile: any) => {
+    void recordProfileDetailView(profile.id).catch(() => {});
     const cached = thumbnails.get((getToken() || '') + ':' + profile.id);
     setSelected({ ...profile, photo: profile.photo || cached?.photo || null });
     const run = generation.current;

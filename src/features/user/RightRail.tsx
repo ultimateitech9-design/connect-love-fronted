@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Crown, Sparkles, Zap } from "lucide-react";
 import { BoostDialog } from "@/features/boost/BoostDialog";
 import { getToken } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -13,6 +13,8 @@ import { calculateProfileCompletion } from "@/lib/profileCompletion";
 import { matchFriends, onlineMatchFriends } from './matchFriends';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import boostStyles from './BoostButton.module.css';
+import upgradeStyles from './UpgradeButton.module.css';
+import { ProfileVisitors } from './ProfileVisitors';
 
 export function RightRail() {
   const [boostOpen, setBoostOpen] = useState(false);
@@ -44,7 +46,7 @@ export function RightRail() {
   }, [currentUser]);
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-1.5">
       {/* Profile Completion */}
       <div className="rounded-2xl bg-card p-5 shadow-lg border-border border">
         <div className="flex items-center gap-3">
@@ -88,7 +90,7 @@ export function RightRail() {
             See all
           </Link>
         </div>
-        <ul aria-label="Recent matches" tabIndex={0} className="mt-4 max-h-[284px] space-y-4 overflow-y-auto overscroll-contain pr-2 [scrollbar-width:thin]">
+        <ul aria-label="Recent matches" tabIndex={0} className="mt-4 max-h-[164px] space-y-4 overflow-y-auto overscroll-contain pr-2 [scrollbar-width:thin]">
           {recentMatches.length > 0 ? recentMatches.map((m) => (
             <li key={m.id} className="flex h-11 items-center gap-3">
               <div className="relative">
@@ -116,6 +118,8 @@ export function RightRail() {
           )}
         </ul>
       </div>
+
+      <ProfileVisitors userId={viewerId} />
 
       {onlineFriends.length > 0 && <section aria-label="Online friends" className="overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -145,7 +149,7 @@ export function RightRail() {
 
         {/* Keep plan options accessible for free and paid members alike. */}
         <div
-          className="mt-6 rounded-xl p-4 text-center"
+          className="rounded-xl p-4 text-center"
           style={{
             background: "linear-gradient(135deg, #fff0f3, #fce7f3)",
             border: "1px solid rgba(236,72,153,0.25)",
@@ -156,8 +160,12 @@ export function RightRail() {
           <p className="mt-1 text-xs text-rose-700/90 dark:text-rose-300/90 mb-3">
             See who liked you and get more matches.
           </p>
-          <Link href="/user/premium" className="flex h-9 w-full items-center justify-center rounded-lg text-xs font-semibold text-white transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500" style={{ background: "linear-gradient(135deg,#f43f5e,#ec4899)" }}>
-            Upgrade Now
+          <Link href="/user/premium" className={upgradeStyles.button + " focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"}>
+            <span className={upgradeStyles.surface}>
+              <span className={upgradeStyles.crown} aria-hidden="true"><Crown size={17} strokeWidth={2} /></span>
+              <span className={upgradeStyles.label}>Upgrade Now</span>
+              <ArrowRight size={17} className={upgradeStyles.arrow} aria-hidden="true" />
+            </span>
           </Link>
         </div>
     </div>
