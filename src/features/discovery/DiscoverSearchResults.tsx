@@ -57,6 +57,10 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
     } catch { /* The result already includes the primary card photo. */ }
   };
   const act = async (id: string, action: string) => {
+    if (selected?.relationshipStatus === 'MATCHED') {
+      toast.info('You are already matched. Use Message to open your conversation.');
+      return false;
+    }
     if (actingRef.current) return false;
     const run = generation.current;
     actingRef.current = true; setActing(true);
@@ -74,6 +78,7 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
   };
   if (selected && !pending) return <div className="w-full min-w-0">
     <button type="button" disabled={acting} onClick={() => setSelected(null)} className="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-rose-500"><ArrowLeft size={16} />Back to search results</button>
+    {selected.relationshipStatus === 'MATCHED' && <div className="mb-3 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"><span>Already matched</span><a className="font-bold underline" href={'/user/messages?id=' + encodeURIComponent(selected.relationshipId)}>Message</a></div>}
     <ProfileCard key={selected.id} profiles={[selected]} onAction={act} onUndo={() => {}} canUndo={false} canUsePremiumActions={canUsePremiumActions} onPremiumActionLocked={() => onUpgrade('Upgrade your plan to use this feature.')} />
   </div>;
   return <section aria-label="Profile search results" aria-busy={loading || pending} className="w-full min-w-0 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
