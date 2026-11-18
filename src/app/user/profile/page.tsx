@@ -20,6 +20,7 @@ import { cacheAvatarUrl } from "@/lib/avatarCache";
 import { calculateProfileCompletion, PROFILE_COMPLETION_FIELDS, type ProfileCompletionField } from "@/lib/profileCompletion";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import { hasActivePaidPlan } from "@/lib/subscription";
+import { MembershipBadge } from "@/features/user/MembershipBadge";
 
 const RELATIONSHIP_GOALS = ["Long-term", "Casual", "Friendships", "Not sure yet"] as const;
 const PERSONALITY_SUGGESTIONS = ["Adventurous", "Ambitious", "Calm", "Caring", "Confident", "Creative", "Funny", "Honest", "Introverted", "Kind", "Loyal", "Romantic", "Witty"];
@@ -377,9 +378,7 @@ export default function ProfilePage() {
             <BadgeCheck className="h-5 w-5 shrink-0 fill-blue-500 text-white sm:h-6 sm:w-6" aria-label={planName + " plan member"} />
           )}
         </div>
-        <p className="text-sm text-slate-500 capitalize mt-1 font-medium">
-          {String(profile.plan || "free").toLowerCase() === "platinum" || String(profile.plan || "").toLowerCase() === "diamond" ? "Diamond Member" : String(profile.plan || "free").toLowerCase() === "gold" ? "Gold Member" : "Free Member"}
-        </p>
+        {hasPaidPlan ? <MembershipBadge plan={planName} /> : <p className="mt-1 text-sm font-medium text-slate-500">Free Member</p>}
       </div>
       <div className="flex w-full shrink-0 flex-col items-center gap-2 sm:w-auto sm:items-end">
         {profile.kycMatched && (
