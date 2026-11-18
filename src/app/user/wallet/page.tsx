@@ -8,6 +8,7 @@ import { API_ORIGIN } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { buyCoins } from "@/features/wallet/buyCoins";
+import { CouponField, couponPrice, type WalletCoupon } from "@/features/wallet/CouponField";
 
 type Summary = {
   videoRatePerMinute: number;
@@ -40,6 +41,7 @@ export default function WalletPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [buying, setBuying] = useState<number | null>(null);
+  const [coupon, setCoupon] = useState<WalletCoupon | null>(null);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
@@ -64,9 +66,10 @@ export default function WalletPage() {
     if (buying) return;
     setBuying(pack);
     try {
-      const added = await buyCoins(pack);
+      const added = await buyCoins(pack, `${pack} coins`, coupon?.code);
       if (added) {
         toast.success(`${added} coins added to your wallet.`);
+        setCoupon(null);
         await load();
       }
     } catch (reason) {
@@ -111,11 +114,15 @@ export default function WalletPage() {
         <p className="text-sm text-muted-foreground">
           Use coins for calls and gifts. Each plan shows the talk time it gives.
         </p>
+        <div className="mt-3"><CouponField coupon={coupon} onChange={setCoupon} /></div>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {packs.map((pack) => (
             <div key={pack} className={cn("relative flex flex-col rounded-2xl border p-4", pack === popular ? "border-rose-400 bg-rose-50/60 dark:bg-rose-500/10" : "border-border")}>
               {pack === popular && <span className="absolute -top-2.5 left-4 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Popular</span>}
-              <p className="text-2xl font-black text-foreground">₹{pack}</p>
+              <p className="text-2xl font-black text-foreground">
+                ₹{couponPrice(pack, coupon)}
+                {coupon && <span className="ml-2 text-base font-semibold text-muted-foreground line-through">₹{pack}</span>}
+              </p>
               <p className="text-sm font-semibold text-foreground">{pack} coins</p>
               <p className="mt-1 text-xs text-muted-foreground">~{Math.floor(pack / videoRate)} min video or ~{Math.floor(pack / audioRate)} min audio</p>
               <button type="button" disabled={buying !== null} onClick={() => void buy(pack)} className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60">

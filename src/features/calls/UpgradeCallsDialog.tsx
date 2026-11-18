@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { API_ORIGIN } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
 import { buyCoins } from "@/features/wallet/buyCoins";
+import { CouponField, couponPrice, type WalletCoupon } from "@/features/wallet/CouponField";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ const HEADINGS: Record<UpgradeReason, { title: string; text: (s: Summary | null)
 export function UpgradeCallsDialog({ reason, onClose }: { reason: UpgradeReason | null; onClose: () => void }) {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [buying, setBuying] = useState<number | null>(null);
+  const [coupon, setCoupon] = useState<WalletCoupon | null>(null);
 
   const loadSummary = useCallback(async () => {
     try {
@@ -59,9 +61,10 @@ export function UpgradeCallsDialog({ reason, onClose }: { reason: UpgradeReason 
     if (buying) return;
     setBuying(coins);
     try {
-      const added = await buyCoins(coins, `${coins} coins`);
+      const added = await buyCoins(coins, `${coins} coins`, coupon?.code);
       if (added) {
         toast.success(`${added} coins added. You can call now!`);
+        setCoupon(null);
         onClose();
       }
     } catch (error) {
@@ -106,7 +109,8 @@ export function UpgradeCallsDialog({ reason, onClose }: { reason: UpgradeReason 
           </>}
         </div>
 
-        <div className="mt-5 space-y-3">
+        <div className="mt-4"><CouponField coupon={coupon} onChange={setCoupon} /></div>
+        <div className="mt-3 space-y-3">
           {packs.map((coins) => (
             <button
               key={coins}
@@ -120,7 +124,8 @@ export function UpgradeCallsDialog({ reason, onClose }: { reason: UpgradeReason 
             >
               <span>
                 <span className="flex items-center gap-2 text-lg font-bold text-foreground">
-                  ₹{coins}
+                  ₹{couponPrice(coins, coupon)}
+                  {coupon && <span className="text-sm font-semibold text-muted-foreground line-through">₹{coins}</span>}
                   {coins === popular && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Popular</span>}
                 </span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">

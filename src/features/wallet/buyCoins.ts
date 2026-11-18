@@ -27,13 +27,13 @@ function loadCheckout(): Promise<boolean> {
  * Buys a coin pack through the Razorpay wallet recharge (1 coin = ₹1).
  * Resolves with the coins added, or null if the user closed the checkout.
  */
-export async function buyCoins(coins: number, description = `${coins} coins`): Promise<number | null> {
+export async function buyCoins(coins: number, description = `${coins} coins`, couponCode?: string): Promise<number | null> {
   const token = getToken();
   if (!(await loadCheckout())) throw new Error("Payment checkout could not be loaded.");
   const orderResponse = await fetch(`${API_ORIGIN}/wallet/razorpay/order`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ coins }),
+    body: JSON.stringify({ coins, ...(couponCode ? { couponCode } : {}) }),
   });
   const order = await orderResponse.json().catch(() => null);
   if (!orderResponse.ok) throw new Error(order?.message || "Payment could not be started.");
