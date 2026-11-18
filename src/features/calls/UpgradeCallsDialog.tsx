@@ -24,7 +24,7 @@ type Summary = {
 
 
 const HEADINGS: Record<UpgradeReason, { title: string; text: (s: Summary | null) => string }> = {
-  free_limit: { title: "Your free call time is over", text: () => "Buy coins to keep talking without a time limit." },
+  free_limit: { title: "Your call time is over", text: () => "Buy coins to keep talking without a time limit." },
   coins_exhausted: { title: "You're out of coins", text: () => "Your call ended because your coins ran out. Add coins to call again." },
   free_used: {
     title: "Free calls used up",

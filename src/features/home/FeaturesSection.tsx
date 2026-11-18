@@ -38,7 +38,7 @@ const plans = [
     period: "1 Month",
     description: "1 Month",
     tier: "gold",
-    features: ["20 Likes Per Day", "Unlimited Messages", "10 Matches", "Add 5 Images to Profile", "5 Video Calls (1 Hour Each)", "Share 10 Images", "Gold Verification Badge", "Profile Boost: 2 Times Per Month", "5 Super Likes", "2 Profile Rewinds", "5 First Impressions"],
+    features: ["20 Likes Per Day", "Unlimited Messages", "10 Matches", "Add 5 Images to Profile", "5 Audio Calls", "5 Video Calls", "Share 10 Images", "Gold Verification Badge", "Profile Boost: 2 Times Per Month", "5 Super Likes", "2 Profile Rewinds", "5 First Impressions"],
     popular: true,
   },
   {
@@ -47,7 +47,7 @@ const plans = [
     period: "1 Month",
     description: "1 Month",
     tier: "diamond",
-    features: ["40 Likes Per Day", "Unlimited Messages", "20 Matches", "Add 10 Images to Profile", "10 Video Calls", "Share 20 Images", "Verified Badge", "Profile Boost: 1 Time Per Week", "10 Super Likes", "5 Profile Rewinds", "10 First Impressions"],
+    features: ["40 Likes Per Day", "Unlimited Messages", "20 Matches", "Add 10 Images to Profile", "10 Audio Calls", "10 Video Calls", "Share 20 Images", "Verified Badge", "Profile Boost: 1 Time Per Week", "10 Super Likes", "5 Profile Rewinds", "10 First Impressions"],
     popular: false,
   },
 ];
