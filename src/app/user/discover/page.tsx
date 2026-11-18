@@ -488,6 +488,17 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
    setDismissedProfileIds(new Set());
    setLastSwipedProfile(null);
  };
+ // Filters apply as soon as they change (sliders settle for 400 ms first).
+ // Name search is separate and stays live as before.
+ const pendingFilterKey = JSON.stringify({ ...draftFilters, search: "" });
+ const appliedFilterKey = JSON.stringify({ ...filters, search: "" });
+ useEffect(() => {
+   if (!filtersReady || pendingFilterKey === appliedFilterKey) return;
+   const timer = window.setTimeout(() => applySelectedFilters(), 400);
+   return () => window.clearTimeout(timer);
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [pendingFilterKey, appliedFilterKey, filtersReady]);
+
  const resetSelectedFilters = () => {
    resetPreferences();
    setDismissedProfileIds(new Set());

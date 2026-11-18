@@ -72,7 +72,7 @@ function Chip({ selected, onClick, children }: { selected: boolean; onClick: () 
   );
 }
 
-export function FiltersPanel({ filters, onChange, onApply, onReset, locationBlocked = false }: FiltersPanelProps) {
+export function FiltersPanel({ filters, onChange, onReset, locationBlocked = false }: FiltersPanelProps) {
   const update = <K extends keyof DiscoverFilters>(key: K, value: DiscoverFilters[K]) => {
     onChange({ ...filters, [key]: value });
   };
@@ -192,13 +192,7 @@ export function FiltersPanel({ filters, onChange, onApply, onReset, locationBloc
         </section>
       </div>
 
-      <button
-        type="button"
-        onClick={onApply}
-        className="mt-3 h-11 w-full rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-sm font-bold text-white shadow-sm transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
-      >
-        Show results
-      </button>
+      <p className="mt-2 text-center text-[10px] text-muted-foreground">Results update as you change filters.</p>
     </aside>
   );
 }
