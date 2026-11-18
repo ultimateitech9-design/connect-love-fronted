@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { matchesApi, type MatchFilter } from '@/features/matches/api';
+import { clearCachedPresence } from '@/features/user/matchFriends';
 
 const MATCH_CACHE_DB = 'connect-love-offline';
 const MATCH_CACHE_STORE = 'matches';
@@ -27,7 +28,7 @@ async function readCachedMatches(userId: string, filter: MatchFilter, scope: str
  if (!db) return [];
  return new Promise((resolve) => {
   const request = db.transaction(MATCH_CACHE_STORE, 'readonly').objectStore(MATCH_CACHE_STORE).get(matchesCacheKey(userId, filter, scope));
-  request.onsuccess = () => resolve(Array.isArray(request.result) ? request.result : []);
+  request.onsuccess = () => resolve(Array.isArray(request.result) ? clearCachedPresence(request.result) : []);
   request.onerror = () => resolve([]);
  });
 }

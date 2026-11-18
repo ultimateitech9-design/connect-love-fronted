@@ -1,7 +1,5 @@
 "use client";
-import { API_ORIGIN } from "@/config/runtime";
-
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -14,18 +12,30 @@ import { useMatches } from "@/hooks/useMatches";
 import { getCachedAvatarUrl } from "@/lib/avatarCache";
 import { calculateProfileCompletion } from "@/lib/profileCompletion";
 import { hasActivePaidPlan } from "@/lib/subscription";
-
-const API = API_ORIGIN;
-type DBMatch = { id: string; senderId: string; receiverId: string; status: string };
+import { matchFriends, onlineMatchFriends } from './matchFriends';
+import { skipToken, useQuery } from '@tanstack/react-query';
+import boostStyles from './BoostButton.module.css';
 
 export function RightRail() {
   const [boostOpen, setBoostOpen] = useState(false);
   const [completion, setCompletion] = useState(85);
   const [avatarUrl, setAvatarUrl] = useState("https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop");
-  const [recentMatches, setRecentMatches] = useState<any[]>([]);
   const token = getToken() || "";
+  let viewerId = '';
+  try { const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); viewerId = String(payload.sub || payload.userId || ''); } catch {}
+  const { data: onlineIds = [] } = useQuery<string[]>({
+    // Presence is pushed by GlobalPresence; this observer must never fetch.
+    queryKey: ['online-friends', viewerId], queryFn: skipToken, enabled: false, initialData: [],
+  });
   const { data: currentUser, isLoading: currentUserLoading } = useCurrentUser(token);
-  const { matches: activeMatches } = useMatches(token, "active", { limit: 9 });
+  const { matches: activeMatches } = useMatches(token, "active", { all: true });
+  const recentMatches = useMemo(() => {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return matchFriends(activeMatches, String(payload.sub || payload.userId || ''));
+    } catch { return []; }
+  }, [activeMatches, token]);
+  const onlineFriends = onlineMatchFriends(recentMatches, onlineIds);
 
   useEffect(() => {
     if (currentUser) {
@@ -34,36 +44,6 @@ export function RightRail() {
       if (latestPhoto) setAvatarUrl(latestPhoto);
     }
   }, [currentUser]);
-
-  useEffect(() => {
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const myId = payload.userId || payload.sub;
-            const displayMatches = Array.from(new Map(activeMatches.filter((m: any) => !m.locked).map((m: any) => {
-              const targetId = m.senderId === myId ? m.receiverId : m.senderId;
-              return [m.id, { ...m, targetId }];
-            })).values()).map((m: any) => {
-              const realProfile = m.senderId === myId ? m.receiver : m.sender;
-              const profile = realProfile ? {
-                  name: realProfile.name || "Unknown",
-                  photo: (realProfile.photos && realProfile.photos.length > 0) ? realProfile.photos[0] : (realProfile.avatarUrl || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop")
-                } : {};
-              return {
-                id: m.id,
-                name: profile.name || "Unknown",
-                photo: profile.photo || "",
-              };
-            }).filter((match: any) => match.name && match.name !== "Unknown" && match.name !== "Someone");
-            // Newest matches first, including older matches when there are no new ones.
-            setRecentMatches(displayMatches.slice(0, 9));
-      } catch {
-        setRecentMatches([]);
-      }
-    } else {
-      setRecentMatches([]);
-    }
-  }, [activeMatches, token]);
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -88,11 +68,11 @@ export function RightRail() {
           <button
             type="button"
             onClick={() => setBoostOpen(true)}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-amber-300 bg-card text-amber-500 shadow-md transition hover:scale-105"
+            className={boostStyles.button + " grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-amber-300 bg-card text-amber-500 shadow-md transition hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-500"}
             aria-label="Boost your profile"
             title="Boost your profile"
           >
-            <Zap className="h-5 w-5" strokeWidth={2.5} fill="currentColor" />
+            <Zap className={boostStyles.icon + " h-5 w-5"} strokeWidth={2.5} fill="currentColor" />
           </button>
         </div>
         <Progress value={completion} className="mt-4 h-[8px]" />
@@ -100,7 +80,7 @@ export function RightRail() {
       <BoostDialog open={boostOpen} onClose={() => setBoostOpen(false)} />
 
       {/* Recent Matches */}
-      <div className="flex-1 rounded-2xl bg-card p-5 shadow-lg flex flex-col border-border border">
+      <div className="rounded-2xl bg-card p-5 shadow-lg flex flex-col border-border border">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-foreground">Recent Matches</h3>
           <Link
@@ -110,9 +90,9 @@ export function RightRail() {
             See all
           </Link>
         </div>
-        <ul className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
-          {recentMatches.length > 0 ? recentMatches.slice(0, 9).map((m) => (
-            <li key={m.id} className="flex items-center gap-3">
+        <ul aria-label="Recent matches" tabIndex={0} className="mt-4 max-h-[284px] space-y-4 overflow-y-auto overscroll-contain pr-2 [scrollbar-width:thin]">
+          {recentMatches.length > 0 ? recentMatches.map((m) => (
+            <li key={m.id} className="flex h-11 items-center gap-3">
               <div className="relative">
                 <Avatar className="h-[44px] w-[44px]" style={{ border: "2px solid rgba(236,72,153,0.2)" }}>
                   <AvatarImage src={m.photo} alt={`${m.name} profile photo`} />
@@ -137,6 +117,33 @@ export function RightRail() {
             <p className="text-sm text-muted-foreground mt-2">No recent matches yet.</p>
           )}
         </ul>
+      </div>
+
+      {onlineFriends.length > 0 && <section aria-label="Online friends" className="overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <div><h3 className="flex items-center gap-2 text-base font-semibold text-foreground"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-500 motion-safe:animate-pulse" />Online friends</h3><p className="mt-0.5 text-xs text-muted-foreground">Your friends online right now</p></div>
+          <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-600">{onlineFriends.length}</span>
+        </div>
+        <ul className="grid grid-cols-3 gap-x-3 gap-y-5 p-4">
+          {onlineFriends.slice(0, 6).map(friend => <li key={friend.userId} className="min-w-0">
+            <Link href={'/user/messages?id=' + friend.id} title={'Message ' + friend.name} className="group flex flex-col items-center gap-2 rounded-xl p-1 text-center transition hover:bg-emerald-500/5 focus-visible:outline-2 focus-visible:outline-emerald-500">
+              <span className="relative">
+                <Avatar className="h-14 w-14 border-2 border-emerald-200 transition group-hover:border-emerald-400">
+                  <AvatarImage src={friend.photo} alt="" />
+                  <AvatarFallback className="bg-rose-500/10 text-sm font-bold text-rose-500">{friend.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-card bg-emerald-500"><span className="sr-only">Online</span></span>
+              </span>
+              <span className="w-full truncate text-xs font-semibold text-foreground">{friend.name}</span>
+            </Link>
+          </li>)}
+        </ul>
+        <div className="flex justify-end border-t border-border px-4 py-3">
+          <Link href="/user/messages" className="inline-flex min-h-8 items-center justify-center rounded-md bg-gradient-to-r from-rose-500 to-pink-600 px-3 py-1.5 text-[10px] font-semibold text-white shadow-sm transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500">
+            View people online
+          </Link>
+        </div>
+      </section>}
 
         {/* Upgrade Ad: only members without an active paid plan see this. */}
         {!currentUserLoading && !hasActivePaidPlan(currentUser) && <div
@@ -160,7 +167,6 @@ export function RightRail() {
             </Button>
           </Link>
         </div>}
-      </div>
     </div>
   );
 }

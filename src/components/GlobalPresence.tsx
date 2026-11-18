@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { getToken } from "@/lib/auth";
+import { clearCachedPresence } from "@/features/user/matchFriends";
 
 const SOCKET_URL = SOCKET_ORIGIN;
 
@@ -31,6 +32,7 @@ export function GlobalPresence() {
 
   useEffect(() => {
     let socket: ReturnType<typeof io> | null = null;
+    let stopOnlineUpdates = () => {};
     const start = () => {
     const token = getToken();
     if (!token) return;
@@ -47,9 +49,46 @@ export function GlobalPresence() {
       auth: { token },
       query: { userId, token },
     });
+    const liveSocket = socket;
+    const onlineKey = ['online-friends', userId];
+    let sequence = 0;
+    const clearOnline = () => {
+      sequence++;
+      queryClient.setQueryData(onlineKey, []);
+    };
+    const refreshOnline = () => {
+      if (!liveSocket.connected || getToken() !== token || !navigator.onLine) { clearOnline(); return; }
+      const requested = ++sequence;
+      liveSocket.timeout(5000).emit('onlineFriendsSnapshot', (error: Error | null, snapshot: { userIds?: string[] } | undefined) => {
+        if (requested !== sequence || !liveSocket.connected || getToken() !== token) return;
+        queryClient.setQueryData(onlineKey, !error && Array.isArray(snapshot?.userIds) ? snapshot.userIds.filter(id => typeof id === 'string') : []);
+      });
+    };
+    const authChanged = () => {
+      if (getToken() !== token) { clearOnline(); liveSocket.disconnect(); }
+    };
+    clearOnline();
+    liveSocket.on('presenceReady', refreshOnline);
+    const timer = window.setInterval(refreshOnline, 10000);
+    window.addEventListener('focus', refreshOnline);
+    window.addEventListener('online', refreshOnline);
+    window.addEventListener('offline', clearOnline);
+    window.addEventListener('connect-love-auth-change', authChanged);
+    stopOnlineUpdates = () => {
+      window.clearInterval(timer); clearOnline();
+      window.removeEventListener('focus', refreshOnline);
+      window.removeEventListener('online', refreshOnline);
+      window.removeEventListener('offline', clearOnline);
+      window.removeEventListener('connect-love-auth-change', authChanged);
+    };
 
     socket.on("connect", () => {
       queryClient.invalidateQueries({ queryKey: ["matches"] });
+      refreshOnline();
+    });
+    socket.on("disconnect", () => {
+      clearOnline();
+      queryClient.setQueriesData({ queryKey: ["matches"] }, (matches: any) => Array.isArray(matches) ? clearCachedPresence(matches) : matches);
     });
 
     socket.on("receiveMessage", (message: IncomingMessage) => {
@@ -74,6 +113,9 @@ export function GlobalPresence() {
     });
 
     socket.on("USER_STATUS_CHANGED", (payload: { userId: string; isOnline: boolean; lastSeen?: string }) => {
+      // Immediately remove offline users, then reconcile the full live set.
+      if (!payload.isOnline) queryClient.setQueryData<string[]>(onlineKey, ids => (ids || []).filter(id => id !== payload.userId));
+      refreshOnline();
       queryClient.setQueriesData({ queryKey: ["matches"] }, (oldMatches: any) => {
         if (!oldMatches) return oldMatches;
         return oldMatches.map((match: any) => {
@@ -91,6 +133,7 @@ export function GlobalPresence() {
     start();
 
     return () => {
+      stopOnlineUpdates();
       socket?.disconnect();
     };
   }, [queryClient]);
