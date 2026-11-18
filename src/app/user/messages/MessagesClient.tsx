@@ -22,6 +22,7 @@ import {
 import { useMatches } from "@/hooks/useMatches";
 import { useChatWebSocket } from "@/hooks/useChatWebSocket";
 import { useCall } from "@/features/calls/CallProvider";
+import { PresenceDot, useOnlineIds } from "@/features/presence/presence";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MESSAGE_REACTIONS, reportMessage } from "@/features/messages/messageActionsApi";
@@ -2339,6 +2340,8 @@ export default function Messages() {
    .filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
    .sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
 
+ const chatOnlineIds = useOnlineIds(displayMatches.map((m) => m.userId));
+ const isChatOnline = (userId: unknown) => chatOnlineIds.has(String(userId));
  const active = displayMatches.find((m) => m.id === activeId);
  const activeFirstImpression = firstImpressions.find((item) => item.id === activeFirstImpressionId) || null;
 
@@ -2403,7 +2406,7 @@ export default function Messages() {
      ? "Recording Audio..."
      : isTyping
        ? "Typing..."
-       : active?.online
+       : isChatOnline(active?.userId)
          ? "Online now"
          : (active?.lastSeen ? `Last seen at ${new Date(active.lastSeen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Offline");
 
@@ -3099,7 +3102,7 @@ export default function Messages() {
  <AvatarImage src={m.photo} />
  <AvatarFallback>{m.name[0]}</AvatarFallback>
  </Avatar>
- {m.online && <span className="absolute bottom-0 right-0 h-[12px] w-[12px] rounded-full border-2 border-card bg-emerald-500" />}
+ {!m.isBlocked && <PresenceDot online={isChatOnline(m.userId)} className="h-[12px] w-[12px]" />}
  </div>
  <div className="min-w-[0px] flex-1">
  <div className="flex items-center justify-between">
@@ -3192,10 +3195,13 @@ export default function Messages() {
  aria-label={`View ${active.name}'s profile`}
  title="View profile"
  >
+ <span className="relative shrink-0">
  <Avatar className="h-[40px] w-[40px] transition-transform group-hover:scale-105">
  <AvatarImage src={active.photo} />
  <AvatarFallback>{active.name[0]}</AvatarFallback>
  </Avatar>
+ {!active.isBlocked && <PresenceDot online={isChatOnline(active.userId)} className="h-[11px] w-[11px]" />}
+ </span>
  <div className="min-w-0">
  <p className="truncate text-sm font-semibold text-[var(--chat-text)] group-hover:text-rose-500">{active.name}, {active.age}</p>
  <p className={cn("truncate text-xs", (isTyping || isRecording) ? "font-semibold text-rose-500" : "text-[var(--chat-text-muted)]")}>{activePresenceText}</p>

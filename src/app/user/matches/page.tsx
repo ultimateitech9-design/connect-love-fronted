@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, Ban, Clock, RefreshCw, Sparkles, Star, Trash2, UserCheck, LockKeyhole, Send, LoaderCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner"; 
+import { PresenceDot, useOnlineIds } from "@/features/presence/presence";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -76,6 +77,14 @@ export default function MatchesDashboard() {
    }
  }, []);
 
+ // Green/red presence dots for everyone shown on this page (blocked excluded).
+ const onlineIds = useOnlineIds(
+   myId
+     ? [...activeMatches, ...receivedLikes, ...sentLikes].map((m) => (m.senderId === myId ? m.receiverId : m.senderId))
+       .concat(firstImpressions.map((item: any) => item.sender?.id))
+     : [],
+ );
+
  const getProfile = (m: any) => {
    if (!myId) return null;
    const targetId = m.senderId === myId ? m.receiverId : m.senderId;
@@ -86,7 +95,7 @@ export default function MatchesDashboard() {
      name: realProfile.name || "Unknown",
      age: realProfile.age || 25,
      photo: (realProfile.photos && realProfile.photos.length > 0) ? realProfile.photos[0] : (realProfile.avatarUrl || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop"),
-      online: !!realProfile.isOnline
+      online: onlineIds.has(String(targetId))
    };
  };
 
@@ -470,6 +479,7 @@ export default function MatchesDashboard() {
                <div className="flex items-center gap-3">
                  <div className="relative">
                    <Avatar className="h-12 w-12"><AvatarImage src={item.sender.photo || undefined} /><AvatarFallback className="bg-blue-50 text-blue-500">?</AvatarFallback></Avatar>
+                   {!item.locked && item.sender?.id && <PresenceDot online={onlineIds.has(String(item.sender.id))} className="bottom-auto top-0" />}
                    <span className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-blue-500 text-white ring-2 ring-white"><Send className="h-2.5 w-2.5 -rotate-12" /></span>
                  </div>
                  <div className="min-w-0 flex-1">
@@ -513,7 +523,7 @@ export default function MatchesDashboard() {
                        <AvatarImage src={profile.photo} />
                        <AvatarFallback>{profile.name[0]}</AvatarFallback>
                      </Avatar>
-                     {profile.online && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />}
+                     <PresenceDot online={profile.online} />
                    </div>
                    <div>
                      <p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age}</p>
@@ -550,7 +560,7 @@ export default function MatchesDashboard() {
            return <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} className={cn("relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition-all", isSuper ? "border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" : "border border-slate-100 border-l-4 border-l-[color:var(--brand)]")}>
              {isSuper && <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-blue-50/50 to-transparent" />}
              {m.locked && <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/75 p-5 text-center backdrop-blur-md"><LockKeyhole className="h-6 w-6 text-rose-500" /><p className="mt-2 text-sm font-bold text-slate-900">Like Locked</p><p className="mt-1 text-xs text-slate-500">Activate a plan to view and match.</p><Button asChild className="mt-3 h-8 rounded-full bg-[color:var(--brand)] px-4 text-white"><Link href="/user/premium">View Plans</Link></Button></div>}
-             <div className={cn("relative z-10 flex items-center gap-3", m.locked && "select-none blur-md")}><Avatar className={cn("h-12 w-12", isSuper && "ring-2 ring-blue-300 ring-offset-2")}><AvatarImage src={profile.photo} /><AvatarFallback>{profile.name[0]}</AvatarFallback></Avatar><div><p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age} {isSuper && <Star className="mb-0.5 ml-1 inline-block h-4 w-4 fill-blue-500 text-blue-500" />}</p><p className={cn("text-xs font-medium", isSuper ? "text-blue-500" : "text-[color:var(--brand)]")}>{isSuper ? "Super Liked you!" : "Liked you!"}</p></div></div>
+             <div className={cn("relative z-10 flex items-center gap-3", m.locked && "select-none blur-md")}><span className="relative shrink-0"><Avatar className={cn("h-12 w-12", isSuper && "ring-2 ring-blue-300 ring-offset-2")}><AvatarImage src={profile.photo} /><AvatarFallback>{profile.name[0]}</AvatarFallback></Avatar>{!m.locked && <PresenceDot online={profile.online} />}</span><div><p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age} {isSuper && <Star className="mb-0.5 ml-1 inline-block h-4 w-4 fill-blue-500 text-blue-500" />}</p><p className={cn("text-xs font-medium", isSuper ? "text-blue-500" : "text-[color:var(--brand)]")}>{isSuper ? "Super Liked you!" : "Liked you!"}</p></div></div>
              <p className={cn("relative z-10 mt-4 line-clamp-2 text-sm text-slate-500", m.locked && "select-none blur-md")}>{m.locked ? "Someone liked your profile" : profile.bio}</p>
              <div className="relative z-10 mt-5 flex gap-2"><Button disabled={acceptingRequestId !== null || m.locked} className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600" : "bg-[color:var(--brand)]")} onClick={() => handleAcceptMatch(m, profile.name)}>{acceptingRequestId === m.id ? "Matching..." : "Match"}</Button><Button disabled={m.locked} variant="outline" className="rounded-full border-slate-200 text-slate-400 hover:text-red-500" onClick={() => handlePassMatch(m.id)}>Pass</Button></div>
            </motion.div>;
@@ -582,10 +592,13 @@ export default function MatchesDashboard() {
              return (
                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm transition-all">
                  <div className="flex items-center gap-3">
+                   <span className="relative shrink-0">
                    <Avatar className="h-12 w-12 grayscale-[20%]">
                      <AvatarImage src={profile.photo} />
                      <AvatarFallback>{profile.name[0]}</AvatarFallback>
                    </Avatar>
+                   {!m.locked && <PresenceDot online={profile.online} />}
+                   </span>
                    <div>
                      <p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age}</p>
                      <p className="text-xs text-slate-400">Liked recently</p>
@@ -623,10 +636,13 @@ export default function MatchesDashboard() {
                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-50/50 to-transparent pointer-events-none" />
                  )}
                  <div className={cn("relative z-10 flex items-center gap-3", m.locked && "pointer-events-none select-none blur-md")}>
+                   <span className="relative shrink-0">
                    <Avatar className={cn("h-12 w-12", isSuper && "ring-2 ring-blue-300 ring-offset-2")}>
                      <AvatarImage src={profile.photo} />
                      <AvatarFallback>{profile.name[0]}</AvatarFallback>
                    </Avatar>
+                   {!m.locked && <PresenceDot online={profile.online} />}
+                   </span>
                    <div>
                      <p className="text-base font-semibold text-slate-800">
                        {profile.name}, {profile.age} {isSuper && <Star className="inline-block w-4 h-4 ml-1 mb-0.5 text-blue-500 fill-blue-500" />}
@@ -664,10 +680,13 @@ export default function MatchesDashboard() {
                    <Star className="w-24 h-24 text-amber-500 fill-amber-500" />
                  </div>
                  <div className="relative z-10 flex items-center gap-3">
+                   <span className="relative shrink-0">
                    <Avatar className="h-12 w-12 ring-2 ring-amber-300 shadow-md">
                      <AvatarImage src={profile.photo} />
                      <AvatarFallback>{profile.name[0]}</AvatarFallback>
                    </Avatar>
+                   {!m.locked && <PresenceDot online={profile.online} />}
+                   </span>
                    <div>
                      <p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age}</p>
                      <p className="text-xs font-bold text-amber-500 flex items-center gap-1">

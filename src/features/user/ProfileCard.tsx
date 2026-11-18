@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, type PanInfo } from "framer-motion";
 import { BadgeCheck, ChevronLeft, ChevronRight, MapPin, X, Heart, Star, Loader2, RotateCcw, Send } from "lucide-react";
 import { DirectCallButtons } from "@/features/calls/DirectCallButtons";
+import { OnlineStatus } from "@/features/presence/presence";
 import { toast } from "sonner";
 import { getToken } from "@/lib/auth";
 import { formatDistance } from "@/lib/distance";
@@ -498,6 +499,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
                 {profile.name}{profile.age ? `, ${profile.age}` : ""}
               </h3>
               {profile.planBadge && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white drop-shadow-sm" aria-label="Paid plan badge" />}
+              <OnlineStatus userId={profile.id} className="rounded-full bg-black/40 px-2 py-0.5 text-[11px] text-white backdrop-blur-sm" />
             </div>
             <div className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
               {profile.showDistance !== false && profileDistanceLabel && (

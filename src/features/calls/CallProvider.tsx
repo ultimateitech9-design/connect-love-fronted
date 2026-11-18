@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { startCallSound } from "./ringtone";
+import { setPresenceFetcher } from "@/features/presence/presence";
 import { UpgradeCallsDialog, type UpgradeReason } from "./UpgradeCallsDialog";
 import { ReportCallDialog } from "./ReportCallDialog";
 import { useCallDevices } from "./useCallDevices";
@@ -431,6 +432,24 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const startCall = useCallback(({ conversationId, otherUser, callType }: StartCallOptions) => (
     beginCall("startVideoCall", { conversationId, receiverId: otherUser.id, callType }, { conversationId, otherUser, callType })
   ), [beginCall]);
+
+  // Online dots on profiles everywhere use this socket.
+  useEffect(() => {
+    if (!socket) return;
+    const fetcher = (ids: string[]) => new Promise<string[]>((resolve, reject) => {
+      if (!socket.connected) { reject(new Error("offline")); return; }
+      socket.timeout(5000).emit("presenceOf", { userIds: ids }, (error: Error | null, response?: { userIds?: string[] }) => {
+        if (error) reject(error);
+        else resolve(Array.isArray(response?.userIds) ? response.userIds.map(String) : []);
+      });
+    });
+    const enable = () => setPresenceFetcher(fetcher);
+    const disable = () => setPresenceFetcher(null);
+    if (socket.connected) enable();
+    socket.on("connect", enable);
+    socket.on("disconnect", disable);
+    return () => { socket.off("connect", enable); socket.off("disconnect", disable); disable(); };
+  }, [socket]);
 
   const callContactsOnline = useCallback(() => new Promise<string[]>((resolve) => {
     if (!socket?.connected) { resolve([]); return; }

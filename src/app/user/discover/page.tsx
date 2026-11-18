@@ -19,6 +19,7 @@ import { ConnectLoveChatbot } from "@/features/chatbot/ConnectLoveChatbot";
 import { apiFetch } from "@/config/runtime";
 import { recordDiscoveryProfileView } from "@/features/discovery/api";
 import { DirectCallButtons } from "@/features/calls/DirectCallButtons";
+import { OnlineStatus } from "@/features/presence/presence";
 import { DiscoverSearchResults } from "@/features/discovery/DiscoverSearchResults";
 
 const DISTANCE_STEP_KM = 100;
@@ -288,6 +289,7 @@ function MobileProfileCard({ profiles, onAction }: { profiles: any[]; onAction: 
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-4 text-white">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-2xl font-semibold leading-tight">{profile.name}{profile.age ? `, ${profile.age}` : ""}</h2>
+            <OnlineStatus userId={profile.id} className="rounded-full bg-black/40 px-2 py-0.5 text-[11px] text-white backdrop-blur-sm" />
             {profile.planBadge && <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white" aria-label="Paid plan badge" />}
           </div>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
@@ -407,6 +409,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
   }, [normalizedSearch]);
   const searchMode = Boolean(normalizedSearch);
   const locationSyncStarted = useRef(false);
+  const [locationBlocked, setLocationBlocked] = useState(false);
   const requestFilters = useMemo(
     // Render the first card quickly on mobile/slow networks. The discovery hook
     // continuously refills the queue after swipes, so a large initial payload
@@ -465,7 +468,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
           // Keep the last saved location when GPS or the API is temporarily unavailable.
         }
       },
-      () => {},
+      (error) => { if (error.code === error.PERMISSION_DENIED) setLocationBlocked(true); },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 },
     );
   }, [refreshProfiles, token]);
@@ -535,7 +538,7 @@ function applyFilters(profiles: any[], filters: DiscoverFilters, onlyShowVerifie
  ) : (
  <div className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(260px,320px)]">
  {loadSecondaryPanels ? (
- <FiltersPanel filters={draftFilters} onChange={changeFilters} onApply={applySelectedFilters} onReset={resetSelectedFilters} availableGoals={availableGoals} effectiveMaxDistance={draftFilters.maxDistance} />
+ <FiltersPanel filters={draftFilters} onChange={changeFilters} onApply={applySelectedFilters} onReset={resetSelectedFilters} availableGoals={availableGoals} effectiveMaxDistance={draftFilters.maxDistance} locationBlocked={locationBlocked} />
  ) : (
  <FiltersPanelShell />
  )}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { Eye, Loader2, LockKeyhole, MapPin, UserRound, X } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { AvatarPresence } from '@/features/presence/presence';
 import { directFetch } from '@/lib/api';
 
 type Visitor = { id: string; userId?: string; name?: string; photo: string | null; viewedAt: string };
@@ -58,6 +59,7 @@ export function ProfileVisitors({ userId }: { userId: string }) {
         <AvatarFallback className="bg-rose-50 text-rose-300">{locked ? <UserRound size={24} /> : visitor.name?.charAt(0)}</AvatarFallback>
       </Avatar>
       {locked && <span className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full border-2 border-card bg-rose-500 text-white"><LockKeyhole size={10} /></span>}
+      {!locked && visitor.userId && <AvatarPresence userId={visitor.userId} />}
     </span>
     <span className="block w-full truncate text-[10px] font-semibold text-foreground">{locked ? 'Hidden visitor' : visitor.name}</span>
   </>;

@@ -5,6 +5,7 @@ import { Coins, Loader2, Phone, PhoneIncoming, PhoneMissed, PhoneOutgoing, Video
 import { toast } from "sonner";
 import { API_ORIGIN } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
+import { PresenceDot, useOnlineIds } from "@/features/presence/presence";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useCall } from "@/features/calls/CallProvider";
@@ -61,25 +62,14 @@ function outcomeText(call: CallItem) {
 }
 
 export default function CallsPage() {
-  const { startCall, startDirectCall, callContactsOnline, ready, inCall } = useCall();
-  const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set());
-
-  // Green "Active" dot for people who are online now.
-  useEffect(() => {
-    if (!ready) return;
-    let cancelled = false;
-    const load = () => { void callContactsOnline().then((ids) => { if (!cancelled) setOnlineIds(new Set(ids)); }); };
-    load();
-    const timer = window.setInterval(load, 15_000);
-    window.addEventListener("focus", load);
-    return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener("focus", load); };
-  }, [callContactsOnline, ready]);
+  const { startCall, startDirectCall, ready, inCall } = useCall();
   const [filter, setFilter] = useState<Filter>("all");
   const [items, setItems] = useState<CallItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
+  const onlineIds = useOnlineIds(items.map((item) => item.otherUser?.id));
 
   const fetchPage = useCallback(async (selected: Filter, before?: string) => {
     const params = new URLSearchParams({ filter: selected });
@@ -190,7 +180,7 @@ export default function CallsPage() {
                       <AvatarImage src={call.otherUser?.photo || undefined} alt={call.otherUser?.name || "User"} />
                       <AvatarFallback>{call.otherUser?.name?.[0]?.toUpperCase() || "?"}</AvatarFallback>
                     </Avatar>
-                    {online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-card bg-emerald-500" aria-hidden="true" />}
+                    {call.otherUser && <PresenceDot online={online} />}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="flex min-w-0 items-center gap-2">

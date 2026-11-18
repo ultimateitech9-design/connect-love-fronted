@@ -6,6 +6,7 @@ import { ProfileCard } from '@/features/user/ProfileCard';
 import { clearDiscoverySearchCache, getDiscoverySearchThumbnail, getDiscoveryProfileDetails, recordProfileDetailView, searchDiscoveryProfiles, swipeProfile, type DiscoveryFilters } from './api';
 import { getToken } from '@/lib/auth';
 import { toast } from 'sonner';
+import { AvatarPresence } from '@/features/presence/presence';
 
 const thumbnails = new Map<string, { photo: string | null; at: number }>();
 function SearchPhoto({ profile }: { profile: any }) {
@@ -30,9 +31,9 @@ function SearchPhoto({ profile }: { profile: any }) {
     if (observer && ref.current) observer.observe(ref.current); else load();
     return () => { controller.abort(); observer?.disconnect(); };
   }, [profile.id, profile.photo, profile.hasPhoto]);
-  return <span ref={ref} className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-rose-500/10 font-bold text-rose-500">
+  return <span className="relative shrink-0"><span ref={ref} className="grid h-14 w-14 place-items-center overflow-hidden rounded-xl bg-rose-500/10 font-bold text-rose-500">
     {photo ? <img src={photo} alt="" className="h-full w-full object-cover" /> : profile.name?.charAt(0)}
-  </span>;
+  </span><AvatarPresence userId={profile.id} className="-bottom-0.5 -right-0.5" /></span>;
 }
 
 export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremiumActions }: {

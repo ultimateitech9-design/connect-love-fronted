@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarPresence } from "@/features/presence/presence";
 import { ArrowRight, Crown, Sparkles, Zap } from "lucide-react";
 import { BoostDialog } from "@/features/boost/BoostDialog";
 import { getToken } from "@/lib/auth";
@@ -103,6 +104,7 @@ export function RightRail() {
                     {m.name[0]}
                   </AvatarFallback>
                 </Avatar>
+                <AvatarPresence userId={m.userId} />
               </div>
               <div className="min-w-[0px] flex-1">
                 <p className="truncate text-sm font-semibold text-foreground">

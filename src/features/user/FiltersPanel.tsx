@@ -34,6 +34,8 @@ interface FiltersPanelProps {
   onReset: () => void;
   availableGoals?: string[];
   effectiveMaxDistance?: number;
+  /** The browser refused location: distance cannot be measured from here. */
+  locationBlocked?: boolean;
 }
 
 /** One filter: an icon, a name, the current value on the right, and its control below. */
@@ -70,7 +72,7 @@ function Chip({ selected, onClick, children }: { selected: boolean; onClick: () 
   );
 }
 
-export function FiltersPanel({ filters, onChange, onApply, onReset }: FiltersPanelProps) {
+export function FiltersPanel({ filters, onChange, onApply, onReset, locationBlocked = false }: FiltersPanelProps) {
   const update = <K extends keyof DiscoverFilters>(key: K, value: DiscoverFilters[K]) => {
     onChange({ ...filters, [key]: value });
   };
@@ -140,6 +142,11 @@ export function FiltersPanel({ filters, onChange, onApply, onReset }: FiltersPan
             <span>Nearby</span>
             <span>Anywhere</span>
           </div>
+          {locationBlocked && (
+            <p className="mt-1.5 rounded-lg bg-amber-50 px-2 py-1.5 text-[10px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+              Allow location access in your browser to filter by distance.
+            </p>
+          )}
         </Section>
 
         <Section icon={Users} title="Show me" value={showMeLabel}>
@@ -160,7 +167,7 @@ export function FiltersPanel({ filters, onChange, onApply, onReset }: FiltersPan
               </Chip>
             ))}
           </div>
-          <p className="mt-1.5 text-[10px] text-muted-foreground">Pick one or more. None selected shows everyone.</p>
+          <p className="mt-1.5 text-[10px] text-muted-foreground">Shows only people looking for these. None selected shows everyone.</p>
         </Section>
 
         <section className="border-t border-border/70 py-3.5">
@@ -169,7 +176,7 @@ export function FiltersPanel({ filters, onChange, onApply, onReset }: FiltersPan
               <span className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
                 <BadgeCheck className="h-4 w-4 text-rose-500" /> Verified profiles only
               </span>
-              <span className="mt-0.5 block pl-6 text-[10px] text-muted-foreground">Only people with a verified badge</span>
+              <span className="mt-0.5 block pl-6 text-[10px] text-muted-foreground">Only people who passed photo/ID (KYC) verification</span>
             </span>
             <button
               type="button"
