@@ -6,7 +6,7 @@ import { ArrowDownToLine, ArrowLeft, ArrowRight, Banknote, Check, ChevronDown, C
 import { BrandLogo } from '@/components/BrandLogo';
 import { AgentApiError, agentPayoutApi, agentRequest, agentToken, clearAgentToken, emptyDraft, type Agent, type AgentEarnings, type ManagedUser, type UserDraft, type UsersResult } from './api';
 import { WithdrawPanel } from '@/features/payouts/WithdrawPanel';
-import { CSV_EXPORT_FIELDS, downloadCsv, exportUserRow, parseUsersCsv, registeredUserExportRows } from './csv';
+import { CSV_EXPORT_FIELDS, downloadCsv, exportUserRow, fetchRegisteredUserExportRows, parseUsersCsv } from './csv';
 import { downloadUserWorkbook } from './userWorkbook';
 import { prepareAgentPhoto } from './photo';
 import { AgentUserDetails as UserDetails } from './AgentUserDetails';
@@ -121,7 +121,7 @@ export function AgentDashboard() {
     if (exporting) return;
     setExporting(true); setError(''); setMessage('');
     try {
-      const rows = await registeredUserExportRows(cursor => agentRequest('/users/export' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')));
+      const rows = await fetchRegisteredUserExportRows();
       await downloadUserWorkbook(rows);
       setMessage((rows.length - 1) + ' registered user details downloaded.');
     } catch (err) { fail(err); }

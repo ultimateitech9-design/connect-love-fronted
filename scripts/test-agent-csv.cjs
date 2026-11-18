@@ -6,7 +6,14 @@ const ts = require('typescript');
 const emptyDraft = () => ({ name: '', email: '', password: '', birthDate: '', gender: 'female', city: '', phone: '', profession: '', bio: '', photos: [] });
 const source = fs.readFileSync(path.join(__dirname, '../src/features/agents/csv.ts'), 'utf8');
 const output = {};
-vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText, { exports: output, require: () => ({ emptyDraft }) });
+class AgentApiError extends Error {
+  constructor(message, status) { super(message); this.status = status; }
+}
+let request;
+vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText, {
+  exports: output,
+  require: () => ({ emptyDraft, AgentApiError, agentRequest: path => request(path) }),
+});
 const { csvText, templateRows, parseUsersCsv, exportUserRow, selectedUserExportRows, CSV_EXPORT_FIELDS, CSV_TEMPLATE_FIELDS } = output;
 const draft = { ...emptyDraft(), name: 'रानी, "Test"', email: 'user@example.com', password: ' @Keep,Password" ', birthDate: '2001-01-02', city: 'Delhi', phone: '+919876543210', profession: 'Teacher', bio: 'About them\nSecond line', photos: ['data:image/jpeg;base64,AQID', 'data:image/png;base64,BAUG'] };
 const template = templateRows([draft]);
@@ -50,4 +57,26 @@ console.log('Passed: populated templates, all user details, five photo columns, 
   await assert.rejects(() => output.registeredUserExportRows(async () => ({ users: [], nextCursor: null })), /No registered users/);
   await assert.rejects(() => output.registeredUserExportRows(async () => ({ users: [user], nextCursor: 'repeated' })), /could not finish/);
   console.log('Passed: registered-user CSV contains actual data rows, exports every page and never downloads a headers-only user export.');
+
+  const callsToApi = [];
+  request = async path => {
+    callsToApi.push(path);
+    if (path === '/users/export') throw new AgentApiError('Validation failed (uuid is expected)', 400);
+    if (path === '/users?page=1&limit=5') return { users: [{ id: suraj.id }], pages: 2 };
+    if (path === '/users?page=2&limit=5') return { users: [{ id: user.id }], pages: 2 };
+    if (path === '/users/' + suraj.id) return { user: suraj };
+    if (path === '/users/' + user.id) return { user };
+    throw new Error('Unexpected request: ' + path);
+  };
+  const fallbackRows = await output.fetchRegisteredUserExportRows();
+  assert.equal(fallbackRows.length, 3);
+  assert.equal(fallbackRows[1][CSV_EXPORT_FIELDS.indexOf('accountId')], suraj.id);
+  assert.equal(fallbackRows[2][CSV_EXPORT_FIELDS.indexOf('accountId')], user.id);
+  assert.equal(callsToApi.length, 5);
+  request = async path => {
+    assert.equal(path, '/users/export');
+    throw new AgentApiError('Unauthorized', 401);
+  };
+  await assert.rejects(() => output.fetchRegisteredUserExportRows(), /Unauthorized/);
+  console.log('Passed: UUID route error falls back across all owned-user pages and auth errors still stop the export.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

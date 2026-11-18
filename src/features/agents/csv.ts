@@ -1,4 +1,4 @@
-import { emptyDraft, type UserDraft, type ManagedUser } from './api';
+import { AgentApiError, agentRequest, emptyDraft, type UserDraft, type ManagedUser, type UsersResult } from './api';
 
 export const CSV_FIELDS = ['name', 'email', 'password', 'birthDate', 'gender', 'city', 'phone', 'profession', 'bio'] as const;
 export const CSV_PHOTO_FIELDS = ['photo1', 'photo2', 'photo3', 'photo4', 'photo5'] as const;
@@ -37,6 +37,28 @@ export async function registeredUserExportRows(fetchPage: (cursor?: string) => P
   } while (cursor);
   if (!users.size) throw new Error('No registered users to download. Create an account first.');
   return [[...CSV_EXPORT_FIELDS], ...[...users.values()].map(user => exportUserRow(user))];
+}
+
+export async function fetchRegisteredUserExportRows() {
+  try {
+    return await registeredUserExportRows(cursor => agentRequest('/users/export' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '')));
+  } catch (error) {
+    // Older API deployments route "export" to the UUID-only user detail handler.
+    const missingRoute = error instanceof AgentApiError &&
+      (error.status === 404 || (error.status === 400 && /uuid is expected/i.test(error.message)));
+    if (!missingRoute) throw error;
+  }
+
+  return registeredUserExportRows(async cursor => {
+    const page = cursor ? Number(cursor) : 1;
+    const result = await agentRequest<UsersResult>('/users?page=' + page + '&limit=5');
+    const users = await Promise.all(result.users.map(async ({ id }) => {
+      const { user } = await agentRequest<{ user: ManagedUser }>('/users/' + encodeURIComponent(id));
+      if (user.id !== id) throw new Error('User details did not match the registered account.');
+      return user;
+    }));
+    return { users, nextCursor: page < result.pages ? String(page + 1) : null };
+  });
 }
 export function csvText(rows: string[][]) { return '\uFEFF' + rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n'); }
 export function downloadCsv(filename: string, rows: string[][]) {
