@@ -148,6 +148,8 @@ export const api = {
  deleteUser: (id: string) => apiFetch<{ success: boolean }>(`/users/${id}`, { method: "DELETE" }),
  userDetails: (id: string) => apiFetch<{ user: any }>(`/users/${id}`),
  updateUser: (id: string, body: Record<string, unknown>) => apiFetch<{ success: boolean; user: any; message?: string }>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+ removeUserPhoto: (id: string, photo: string) =>
+   apiFetch<{ photos: string[]; avatarUrl: string | null; isVerified: boolean }>(`/users/${encodeURIComponent(id)}/photos/remove`, { method: "POST", body: JSON.stringify({ photo }) }),
  updateVerification: (id: string, status: "approved" | "rejected" | "under_review" | "pending") => apiFetch(`/verification/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
  createNotification: (body: CampaignInput) => apiFetch<CampaignRecord>("/notifications", { method: "POST", body: JSON.stringify(body) }),
  updateNotification: (id: string, body: Partial<CampaignInput>) => apiFetch<CampaignRecord>(`/notifications/${id}`, { method: "PATCH", body: JSON.stringify(body) }),

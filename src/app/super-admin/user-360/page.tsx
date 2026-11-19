@@ -292,6 +292,9 @@ export default function User360Page() {
  setError("");
  setMessage("");
  try {
+ const photos = photosValue(form.photos);
+ const originalPhotos: string[] = details?.photos || [];
+ const photosChanged = photos.length !== originalPhotos.length || photos.some((photo, index) => photo !== originalPhotos[index]);
  const body = {
  name: form.name,
  email: form.email,
@@ -309,7 +312,7 @@ export default function User360Page() {
  interests: listValue(form.interests),
  hobbies: listValue(form.hobbies),
  personality: listValue(form.personality),
- photos: photosValue(form.photos),
+ ...(photosChanged ? { photos } : {}),
  };
  const res = await api.updateUser(selectedId, body);
  if (res.message && !res.success) setError(res.message);
@@ -345,6 +348,22 @@ export default function User360Page() {
  };
 
  const selectedPhotos = photosValue(form.photos);
+ const removePhoto = async (index: number) => {
+   const photo = selectedPhotos[index];
+   if (!selectedId || details?.id !== selectedId || !photo) return;
+
+   const savedPhotos: string[] = details.photos || [];
+   if (!savedPhotos.includes(photo)) {
+     setForm(current => ({ ...current, photos: selectedPhotos.filter((_, position) => position !== index).join("\n") }));
+     return;
+   }
+
+   const draftUploads = selectedPhotos.filter(source => !savedPhotos.includes(source));
+   const result = await api.removeUserPhoto(selectedId, photo);
+   setDetails((current: typeof details) => ({ ...current, ...result }));
+   setForm(current => ({ ...current, photos: [...result.photos, ...draftUploads].join("\n"), isVerified: current.isVerified && result.isVerified }));
+   setMessage("Photo removed from the user's profile.");
+ };
 
  return (
  <div className="space-y-6 pb-16">
@@ -482,7 +501,7 @@ export default function User360Page() {
  <aside className="space-y-6">
  <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
  <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-foreground"><Camera className="h-5 w-5 text-rose-500" /> Photos</h3>
- <ProfilePhotoManager key={selectedId} name={form.name} photos={selectedPhotos} disabled={saving} onBusyChange={busy => { dirtyRef.current = true; setPhotoBusy(busy); }} onChange={photos => { dirtyRef.current = true; setForm(current => ({ ...current, photos: photos.join("\n"), isVerified: (photos[0] || null) !== (selectedPhotos[0] || null) ? false : current.isVerified })); }} />
+ <ProfilePhotoManager key={selectedId} name={form.name} photos={selectedPhotos} disabled={saving || loadingDetails || details?.id !== selectedId} onRemove={removePhoto} onBusyChange={busy => { dirtyRef.current = true; setPhotoBusy(busy); }} onChange={photos => { dirtyRef.current = true; setForm(current => ({ ...current, photos: photos.join("\n"), isVerified: (photos[0] || null) !== (selectedPhotos[0] || null) ? false : current.isVerified })); }} />
  </div>
  <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
  <h3 className="mb-4 text-lg font-bold text-foreground">Profile Snapshot</h3>

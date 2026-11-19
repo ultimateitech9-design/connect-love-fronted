@@ -34,7 +34,7 @@ function mount(api, account = 'one', saved = new Map()) {
     },
     console: { warn() {} }, AbortController, atob, setTimeout: (fn, ms) => setTimeout(fn, Math.min(ms, 10)), clearTimeout,
     sessionStorage: { getItem: key => saved.get(key), setItem: (key, value) => saved.set(key, value), removeItem: key => saved.delete(key) },
-    window: { setTimeout, clearTimeout, location: {} },
+    window: { setTimeout, clearTimeout, location: {}, addEventListener() {}, removeEventListener() {} },
   };
   vm.runInNewContext(code, context);
   function render() { index = 0; effects = []; output = exports.useDiscovery(token(account), {}); const pending = effects; pending.forEach(effect => effect()); }

@@ -20,7 +20,7 @@ import { ProfileVisitors } from './ProfileVisitors';
 export function RightRail() {
   const [boostOpen, setBoostOpen] = useState(false);
   const [completion, setCompletion] = useState(85);
-  const [avatarUrl, setAvatarUrl] = useState("https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop");
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(() => getCachedAvatarUrl() || undefined);
   const token = getToken() || "";
   let viewerId = '';
   try { const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); viewerId = String(payload.sub || payload.userId || ''); } catch {}
@@ -41,8 +41,7 @@ export function RightRail() {
   useEffect(() => {
     if (currentUser) {
       setCompletion(calculateProfileCompletion(currentUser));
-      const latestPhoto = currentUser.photos?.[0] || currentUser.avatarUrl || getCachedAvatarUrl();
-      if (latestPhoto) setAvatarUrl(latestPhoto);
+      setAvatarUrl(currentUser.photos?.[0] || currentUser.avatarUrl || undefined);
     }
   }, [currentUser]);
 

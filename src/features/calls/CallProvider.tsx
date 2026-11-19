@@ -2,6 +2,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { clearDiscoveryQueueCache } from "@/hooks/useDiscovery";
+import { clearDiscoverySearchCache, discoverySearchThumbnails } from "@/features/discovery/api";
 import { io, type Socket } from "socket.io-client";
 import { Flag, FlipHorizontal2, Gift, Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
@@ -178,6 +181,7 @@ async function tuneSenders(peer: RTCPeerConnection) {
 }
 
 export function CallProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [socket, setSocket] = useState<Socket | null>(null);
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
   const [activeCall, setActiveCall] = useState<ActiveCall | null>(null);
@@ -255,6 +259,24 @@ export function CallProvider({ children }: { children: ReactNode }) {
     const userId = userIdFromToken(token);
     myUserIdRef.current = userId;
     const nextSocket = io(SOCKET_ORIGIN, { auth: { token }, query: { userId, token } });
+    const refreshProfilePhotos = () => {
+      clearDiscoveryQueueCache();
+      clearDiscoverySearchCache();
+      discoverySearchThumbnails.clear();
+      window.dispatchEvent(new Event("profilePhotosChanged"));
+      void queryClient.invalidateQueries({ queryKey: ["matches"] });
+      void queryClient.invalidateQueries({ queryKey: ["profile-visitors"] });
+    };
+    const refreshOwnProfilePhotos = () => {
+      window.dispatchEvent(new Event("ownProfilePhotosChanged"));
+      void queryClient.invalidateQueries({ queryKey: ["current-user"] });
+    };
+    nextSocket.on("profilePhotosChanged", refreshProfilePhotos);
+    nextSocket.on("ownProfilePhotosChanged", refreshOwnProfilePhotos);
+    nextSocket.io.on("reconnect", () => {
+      refreshProfilePhotos();
+      refreshOwnProfilePhotos();
+    });
     setSocket(nextSocket);
     return () => {
       const call = activeCallRef.current;

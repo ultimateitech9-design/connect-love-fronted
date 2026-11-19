@@ -6,6 +6,16 @@ import { toast } from 'sonner';
 const queueCache = new Map<string, { at: number; profiles: any[]; cursor?: string; more: boolean }>();
 const CACHE_TTL = 2 * 60_000;
 
+export function clearDiscoveryQueueCache() {
+  queueCache.clear();
+  try {
+    for (let index = sessionStorage.length - 1; index >= 0; index--) {
+      const cacheKey = sessionStorage.key(index);
+      if (cacheKey?.startsWith('cl:discover:queue:v1:')) sessionStorage.removeItem(cacheKey);
+    }
+  } catch {}
+}
+
 export function useDiscovery(token: string, filters: DiscoveryFilters = {}) {
   const key = JSON.stringify([token, filters.search, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance, filters.interests, filters.verifiedOnly]);
   let accountId = '';
@@ -25,6 +35,7 @@ export function useDiscovery(token: string, filters: DiscoveryFilters = {}) {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [photoRevision, setPhotoRevision] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [upgradePrompt, setUpgradePrompt] = useState<string | null>(null);
   const fresh = () => ({ cursor: undefined as string | undefined, more: true, pending: false, queue: [] as any[], hidden: new Set<string>(), swiping: new Set<string>(), failures: 0, legacy: false, cached: false, controller: undefined as AbortController | undefined });
@@ -66,7 +77,7 @@ export function useDiscovery(token: string, filters: DiscoveryFilters = {}) {
             limit: run.queue.length && !run.cached ? Math.min(12, 24 - run.queue.length) : 4,
           }, controller.signal);
         } finally { window.clearTimeout(timeout); }
-        if (state.current !== run) return;
+        if (state.current !== run || controller.signal.aborted) return;
         // Support rolling deployments where the API still returns an array.
         const items = Array.isArray(response) ? response : response?.items;
         if (!Array.isArray(items)) throw new Error('Invalid discovery response');
@@ -103,14 +114,28 @@ export function useDiscovery(token: string, filters: DiscoveryFilters = {}) {
   const refillRef = useRef(refill);
   refillRef.current = refill;
   useEffect(() => {
+    const refreshPhotos = () => {
+      state.current.controller?.abort();
+      setPhotoRevision(previous => previous + 1);
+    };
+    window.addEventListener('profilePhotosChanged', refreshPhotos);
+    return () => window.removeEventListener('profilePhotosChanged', refreshPhotos);
+  }, []);
+  useEffect(() => {
     const profile = profiles[0];
     if (!profile || (profile.photos?.length || 0) >= (profile.photoCount || 1)) return;
     const run = state.current;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       void getDiscoveryProfileDetails(profile.id, controller.signal).then(details => {
-        if (state.current !== run || !details?.photos?.length) return;
-        run.queue = run.queue.map(p => p.id === profile.id ? { ...p, photos: details.photos } : p);
+        if (state.current !== run || !Array.isArray(details?.photos)) return;
+        run.queue = run.queue.map(p => p.id === profile.id ? {
+          ...p,
+          photo: details.photos[0] || null,
+          avatarUrl: details.photos[0] || null,
+          photos: details.photos,
+          photoCount: details.photos.length,
+        } : p);
         setProfiles([...run.queue]);
       }).catch(() => {});
     }, 500);
@@ -126,7 +151,7 @@ export function useDiscovery(token: string, filters: DiscoveryFilters = {}) {
     setProfiles([...run.queue]); setHasMore(true); setError(false); setLoading(Boolean(token) && !run.queue.length);
     if (token) void refillRef.current();
     return () => { state.current.controller?.abort(); clearTimeout(retryTimer.current); state.current = fresh(); };
-  }, [key, token]);
+  }, [key, token, photoRevision]);
   useEffect(() => {
     if (!token || !hasMore || profiles.length >= 12 || state.current.failures) return;
     const timer = window.setTimeout(() => void refillRef.current(), 0);

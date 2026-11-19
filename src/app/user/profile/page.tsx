@@ -98,6 +98,37 @@ export default function ProfilePage() {
  const [savedCompletion, setSavedCompletion] = useState(0);
  const fileInputRef = useRef<HTMLInputElement>(null);
  useEffect(() => {
+   let request: AbortController | undefined;
+   const refreshPhotos = async () => {
+     const token = getToken();
+     if (!token) return;
+     request?.abort();
+     const controller = new AbortController();
+     request = controller;
+     try {
+       const response = await apiFetch('/users/me', {
+         headers: { Authorization: 'Bearer ' + token },
+         cache: 'no-store',
+         signal: controller.signal,
+       });
+       if (!response.ok) return;
+       const user = await response.json();
+       if (controller.signal.aborted) return;
+       const photos = user.photos || [];
+       cacheAvatarUrl(photos[0]);
+       setProfile(previous => ({ ...previous, photos, isVerified: user.isVerified, kycMatched: user.kycMatched }));
+       setSavedCompletion(calculateProfileCompletion(user));
+     } catch { /* The profile can also refresh after navigation. */ }
+   };
+   window.addEventListener('ownProfilePhotosChanged', refreshPhotos);
+   window.addEventListener('focus', refreshPhotos);
+   return () => {
+     request?.abort();
+     window.removeEventListener('ownProfilePhotosChanged', refreshPhotos);
+     window.removeEventListener('focus', refreshPhotos);
+   };
+ }, []);
+ useEffect(() => {
    let cancelled = false;
    const syncPlan = async () => {
      const token = getToken();
@@ -127,6 +158,7 @@ export default function ProfilePage() {
  // Load cached avatar immediately so UI doesn't flash
  apiFetch("/users/me", {
  headers: { Authorization: `Bearer ${token}` },
+ cache: "no-store",
  })
  .then((r) => {
  if (r.status === 401) {
@@ -263,7 +295,7 @@ export default function ProfilePage() {
         ...profile,
         ...updated,
         ...updatePayload,
-        photos: profile.photos || [],
+        photos: updated.photos ?? profile.photos ?? [],
         dob: updated.birthDate || updatePayload.birthDate || updated.dob || profile.dob,
         personality: updated.personalityWords ? updated.personalityWords.join(", ") : (updated.personality || ""),
         interests: updated.interests ? (Array.isArray(updated.interests) ? updated.interests.join(", ") : updated.interests) : "",

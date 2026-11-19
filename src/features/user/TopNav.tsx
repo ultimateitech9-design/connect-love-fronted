@@ -280,11 +280,10 @@ export function TopNav() {
    setUserName(navUser.name);
    localStorage.setItem("cl_user_name", navUser.name);
   }
-  const latestPhoto = navUser?.photos?.[0] || navUser?.avatarUrl;
-  if (latestPhoto) {
-   setAvatarUrl(latestPhoto);
-   cacheAvatarUrl(latestPhoto);
-  }
+  if (!navUser) return;
+  const latestPhoto = navUser.photos?.[0] || navUser.avatarUrl || null;
+  setAvatarUrl(latestPhoto);
+  cacheAvatarUrl(latestPhoto);
  }, [navUser]);
 
  // Close notif panel when clicking outside

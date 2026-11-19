@@ -4,6 +4,7 @@ import { getToken } from "@/lib/auth";
 type SearchPage = { items: any[]; hasMore: boolean; nextCursor: string | null };
 const searchCache = new Map<string, { at: number; data: SearchPage }>();
 export function clearDiscoverySearchCache() { searchCache.clear(); }
+export const discoverySearchThumbnails = new Map<string, { photo: string | null; at: number }>();
 
 export type DiscoveryFilters = {
   interests?: string[];

@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, BadgeCheck, Loader2, Search } from 'lucide-react';
 import { ProfileCard } from '@/features/user/ProfileCard';
-import { clearDiscoverySearchCache, getDiscoverySearchThumbnail, getDiscoveryProfileDetails, recordProfileDetailView, searchDiscoveryProfiles, swipeProfile, type DiscoveryFilters } from './api';
+import { clearDiscoverySearchCache, discoverySearchThumbnails as thumbnails, getDiscoverySearchThumbnail, getDiscoveryProfileDetails, recordProfileDetailView, searchDiscoveryProfiles, swipeProfile, type DiscoveryFilters } from './api';
 import { getToken } from '@/lib/auth';
 import { toast } from 'sonner';
 import { AvatarPresence } from '@/features/presence/presence';
 
-const thumbnails = new Map<string, { photo: string | null; at: number }>();
 function SearchPhoto({ profile }: { profile: any }) {
   const [photo, setPhoto] = useState<string | null>(profile.photo || null);
   const ref = useRef<HTMLSpanElement>(null);
@@ -45,11 +44,17 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
   const [error, setError] = useState('');
   const [more, setMore] = useState(false);
   const [acting, setActing] = useState(false);
+  const [photoRevision, setPhotoRevision] = useState(0);
   const generation = useRef(0);
   const cursor = useRef<string | undefined>(undefined);
   const request = useRef<AbortController | null>(null);
   const actingRef = useRef(false);
   const key = JSON.stringify(filters);
+  useEffect(() => {
+    const refreshPhotos = () => setPhotoRevision(previous => previous + 1);
+    window.addEventListener('profilePhotosChanged', refreshPhotos);
+    return () => window.removeEventListener('profilePhotosChanged', refreshPhotos);
+  }, []);
   const load = async (append: boolean, run = generation.current) => {
     request.current?.abort();
     const controller = new AbortController();
@@ -76,7 +81,7 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
     setItems([]); setSelected(null); setMore(false);
     if (!pending) void load(false, run);
     return () => { generation.current++; request.current?.abort(); };
-  }, [key, pending]);
+  }, [key, pending, photoRevision]);
 
   const open = async (profile: any) => {
     void recordProfileDetailView(profile.id).catch(() => {});
@@ -85,7 +90,7 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
     const run = generation.current;
     try {
       const details = await getDiscoveryProfileDetails(profile.id);
-      if (run === generation.current) setSelected((current: any) => current?.id === profile.id ? { ...current, ...details, photos: details.photos || current.photos } : current);
+      if (run === generation.current) setSelected((current: any) => current?.id === profile.id ? { ...current, ...details, photo: details.photos?.[0] || null, photos: details.photos || [] } : current);
     } catch { /* The result already includes the primary card photo. */ }
   };
   const act = async (id: string, action: string) => {
