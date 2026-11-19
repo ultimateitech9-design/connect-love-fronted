@@ -350,6 +350,12 @@ export default function RegisterPage() {
                 {pendingSignup ? `Enter the 6-digit OTP sent from noreply@connectlove.in to ${pendingSignup.email}. It expires in 10 minutes.` : "A clean start for real matches. No clutter, no oversized modal."}
               </p>
 
+              {pendingSignup && (
+                <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold leading-5 text-amber-800">
+                  Your OTP email may be in your Spam or Junk folder. Please check there too.
+                </p>
+              )}
+
               {error && <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
               {pendingSignup ? (
