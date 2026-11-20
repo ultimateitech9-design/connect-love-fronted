@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { matchesApi, type MatchFilter } from '@/features/matches/api';
+import { liveLikesKey, type LiveLike } from '@/features/matches/liveNotifications';
 import { clearCachedPresence } from '@/features/user/matchFriends';
 
 const MATCH_CACHE_DB = 'connect-love-offline';
@@ -45,7 +46,7 @@ async function saveCachedMatches(userId: string, filter: MatchFilter, scope: str
  });
 }
 
-export function useMatches(token: string, filter: MatchFilter, options: { enabled?: boolean; limit?: number; all?: boolean } = {}) {
+export function useMatches(token: string, filter: MatchFilter, options: { enabled?: boolean; limit?: number; all?: boolean; compact?: boolean } = {}) {
  const queryClient = useQueryClient();
  const isEnabled = options.enabled ?? true;
  const limit = options.limit ?? 12;
@@ -58,7 +59,7 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
   userKey = String(payload?.userId || payload?.sub || 'anonymous');
  } catch {}
 
- const cacheScope = fetchAll ? 'all' : limit;
+ const cacheScope = options.compact ? `compact-${fetchAll ? 'all' : limit}` : fetchAll ? 'all' : limit;
  const queryKey = ['matches', filter, 'access-v4', userKey, cacheScope] as const;
 
  useEffect(() => {
@@ -73,14 +74,21 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  const fetchMatches = async () => {
  if (!token) return [];
  if (!fetchAll) {
-  const result = await matchesApi.list(filter, limit);
+  const startedAt = Date.now();
+  const result = await matchesApi.list(filter, limit, 0, options.compact);
+  if (filter === 'received') {
+    // A successful snapshot replaces older live overlays, including withdrawn likes.
+    // Preserve events arriving while this request was in flight.
+    queryClient.setQueryData<LiveLike[]>(liveLikesKey(userKey), (items) =>
+      (items || []).filter((item) => item.receivedAt >= startedAt));
+  }
   void saveCachedMatches(userKey, filter, cacheScope, result);
   return result;
  }
  const collected: any[] = [];
  const pageSize = 100;
  for (let offset = 0; ; offset += pageSize) {
-  const batch = await matchesApi.list(filter, pageSize, offset);
+  const batch = await matchesApi.list(filter, pageSize, offset, options.compact);
   collected.push(...batch);
   const cached = queryClient.getQueryData<any[]>(queryKey) || [];
   const batchIds = new Set(collected.map((match) => match.id));

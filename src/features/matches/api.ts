@@ -3,8 +3,8 @@ import { directFetch } from "@/lib/api";
 export type MatchFilter = "active" | "sent" | "received" | "blocked" | "messages";
 
 export const matchesApi = {
-  list: (filter: MatchFilter, limit = 12, offset = 0) =>
-    directFetch<any[]>(`/matches?filter=${filter}&limit=${limit}&offset=${offset}`),
+  list: (filter: MatchFilter, limit = 12, offset = 0, compact = false) =>
+    directFetch<any[]>(`/matches?filter=${filter}&limit=${limit}&offset=${offset}${compact ? '&compact=1' : ''}`),
   respond: (matchId: string, action: "accept" | "decline") =>
     directFetch("/matches/respond", { method: "POST", body: JSON.stringify({ matchId, action }) }),
   block: (matchId: string) => directFetch(`/matches/block/${matchId}`, { method: "PATCH" }),

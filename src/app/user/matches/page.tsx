@@ -1,426 +1,138 @@
 "use client";
-import { apiFetch } from "@/config/runtime";
 
-import { useState, useEffect, useRef } from "react";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Ban, Clock, RefreshCw, Sparkles, Star, Trash2, UserCheck, LockKeyhole, Send, LoaderCircle } from "lucide-react";
+import { MessageSquare, Ban, Clock, RefreshCw, Sparkles, Star, Trash2, UserCheck, LockKeyhole, Send } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 import { PresenceDot, useOnlineIds } from "@/features/presence/presence";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
-type MatchStatus = "PENDING" | "MATCHED" | "DECLINED" | "BLOCKED";
-type DBMatch = { id: string; senderId: string; receiverId: string; status: MatchStatus; isSuperLike?: boolean; locked?: boolean; createdAt?: string };
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMatchPage, useMatchSummary, matchRequest, type MatchRecord as DBMatch, type MatchTab } from '@/hooks/useMatchPage';
+
 type ReceivedFirstImpression = { id: string; sender: { id: string | null; name: string; photo: string | null }; content: string | null; locked: boolean; createdAt: string };
-type MatchTab = "active" | "received" | "pending" | "blocked";
-type MatchSummary = { active: number; sent: number; received: number; blocked: number };
-const MATCH_PAGE_SIZE = 12;
 
-type MatchesPageCache = {
- activeMatches: DBMatch[];
- sentLikes: DBMatch[];
- receivedLikes: DBMatch[];
- blockedUsers: DBMatch[];
- firstImpressions: ReceivedFirstImpression[];
- summary: MatchSummary;
- loadedTabs: MatchTab[];
- exhaustedTabs: MatchTab[];
- nextOffsets: Record<MatchTab, number>;
-};
-
-const matchesPageCache = new Map<string, MatchesPageCache>();
-
-async function readMatches(res: Response): Promise<DBMatch[]> {
- if (!res.ok) {
-   const body = await res.json().catch(() => null);
-   throw new Error(body?.message || `Matches request failed (${res.status})`);
- }
- const data = await res.json().catch(() => []);
- return Array.isArray(data) ? data : [];
+function MatchSkeleton() {
+  return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Loading matches" aria-busy="true">
+    {[0, 1, 2].map(item => <div key={item} className="h-44 animate-pulse rounded-2xl border border-slate-100 bg-white shadow-sm" />)}
+  </div>;
 }
 
 export default function MatchesDashboard() {
- const [activeMatches, setActiveMatches] = useState<DBMatch[]>([]);
- const [sentLikes, setSentLikes] = useState<DBMatch[]>([]);
- const [receivedLikes, setReceivedLikes] = useState<DBMatch[]>([]);
- const [blockedUsers, setBlockedUsers] = useState<DBMatch[]>([]);
- const [isLoading, setIsLoading] = useState(true);
- const [mainTab, setMainTab] = useState<MatchTab>("active");
- const [pendingTab, setPendingTab] = useState<"sent" | "super">("sent");
- const [myId, setMyId] = useState<string | null>(null);
+ const queryClient = useQueryClient();
+ const [token, setToken] = useState('');
+ const [myId, setMyId] = useState('');
+ const [mainTab, setMainTab] = useState<MatchTab>('active');
+ const [pendingTab, setPendingTab] = useState<'sent' | 'super'>('sent');
+ const [pages, setPages] = useState<Record<string, number>>({});
  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
  const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
- const [fetchError, setFetchError] = useState(false);
- const [firstImpressions, setFirstImpressions] = useState<ReceivedFirstImpression[]>([]);
  const [showMatchPlanPopup, setShowMatchPlanPopup] = useState(false);
- const [summary, setSummary] = useState<MatchSummary>({ active: 0, sent: 0, received: 0, blocked: 0 });
- const [loadingMore, setLoadingMore] = useState<Record<MatchTab, boolean>>({ active: false, received: false, pending: false, blocked: false });
- const loadedTabs = useRef(new Set<MatchTab>());
- const loadingTabs = useRef(new Set<MatchTab>());
- const loadingMoreTabs = useRef(new Set<MatchTab>());
- const exhaustedTabs = useRef(new Set<MatchTab>());
- const nextOffsets = useRef<Record<MatchTab, number>>({ active: 0, received: 0, pending: 0, blocked: 0 });
- const selectedTab = useRef<MatchTab>('active');
- const syncInFlight = useRef(false);
+ const pageKey = mainTab === 'pending' ? `pending-${pendingTab}` : mainTab;
+ const currentPage = pages[pageKey] || 0;
+ const changePage = (page: number) => setPages(current => ({ ...current, [pageKey]: page }));
 
  useEffect(() => {
-   const token = getToken();
-   if (token) {
-     try {
-       const payload = JSON.parse(atob(token.split('.')[1]));
-       setMyId(payload.userId || payload.sub);
-     } catch(e) {}
-   }
- }, []);
-
- // Green/red presence dots for everyone shown on this page (blocked excluded).
- const onlineIds = useOnlineIds(
-   myId
-     ? [...activeMatches, ...receivedLikes, ...sentLikes].map((m) => (m.senderId === myId ? m.receiverId : m.senderId))
-       .concat(firstImpressions.map((item: any) => item.sender?.id))
-     : [],
- );
-
- const getProfile = (m: any) => {
-   if (!myId) return null;
-   const targetId = m.senderId === myId ? m.receiverId : m.senderId;
-   const realProfile = m.senderId === myId ? m.receiver : m.sender;
-   if (!realProfile) return null;
-   return {
-     ...realProfile,
-     name: realProfile.name || "Unknown",
-     age: realProfile.age || 25,
-     photo: (realProfile.photos && realProfile.photos.length > 0) ? realProfile.photos[0] : (realProfile.avatarUrl || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop"),
-      online: onlineIds.has(String(targetId))
-   };
- };
-
- const refreshSummary = async () => {
-   const token = getToken();
-   if (!token) return;
-   const response = await apiFetch('/matches/summary', { headers: { Authorization: `Bearer ${token}` } });
-   if (response.ok) setSummary(await response.json());
- };
-
- const prependLatestMatches = async (tab: MatchTab) => {
-   if (!loadedTabs.current.has(tab)) return;
-   const token = getToken();
-   if (!token) return;
-   const response = await apiFetch(`/matches?filter=${tab === 'pending' ? 'sent' : tab}&limit=20&offset=0`, {
-     headers: { Authorization: `Bearer ${token}` },
-   });
-   const latest = await readMatches(response);
-   const prepend = (current: DBMatch[]) => [
-     ...latest.filter((item) => !current.some((existing) => existing.id === item.id)),
-     ...current,
-   ];
-   if (tab === 'active') setActiveMatches(prepend);
-   if (tab === 'received') setReceivedLikes(prepend);
-   if (tab === 'pending') setSentLikes(prepend);
-   if (tab === 'blocked') setBlockedUsers(prepend);
- };
-
- const syncNewMatches = async () => {
-   if (syncInFlight.current) return;
-   const token = getToken();
-   if (!token) return;
-   syncInFlight.current = true;
+   const value = getToken();
+   if (!value) return;
    try {
-     const response = await apiFetch('/matches/summary', { headers: { Authorization: `Bearer ${token}` } });
-     if (!response.ok) return;
-     const latestSummary = await response.json() as MatchSummary;
-     const changedTabs: MatchTab[] = [];
-     if (latestSummary.active !== summary.active) changedTabs.push('active');
-     if (latestSummary.received !== summary.received) changedTabs.push('received');
-     if (latestSummary.sent !== summary.sent) changedTabs.push('pending');
-     if (latestSummary.blocked !== summary.blocked) changedTabs.push('blocked');
-
-     // Keep the visible tab fresh even when only a profile/status changed
-     // without changing the aggregate count.
-     const tabsToRefresh = new Set<MatchTab>(changedTabs);
-     if (loadedTabs.current.has(selectedTab.current)) tabsToRefresh.add(selectedTab.current);
-     await Promise.all([...tabsToRefresh].map(async (tab) => {
-       loadedTabs.current.delete(tab);
-       await loadTab(tab, true);
-     }));
-     setSummary(latestSummary);
+     const payload = JSON.parse(atob(value.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+     const requested = new URLSearchParams(window.location.search).get('tab');
+     if (requested === 'received' || requested === 'pending' || requested === 'blocked') setMainTab(requested);
+     setMyId(String(payload.sub || payload.userId || ''));
+     setToken(value);
    } catch {}
-   finally {
-     syncInFlight.current = false;
-   }
- };
-
- const appendTabMatches = (tab: MatchTab, matches: DBMatch[]) => {
-   const append = (current: DBMatch[]) => [...current, ...matches.filter((item) => !current.some((existing) => existing.id === item.id))];
-   if (tab === 'active') setActiveMatches(append);
-   if (tab === 'received') setReceivedLikes(append);
-   if (tab === 'pending') setSentLikes(append);
-   if (tab === 'blocked') setBlockedUsers(append);
- };
-
- const loadNextPage = async (tab: MatchTab) => {
-   if (selectedTab.current !== tab || exhaustedTabs.current.has(tab) || loadingMoreTabs.current.has(tab)) return;
-   const token = getToken();
-   if (!token) return;
-   loadingMoreTabs.current.add(tab);
-   setLoadingMore((current) => ({ ...current, [tab]: true }));
-   try {
-     const response = await apiFetch(`/matches?filter=${tab === 'pending' ? 'sent' : tab}&limit=${MATCH_PAGE_SIZE}&offset=${nextOffsets.current[tab]}`, { headers: { Authorization: `Bearer ${token}` } });
-     const matches = await readMatches(response);
-     if (selectedTab.current !== tab) return;
-     appendTabMatches(tab, matches);
-     nextOffsets.current[tab] += matches.length;
-     if (matches.length < MATCH_PAGE_SIZE) {
-       exhaustedTabs.current.add(tab);
-     } else {
-       // Yield briefly so the cards already received can paint before the
-       // next page starts. This loads every record without a large first load.
-       window.setTimeout(() => void loadNextPage(tab), 80);
-     }
-   } catch (error) {
-     console.error(`Failed to load more ${tab} matches`, error);
-   } finally {
-     loadingMoreTabs.current.delete(tab);
-     setLoadingMore((current) => ({ ...current, [tab]: false }));
-   }
- };
-
- const progressiveLoader = (tab: MatchTab) => loadingMore[tab] ? (
-   <div className="col-span-full flex items-center justify-center gap-2 py-6 text-sm font-medium text-slate-500" role="status" aria-live="polite">
-     <LoaderCircle className="h-4 w-4 animate-spin text-[color:var(--brand)]" /> Loading more requests…
-   </div>
- ) : null;
-
- const loadTab = async (tab: MatchTab, force = false) => {
-   if ((!force && loadedTabs.current.has(tab)) || loadingTabs.current.has(tab)) return;
-   const token = getToken();
-   if (!token) return;
-   loadingTabs.current.add(tab);
-   setFetchError(false);
-   if (tab === 'active') setIsLoading(true);
-   if (force) {
-     exhaustedTabs.current.delete(tab);
-     nextOffsets.current[tab] = 0;
-   }
-   try {
-     const response = await apiFetch(`/matches?filter=${tab === 'pending' ? 'sent' : tab}&limit=${MATCH_PAGE_SIZE}&offset=0`, { headers: { Authorization: `Bearer ${token}` } });
-     const matches = await readMatches(response);
-     if (tab === 'active') setActiveMatches(matches);
-     if (tab === 'received') setReceivedLikes(matches);
-     if (tab === 'pending') setSentLikes(matches);
-     if (tab === 'blocked') setBlockedUsers(matches);
-     loadedTabs.current.add(tab);
-     nextOffsets.current[tab] = matches.length;
-     if (matches.length < MATCH_PAGE_SIZE) exhaustedTabs.current.add(tab);
-     if (tab === 'active') {
-       void apiFetch('/first-impressions/received', { headers: { Authorization: `Bearer ${token}` } })
-         .then(async (response) => response.ok ? response.json() : null)
-         .then((result) => setFirstImpressions(Array.isArray(result?.items) ? result.items.filter((item: ReceivedFirstImpression) => item.locked) : []))
-         .catch(() => undefined);
-     }
-   } catch (error) {
-     console.error(`Failed to load ${tab} matches`, error);
-     setFetchError(true);
-   } finally {
-     loadingTabs.current.delete(tab);
-     if (tab === 'active') setIsLoading(false);
-     if (selectedTab.current === tab && !exhaustedTabs.current.has(tab)) window.setTimeout(() => void loadNextPage(tab), 80);
-   }
- };
-
- useEffect(() => {
-   const requestedTab = new URLSearchParams(window.location.search).get("tab");
-   if (requestedTab === "received" || requestedTab === "pending" || requestedTab === "blocked" || requestedTab === "active") {
-     selectedTab.current = requestedTab;
-     setMainTab(requestedTab);
-   }
  }, []);
 
- const refreshCurrentTab = async () => {
-   loadedTabs.current.delete(mainTab);
-   await Promise.all([loadTab(mainTab, true), refreshSummary()]);
+ const pageQuery = useMatchPage(myId, token, mainTab, currentPage, pendingTab);
+ const summaryQuery = useMatchSummary(myId, token);
+ const summary = summaryQuery.data || { active: 0, received: 0, sent: 0, sentSuper: 0, blocked: 0 };
+ const items = pageQuery.data?.items || [];
+ const isLoading = !myId || pageQuery.isPending;
+ const fetchError = pageQuery.isError || summaryQuery.isError;
+ const activeMatches = mainTab === 'active' ? items : [];
+ const receivedLikes = mainTab === 'received' ? items : [];
+ const sentLikes = mainTab === 'pending' ? items : [];
+ const blockedUsers = mainTab === 'blocked' ? items : [];
+ const totalPending = summary.sent;
+ const superLikes = sentLikes.filter(m => m.isSuperLike);
+ const normalSentLikes = sentLikes.filter(m => !m.isSuperLike);
+
+ const { data: firstImpressions = [] } = useQuery({
+   queryKey: ['matches', 'first-impressions', myId],
+   queryFn: async ({ signal }) => {
+     const result = await matchRequest<{ items: ReceivedFirstImpression[] }>('/first-impressions/received', token, { signal });
+     return (result.items || []).filter(item => item.locked);
+   },
+   enabled: Boolean(myId && mainTab === 'active' && pageQuery.isSuccess),
+   staleTime: 60_000, refetchOnMount: true,
+ });
+ const onlineIds = useOnlineIds(mainTab === 'blocked' ? [] : items.map(m => m.senderId === myId ? m.receiverId : m.senderId)
+   .concat(mainTab === 'active' ? firstImpressions.flatMap(item => item.sender?.id ? [item.sender.id] : []) : []));
+ const getProfile = (match: DBMatch) => {
+   const targetId = match.senderId === myId ? match.receiverId : match.senderId;
+   const profile = match.senderId === myId ? match.receiver : match.sender;
+   if (!profile) return null;
+   return { ...profile, name: profile.name || 'Unknown', age: profile.age || 25,
+     photo: profile.photos?.[0] || profile.avatarUrl || undefined, online: onlineIds.has(String(targetId)) };
  };
 
+ // Deleting the final row of a later page returns to the previous page.
  useEffect(() => {
-   const token = getToken();
-   if (!token) return;
-   let userId = '';
-   try {
-     const payload = JSON.parse(atob(token.split('.')[1]));
-     userId = String(payload.userId || payload.sub || '');
-   } catch {}
-   const cached = userId ? matchesPageCache.get(userId) : undefined;
-   if (cached) {
-     setActiveMatches(cached.activeMatches);
-     setSentLikes(cached.sentLikes);
-     setReceivedLikes(cached.receivedLikes);
-     setBlockedUsers(cached.blockedUsers);
-     setFirstImpressions(cached.firstImpressions);
-     setSummary(cached.summary);
-     loadedTabs.current = new Set(cached.loadedTabs);
-     exhaustedTabs.current = new Set(cached.exhaustedTabs);
-     nextOffsets.current = { ...cached.nextOffsets };
-     setIsLoading(false);
-     const requestedTab = new URLSearchParams(window.location.search).get('tab') as MatchTab | null;
-     if (requestedTab && requestedTab !== 'active' && !loadedTabs.current.has(requestedTab)) void loadTab(requestedTab);
-     return;
-   }
-   const requestedTab = new URLSearchParams(window.location.search).get('tab');
-   const initialTab: MatchTab = requestedTab === 'received' || requestedTab === 'pending' || requestedTab === 'blocked' ? requestedTab : 'active';
-   void Promise.all([loadTab(initialTab), refreshSummary()]);
- }, []);
+   if (pageQuery.isSuccess && !pageQuery.isFetching && items.length === 0 && currentPage > 0) changePage(currentPage - 1);
+ }, [pageQuery.isSuccess, pageQuery.isFetching, items.length, currentPage, pageKey]);
 
- useEffect(() => {
-   if (!myId) return;
-   matchesPageCache.set(myId, {
-     activeMatches,
-     sentLikes,
-     receivedLikes,
-     blockedUsers,
-     firstImpressions,
-     summary,
-     loadedTabs: [...loadedTabs.current],
-     exhaustedTabs: [...exhaustedTabs.current],
-     nextOffsets: { ...nextOffsets.current },
-   });
- }, [activeMatches, blockedUsers, firstImpressions, myId, receivedLikes, sentLikes, summary]);
-
- useEffect(() => {
-   const onFocus = () => void syncNewMatches();
-   const onVisible = () => {
-     if (document.visibilityState === 'visible') void syncNewMatches();
-   };
-   window.addEventListener('focus', onFocus);
-   document.addEventListener('visibilitychange', onVisible);
-   return () => {
-     window.removeEventListener('focus', onFocus);
-     document.removeEventListener('visibilitychange', onVisible);
-   };
- }, [summary]);
-
+ const refreshCurrentTab = () => queryClient.invalidateQueries({ queryKey: ['matches'] });
  const handleBlock = async (id: string) => {
    try {
-     await apiFetch(`/matches/block/${id}`, {
-       method: "PATCH",
-       headers: { "Authorization": `Bearer ${getToken()}` },
-     });
-     toast.success("User blocked successfully");
+     await matchRequest(`/matches/block/${id}`, token, { method: 'PATCH' });
+     toast.success('User blocked successfully');
      await refreshCurrentTab();
-   } catch (error) {
-     console.error("Failed to block user", error);
-   }
+   } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not block this user.'); }
  };
-
  const handleUnblock = async (id: string) => {
    try {
-     await apiFetch(`/matches/unblock/${id}`, {
-       method: "PATCH",
-       headers: { "Authorization": `Bearer ${getToken()}` },
-     });
-     toast.success("User unblocked successfully");
+     await matchRequest(`/matches/unblock/${id}`, token, { method: 'PATCH' });
+     toast.success('User unblocked successfully');
      await refreshCurrentTab();
-   } catch (error) {
-     console.error("Failed to unblock user", error);
-   }
+   } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not unblock this user.'); }
  };
-
  const handleWithdrawLike = async (id: string) => {
-    if (deletingRequestId) return;
-    setDeletingRequestId(id);
-    try {
-      const response = await apiFetch(`/matches/pending/${id}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${getToken()}` },
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.message || "Could not delete the pending request.");
-      }
-      toast.success("Pending request deleted");
-      setSentLikes(prev => prev.filter(m => m.id !== id));
-      loadedTabs.current.delete('pending');
-      void refreshSummary();
-    } catch (error) {
-      console.error("Failed to withdraw", error);
-      toast.error(error instanceof Error ? error.message : "Could not delete the pending request.");
-    } finally {
-      setDeletingRequestId(null);
-    }
+   if (deletingRequestId) return;
+   setDeletingRequestId(id);
+   try {
+     await matchRequest(`/matches/pending/${id}`, token, { method: 'DELETE' });
+     toast.success('Pending request deleted');
+     await refreshCurrentTab();
+   } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not delete the pending request.'); }
+   finally { setDeletingRequestId(null); }
  };
-
  const handleAcceptMatch = async (match: DBMatch, profileName: string) => {
    if (acceptingRequestId) return;
-   const matchId = match.id;
-   const activeMatch = { ...match, status: "MATCHED" as MatchStatus, locked: false };
-   setAcceptingRequestId(matchId);
-   // Make the interaction instant. Roll back below only if the server rejects it.
-   setReceivedLikes(prev => prev.filter(item => item.id !== matchId));
-   setActiveMatches(prev => prev.some(item => item.id === matchId) ? prev : [activeMatch, ...prev]);
+   setAcceptingRequestId(match.id);
    try {
-     const response = await apiFetch("/matches/respond", {
-       method: "POST",
-       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
-       body: JSON.stringify({ matchId, action: "accept" }),
-     });
-     if (!response.ok) {
-       const data = await response.json().catch(() => null);
-       throw new Error(data?.message || "Could not accept this match request.");
-     }
-     toast.success(match.locked ? "It's a Match! The profile is now unlocked." : `It's a Match! You and ${profileName} are now connected.`);
-     loadedTabs.current.delete('active');
-     loadedTabs.current.delete('received');
-     await Promise.all([loadTab(mainTab, true), refreshSummary()]);
+     await matchRequest('/matches/respond', token, { method: 'POST', body: JSON.stringify({ matchId: match.id, action: 'accept' }) });
+     toast.success(`It's a Match! You and ${profileName} are now connected.`);
+     await refreshCurrentTab();
    } catch (error) {
-     setActiveMatches(prev => prev.filter(item => item.id !== matchId));
-     setReceivedLikes(prev => prev.some(item => item.id === matchId) ? prev : [match, ...prev]);
-     const message = error instanceof TypeError
-       ? "Server se connection nahi ho pa raha. Please try again."
-       : error instanceof Error
-         ? error.message
-         : "Could not accept this match request.";
+     const message = error instanceof Error ? error.message : 'Could not accept this match request.';
      toast.error(message);
      if (/plan allows.*matches|match.*limit|upgrade your plan to match/i.test(message)) setShowMatchPlanPopup(true);
-   } finally {
-     setAcceptingRequestId(null);
-   }
+   } finally { setAcceptingRequestId(null); }
  };
-
  const handlePassMatch = async (matchId: string) => {
    try {
-     await apiFetch("/matches/respond", {
-       method: "POST",
-       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
-       body: JSON.stringify({ matchId, action: "decline" }),
-     });
-     toast.success("Passed on profile.");
-     setReceivedLikes(prev => prev.filter(m => m.id !== matchId));
-     loadedTabs.current.delete('received');
-     void refreshSummary();
-   } catch (error) {
-     console.error("Failed to pass match", error);
-   }
+     await matchRequest('/matches/respond', token, { method: 'POST', body: JSON.stringify({ matchId, action: 'decline' }) });
+     toast.success('Passed on profile.');
+     await refreshCurrentTab();
+   } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not pass on this profile.'); }
  };
-
- const safeSentLikes = Array.isArray(sentLikes) ? sentLikes : [];
- const safeReceivedLikes = Array.isArray(receivedLikes) ? receivedLikes : [];
- const totalPending = summary.sent;
- const superLikes = safeSentLikes.filter(m => m.isSuperLike);
- const normalSentLikes = safeSentLikes.filter(m => !m.isSuperLike);
-
- if (isLoading) return (
-   <div className="space-y-6" aria-busy="true" aria-label="Loading matches">
-     <div><h1 className="text-2xl font-semibold text-slate-800">Your Matches</h1><p className="mt-1 text-sm text-muted-foreground">Loading your connections...</p></div>
-     <div className="h-11 w-full animate-pulse rounded-2xl bg-slate-100 sm:w-96" />
-     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-       {[0, 1, 2].map((item) => <div key={item} className="h-44 animate-pulse rounded-2xl border border-slate-100 bg-white shadow-sm" />)}
-     </div>
-   </div>
- );
-
  return (
  <div className="space-y-6">
    {showMatchPlanPopup && (
@@ -449,7 +161,7 @@ export default function MatchesDashboard() {
      </div>
    </div>
 
-   <Tabs value={mainTab} onValueChange={(value) => { const tab = value as MatchTab; selectedTab.current = tab; setMainTab(tab); if (loadedTabs.current.has(tab)) void loadNextPage(tab); else void loadTab(tab); }} className="w-full">
+   <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as MatchTab)} className="w-full">
      <TabsList className="mb-6 grid h-auto w-full grid-cols-4 rounded-2xl bg-slate-100 p-1 text-slate-500 sm:inline-grid sm:w-auto sm:rounded-full">
        <TabsTrigger value="active" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
          <span className="sm:hidden">Active ({summary.active})</span>
@@ -471,6 +183,7 @@ export default function MatchesDashboard() {
 
      {/* ACTIVE MATCHES */}
      <TabsContent value="active" className="mt-0 focus-visible:outline-none">
+       {isLoading ? <MatchSkeleton /> : <>
        <div className="mb-6"><p className="text-sm text-muted-foreground">You have {summary.active} active matches. Say hello!</p></div>
        {firstImpressions.length > 0 && (
          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -546,11 +259,13 @@ export default function MatchesDashboard() {
            })}
          </div>
        )}
-       {progressiveLoader('active')}
+
+       </>}
      </TabsContent>
 
      {/* LIKES RECEIVED — kept beside Active Matches so incoming likes are always visible */}
      <TabsContent value="received" className="mt-0 focus-visible:outline-none">
+       {isLoading ? <MatchSkeleton /> : <>
        <div className="mb-6"><p className="text-sm text-muted-foreground">People who liked your profile. Match or pass them here.</p></div>
        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
          {receivedLikes.map((m) => {
@@ -567,19 +282,21 @@ export default function MatchesDashboard() {
          })}
          {receivedLikes.length === 0 && <div className="col-span-full py-4 text-sm text-slate-400">No likes received yet.</div>}
        </div>
-       {progressiveLoader('received')}
+
+       </>}
      </TabsContent>
 
      {/* PENDING REQUESTS */}
      <TabsContent value="pending" className="mt-0 focus-visible:outline-none">
+       {isLoading ? <MatchSkeleton /> : <>
        <div className="mb-4"><p className="text-sm text-muted-foreground">Manage likes you have sent and your super likes.</p></div>
-       
+
        <div className="flex gap-2 mb-6">
          <button onClick={() => setPendingTab('sent')} className={cn("px-4 py-1.5 rounded-full text-sm font-medium transition-colors", pendingTab === 'sent' ? "bg-rose-100 text-[color:var(--brand)]" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
-           Sent Likes ({normalSentLikes.length})
+           Sent Likes ({summary.sent - summary.sentSuper})
          </button>
          <button onClick={() => setPendingTab('super')} className={cn("px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center", pendingTab === 'super' ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
-           <Star className="w-3.5 h-3.5 mr-1.5 fill-current" /> Super Likes ({superLikes.length})
+           <Star className="w-3.5 h-3.5 mr-1.5 fill-current" /> Super Likes ({summary.sentSuper})
          </button>
        </div>
 
@@ -617,54 +334,6 @@ export default function MatchesDashboard() {
              );
            })}
            {normalSentLikes.length === 0 && <div className="col-span-full text-slate-400 text-sm py-4">No sent likes yet.</div>}
-         </div>
-       )}
-
-       {false && (
-         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-           {receivedLikes.map((m) => {
-             const profile = getProfile(m);
-             if (!profile) return null;
-             const targetId = m.senderId === myId ? m.receiverId : m.senderId;
-             const isSuper = m.isSuperLike;
-             return (
-               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} className={cn(
-                 "relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition-all",
-                 isSuper ? "border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" : "border border-slate-100 border-l-4 border-l-[color:var(--brand)]"
-               )}>
-                 {isSuper && (
-                   <div className="absolute inset-0 bg-gradient-to-tr from-blue-50/50 to-transparent pointer-events-none" />
-                 )}
-                 <div className={cn("relative z-10 flex items-center gap-3", m.locked && "pointer-events-none select-none blur-md")}>
-                   <span className="relative shrink-0">
-                   <Avatar className={cn("h-12 w-12", isSuper && "ring-2 ring-blue-300 ring-offset-2")}>
-                     <AvatarImage src={profile.photo} />
-                     <AvatarFallback>{profile.name[0]}</AvatarFallback>
-                   </Avatar>
-                   {!m.locked && <PresenceDot online={profile.online} />}
-                   </span>
-                   <div>
-                     <p className="text-base font-semibold text-slate-800">
-                       {profile.name}, {profile.age} {isSuper && <Star className="inline-block w-4 h-4 ml-1 mb-0.5 text-blue-500 fill-blue-500" />}
-                     </p>
-                     <p className={cn("text-xs font-medium", isSuper ? "text-blue-500" : "text-[color:var(--brand)]")}>
-                       {isSuper ? "Super Liked you!" : "Liked you!"}
-                     </p>
-                   </div>
-                 </div>
-                 <p className={cn("relative z-10 mt-4 line-clamp-2 text-sm text-slate-500", m.locked && "pointer-events-none select-none blur-md")}>{m.locked ? "Someone liked your profile" : profile.bio}</p>
-                 <div className="relative z-10 mt-5 flex gap-2">
-                   <Button disabled={acceptingRequestId !== null} className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" : "bg-[color:var(--brand)] hover:bg-[color:var(--brand)]/90")} onClick={() => handleAcceptMatch(m, profile.name)}>
-                     {acceptingRequestId === m.id ? "Matching..." : "Match"}
-                   </Button>
-                   <Button variant="outline" className="rounded-full border-slate-200 text-slate-400 hover:text-red-500 shrink-0" onClick={() => handlePassMatch(m.id)}>
-                     Pass
-                   </Button>
-                 </div>
-               </motion.div>
-             );
-           })}
-           {receivedLikes.length === 0 && <div className="col-span-full text-slate-400 text-sm py-4">No pending likes received.</div>}
          </div>
        )}
 
@@ -709,11 +378,13 @@ export default function MatchesDashboard() {
            {superLikes.length === 0 && <div className="col-span-full text-amber-600/60 text-sm py-4 font-medium">You haven't super liked anyone yet.</div>}
          </div>
        )}
-       {progressiveLoader('pending')}
+
+       </>}
      </TabsContent>
 
      {/* BLOCKED USERS */}
      <TabsContent value="blocked" className="mt-0 focus-visible:outline-none">
+       {isLoading ? <MatchSkeleton /> : <>
        <div className="mb-6"><p className="text-sm text-muted-foreground">Users you have blocked ({summary.blocked}).</p></div>
        {blockedUsers.length === 0 ? (
          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/50 p-12 text-center text-muted-foreground">You haven't blocked anyone.</div>
@@ -745,8 +416,16 @@ export default function MatchesDashboard() {
            })}
          </div>
        )}
-       {progressiveLoader('blocked')}
+
+       </>}
      </TabsContent>
+     <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4" aria-label="Matches pagination">
+       <p className="text-sm text-slate-500">Page {currentPage + 1}{pageQuery.isFetching && !isLoading ? ' ? Updating...' : ''}</p>
+       <div className="flex gap-2">
+         <Button variant="outline" disabled={currentPage === 0 || isLoading} onClick={() => changePage(currentPage - 1)}>Previous</Button>
+         <Button variant="outline" disabled={!pageQuery.data?.hasMore || isLoading} onClick={() => changePage(currentPage + 1)}>Next</Button>
+       </div>
+     </div>
    </Tabs>
  </div>
  );

@@ -1,12 +1,12 @@
 "use client";
-import { SOCKET_ORIGIN, apiFetch } from "@/config/runtime";
+import { socketConnectionOptions, apiFetch } from "@/config/runtime";
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-const SOCKET_URL = SOCKET_ORIGIN;
+
 const VOICE_MESSAGE_PREFIX = "__voice_message__:";
 const PHOTO_MESSAGE_PREFIX = "__photo_message__:";
 const VIDEO_MESSAGE_PREFIX = "__video_message__:";
@@ -103,7 +103,9 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  }
 
  // Connect to websocket with token
- const newSocket = io(SOCKET_URL, {
+ const connection = socketConnectionOptions();
+ const newSocket = io(connection.origin, {
+ ...connection.options,
  auth: { token },
  query: { userId, token },
  });
@@ -129,7 +131,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
 
  // Update matches cache to bump it to the top
  queryClient.setQueriesData({ queryKey: ["matches"] }, (oldMatches: any) => {
- if (!oldMatches) return oldMatches;
+ if (!Array.isArray(oldMatches)) return oldMatches;
  const updated = oldMatches.map((match: any) => {
  if (match.id === message.conversationId) {
  return {
@@ -189,7 +191,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
 
  newSocket.on('USER_STATUS_CHANGED', (payload: { userId: string, isOnline: boolean, lastSeen?: string }) => {
    queryClient.setQueriesData({ queryKey: ["matches"] }, (oldMatches: any) => {
-     if (!oldMatches) return oldMatches;
+     if (!Array.isArray(oldMatches)) return oldMatches;
      return oldMatches.map((match: any) => {
        if (match.sender?.id === payload.userId) {
          return { ...match, sender: { ...match.sender, isOnline: payload.isOnline, lastSeen: payload.lastSeen } };

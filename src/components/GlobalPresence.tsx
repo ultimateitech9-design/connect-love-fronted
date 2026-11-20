@@ -1,5 +1,5 @@
 "use client";
-import { SOCKET_ORIGIN } from "@/config/runtime";
+import { socketConnectionOptions } from "@/config/runtime";
 
 import { useEffect } from "react";
 import { io } from "socket.io-client";
@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getToken } from "@/lib/auth";
 import { clearCachedPresence } from "@/features/user/matchFriends";
 
-const SOCKET_URL = SOCKET_ORIGIN;
+import { liveLikesKey, type LiveLike } from "@/features/matches/liveNotifications";
 
 type IncomingMessage = {
   id: string;
@@ -45,9 +45,10 @@ export function GlobalPresence() {
       console.error("Failed to parse token for GlobalPresence", e);
     }
 
-    socket = io(SOCKET_URL, {
+    const connection = socketConnectionOptions();
+    socket = io(connection.origin, {
+      ...connection.options,
       auth: { token },
-      query: { userId, token },
     });
     const liveSocket = socket;
     const onlineKey = ['online-friends', userId];
@@ -68,22 +69,42 @@ export function GlobalPresence() {
       if (getToken() !== token) { clearOnline(); liveSocket.disconnect(); }
     };
     clearOnline();
-    liveSocket.on('presenceReady', refreshOnline);
+    const syncMatches = () => {
+      if (getToken() !== token || !navigator.onLine) return;
+      void queryClient.invalidateQueries({ queryKey: ['matches'] });
+    };
+    // Sync after authentication and room join, so reconnects cannot miss likes.
+    let socketReady = false;
+    liveSocket.on('presenceReady', () => {
+      socketReady = true;
+      refreshOnline();
+      syncMatches();
+    });
+    // REST fallback only while the authenticated socket is unavailable.
+    liveSocket.on('disconnect', () => { socketReady = false; });
+    const fallbackTimer = window.setInterval(() => {
+      if (!socketReady) syncMatches();
+    }, 5000);
+    const resume = () => {
+      if (getToken() !== token) return;
+      if (!liveSocket.connected) liveSocket.connect();
+      refreshOnline();
+      syncMatches();
+    };
+    window.addEventListener('online', resume);
+    window.addEventListener('focus', resume);
     const timer = window.setInterval(refreshOnline, 10000);
-    window.addEventListener('focus', refreshOnline);
-    window.addEventListener('online', refreshOnline);
     window.addEventListener('offline', clearOnline);
     window.addEventListener('connect-love-auth-change', authChanged);
     stopOnlineUpdates = () => {
-      window.clearInterval(timer); clearOnline();
-      window.removeEventListener('focus', refreshOnline);
-      window.removeEventListener('online', refreshOnline);
+      window.clearInterval(timer); window.clearInterval(fallbackTimer); clearOnline();
+      window.removeEventListener('online', resume);
+      window.removeEventListener('focus', resume);
       window.removeEventListener('offline', clearOnline);
       window.removeEventListener('connect-love-auth-change', authChanged);
     };
 
     socket.on("connect", () => {
-      queryClient.invalidateQueries({ queryKey: ["matches"] });
       queryClient.invalidateQueries({ queryKey: ['profile-visitors'] });
       refreshOnline();
     });
@@ -93,6 +114,23 @@ export function GlobalPresence() {
     socket.on("disconnect", () => {
       clearOnline();
       queryClient.setQueriesData({ queryKey: ["matches"] }, (matches: any) => Array.isArray(matches) ? clearCachedPresence(matches) : matches);
+    });
+
+    socket.on('matchChanged', (match: Omit<LiveLike, 'receivedAt'>) => {
+      if (getToken() !== token || !match?.id) return;
+      if (match.senderId !== userId && match.receiverId !== userId) return;
+      // Paint the bell immediately, before waiting for a profile/list API request.
+      queryClient.setQueryData<LiveLike[]>(liveLikesKey(userId), (items) => {
+        const remaining = (items || []).filter((item) => item.id !== match.id);
+        return match.status === 'PENDING' && match.receiverId === userId
+          ? [{ ...match, receivedAt: Date.now() }, ...remaining].slice(0, 100)
+          : remaining;
+      });
+      if (match.status !== 'PENDING') {
+        queryClient.setQueriesData({ queryKey: ['matches', 'received'] }, (items: any) =>
+          Array.isArray(items) ? items.filter((item) => item.id !== match.id) : items);
+      }
+      syncMatches();
     });
 
     socket.on("receiveMessage", (message: IncomingMessage) => {
@@ -121,7 +159,7 @@ export function GlobalPresence() {
       if (!payload.isOnline) queryClient.setQueryData<string[]>(onlineKey, ids => (ids || []).filter(id => id !== payload.userId));
       refreshOnline();
       queryClient.setQueriesData({ queryKey: ["matches"] }, (oldMatches: any) => {
-        if (!oldMatches) return oldMatches;
+        if (!Array.isArray(oldMatches)) return oldMatches;
         return oldMatches.map((match: any) => {
           if (match.sender?.id === payload.userId) {
             return { ...match, sender: { ...match.sender, isOnline: payload.isOnline, lastSeen: payload.lastSeen } };

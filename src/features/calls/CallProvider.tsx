@@ -8,7 +8,7 @@ import { clearDiscoverySearchCache, discoverySearchThumbnails } from "@/features
 import { io, type Socket } from "socket.io-client";
 import { Flag, FlipHorizontal2, Gift, Maximize2, Mic, MicOff, Minimize2, Phone, PhoneOff, Repeat2, Video, VideoOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
-import { API_ORIGIN, SOCKET_ORIGIN, WEBRTC_ICE_SERVERS, fetchIceServers } from "@/config/runtime";
+import { API_ORIGIN, socketConnectionOptions, WEBRTC_ICE_SERVERS, fetchIceServers } from "@/config/runtime";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -258,7 +258,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
     tokenRef.current = token;
     const userId = userIdFromToken(token);
     myUserIdRef.current = userId;
-    const nextSocket = io(SOCKET_ORIGIN, { auth: { token }, query: { userId, token } });
+    const connection = socketConnectionOptions();
+    const nextSocket = io(connection.origin, { ...connection.options, auth: { token }, query: { userId, token } });
     const refreshProfilePhotos = () => {
       clearDiscoveryQueueCache();
       clearDiscoverySearchCache();

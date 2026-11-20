@@ -30,6 +30,26 @@ const configuredSiteOrigin = process.env.NEXT_PUBLIC_SITE_URL || "http://localho
 
 export const API_ORIGIN = resolveBrowserOrigin(configuredApiOrigin, "5002");
 export const SOCKET_ORIGIN = resolveBrowserOrigin(configuredSocketOrigin, "5002");
+// A URL path is a Socket.IO namespace unless passed explicitly as `path`.
+// Keep proxied /backend-api connections on the authenticated root namespace.
+export function socketConnectionOptions() {
+  const url = new URL(SOCKET_ORIGIN, typeof window === 'undefined' ? 'http://localhost:3002' : window.location.origin);
+  const prefix = url.pathname.replace(/\/$/, '');
+  return {
+    origin: url.origin,
+    options: {
+      path: process.env.NEXT_PUBLIC_SOCKET_PATH || `${prefix}/socket.io`,
+      transports: ['websocket', 'polling'],
+      tryAllTransports: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 5000,
+      timeout: 10000,
+    },
+  };
+}
+
 export const SITE_ORIGIN = resolveBrowserOrigin(configuredSiteOrigin, windowPort("3002"));
 
 export function apiOriginCandidates(): string[] {

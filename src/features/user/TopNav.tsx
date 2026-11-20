@@ -14,7 +14,8 @@ import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { subscribeBillingUpdates } from "@/lib/billingUpdates";
-import { useQueryClient } from "@tanstack/react-query";
+import { liveLikesKey, type LiveLike } from "@/features/matches/liveNotifications";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ThemeToggle } from "@/features/theme/ThemeToggle";
 import { WalletChip } from "@/features/wallet/WalletChip";
 import { HeaderLanguageDropdown } from "@/features/i18n/HeaderLanguageDropdown";
@@ -77,8 +78,8 @@ export function TopNav() {
 
  const notifRef = useRef<HTMLDivElement>(null);
 
- const { matches: activeMatches, loading: activeMatchesLoading } = useMatches(token, "active", { enabled: loadNavData, all: true });
- const { matches: receivedMatches } = useMatches(token, "received", { enabled: loadNavData });
+ const { matches: activeMatches, loading: activeMatchesLoading } = useMatches(token, "active", { enabled: loadNavData, all: true, compact: true });
+ const { matches: receivedMatches } = useMatches(token, "received", { enabled: loadNavData, compact: true });
  // Paid / rejected withdrawals show in the bell (also emailed by the server).
  const [withdrawalUpdates, setWithdrawalUpdates] = useState<WithdrawalUpdate[]>([]);
  useEffect(() => {
@@ -136,6 +137,16 @@ export function TopNav() {
   const payload = JSON.parse(atob(token.split('.')[1] || ''));
   sessionUserId = String(payload.sub || payload.userId || "user");
  } catch {}
+ const { data: liveLikes = [] } = useQuery<LiveLike[]>({
+   queryKey: liveLikesKey(sessionUserId),
+   queryFn: () => [],
+   enabled: false,
+   staleTime: Infinity,
+ });
+ const notificationLikes = [
+   ...liveLikes,
+   ...receivedMatches.filter((match: any) => !liveLikes.some((like) => like.id === match.id)),
+ ];
  const seenStorageKey = `cl_seen_notifications:${sessionUserId}`;
  const clearedStorageKey = `cl_cleared_notifications:${sessionUserId}`;
  const seenMatchesStorageKey = `cl_seen_matches:${sessionUserId}`;
@@ -144,7 +155,7 @@ export function TopNav() {
    : 0;
 
  const realNotifications = [
-   ...receivedMatches.map((m: any) => ({
+   ...notificationLikes.map((m: any) => ({
      id: `match-${m.id}`,
      type: "match" as const,
      title: "New Match Request!",
@@ -187,7 +198,7 @@ export function TopNav() {
   if (clearedNotificationIds.has(notification.id)) return false;
   if (!notificationsClearedAt) return true;
   const source = notification.id.startsWith("match-")
-   ? receivedMatches.find((match: any) => `match-${match.id}` === notification.id)?.createdAt
+   ? notificationLikes.find((match: any) => `match-${match.id}` === notification.id)?.createdAt
    : visibleActiveMatches.find((match: any) => `msg-${match.id}-${match.lastMessageTime || match.updatedAt || match.unreadCount}` === notification.id)?.lastMessageTime || visibleActiveMatches.find((match: any) => `msg-${match.id}-${match.lastMessageTime || match.updatedAt || match.unreadCount}` === notification.id)?.updatedAt;
   return !source || new Date(source).getTime() > new Date(notificationsClearedAt).getTime();
  });
