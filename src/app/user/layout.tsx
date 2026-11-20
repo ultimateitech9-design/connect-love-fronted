@@ -28,7 +28,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
             background: "var(--background-gradient, linear-gradient(135deg, #fff5f7 0%, #fdf2f8 30%, #fff0f3 60%, #fef9ff 100%))",
           }}
         >
-          <main className={mainClassName}>
+          <main className={mainClassName} style={pathname === "/user/profile" ? { paddingTop: 0 } : undefined}>
             {children}
           </main>
         </div>

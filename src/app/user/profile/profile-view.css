@@ -1,0 +1,67 @@
+﻿.pv{color:var(--foreground);display:grid;grid-template-columns:170px minmax(0,1fr);gap:20px;padding:0 0 40px;margin-top:0;min-height:90vh}
+.pv-nav,.pv-stack{display:flex;flex-direction:column;gap:14px}.pv-nav{gap:5px;align-self:start}.pv-nav :is(a,button){display:flex;align-items:center;gap:11px;padding:13px 12px;border-radius:12px;text-align:left;font-size:14px}.pv-nav svg,.pv-stats svg,.pv-facts svg{width:19px}.pv-nav [aria-current],.pv-action,.pv-tabs a:first-child{background:linear-gradient(120deg,#ff4386,#a60752);color:white}.pv-nav :is(a,button):hover,.pv-tabs a:hover{background:var(--muted);color:var(--foreground)}.pv-main{min-width:0}.pv-hero{color:var(--foreground);padding:14px 20px;display:flex;align-items:center;gap:20px;border-radius:24px;border:1px solid var(--border);background:var(--card);margin-bottom:18px}.pv-face{position:relative;flex:none;--photo-size:clamp(92px,12vw,162px);width:var(--photo-size);height:var(--photo-size);box-sizing:border-box;border:5px solid #ff4589;border-radius:50%;background:#452438;display:grid;place-items:center}.pv-face img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit}.pv-face span{position:absolute;right:0;bottom:0;background:#d81366;border-radius:50%;padding:9px}.pv-identity{flex:1;min-width:0}.pv-identity h1{display:flex;align-items:center;gap:8px;font-size:clamp(22px,2.3vw,34px);font-weight:750}.pv-identity p,.pv-action{display:flex;gap:6px;align-items:center;font-size:14px}.pv-action{border:1px solid #ff5891;border-radius:30px;padding:9px 15px;align-self:center}.pv-stats,.pv-tabs,.pv-card{border:1px solid var(--border);border-radius:17px;background:var(--card)}.pv-stats{display:flex;margin-top:18px;padding:11px 0;color:white;background:#221d2bdb}.pv-stats span{flex:1;padding:0 12px;display:grid;grid-template-columns:auto 1fr;column-gap:8px;font-weight:700}.pv-stats span+span{border-left:1px solid #564257}.pv-stats svg{grid-row:span 2;align-self:center;color:#ff5592}.pv small,.pv dt,.pv-preview p{font-size:12px;color:var(--muted-foreground);font-weight:400}.pv-hero small,.pv-preview p{color:#eee5ee}.pv-columns{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(245px,1fr);gap:16px}.pv-tabs{display:flex;justify-content:space-between;padding:8px}.pv-tabs a{padding:7px 10px;border-radius:25px;font-size:13px}.pv-card{padding:17px;scroll-margin-top:80px}.pv-card h2{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:650;margin-bottom:14px}.pv-card h2 svg{color:#ff78a6}.pv-card h2 button{margin-left:auto;font-size:12px;border:1px solid #ab4776;border-radius:18px;padding:3px 12px}.pv-bio,.pv-facts>div{background:var(--muted);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:14px}.pv-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.pv-facts svg{float:left;margin:8px 8px 4px 0;color:#ff73a7}.pv-facts dd{overflow-wrap:anywhere}.pv-tags{display:flex;gap:8px;flex-wrap:wrap}.pv-tags span{background:var(--accent);color:var(--accent-foreground);border:1px solid #d44985;border-radius:22px;padding:5px 13px;font-size:13px}.pv-progress{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.pv-ring{width:100px;aspect-ratio:1;border-radius:50%;display:grid;place-items:center}.pv-ring strong{display:grid;place-content:center;text-align:center;background:var(--card);border-radius:50%;width:83%;height:83%;font-size:23px}.pv-progress li,.pv-tips :is(a,button){display:flex;align-items:center;gap:7px;font-size:13px;padding:4px 0}.pv-preview{position:relative;height:205px;border-radius:17px;overflow:hidden;background:var(--muted);border:1px solid #db9bb8}.pv-preview img{width:100%;height:100%;object-fit:cover;object-position:center 30%}.pv-preview>div{color:white;position:absolute;inset:auto 0 0;padding:35px 15px 14px;background:linear-gradient(transparent,#180c1c)}.pv-tips :is(a,button){width:100%;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}.pv-tips svg{width:16px}.pv-editor{color:var(--foreground)}
+@media(max-width:1100px){.pv{grid-template-columns:1fr}.pv-main{display:contents}.pv-hero{grid-row:1;margin-bottom:0}.pv-nav{flex-direction:row;overflow:auto}.pv-nav>*{flex:none}.pv-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.pv{gap:10px}.pv-columns{grid-template-columns:1fr}.pv-hero{flex-wrap:wrap;gap:12px;padding:12px 14px}.pv-face{--photo-size:76px}.pv-stats{flex-wrap:wrap}.pv-stats span{padding:0 6px;font-size:12px}.pv-stats svg{display:none}.pv-stats small{grid-column:1/-1;font-size:10px}.pv-tabs a{padding:6px;font-size:12px}.pv-action{margin-left:auto}.pv-card{padding:14px}}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pv-diamond {
+    position: relative;
+    overflow: hidden;
+  }
+  .pv-diamond::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(110deg, transparent 30%, #f6caff36 50%, transparent 70%);
+    animation: pv-diamond-shine 5s ease-in-out infinite;
+  }
+  .pv-diamond svg {
+    animation: pv-diamond-glint 5s ease-in-out infinite;
+  }
+  @keyframes pv-diamond-shine {
+    0% { transform: translateX(-100%); }
+    32%, 100% { transform: translateX(100%); }
+  }
+  @keyframes pv-diamond-glint {
+    0%, 30%, 100% { transform: scale(1); }
+    14% { transform: scale(1.12) rotate(-6deg); color: #f5ccff; filter: drop-shadow(0 0 3px #dc8bfb); }
+  }
+  .pv-subscription svg {
+    transform-origin: center bottom;
+    animation: pv-crown-tilt 5s ease-in-out infinite;
+  }
+  @keyframes pv-crown-tilt {
+    0%, 16%, 100% { transform: none; }
+    5% { transform: translateY(-2px) rotate(-8deg); color: #ffcf68; }
+    11% { transform: translateY(-1px) rotate(5deg); color: #ffcf68; }
+  }
+}
+
+.pv-actions {
+  display: grid;
+  gap: 8px;
+  width: 132px;
+  flex: none;
+  margin-left: auto;
+  align-self: flex-end;
+}
+.pv-actions > * {
+  width: 100%;
+  min-height: 36px;
+  justify-content: flex-start;
+  padding: 6px 14px;
+  gap: 8px;
+  white-space: nowrap;
+}
+@media (min-width: 761px) {
+  .pv-hero > .pv-identity { align-self: flex-end; }
+}
+@media (max-width: 760px) {
+  .pv-actions {
+    flex-basis: 100%;
+    grid-template-columns: minmax(0, 132px);
+    justify-content: end;
+  }
+  .pv-actions > * { justify-content: center; padding-inline: 6px; }
+}

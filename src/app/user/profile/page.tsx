@@ -3,6 +3,8 @@ import { apiFetch } from "@/config/runtime";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import "./profile-view.css";
+import { UserRound, Pencil, Image as PhotoIcon, MapPin, BriefcaseBusiness, Ruler, Target, Zap, Lightbulb, Settings, ChevronRight } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -91,6 +93,7 @@ export default function ProfilePage() {
  const [profile, setProfile] = useState<Partial<UserProfile>>({});
  const [insights, setInsights] = useState<ProfileInsights | null>(null);
  const [loading, setLoading] = useState(true);
+ const [editing, setEditing] = useState(false);
  const [saving, setSaving] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
  const [photoSaving, setPhotoSaving] = useState(false);
@@ -369,6 +372,31 @@ export default function ProfilePage() {
  ? Math.max(0, Math.ceil((planExpiry.getTime() - Date.now()) / 86_400_000))
  : null;
 
+ const currentPlanCard = hasPaidPlan && (
+<div className="overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 dark:from-violet-950 dark:via-slate-900 dark:to-slate-900 dark:border-violet-800 p-5 shadow-lg">
+ <div className="flex items-start gap-3">
+ <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-md shadow-violet-500/20">
+ <Crown className="h-5 w-5" />
+ </div>
+ <div className="min-w-0">
+ <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-600 dark:text-violet-300">Your current plan</p>
+ <h3 className="mt-0.5 text-lg font-black text-slate-900 dark:text-white">{planName} Plan</h3>
+ </div>
+ </div>
+ <div className="mt-4 grid grid-cols-2 gap-3">
+ <div className="rounded-xl border border-violet-100 bg-white/80 dark:bg-slate-900 dark:border-violet-800 p-3">
+ <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300"><CalendarDays className="h-3.5 w-3.5 text-violet-500" /> Validity</p>
+ <p className="mt-1 text-sm font-black text-slate-900 dark:text-white">{remainingPlanDays === null ? "No expiry" : "30 days"}</p>
+ </div>
+ <div className="rounded-xl border border-violet-100 bg-white/80 dark:bg-slate-900 dark:border-violet-800 p-3">
+ <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300"><Clock3 className="h-3.5 w-3.5 text-violet-500" /> Days left</p>
+ <p className="mt-1 text-sm font-black text-violet-700 dark:text-violet-300">{remainingPlanDays === null ? "No expiry" : `${remainingPlanDays} days`}</p>
+ </div>
+ </div>
+ {planExpiry && Number.isFinite(planExpiry.getTime()) && <p className="mt-3 text-xs font-medium text-slate-600 dark:text-slate-300">Active until {planExpiry.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>}
+ </div>
+ );
+
  if (loading) {
  return (
  <div className="flex min-h-[16rem] items-center justify-center">
@@ -378,7 +406,44 @@ export default function ProfilePage() {
  }
 
  return (
- <div className="space-y-4 sm:space-y-5">
+ <div className="pv">
+ <nav className="pv-nav" aria-label="Profile navigation">
+ <button aria-current={!editing ? "page" : undefined} onClick={() => setEditing(false)}><UserRound/> My Profile</button>
+ <button aria-current={editing ? "page" : undefined} onClick={() => setEditing(true)}><Pencil/> Edit Profile</button>
+ <a href="#pv-preview" onClick={() => setEditing(false)}><Eye/> Profile Preview</a>
+ <button onClick={() => { setEditing(true); requestAnimationFrame(() => document.getElementById("pv-photos")?.scrollIntoView()); }}><PhotoIcon/> My Photos</button>
+ <Link href="/user/onboarding?step=video-kyc"><BadgeCheck/> KYC Verification</Link>
+ <Link href="/user/premium" className="pv-subscription"><Crown/> Subscription</Link>
+ <Link href="/user/settings"><Settings/> Account Settings</Link>
+ </nav>
+ <div className="pv-main">
+ <header className="pv-hero">
+ <button className="pv-face" aria-label="Edit profile photos" onClick={() => setEditing(true)}>
+ {profile.photos?.[0] ? <img src={profile.photos[0]} alt="Your profile"/> : <UserRound size={54}/>}<span><Camera size={19}/></span></button>
+ <div className="pv-identity"><h1>{profile.name || "My Profile"}
+   {(hasPaidPlan || profile.kycMatched) && (
+     <BadgeCheck className="h-6 w-6 shrink-0 fill-blue-500 text-white" role="img" aria-label={hasPaidPlan ? planName + " plan member" : "KYC verified"} />
+   )}
+ </h1>
+ <p><MapPin size={15}/>{profile.city || "City not added"}</p>
+ <div className="pv-stats"><span><HeartIcon/>{insights?.likesReceived ?? "?"}<small>Likes received</small></span><span><Eye/>{insights?.profileViews7d ?? "?"}<small>Views this week</small></span>
+ <span className={hasPaidPlan && planName === "Diamond" ? "pv-diamond" : undefined}>
+   <Crown/>{hasPaidPlan ? planName : "Free"}<small>Membership</small>
+ </span></div></div>
+ <div className="pv-actions">
+   {profile.kycMatched === true ? (
+     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+       <BadgeCheck size={15} aria-hidden="true"/> KYC Verified
+     </span>
+   ) : (
+     <Link href="/user/onboarding?step=video-kyc" className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900">
+       <ShieldAlert size={15} aria-hidden="true"/> KYC Pending
+     </Link>
+   )}
+   <button className="pv-action" onClick={() => setEditing(!editing)}><Pencil size={15}/>{editing ? "My Profile" : "Edit Profile"}</button>
+ </div>
+ </header>
+ {editing ? <div className="pv-editor space-y-4 sm:space-y-5">
  {profile.kycMatched !== true && (
    <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5" role="status">
      <div className="flex min-w-0 items-start gap-3">
@@ -443,7 +508,7 @@ export default function ProfilePage() {
     </div>
 
     {/* Photo Grid Section */}
-    <div className="min-w-0 rounded-xl border border-slate-100 bg-slate-50 p-2.5 min-[380px]:p-3 sm:p-4">
+    <div id="pv-photos" className="min-w-0 rounded-xl border border-slate-100 bg-slate-50 p-2.5 min-[380px]:p-3 sm:p-4">
       <h2 className="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
         Profile Photos
         {photoSaving && <Loader2 className="h-4 w-4 animate-spin text-rose-500" />}
@@ -768,29 +833,7 @@ export default function ProfilePage() {
  </div>
  </div>
 
- {/* Active membership: paid users see their plan and remaining validity. */}
- {hasPaidPlan && <div className="overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 p-5 shadow-lg">
- <div className="flex items-start gap-3">
- <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-md shadow-violet-500/20">
- <Crown className="h-5 w-5" />
- </div>
- <div className="min-w-0">
- <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-600">Your current plan</p>
- <h3 className="mt-0.5 text-lg font-black text-slate-900">{planName} Plan</h3>
- </div>
- </div>
- <div className="mt-4 grid grid-cols-2 gap-3">
- <div className="rounded-xl border border-violet-100 bg-white/80 p-3">
- <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500"><CalendarDays className="h-3.5 w-3.5 text-violet-500" /> Validity</p>
- <p className="mt-1 text-sm font-black text-slate-900">30 days</p>
- </div>
- <div className="rounded-xl border border-violet-100 bg-white/80 p-3">
- <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500"><Clock3 className="h-3.5 w-3.5 text-violet-500" /> Days left</p>
- <p className="mt-1 text-sm font-black text-violet-700">{remainingPlanDays === null ? "No expiry" : `${remainingPlanDays} days`}</p>
- </div>
- </div>
- {planExpiry && Number.isFinite(planExpiry.getTime()) && <p className="mt-3 text-xs font-medium text-slate-600">Active until {planExpiry.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>}
- </div>}
+ {currentPlanCard}
 
  {/* Upgrade plan CTA: keep this directly below the current plan card. */}
  <div className="overflow-hidden rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-fuchsia-600 via-violet-600 to-purple-700 p-5 text-white shadow-lg shadow-fuchsia-500/20">
@@ -826,6 +869,20 @@ export default function ProfilePage() {
  </aside>
  </div>
  </div>
+ : <div className="pv-columns"><div className="pv-stack">
+ <nav className="pv-tabs" aria-label="Profile sections">{[["About Me","about"],["Details","details"],["Personality","personality"],["Interests","interests"]].map(([label,id]) => <a key={id} href={"#pv-"+id}>{label}</a>)}</nav>
+ <section className="pv-card" id="pv-about"><h2><Pencil/> About Me</h2><p className="pv-bio">{profile.bio || "Add a short introduction to your profile."}</p></section>
+ <section className="pv-card" id="pv-details"><h2><UserRound/> Basic Information</h2><dl className="pv-facts">{([
+ ["Date of birth",profile.dob?.slice(0,10),CalendarDays],["Gender",profile.gender,UserRound],["Height",profile.height,Ruler],["Current city",profile.city,MapPin],["Profession",profile.profession,BriefcaseBusiness],["Relationship goal",profile.relationshipGoal,Target]
+ ] as const).map(([label,value,Icon]) => <div key={label}><Icon/><dt>{label}</dt><dd>{value || "?"}</dd></div>)}</dl></section>
+ {(["personality","interests"] as const).map(key => <section id={"pv-"+key} className="pv-card" key={key}><h2>{key==="personality"?<Sparkles/>:<HeartIcon/>}{key==="personality"?"Personality":"Interests"}<button onClick={() => setEditing(true)}>Edit</button></h2><div className="pv-tags">{(profile[key] || "").split(",").map(t=>t.trim()).filter(Boolean).map(t=><span key={t}>{t}</span>)}{!profile[key] && <small>None added yet</small>}</div></section>)}
+ </div><aside className="pv-stack">
+ {currentPlanCard}
+ <section className="pv-card pv-strength"><h2><Zap/> Profile Strength</h2><div className="pv-progress"><div className="pv-ring" style={{background: 'conic-gradient(#15db91 '+savedCompletion+'%, #463347 0)'}}><strong>{savedCompletion}%<small>Complete</small></strong></div><ul>{([["Profile photo",profile.photos?.length],["Bio written",profile.bio],["Personality added",profile.personality],["Interests selected",profile.interests]] as const).map(([label,done])=><li key={label}><CheckCircle2 color={done?"#20df98":"#8b8295"} size={15}/>{label}</li>)}</ul></div></section>
+ <section className="pv-card" id="pv-preview"><h2><Eye/> Profile Preview</h2><div className="pv-preview">{profile.photos?.[0] && <img src={profile.photos[0]} alt="Your primary profile photo"/>}<div><strong>{profile.name}</strong><p>{profile.city}</p></div></div></section>
+ <section className="pv-card pv-tips"><h2><Lightbulb/> Profile Tips</h2><button onClick={()=>setEditing(true)}>Add clear and recent photos <ChevronRight/></button><a href="#pv-about">Write a genuine bio <ChevronRight/></a><a href="#pv-interests">Share your interests <ChevronRight/></a></section>
+ </aside></div>}
+ </div></div>
  );
 }
 
