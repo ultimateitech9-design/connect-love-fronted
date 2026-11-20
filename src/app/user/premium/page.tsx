@@ -1,5 +1,7 @@
 "use client";
 
+import { currentUserQueryKey } from '@/hooks/useCurrentUser';
+import { getToken } from '@/lib/auth';
 import { useState } from "react";
 import Link from "next/link";
 import { Check, X, Gem, Star, Lock, Shield, Loader2, TicketPercent } from "lucide-react";
@@ -150,7 +152,7 @@ export default function PremiumPage() {
      window.dispatchEvent(new Event('billingChanged'));
      setCheckoutPlan(null);
      const updatedUser = await directFetch('/users/me').catch(() => null);
-     if (updatedUser) queryClient.setQueryData(['current-user'], updatedUser);
+     if (updatedUser) queryClient.setQueryData(currentUserQueryKey(getToken() || ''), updatedUser);
      toast.success(`${plan.name} activated for 30 days!`);
      await queryClient.invalidateQueries({ type: "active" });
     } catch {

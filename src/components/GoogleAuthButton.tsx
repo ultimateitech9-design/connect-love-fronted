@@ -61,7 +61,7 @@ export function GoogleAuthButton({ mode }: { mode: "signin" | "signup" }) {
         const body = await result.json();
         if (!result.ok) throw new Error(Array.isArray(body.message) ? body.message[0] : body.message);
 
-        setToken(body.access_token);
+        setToken(body.access_token, body.user);
         if (body.isNewUser || !body.user?.onboardingCompleted) {
           if (body.isNewUser) markAppInstallPromptPending();
           requireOnboarding();

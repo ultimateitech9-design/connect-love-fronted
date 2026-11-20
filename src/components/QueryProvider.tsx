@@ -31,6 +31,16 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
  });
 
  useEffect(() => {
+  const clearSessionQueries = () => {
+   // Abort old /users/me requests before removing their cached results.
+   void queryClient.cancelQueries();
+   queryClient.clear();
+  };
+  window.addEventListener('connect-love-auth-change', clearSessionQueries);
+  return () => window.removeEventListener('connect-love-auth-change', clearSessionQueries);
+ }, [queryClient]);
+
+ useEffect(() => {
   const syncActiveData = () => {
    if (document.visibilityState === 'visible' && navigator.onLine) {
     void queryClient.invalidateQueries({ type: 'active', predicate: (query) => !isPersistentMessagesQuery(query) });

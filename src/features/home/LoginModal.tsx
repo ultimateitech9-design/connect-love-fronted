@@ -54,8 +54,8 @@ export function LoginModal({ open, onClose, onSwitchToSignup }: LoginModalProps)
  setShowManagementLogin(message.toLowerCase().includes("management login"));
  return;
  }
- const { access_token } = await res.json();
- setToken(access_token);
+ const { access_token, user } = await res.json();
+ setToken(access_token, user);
  clearOnboardingRequired();
  reset();
  onClose();

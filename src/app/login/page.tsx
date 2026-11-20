@@ -274,8 +274,8 @@ export default function LoginPage() {
         return;
       }
 
-      const { access_token } = await res.json();
-      setToken(access_token);
+      const { access_token, user } = await res.json();
+      setToken(access_token, user);
       clearOnboardingRequired();
       window.location.href = "/user/discover";
     } catch {

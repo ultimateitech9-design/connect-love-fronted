@@ -37,6 +37,40 @@ function deleteCookie(name: string) {
  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 }
 
+const IDENTITY_KEY = 'cl_auth_identity';
+export type AuthIdentity = { id: string; name: string };
+
+export function tokenUserId(token: string | null): string | null {
+ try {
+  if (!token) return null;
+  const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+  return String(payload.sub || payload.userId || '') || null;
+ } catch { return null; }
+}
+
+function clearIdentityCache() {
+ for (const target of [storage(), sessionStorageSafe()]) {
+  for (const key of [IDENTITY_KEY, 'cl_user_name', 'cl_avatar_url']) {
+   try { target?.removeItem(key); } catch {}
+  }
+ }
+}
+
+export function cacheAuthIdentity(user?: AuthIdentity | null): void {
+ if (!user?.name || user.id !== tokenUserId(getToken())) return;
+ const value = JSON.stringify({ id: user.id, name: user.name });
+ try { storage()?.setItem(IDENTITY_KEY, value); } catch {}
+ try { sessionStorageSafe()?.setItem(IDENTITY_KEY, value); } catch {}
+}
+
+export function getAuthIdentity(): AuthIdentity | null {
+ try {
+  const value = storage()?.getItem(IDENTITY_KEY) || sessionStorageSafe()?.getItem(IDENTITY_KEY);
+  const identity = value ? JSON.parse(value) : null;
+  return identity?.id === tokenUserId(getToken()) && typeof identity?.name === 'string' ? identity : null;
+ } catch { return null; }
+}
+
 /** Retrieve the stored JWT token */
 export function getToken(): string | null {
  try { return storage()?.getItem(TOKEN_KEY) ?? sessionStorageSafe()?.getItem(TOKEN_KEY) ?? null; }
@@ -52,10 +86,12 @@ export function getManagementToken(): string | null {
  * Persist the JWT token after a successful login.
  * Also sets the sm_auth cookie so Edge Middleware can protect /user/* routes.
  */
-export function setToken(token: string): void {
+export function setToken(token: string, user?: AuthIdentity | null): void {
+ clearIdentityCache();
  setCookie(COOKIE_NAME, "1", 30);
  try { storage()?.setItem(TOKEN_KEY, token); } catch {}
  try { sessionStorageSafe()?.setItem(TOKEN_KEY, token); } catch {}
+ cacheAuthIdentity(user);
  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('connect-love-auth-change', { detail: true }));
 }
 
@@ -90,6 +126,7 @@ export function isOnboardingRequired(): boolean {
  * Called on logout or when a 401 is received.
  */
 export function clearToken(): void {
+ clearIdentityCache();
  try { storage()?.removeItem(TOKEN_KEY); } catch {}
  try { sessionStorageSafe()?.removeItem(TOKEN_KEY); } catch {}
  clearProfileReminder();

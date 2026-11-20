@@ -81,7 +81,7 @@ export function AuthPromptModal() {
       if (!response.ok) {
         throw new Error(Array.isArray(body.message) ? body.message[0] : body.message);
       }
-      setToken(body.access_token);
+      setToken(body.access_token, body.user);
       clearOnboardingRequired();
       window.location.href = "/user/discover";
     } catch (reason) {

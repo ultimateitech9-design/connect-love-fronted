@@ -223,8 +223,8 @@ export default function RegisterPage() {
       });
 
       if (loginRes.ok) {
-        const { access_token } = await loginRes.json();
-        setToken(access_token);
+        const { access_token, user } = await loginRes.json();
+        setToken(access_token, user);
         scheduleProfileReminder();
         requireOnboarding();
         window.location.href = "/user/onboarding";

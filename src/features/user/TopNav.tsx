@@ -8,7 +8,7 @@ import { Banknote, Bell, CheckCheck, Heart, MessageCircle, Pencil, PhoneMissed, 
 import { BrandLogo } from "@/components/BrandLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { logout, getToken } from "@/lib/auth";
+import { logout, getToken, getAuthIdentity, cacheAuthIdentity, tokenUserId } from "@/lib/auth";
 import { directFetch } from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
 import { useMatches } from "@/hooks/useMatches";
@@ -67,8 +67,6 @@ export function TopNav() {
  const token = getToken() || "";
 
  const [notifOpen, setNotifOpen] = useState(false);
- const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
- const [userName, setUserName] = useState<string>("You");
  const [loadNavData, setLoadNavData] = useState(false);
  const [seenNotificationIds, setSeenNotificationIds] = useState<Set<string>>(new Set());
  const [clearedNotificationIds, setClearedNotificationIds] = useState<Set<string>>(new Set());
@@ -123,7 +121,10 @@ export function TopNav() {
    };
  }, [loadNavData, token]);
  const missedCallsCount = pathname.startsWith("/user/calls") ? 0 : missedCalls.length;
- const { data: navUser } = useCurrentUser(token, loadNavData);
+ const { data: profileData } = useCurrentUser(token);
+ const navUser = profileData?.id === tokenUserId(token) ? profileData : undefined;
+ const userName = navUser?.name || getAuthIdentity()?.name || '';
+ const avatarUrl = navUser ? navUser.photos?.[0] || navUser.avatarUrl || null : getCachedAvatarUrl();
 
  // Locked conversations are intentionally absent from the Messages list, so
  // their messages must not create a badge the member cannot open or clear.
@@ -276,25 +277,11 @@ export function TopNav() {
   localStorage.setItem(seenMatchesStorageKey, JSON.stringify(trimmed));
  }, [activeMatches, pathname, seenMatchIds, seenMatchesReady, seenMatchesStorageKey]);
 
- // Fetch user avatar for the nav
+ // The login response supplies the name before the profile request completes.
  useEffect(() => {
- const NAME_KEY = "cl_user_name";
- const cached = getCachedAvatarUrl();
- if (cached) setAvatarUrl(cached);
- const cachedName = localStorage.getItem(NAME_KEY);
- if (cachedName) setUserName(cachedName);
-
- }, []);
-
- useEffect(() => {
-  if (navUser?.name) {
-   setUserName(navUser.name);
-   localStorage.setItem("cl_user_name", navUser.name);
-  }
   if (!navUser) return;
-  const latestPhoto = navUser.photos?.[0] || navUser.avatarUrl || null;
-  setAvatarUrl(latestPhoto);
-  cacheAvatarUrl(latestPhoto);
+  cacheAuthIdentity(navUser);
+  cacheAvatarUrl(navUser.photos?.[0] || navUser.avatarUrl || null);
  }, [navUser]);
 
  // Close notif panel when clicking outside
@@ -510,7 +497,7 @@ export function TopNav() {
  <Avatar className="h-7 w-7 ring-2 ring-white shadow-sm sm:h-8 sm:w-8">
  {avatarUrl ? <AvatarImage src={avatarUrl} alt="User" className="object-cover" /> : <AvatarFallback className="bg-rose-100 text-rose-700"><UserRound className="h-4 w-4" /></AvatarFallback>}
  </Avatar>
- <span className="hidden text-sm font-medium sm:inline">{userName}</span>
+ <span className="hidden text-sm font-medium sm:inline">{userName || <span className="inline-block h-4 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" aria-label="Loading your name" />}</span>
  </Link>
  <Link
  href="/user/settings"
