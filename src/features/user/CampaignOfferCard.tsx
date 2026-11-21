@@ -1,69 +1,68 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BadgePercent, Sparkles, X } from "lucide-react";
-import { api } from "@/lib/api";
+import { ArrowUpRight, Check, Copy, Heart, X } from "lucide-react";
+import Link from "next/link";
+import { getAuthIdentity, getToken, tokenUserId } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import "./welcome-offer.css";
 
-type ActiveCampaign = Awaited<ReturnType<typeof api.activeCampaigns>>["campaigns"][number];
+const coupon = "CONNECTLOVE";
 
 export function CampaignOfferCard() {
-  const [campaign, setCampaign] = useState<ActiveCampaign | null>(null);
-  const impressionSent = useRef(false);
+  const token = getToken() || "";
+  const id = tokenUserId(token);
+  const { data: profile } = useCurrentUser(token);
+  const name = (getAuthIdentity()?.name || (profile?.id === id && profile.name) || "").trim().split(/\s+/)[0];
+  const key = "cl_welcome_offer:" + id;
+  const [visible, setVisible] = useState(false);
+  const [copyState, setCopyState] = useState<"ready" | "copied" | "manual">("ready");
+  const input = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    let alive = true;
-    api.activeCampaigns()
-      .then(({ campaigns }) => {
-        if (!alive) return;
-        const visible = campaigns.find((item) => sessionStorage.getItem(`cl_campaign_dismissed:${item.id}`) !== "1");
-        setCampaign(visible || null);
-      })
-      .catch(() => undefined);
-    return () => { alive = false; };
-  }, []);
+    try { setVisible(sessionStorage.getItem(key) !== "dismissed"); }
+    catch { setVisible(true); }
+    setCopyState("ready");
+  }, [key]);
 
-  useEffect(() => {
-    if (!campaign || impressionSent.current) return;
-    impressionSent.current = true;
-    void api.recordCampaignEvent(campaign.id, "impression").catch(() => undefined);
-  }, [campaign]);
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(coupon);
+      setCopyState("copied");
+    } catch {
+      if (input.current) {
+        const range = document.createRange();
+        range.selectNodeContents(input.current);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+      setCopyState("manual");
+    }
+  }
 
-  if (!campaign) return null;
-
-  const dismiss = () => {
-    sessionStorage.setItem(`cl_campaign_dismissed:${campaign.id}`, "1");
-    void api.recordCampaignEvent(campaign.id, "dismiss").catch(() => undefined);
-    setCampaign(null);
-  };
-
-  const openOffer = () => {
-    void api.recordCampaignEvent(campaign.id, "click").catch(() => undefined);
-    window.location.href = campaign.ctaUrl;
-  };
-
+  if (!id || !name || !visible) return null;
   return (
-    <section className="relative mb-5 overflow-hidden rounded-3xl border border-rose-200/70 bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 p-5 text-white shadow-xl shadow-rose-500/20 sm:p-6" role="status" aria-label="Current offer">
-      <div className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-white/15 blur-2xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-24 w-24 rounded-full bg-amber-300/20 blur-xl" />
-      <button type="button" onClick={dismiss} aria-label="Dismiss offer" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/15 text-white transition hover:bg-black/25">
-        <X className="h-4 w-4" />
-      </button>
-      <div className="relative flex flex-col gap-4 pr-8 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-start gap-4">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/20 ring-1 ring-white/30"><Sparkles className="h-6 w-6" /></div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-xl font-black tracking-tight sm:text-2xl">{campaign.title}</h2>
-              {campaign.discountPercent ? <span className="inline-flex items-center gap-1 rounded-full bg-amber-300 px-2.5 py-1 text-xs font-black text-rose-950"><BadgePercent className="h-3.5 w-3.5" />{campaign.discountPercent}% OFF</span> : null}
-            </div>
-            <p className="mt-1 max-w-2xl text-sm font-medium leading-relaxed text-white/90">{campaign.description}</p>
-            {campaign.endsAt ? <p className="mt-2 text-xs font-semibold text-white/70">Valid until {new Date(campaign.endsAt).toLocaleString()}</p> : null}
-          </div>
-        </div>
-        <button type="button" onClick={openOffer} className="h-11 shrink-0 rounded-full bg-white px-5 text-sm font-black text-rose-700 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl">
-          {campaign.ctaLabel}
+    <section className="cl-welcome-offer" aria-label="Your membership offer" key={id}>
+      <div className="cl-offer-heart" aria-hidden="true">
+        <Heart className="cl-heart-left" /><Heart className="cl-heart-right" />
+      </div>
+      <div className="cl-offer-reveal cl-offer-message">
+        <p>Hello, <span>{name}</span>!</p>
+        <h2><strong>30% off</strong> membership</h2>
+        <Link href="/user/premium">Claim your offer <ArrowUpRight size={15}/></Link>
+      </div>
+      <div className="cl-offer-reveal cl-offer-ticket">
+        <div><small>Coupon code</small><code ref={input}>{coupon}</code></div>
+        <button type="button" onClick={copyCode} aria-label="Copy coupon code">
+          {copyState === "copied" ? <Check size={15}/> : <Copy size={15}/>}
+          <span aria-live="polite">{copyState === "copied" ? "Copied!" : copyState === "manual" ? "Select & copy" : "Copy"}</span>
         </button>
       </div>
+      <button className="cl-offer-close" type="button" aria-label="Dismiss offer" onClick={() => {
+        setVisible(false);
+        try { sessionStorage.setItem(key, "dismissed"); } catch {}
+      }}><X size={16}/></button>
     </section>
   );
 }
