@@ -2,10 +2,10 @@
   "name": "@dating-app/frontend",
   "private": true,
   "scripts": {
-    "dev": "echo Frontend dev server: http://localhost:3002 && set NODE_OPTIONS=--max-old-space-size=4096 && next dev --turbopack --port 3002",
-    "dev:open": "echo Frontend dev server: http://localhost:3002 && set NODE_OPTIONS=--max-old-space-size=4096 && start http://localhost:3002 && next dev --turbopack --port 3002",
+    "dev": "echo Frontend dev server: http://localhost:3009 && set NODE_OPTIONS=--max-old-space-size=4096 && next dev --turbopack --port 3009",
+    "dev:open": "echo Frontend dev server: http://localhost:3009 && set NODE_OPTIONS=--max-old-space-size=4096 && start http://localhost:3009 && next dev --turbopack --port 3009",
     "build": "next build",
-    "start": "node scripts/prepare-standalone.js && set PORT=3002&& node .next/standalone/server.js",
+    "start": "node scripts/prepare-standalone.js && set PORT=3009&& node .next/standalone/server.js",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

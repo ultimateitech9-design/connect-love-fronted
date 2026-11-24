@@ -1,7 +1,7 @@
 // Browser regression with synthetic API responses; no real user data is changed.
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const origin = process.env.FRONTEND_TEST_URL || 'http://localhost:3002';
+const origin = process.env.FRONTEND_TEST_URL || 'http://localhost:3009';
 const user = { id: 'pagination-viewer', name: 'Pagination Viewer', gender: 'female', plan: 'free', status: 'active', onboardingCompleted: true, photos: [], walletBalance: 0 };
 const token = `header.${Buffer.from(JSON.stringify({ sub: user.id })).toString('base64url')}.signature`;
 const summary = { active: 1, received: 1005, sent: 47, sentSuper: 23, blocked: 1 };

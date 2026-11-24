@@ -1,7 +1,7 @@
 // Browser regression with mocked accounts and deliberately delayed /users/me.
 const assert = require('node:assert/strict');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
-const origin = process.env.FRONTEND_TEST_URL || 'http://localhost:3002';
+const origin = process.env.FRONTEND_TEST_URL || 'http://localhost:3009';
 const user = { id: 'name-switch-new-account', name: 'New Account Name', gender: 'female', plan: 'free', role: 'user', status: 'active', onboardingCompleted: true, photos: [] };
 const token = `header.${Buffer.from(JSON.stringify({ sub: user.id, role: 'user', exp: 9999999999 })).toString('base64url')}.signature`;
 

@@ -44,11 +44,11 @@ export function AgentDashboard() {
   const [photoErrors, setPhotoErrors] = useState<Record<number, string>>({});
   const photoBusy = photoIndex !== null;
   const fail = useCallback((err: unknown) => {
-    if (err instanceof AgentApiError && err.status === 401) { clearAgentToken(); router.replace('/agent/login'); }
+    if (err instanceof AgentApiError && err.status === 401) { clearAgentToken(); router.replace('/coordinator/login'); }
     else setError(err instanceof Error ? err.message : 'Unable to load workspace. Please try again.');
   }, [router]);
   useEffect(() => {
-    if (!agentToken()) { router.replace('/agent/login'); return; }
+    if (!agentToken()) { router.replace('/coordinator/login'); return; }
     let active = true;
     agentRequest<{ agent: Agent }>('/me').then(result => { if (active) setAgent(result.agent); }).catch(err => { if (active) fail(err); });
     agentRequest<AgentEarnings>('/earnings').then(result => { if (active) setEarnings(result); }).catch(() => undefined);
@@ -114,7 +114,7 @@ export function AgentDashboard() {
   }
   async function logout() {
     setBusy(true); setError('');
-    try { await agentRequest('/auth/logout', {}); clearAgentToken(); setCredentials([]); router.replace('/agent/login'); }
+    try { await agentRequest('/auth/logout', {}); clearAgentToken(); setCredentials([]); router.replace('/coordinator/login'); }
     catch (err) { fail(err); } finally { setBusy(false); }
   }
   async function downloadRegisteredUsers() {
@@ -138,10 +138,10 @@ export function AgentDashboard() {
     }
     catch (err) { if (request === detailsRequest.current) fail(err); }
   }
-  if (!agent) return <main className="ag-loading">{error ? <div role="alert"><p>{error}</p><button className="ag-secondary" onClick={() => window.location.reload()}>Try again</button><Link href="/agent/login">Back to sign in</Link></div> : <><Loader2 className="animate-spin" />Opening your workspace…</>}</main>;
+  if (!agent) return <main className="ag-loading">{error ? <div role="alert"><p>{error}</p><button className="ag-secondary" onClick={() => window.location.reload()}>Try again</button><Link href="/coordinator/login">Back to sign in</Link></div> : <><Loader2 className="animate-spin" />Opening your workspace…</>}</main>;
   return <div className="ag-dashboard">
-    <aside className="ag-sidebar"><Link className="ag-brand" href="/"><BrandLogo className="h-10 w-10" /><span>Connect<span>Love</span></span></Link><span className="ag-eyebrow">AGENT WORKSPACE</span>
-      <nav aria-label="Agent navigation"><button className={tab === 'users' ? 'active' : ''} onClick={() => setTab('users')}><LayoutDashboard size={19} />My users<span>{data?.totalAccounts ?? '—'}</span></button><button className={tab === 'create' ? 'active' : ''} onClick={openCreate}><UserPlus size={19} />Create accounts</button><button className={tab === 'withdraw' ? 'active' : ''} onClick={() => setTab('withdraw')}><Banknote size={19} />Withdraw<span>{earnings ? earnings.balance.toLocaleString() : '—'}</span></button></nav>
+    <aside className="ag-sidebar"><Link className="ag-brand" href="/"><BrandLogo className="h-10 w-10" /><span>Connect<span>Love</span></span></Link><span className="ag-eyebrow">COORDINATOR WORKSPACE</span>
+      <nav aria-label="Coordinator navigation"><button className={tab === 'users' ? 'active' : ''} onClick={() => setTab('users')}><LayoutDashboard size={19} />My users<span>{data?.totalAccounts ?? '—'}</span></button><button className={tab === 'create' ? 'active' : ''} onClick={openCreate}><UserPlus size={19} />Create accounts</button><button className={tab === 'withdraw' ? 'active' : ''} onClick={() => setTab('withdraw')}><Banknote size={19} />Withdraw<span>{earnings ? earnings.balance.toLocaleString() : '—'}</span></button></nav>
       <div className="ag-sidebar-note"><Heart size={23} /><h3>Every profile is a possibility.</h3><p>Help someone take their first step toward a meaningful connection.</p></div>
       <Link className="ag-back ag-site-link" href="/"><ArrowLeft size={16} /> Visit ConnectLove</Link>
       <div className="ag-agent"><span className="ag-avatar">{agent.name.slice(0, 1).toUpperCase()}</span><div><strong>{agent.name}</strong><small>{agent.email}</small></div><button aria-label="Sign out" title="Sign out" disabled={busy} onClick={logout}><LogOut size={18} /></button></div>
@@ -178,7 +178,7 @@ export function AgentDashboard() {
           <div className="ag-submit-row"><p><ShieldCheck size={16} />Passwords are stored securely.</p><button className="ag-primary" disabled={busy || photoBusy || Object.keys(photoErrors).length > 0 || !consent}>{busy ? <><Loader2 size={18} className="animate-spin" />Creating accounts…</> : <><UserPlus size={18} />Create {drafts.length} {drafts.length === 1 ? 'account' : 'accounts'}</>}</button></div>
         </form>
       </section>}
-      <footer className="ag-workspace-footer">ConnectLove Agent Workspace <span>Made for meaningful connections.</span></footer></div>
+      <footer className="ag-workspace-footer">ConnectLove Coordinator Workspace <span>Made for meaningful connections.</span></footer></div>
     </main>
     {selected && <UserDetails key={selected.id} user={selected} onClose={() => { detailsRequest.current++; setSelected(null); }} onSaved={user => { setSelected(user); setRefresh(value => value + 1); }} onRemoved={() => { setSelected(null); setRefresh(value => value + 1); setMessage('User permanently deleted.'); }} />}
   </div>;

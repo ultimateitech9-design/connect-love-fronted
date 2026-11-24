@@ -12,7 +12,7 @@ export function AgentRegistrationProvider({ children }: { children: ReactNode })
   const [draft, setDraft] = useState<AgentRegistrationDraft | null>(null);
   const pathname = usePathname();
   // Signup credentials live only in memory between these two pages.
-  useEffect(() => { if (!pathname.startsWith('/agent/register')) setDraft(null); }, [pathname]);
+  useEffect(() => { if (!pathname.startsWith('/coordinator/register')) setDraft(null); }, [pathname]);
   const value = useMemo(() => ({ draft, setDraft }), [draft]);
   return <RegistrationContext.Provider value={value}>{children}</RegistrationContext.Provider>;
 }

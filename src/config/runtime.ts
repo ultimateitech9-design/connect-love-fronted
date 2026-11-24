@@ -14,7 +14,7 @@ function resolveBrowserOrigin(configuredOrigin: string, port: string): string {
         return `${window.location.origin}/backend-api`;
       }
       url.hostname = window.location.hostname;
-      url.port = port;
+      url.port = url.port || port;
       return url.origin;
     }
   } catch {
@@ -26,14 +26,14 @@ function resolveBrowserOrigin(configuredOrigin: string, port: string): string {
 
 const configuredApiOrigin = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002";
 const configuredSocketOrigin = process.env.NEXT_PUBLIC_SOCKET_URL || configuredApiOrigin;
-const configuredSiteOrigin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3002";
+const configuredSiteOrigin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3009";
 
 export const API_ORIGIN = resolveBrowserOrigin(configuredApiOrigin, "5002");
 export const SOCKET_ORIGIN = resolveBrowserOrigin(configuredSocketOrigin, "5002");
 // A URL path is a Socket.IO namespace unless passed explicitly as `path`.
 // Keep proxied /backend-api connections on the authenticated root namespace.
 export function socketConnectionOptions() {
-  const url = new URL(SOCKET_ORIGIN, typeof window === 'undefined' ? 'http://localhost:3002' : window.location.origin);
+  const url = new URL(SOCKET_ORIGIN, typeof window === 'undefined' ? 'http://localhost:3009' : window.location.origin);
   const prefix = url.pathname.replace(/\/$/, '');
   return {
     origin: url.origin,
@@ -50,7 +50,7 @@ export function socketConnectionOptions() {
   };
 }
 
-export const SITE_ORIGIN = resolveBrowserOrigin(configuredSiteOrigin, windowPort("3002"));
+export const SITE_ORIGIN = resolveBrowserOrigin(configuredSiteOrigin, windowPort("3009"));
 
 export function apiOriginCandidates(): string[] {
   const candidates = [API_ORIGIN];

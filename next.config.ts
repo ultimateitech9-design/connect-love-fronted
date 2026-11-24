@@ -4,6 +4,15 @@ import path from "path";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+  async redirects() {
+    return [
+      {
+        source: "/agent/:path*",
+        destination: "/coordinator/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
