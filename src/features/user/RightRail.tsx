@@ -15,6 +15,7 @@ import { matchFriends, onlineMatchFriends } from './matchFriends';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import boostStyles from './BoostButton.module.css';
 import upgradeStyles from './UpgradeButton.module.css';
+import { ReferralEntry } from "@/features/referrals/ReferralEntry";
 import { ProfileVisitors } from './ProfileVisitors';
 
 export function RightRail() {
@@ -76,6 +77,7 @@ export function RightRail() {
           </button>
         </div>
         <Progress value={completion} className="mt-4 h-[8px]" />
+        <ReferralEntry gender={currentUser?.gender} compact />
       </div>
       <BoostDialog open={boostOpen} onClose={() => setBoostOpen(false)} />
 

@@ -11,6 +11,7 @@ type Row = {
   type: 'recharge' | 'gift' | 'theme' | 'withdrawal' | 'admin_credit' | 'call';
   status: string;
   grossCoins: number;
+  walletSource?: "coins" | "referral";
   userCoins: number;
   platformCoins: number;
   label?: string;
@@ -88,14 +89,14 @@ export default function TransactionsPage() {
   };
 
   const totalCommission = rows.reduce((sum, row) => sum + Number(row.platformCoins || 0), 0);
-  const pendingWithdrawals = rows.filter((row) => row.type === 'withdrawal' && row.status === 'pending').reduce((sum, row) => sum + row.grossCoins, 0);
+  const pendingWithdrawals = rows.filter((row) => row.type === 'withdrawal' && row.status === 'pending').reduce((sum, row) => sum + Number(row.amountPaise ?? row.grossCoins * 100), 0);
   const copyPayoutDetails = async (row: Row, details: Record<string, string>) => {
     const account = row.user;
     const lines = [
       `User: ${account?.name || ''}`,
       `Email: ${account?.email || ''}`,
       `Phone: ${account?.phone || 'Not provided'}`,
-      `Amount: ${row.grossCoins} coins (?${(Number(row.amountPaise || 0) / 100).toFixed(2)})`,
+      `Amount: ${row.walletSource === "referral" ? "Referral rewards" : `${row.grossCoins} coins`} (₹${(Number(row.amountPaise || 0) / 100).toFixed(2)})`,
       `Method: ${String(details.method || '').toUpperCase()}`,
       ...(details.method === 'upi' ? [`UPI ID: ${details.upiId || ''}`] : [
         `Account holder: ${details.accountHolder || ''}`,
@@ -114,7 +115,7 @@ export default function TransactionsPage() {
     <div className="mb-5 grid gap-3 sm:grid-cols-3">
       <Stat label="Transactions" value={String(rows.length)} icon={<WalletCards className="h-5 w-5" />} active={!withdrawalsOnly && !commissionOnly} onClick={showAllTransactions} />
       <Stat label="Platform commission" value={`${totalCommission} coins`} icon={<Coins className="h-5 w-5" />} active={commissionOnly} onClick={showCommissionTransactions} />
-      <Stat label="Pending withdrawals" value={`${pendingWithdrawals} coins`} icon={<ArrowUpRight className="h-5 w-5" />} active={withdrawalsOnly} onClick={showWithdrawalTransactions} />
+      <Stat label="Pending withdrawals" value={new Intl.NumberFormat("en-IN", {style:"currency",currency:"INR"}).format(pendingWithdrawals / 100)} icon={<ArrowUpRight className="h-5 w-5" />} active={withdrawalsOnly} onClick={showWithdrawalTransactions} />
     </div>
     <div className="rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex items-center gap-2 border-b border-border p-4">
@@ -132,7 +133,7 @@ export default function TransactionsPage() {
             <td className="px-4 py-3"><span className="inline-flex items-center gap-1.5 font-semibold capitalize">{row.type === 'recharge' || row.type === 'gift' || row.type === 'admin_credit' ? <ArrowDownLeft className="h-4 w-4 text-emerald-500" /> : <ArrowUpRight className="h-4 w-4 text-rose-500" />}{row.type.replace(/_/g, ' ')}</span><div className="text-xs text-muted-foreground">{row.label}</div></td>
             <td className="px-4 py-3 font-medium">{row.sender?.name || row.user?.name || row.agent?.name || 'Platform'}{row.agent && !row.user && <span className="ml-1.5 rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-700">Agent</span>}<div className="text-xs font-normal text-muted-foreground">{row.sender?.email || row.user?.email || row.agent?.email}</div>{row.type === 'withdrawal' && row.user && <div className="mt-1 space-y-0.5 text-[11px] font-normal leading-4 text-slate-600"><div>Phone: {row.user.phone || 'Not provided'}</div><div>Gender: {row.user.gender || 'Not set'}</div>{row.user.city && <div>City: {row.user.city}</div>}{row.user.profession && <div>Profession: {row.user.profession}</div>}</div>}</td>
             <td className="px-4 py-3">{row.receiver?.name || '—'}<div className="text-xs text-muted-foreground">{row.receiver?.email}</div></td>
-            <td className="px-4 py-3"><strong>{row.grossCoins}</strong>{row.type === 'withdrawal' && <div className="text-xs text-slate-600">₹{((Number(row.amountPaise || 0)) / 100).toFixed(2)}</div>}</td><td className="px-4 py-3 text-emerald-600">{row.userCoins}</td><td className="px-4 py-3 text-amber-600">{row.platformCoins}</td>
+            <td className="px-4 py-3"><strong>{row.walletSource === "referral" ? "Referral (INR)" : row.grossCoins}</strong>{row.type === 'withdrawal' && <div className="text-xs text-slate-600">₹{((Number(row.amountPaise || 0)) / 100).toFixed(2)}</div>}</td><td className="px-4 py-3 text-emerald-600">{row.walletSource === "referral" ? "-" : row.userCoins}</td><td className="px-4 py-3 text-amber-600">{row.walletSource === "referral" ? "-" : row.platformCoins}</td>
             <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-bold ${row.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : row.status === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{row.status === 'completed' ? 'Paid' : row.status}</span>{row.payoutAccount && <div className="mt-1 text-xs text-muted-foreground">Account: {row.payoutAccount}</div>}{row.type === 'withdrawal' && details.method === 'upi' && <div className="mt-1 space-y-0.5 text-[11px] leading-4 text-slate-600"><div>Method: UPI</div><div>UPI ID: {details.upiId || 'Not provided'}</div></div>}{row.type === 'withdrawal' && details.method === 'bank' && <div className="mt-1 space-y-0.5 text-[11px] leading-4 text-slate-600"><div>Method: Bank account</div><div>Account holder: {details.accountHolder || 'Not provided'}</div><div>Bank name: {details.bankName || 'Not provided'}</div><div>Account number: {details.accountNumber || 'Not provided'}</div><div>IFSC: {details.ifsc || 'Not provided'}</div></div>}{row.type === 'withdrawal' && details.method && <button type="button" onClick={() => copyPayoutDetails(row, details)} className="mt-2 inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-700 hover:bg-slate-200"><Copy className="h-3 w-3" />{copiedId === row.id ? 'Copied' : 'Copy details'}</button>}{row.type === 'withdrawal' && row.status === 'pending' && <div className="mt-2 flex gap-1.5"><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'completed')} className="rounded-md bg-emerald-600 px-2 py-1 text-[10px] font-bold text-white disabled:opacity-50">Mark Paid</button><button disabled={actionId === row.id} onClick={() => updateWithdrawal(row, 'rejected')} className="rounded-md bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600 disabled:opacity-50">Reject</button></div>}</td>
             <td className="px-4 py-3 text-muted-foreground">{new Date(row.createdAt).toLocaleString()}</td>
           </tr>; })}</tbody>

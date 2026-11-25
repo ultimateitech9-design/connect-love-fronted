@@ -18,6 +18,7 @@ import { setPresenceFetcher } from "@/features/presence/presence";
 import { UpgradeCallsDialog, type UpgradeReason } from "./UpgradeCallsDialog";
 import { ReportCallDialog } from "./ReportCallDialog";
 import { useCallDevices } from "./useCallDevices";
+import { announceNewMatch } from '@/features/matches/matchCelebration';
 
 type CallType = "audio" | "video";
 
@@ -260,6 +261,11 @@ export function CallProvider({ children }: { children: ReactNode }) {
     myUserIdRef.current = userId;
     const connection = socketConnectionOptions();
     const nextSocket = io(connection.origin, { ...connection.options, auth: { token }, query: { userId, token } });
+    nextSocket.on('matchChanged', (match: { id: string; senderId: string; receiverId: string; status: string; newlyMatched?: boolean }) => {
+      if (getToken() !== token || (match.senderId !== userId && match.receiverId !== userId)) return;
+      if (match.status === 'MATCHED' && match.newlyMatched) announceNewMatch(match.id, userId);
+      void queryClient.invalidateQueries({ queryKey: ['matches'] });
+    });
     const refreshProfilePhotos = () => {
       clearDiscoveryQueueCache();
       clearDiscoverySearchCache();

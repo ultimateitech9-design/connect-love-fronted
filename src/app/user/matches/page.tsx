@@ -1,7 +1,9 @@
 "use client";
 
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type MouseEvent } from "react";
+import { MatchProfileDialog } from "@/features/user/MatchProfileDialog";
+import { announceNewMatch } from '@/features/matches/matchCelebration';
 import Link from "next/link";
 import { getToken } from "@/lib/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -34,6 +36,20 @@ export default function MatchesDashboard() {
  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
  const [acceptingRequestId, setAcceptingRequestId] = useState<string | null>(null);
  const [showMatchPlanPopup, setShowMatchPlanPopup] = useState(false);
+ const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+ const openMatchProfile = (match: DBMatch) => {
+   if (match.locked) { setShowMatchPlanPopup(true); return; }
+   setSelectedMatchId(match.id);
+ };
+ const cardClick = (event: MouseEvent<HTMLElement>, match: DBMatch) => {
+   if ((event.target as HTMLElement).closest('button, a')) return;
+   openMatchProfile(match);
+ };
+ const profileName = (match: DBMatch, name: string, age: number | null, extra = '') => (
+   <button type="button" disabled={match.locked} onClick={() => openMatchProfile(match)} aria-label={`View profile of ${name}`} className={cn('rounded text-left text-base font-semibold text-slate-800 hover:text-rose-600 hover:underline focus-visible:outline-2 focus-visible:outline-rose-500 disabled:no-underline', extra)}>
+     {name}{age != null && `, ${age}`}
+   </button>
+ );
  const pageKey = mainTab === 'pending' ? `pending-${pendingTab}` : mainTab;
  const currentPage = pages[pageKey] || 0;
  const changePage = (page: number) => setPages(current => ({ ...current, [pageKey]: page }));
@@ -79,7 +95,7 @@ export default function MatchesDashboard() {
    const targetId = match.senderId === myId ? match.receiverId : match.senderId;
    const profile = match.senderId === myId ? match.receiver : match.sender;
    if (!profile) return null;
-   return { ...profile, name: profile.name || 'Unknown', age: profile.age || 25,
+   return { ...profile, name: profile.name || 'Unknown', age: profile.age ?? null,
      photo: profile.photos?.[0] || profile.avatarUrl || undefined, online: onlineIds.has(String(targetId)) };
  };
 
@@ -113,12 +129,12 @@ export default function MatchesDashboard() {
    } catch (error) { toast.error(error instanceof Error ? error.message : 'Could not delete the pending request.'); }
    finally { setDeletingRequestId(null); }
  };
- const handleAcceptMatch = async (match: DBMatch, profileName: string) => {
+ const handleAcceptMatch = async (match: DBMatch) => {
    if (acceptingRequestId) return;
    setAcceptingRequestId(match.id);
    try {
      await matchRequest('/matches/respond', token, { method: 'POST', body: JSON.stringify({ matchId: match.id, action: 'accept' }) });
-     toast.success(`It's a Match! You and ${profileName} are now connected.`);
+     announceNewMatch(match.id, myId);
      await refreshCurrentTab();
    } catch (error) {
      const message = error instanceof Error ? error.message : 'Could not accept this match request.';
@@ -135,6 +151,7 @@ export default function MatchesDashboard() {
  };
  return (
  <div className="space-y-6">
+   {selectedMatchId && <MatchProfileDialog key={selectedMatchId} matchId={selectedMatchId} viewerId={myId} token={token} onClose={() => setSelectedMatchId(null)} />}
    {showMatchPlanPopup && (
      <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="match-limit-title" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowMatchPlanPopup(false); }}>
        <div className="relative w-full max-w-md rounded-3xl border border-rose-100 bg-white p-7 text-center shadow-2xl">
@@ -169,7 +186,7 @@ export default function MatchesDashboard() {
        </TabsTrigger>
        <TabsTrigger value="received" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
          <span className="sm:hidden">Received ({summary.received})</span>
-         <span className="hidden sm:inline">Likes Received ({summary.received})</span>
+         <span className="hidden sm:inline">Requests Received ({summary.received})</span>
        </TabsTrigger>
        <TabsTrigger value="pending" className="min-w-0 rounded-full px-1 py-2 text-[10px] transition-all data-[state=active]:bg-white data-[state=active]:text-[color:var(--brand)] data-[state=active]:shadow-sm min-[380px]:text-xs sm:px-5 sm:text-sm">
          <span className="sm:hidden">Pending ({totalPending})</span>
@@ -221,7 +238,7 @@ export default function MatchesDashboard() {
              if (!profile) return null;
              const targetId = m.senderId === myId ? m.receiverId : m.senderId;
              return (
-               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} className="relative overflow-hidden rounded-2xl bg-white border border-slate-100 p-5 shadow-sm transition-all">
+               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} onClick={(event) => cardClick(event, m)} className="cursor-pointer relative overflow-hidden rounded-2xl bg-white border border-slate-100 p-5 shadow-sm transition-all">
                  {m.locked && (
                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/75 p-5 text-center backdrop-blur-md">
                      <span className="grid h-11 w-11 place-items-center rounded-full bg-rose-100 text-rose-600"><LockKeyhole className="h-5 w-5" /></span>
@@ -239,7 +256,7 @@ export default function MatchesDashboard() {
                      <PresenceDot online={profile.online} />
                    </div>
                    <div>
-                     <p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age}</p>
+                     {profileName(m, profile.name, profile.age)}
                      <p className="text-xs text-slate-400">Matched recently</p>
                    </div>
                  </div>
@@ -266,21 +283,21 @@ export default function MatchesDashboard() {
      {/* LIKES RECEIVED — kept beside Active Matches so incoming likes are always visible */}
      <TabsContent value="received" className="mt-0 focus-visible:outline-none">
        {isLoading ? <MatchSkeleton /> : <>
-       <div className="mb-6"><p className="text-sm text-muted-foreground">People who liked your profile. Match or pass them here.</p></div>
+       <div className="mb-6"><p className="text-sm text-muted-foreground">People who sent you a request. Match or pass them here.</p></div>
        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
          {receivedLikes.map((m) => {
            const profile = getProfile(m);
            if (!profile) return null;
            const isSuper = m.isSuperLike;
-           return <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} className={cn("relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition-all", isSuper ? "border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" : "border border-slate-100 border-l-4 border-l-[color:var(--brand)]")}>
+           return <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} onClick={(event) => cardClick(event, m)} className={cn("cursor-pointer relative overflow-hidden rounded-2xl bg-white p-5 shadow-sm transition-all", isSuper ? "border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" : "border border-slate-100 border-l-4 border-l-[color:var(--brand)]")}>
              {isSuper && <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-blue-50/50 to-transparent" />}
              {m.locked && <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/75 p-5 text-center backdrop-blur-md"><LockKeyhole className="h-6 w-6 text-rose-500" /><p className="mt-2 text-sm font-bold text-slate-900">Like Locked</p><p className="mt-1 text-xs text-slate-500">Activate a plan to view and match.</p><Button asChild className="mt-3 h-8 rounded-full bg-[color:var(--brand)] px-4 text-white"><Link href="/user/premium">View Plans</Link></Button></div>}
-             <div className={cn("relative z-10 flex items-center gap-3", m.locked && "select-none blur-md")}><span className="relative shrink-0"><Avatar className={cn("h-12 w-12", isSuper && "ring-2 ring-blue-300 ring-offset-2")}><AvatarImage src={profile.photo} /><AvatarFallback>{profile.name[0]}</AvatarFallback></Avatar>{!m.locked && <PresenceDot online={profile.online} />}</span><div><p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age} {isSuper && <Star className="mb-0.5 ml-1 inline-block h-4 w-4 fill-blue-500 text-blue-500" />}</p><p className={cn("text-xs font-medium", isSuper ? "text-blue-500" : "text-[color:var(--brand)]")}>{isSuper ? "Super Liked you!" : "Liked you!"}</p></div></div>
+             <div className={cn("relative z-10 flex items-center gap-3", m.locked && "select-none blur-md")}><span className="relative shrink-0"><Avatar className={cn("h-12 w-12", isSuper && "ring-2 ring-blue-300 ring-offset-2")}><AvatarImage src={profile.photo} /><AvatarFallback>{profile.name[0]}</AvatarFallback></Avatar>{!m.locked && <PresenceDot online={profile.online} />}</span><div><div>{profileName(m, profile.name, profile.age)} {isSuper && <Star className="mb-0.5 ml-1 inline-block h-4 w-4 fill-blue-500 text-blue-500" />}</div><p className={cn("text-xs font-medium", isSuper ? "text-blue-500" : "text-[color:var(--brand)]")}>{isSuper ? "Super Liked you!" : "Liked you!"}</p></div></div>
              <p className={cn("relative z-10 mt-4 line-clamp-2 text-sm text-slate-500", m.locked && "select-none blur-md")}>{m.locked ? "Someone liked your profile" : profile.bio}</p>
-             <div className="relative z-10 mt-5 flex gap-2"><Button disabled={acceptingRequestId !== null || m.locked} className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600" : "bg-[color:var(--brand)]")} onClick={() => handleAcceptMatch(m, profile.name)}>{acceptingRequestId === m.id ? "Matching..." : "Match"}</Button><Button disabled={m.locked} variant="outline" className="rounded-full border-slate-200 text-slate-400 hover:text-red-500" onClick={() => handlePassMatch(m.id)}>Pass</Button></div>
+             <div className="relative z-10 mt-5 flex gap-2"><Button disabled={acceptingRequestId !== null || m.locked} className={cn("flex-1 rounded-full text-white shadow-sm", isSuper ? "bg-gradient-to-r from-blue-500 to-blue-600" : "bg-[color:var(--brand)]")} onClick={() => handleAcceptMatch(m)}>{acceptingRequestId === m.id ? "Matching..." : "Match"}</Button><Button disabled={m.locked} variant="outline" className="rounded-full border-slate-200 text-slate-400 hover:text-red-500" onClick={() => handlePassMatch(m.id)}>Pass</Button></div>
            </motion.div>;
          })}
-         {receivedLikes.length === 0 && <div className="col-span-full py-4 text-sm text-slate-400">No likes received yet.</div>}
+         {receivedLikes.length === 0 && <div className="col-span-full py-4 text-sm text-slate-400">No requests received yet.</div>}
        </div>
 
        </>}
@@ -307,7 +324,7 @@ export default function MatchesDashboard() {
              if (!profile) return null;
              const targetId = m.senderId === myId ? m.receiverId : m.senderId;
              return (
-               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm transition-all">
+               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={m.id} onClick={(event) => cardClick(event, m)} className="cursor-pointer rounded-2xl bg-white border border-slate-100 p-5 shadow-sm transition-all">
                  <div className="flex items-center gap-3">
                    <span className="relative shrink-0">
                    <Avatar className="h-12 w-12 grayscale-[20%]">
@@ -317,7 +334,7 @@ export default function MatchesDashboard() {
                    {!m.locked && <PresenceDot online={profile.online} />}
                    </span>
                    <div>
-                     <p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age}</p>
+                     {profileName(m, profile.name, profile.age)}
                      <p className="text-xs text-slate-400">Liked recently</p>
                    </div>
                  </div>
@@ -344,7 +361,7 @@ export default function MatchesDashboard() {
              if (!profile) return null;
              const targetId = m.senderId === myId ? m.receiverId : m.senderId;
              return (
-               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} key={m.id} className="relative group rounded-2xl bg-gradient-to-br from-white to-amber-50/30 p-5 shadow-[0_4px_20px_rgb(251,191,36,0.15)] border border-amber-200 transition-all hover:shadow-[0_8px_30px_rgb(251,191,36,0.25)] hover:-translate-y-1 overflow-hidden">
+               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} key={m.id} onClick={(event) => cardClick(event, m)} className="cursor-pointer relative group rounded-2xl bg-gradient-to-br from-white to-amber-50/30 p-5 shadow-[0_4px_20px_rgb(251,191,36,0.15)] border border-amber-200 transition-all hover:shadow-[0_8px_30px_rgb(251,191,36,0.25)] hover:-translate-y-1 overflow-hidden">
                  <div className="absolute -right-4 -top-4 opacity-10 rotate-12 pointer-events-none">
                    <Star className="w-24 h-24 text-amber-500 fill-amber-500" />
                  </div>
@@ -357,7 +374,7 @@ export default function MatchesDashboard() {
                    {!m.locked && <PresenceDot online={profile.online} />}
                    </span>
                    <div>
-                     <p className="text-base font-semibold text-slate-800">{profile.name}, {profile.age}</p>
+                     {profileName(m, profile.name, profile.age)}
                      <p className="text-xs font-bold text-amber-500 flex items-center gap-1">
                        <Star className="w-3 h-3 fill-current" /> Super Liked!
                      </p>
@@ -395,14 +412,14 @@ export default function MatchesDashboard() {
              if (!profile) return null;
              const targetId = m.senderId === myId ? m.receiverId : m.senderId;
              return (
-               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={m.id} className="rounded-2xl bg-slate-50 border border-slate-200 p-5 shadow-sm grayscale opacity-70 transition-all hover:opacity-100">
+               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key={m.id} onClick={(event) => cardClick(event, m)} className="cursor-pointer rounded-2xl bg-slate-50 border border-slate-200 p-5 shadow-sm grayscale opacity-70 transition-all hover:opacity-100">
                  <div className="flex items-center gap-3">
                    <Avatar className="h-12 w-12">
                      <AvatarImage src={profile.photo} />
                      <AvatarFallback>{profile.name[0]}</AvatarFallback>
                    </Avatar>
                    <div>
-                     <p className="text-base font-semibold text-slate-700 line-through decoration-slate-400">{profile.name}, {profile.age}</p>
+                     {profileName(m, profile.name, profile.age, 'text-slate-700 line-through decoration-slate-400')}
                      <p className="text-xs font-medium text-slate-500">Blocked</p>
                    </div>
                  </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from '@tanstack/react-query';
+import { UserDirectoryAvatar, directoryAvatarKey } from '@/components/management/UserDirectoryAvatar';
 import { AlertCircle, BadgeCheck, Camera, Save, Search, Trash2, UserRoundSearch, X } from "lucide-react";
 import { api, apiFetch } from "@/lib/api";
 import { ProfilePhotoManager } from "@/components/management/ProfilePhotoManager";
@@ -105,6 +107,7 @@ function formatPlan(plan?: string) {
 }
 
 export default function User360Page() {
+ const queries = useQueryClient();
  const [users, setUsers] = useState<UserRow[]>([]);
  const [selectedId, setSelectedId] = useState("");
  const [details, setDetails] = useState<any | null>(null);
@@ -320,6 +323,7 @@ export default function User360Page() {
  setMessage("User profile update ho gaya.");
  await loadUsers(query);
  await loadDetails(selectedId);
+ await queries.invalidateQueries({ queryKey: directoryAvatarKey(selectedId) });
  }
  } catch {
  setError("Profile save nahi hua.");
@@ -360,6 +364,7 @@ export default function User360Page() {
 
    const draftUploads = selectedPhotos.filter(source => !savedPhotos.includes(source));
    const result = await api.removeUserPhoto(selectedId, photo);
+   await queries.invalidateQueries({ queryKey: directoryAvatarKey(selectedId) });
    setDetails((current: typeof details) => ({ ...current, ...result }));
    setForm(current => ({ ...current, photos: [...result.photos, ...draftUploads].join("\n"), isVerified: current.isVerified && result.isVerified }));
    setMessage("Photo removed from the user's profile.");
@@ -414,7 +419,7 @@ export default function User360Page() {
  <p className="py-10 text-center text-sm text-muted-foreground">No users found.</p>
  ) : filteredUsers.map((user) => (
  <button key={user.id} disabled={photoBusy || saving} onClick={() => setSelectedId(user.id)} className={`mb-1 flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${selectedId === user.id ? "bg-rose-50 ring-1 ring-rose-100" : "hover:bg-muted/70"}`}>
- <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 text-sm font-bold text-white">{initials(user.name)}</div>
+ <UserDirectoryAvatar userId={user.id} name={user.name} />
  <div className="min-w-0 flex-1">
  <p className="truncate text-sm font-bold text-foreground">{user.name}</p>
  <p className="truncate font-mono text-[10px] font-semibold text-rose-600" title={user.id}>ID: {user.id}</p>

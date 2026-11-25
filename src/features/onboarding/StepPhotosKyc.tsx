@@ -85,19 +85,19 @@ export function StepProfilePhotos({
       <button
         type="button"
         disabled={!photos.length}
-        onClick={handleContinue}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-5 py-3 font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+        onClick={() => void onSkip({ photos })}
+        className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-300 to-orange-400 px-6 py-4 text-base font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        Continue to video KYC
+        Skip KYC
       </button>
 
       <button
         type="button"
         disabled={!photos.length}
-        onClick={() => void onSkip({ photos })}
-        className="mx-auto block rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={handleContinue}
+        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-5 py-3 font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
       >
-        Skip KYC
+        Continue to video KYC
       </button>
     </div>
   );
@@ -374,24 +374,24 @@ export function StepVideoKyc({
         </div>
       )}
 
-      <button
-        type="button"
-        disabled={!canFinish}
-        onClick={() => onNext({})}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-      >
-        Enter dashboard
-      </button>
-
       {allowSkip && <button
         type="button"
         onClick={skipKyc}
         disabled={recording || checking || skipping}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-white/25 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-300 to-orange-400 px-6 py-4 text-base font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {skipping && <Loader2 className="h-4 w-4 animate-spin" />}
         {skipping ? "Opening dashboard..." : "Skip for now"}
       </button>}
+
+      <button
+        type="button"
+        disabled={!canFinish}
+        onClick={() => onNext({})}
+        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-500/20 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+      >
+        Enter dashboard
+      </button>
 
       <canvas ref={canvasRef} className="hidden" />
     </div>

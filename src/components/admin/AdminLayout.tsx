@@ -26,6 +26,7 @@ import { PhoneCall,
   MessageSquareWarning,
   Gift,
   Banknote,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutManagement } from "@/app/actions/managementAuth";
@@ -47,6 +48,7 @@ const nav = [
   { to: "/super-admin/reports", label: "Reports", icon: Flag },
   { to: "/super-admin/complaints", label: "Complaints", icon: MessageSquareWarning },
   { to: "/super-admin/notifications", label: "Campaigns", icon: Bell },
+  { to: "/super-admin/email-send", label: "Email Send", icon: Mail },
   { to: "/super-admin/security", label: "Security", icon: Lock },
   { to: "/super-admin/settings", label: "Settings", icon: Settings },
   { to: "/super-admin/roles", label: "Roles & Permissions", icon: KeyRound },

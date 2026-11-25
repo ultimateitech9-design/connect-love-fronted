@@ -1,0 +1,98 @@
+// All account/referral APIs are intercepted. No real rewards or withdrawal requests.
+const assert=require('node:assert/strict');
+const {randomUUID}=require('node:crypto');
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const id=randomUUID(),accountId=randomUUID(),code='a'.repeat(24);
+const token=`header.${Buffer.from(JSON.stringify({sub:id,role:'user',exp:9999999999})).toString('base64url')}.signature`;
+let browser,page,gender='female',withdrawals=0,submitted,welcomePending=false,dismissals=0,registeredAt=new Date(Date.now()-86400000).toISOString();
+let summary={minimumWithdrawalPaise:100000,successfulReferrals:1,referrals:[{id:randomUUID(),memberName:'Referred Friend',rewardPaise:10000,registeredAt:new Date().toISOString(),unlockAt:new Date(Date.now()+86400000).toISOString()}],sharePath:`/register?ref=${code}`,availablePaise:0,lockedPaise:10000,totalEarnedPaise:10000,pendingWithdrawalPaise:0,paidPaise:0,invitedCount:1,activeDays:29,bonusEarned:false,rewards:[{id:randomUUID(),kind:'welcome',amountPaise:10000,unlockAt:new Date(Date.now()+86400000).toISOString(),status:'locked'}],withdrawals:[]};
+async function run(){
+ browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_EXECUTABLE}:{})});
+ const context=await browser.newContext({viewport:{width:1440,height:1100},permissions:['clipboard-read','clipboard-write']});
+ await context.addCookies([{name:'sm_auth',value:'1',domain:'localhost',path:'/'}]);
+ await context.addInitScript(value=>{localStorage.setItem('sm_token',value);Object.defineProperty(navigator,'share',{configurable:true,value:async data=>{window.sharedInvite=data}});},token);
+ page=await context.newPage();page.setDefaultTimeout(30000);
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.route('**/*',async route=>{
+  const req=route.request(),url=new URL(req.url()),path=url.pathname;
+  if(path.includes('socket.io'))return route.abort();
+  if(!['5002','5003'].includes(url.port))return route.continue();
+  const respond=value=>route.fulfill({json:value,headers:{'Access-Control-Allow-Origin':'http://localhost:3009','Access-Control-Allow-Headers':'*'}});
+  if(req.method()==='OPTIONS')return respond({});
+  if(path==='/users/me')return respond({id,name:'Referral Woman',email:'test@example.test',gender,createdAt:registeredAt,referralWelcomePending:welcomePending,role:'user',plan:'free',status:'active',city:'Delhi',birthDate:'1995-01-01',profession:'Designer',bio:'Hello',relationshipGoal:'Long-term',height:'165 cm',religion:'Hindu',zodiac:'Aries',interests:['Music'],hobbies:['Reading'],personalityWords:['Kind'],kycMatched:true,onboardingCompleted:true,photos:['/connect-love-logo.png'],coinBalance:0,earnedCoinBalance:0});
+  if(path==='/referrals/welcome/dismiss'){welcomePending=false;dismissals++;return respond({success:true});}
+  if(path==='/referrals/me')return gender==='female'?respond({...summary,referralsHasMore:true,referralsNextPage:1}):route.fulfill({status:403,json:{message:'Referral rewards are available to women members only.'},headers:{'Access-Control-Allow-Origin':'http://localhost:3009'}});
+  if(path==='/referrals/accounts')return respond({items:[{id:randomUUID(),memberName:'Another Referred Woman',rewardPaise:10000,registeredAt:new Date().toISOString(),unlockAt:new Date(Date.now()+86400000).toISOString()}],hasMore:false,nextPage:2});
+  if(path==='/referrals/withdrawals'){
+   withdrawals++;submitted=req.postDataJSON();summary={...summary,availablePaise:0,pendingWithdrawalPaise:100000,withdrawals:[{id:submitted.requestId,amountPaise:100000,status:'pending',createdAt:new Date().toISOString()}]};
+   return respond({id:submitted.requestId,status:'pending',amountPaise:100000});
+  }
+  if(path==='/wallet/payout-accounts')return respond([{id:accountId,method:'upi',upiId:'test@upi'}]);
+  if(path==='/wallet/withdrawals')return respond({items:[],minimum:500});
+  if(path==='/wallet/transactions'||path==='/matches')return respond([]);
+  if(path==='/matches/summary')return respond({active:0,received:0,sent:0,sentSuper:0,blocked:0});
+  if(path==='/users/me/insights')return respond({likesReceived:0,profileViews7d:0});
+  if(path.includes('profile-visitors'))return respond({items:[],locked:false,hasMore:false});
+  if(path.includes('discovery'))return respond({profiles:[],items:[],hasMore:false});
+  return respond({items:[],onlineIds:[]});
+ });
+ await page.goto('http://localhost:3009/user/profile',{waitUntil:'domcontentloaded'});
+ await page.getByRole('button',{name:'Share & earn ₹100',exact:true}).first().waitFor();
+ assert.equal(await page.getByTestId('women-referral-entry').count(),1,'profile header contains referral actions');
+ await page.getByRole('button',{name:'Share & earn ₹100',exact:true}).first().click();
+ const dialog=page.getByRole('dialog');await dialog.getByRole('heading',{name:'Invite a woman. Both get ₹100.',exact:true}).waitFor();
+ assert.equal(await dialog.getByLabel('Your referral link').inputValue(),`https://connectlove.in/register?ref=${code}`);
+ assert(await dialog.getByRole('button',{name:'Request withdrawal',exact:true}).isDisabled(),'locked money cannot be withdrawn');
+ await dialog.getByRole('button',{name:'Load more referred accounts',exact:true}).click();await dialog.getByText('Another Referred Woman',{exact:true}).waitFor();
+ await dialog.getByRole('button',{name:'Share invitation',exact:true}).click();
+ const shared=await page.evaluate(()=>window.sharedInvite);
+ assert(shared.text.includes(`https://connectlove.in/register?ref=${code}`));assert(shared.text.includes('100 each'));assert(!shared.text.includes('localhost'));assert.equal((shared.text.match(/https:\/\//g)||[]).length,1,'native share contains one public link with the message');
+ await dialog.getByRole('button',{name:'Copy link',exact:true}).click();
+ assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),`https://connectlove.in/register?ref=${code}`);
+ await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:undefined}));
+ await dialog.getByRole('button',{name:'Share invitation',exact:true}).click();
+ const fallback=await page.evaluate(()=>navigator.clipboard.readText());assert(fallback.includes(`https://connectlove.in/register?ref=${code}`));assert(fallback.includes('100 each'));
+ await page.setViewportSize({width:390,height:844});assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'referral wallet fits a phone');
+ summary={...summary,availablePaise:90000,lockedPaise:10000,activeDays:30,bonusEarned:true};
+ await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+ await dialog.getByText('Referred Friend',{exact:true}).waitFor();
+ assert(await dialog.getByRole('button',{name:'Request withdrawal',exact:true}).isDisabled(),'900 unlocked rupees cannot meet the minimum even with locked rewards');
+ summary={...summary,availablePaise:100000,lockedPaise:0};
+ await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+ await dialog.getByText('₹100 activity bonus earned!',{exact:true}).waitFor();
+ const withdraw=dialog.getByRole('button',{name:'Request withdrawal',exact:true});await withdraw.waitFor();
+ await withdraw.evaluate(button=>{button.click();button.click()});
+ await dialog.getByText('Withdrawal requested. The team will transfer your money and update the status.',{exact:true}).waitFor();
+ assert.equal(withdrawals,1,'double click creates only one payout request');assert.equal(submitted.amountPaise,100000);assert.equal(submitted.accountId,accountId);assert.match(submitted.requestId,/^[a-f0-9-]{36}$/);
+ await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});
+ await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.getByTestId('women-referral-entry').first().locator('svg').first().evaluate(el=>getComputedStyle(el).animationName),'none');
+ await page.setViewportSize({width:1440,height:1100});
+ await page.goto('http://localhost:3009/user/discover',{waitUntil:'domcontentloaded'});
+ await page.getByText('Your Profile',{exact:true}).waitFor();
+ await page.getByTestId('women-referral-entry').waitFor();
+ assert.equal(await page.getByRole('button',{name:'Share & earn ₹100',exact:true}).count(),1,'Your Profile card has its own share action');
+ gender='male';await page.goto('http://localhost:3009/user/profile',{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'});await page.locator('.pv-identity h1').waitFor();
+ assert.equal(await page.getByTestId('women-referral-entry').count(),0,'men do not see referral controls');
+ await page.goto('http://localhost:3009/user/referrals',{waitUntil:'domcontentloaded'});await page.getByRole('alert').getByText('Referral rewards are available to women members only.',{exact:true}).waitFor();
+ // Exercise the same registration path locally; the copied/shared URL above
+ // must remain public, without visiting or creating accounts on production.
+ await page.goto(`http://localhost:3009/register?ref=${code}`,{waitUntil:'domcontentloaded'});await page.getByText('Women-only invitation · ₹100 for you and your friend',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Continue without referral',exact:true}).click();assert.equal(await page.getByText('Women-only invitation · ₹100 for you and your friend',{exact:true}).count(),0);
+ gender='female';welcomePending=true;registeredAt=new Date().toISOString();
+ await page.goto('http://localhost:3009/user/profile',{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'});
+ await page.locator('.pv-identity h1').waitFor();
+ assert.equal(await page.getByRole('dialog').count(),0,'welcome is not immediate after registration');
+ await page.waitForTimeout(20000);
+ await page.reload({waitUntil:'domcontentloaded'});await page.locator('.pv-identity h1').waitFor();
+ assert.equal(await page.getByRole('dialog').count(),0,'welcome remains hidden before 45 seconds');
+ await page.getByRole('dialog').getByRole('heading',{name:/Welcome! Share & earn/}).waitFor({timeout:35000});
+ const elapsed=Date.now()-new Date(registeredAt).getTime();assert(elapsed>=44900&&elapsed<62000,'welcome appears after registration delay, without restarting after reload');
+ await page.getByRole('dialog').getByRole('button',{name:'Share invitation',exact:true}).waitFor();
+ await page.getByRole('dialog').getByLabel('Close referral wallet').click();
+ await page.waitForFunction(()=>!document.querySelector('dialog[open]'));
+ assert.equal(dismissals,1);assert.equal(welcomePending,false);
+ await page.reload({waitUntil:'domcontentloaded'});await page.locator('.pv-identity h1').waitFor();assert.equal(await page.getByRole('dialog').count(),0,'dismissed welcome does not reopen on reload');
+ assert.deepEqual(errors,[],'no browser runtime errors');
+ console.log('PASS: both profile placements, women-only UI/access, referral link, native share/copy, lock, bonus progress, idempotent withdrawal payload, mobile layout, reduced motion and signup attribution banner. All financial APIs intercepted.');
+}
+run().catch(async e=>{console.error(e);if(page)console.error((await page.locator('body').innerText()).slice(-1600));process.exitCode=1}).finally(async()=>{await browser?.close()});

@@ -1,7 +1,7 @@
 'use client';
 
-import TransactionsPage from '@/app/super-admin/transactions/page';
+import { AdminWithdrawals } from '@/features/payouts/AdminWithdrawals';
 
 export default function WithdrawalsPage() {
-  return <TransactionsPage />;
+  return <AdminWithdrawals />;
 }

@@ -5,6 +5,8 @@ import { NotificationProvider } from "@/features/user/NotificationContext";
 import { SettingsProvider } from "@/features/user/SettingsContext";
 import dynamic from "next/dynamic";
 import { CallProvider } from "@/features/calls/CallProvider";
+import { ReferralWelcomePopup } from "@/features/referrals/ReferralWelcomePopup";
+import { MatchCelebrations } from '@/features/matches/MatchCelebrations';
 
 const GlobalPresence = dynamic(() => import("@/components/GlobalPresence").then((mod) => mod.GlobalPresence), {
   ssr: false,
@@ -17,6 +19,8 @@ export default function UserProviders({ children, showNav, enablePresence = true
         <CallProvider>
           {enablePresence ? <GlobalPresence /> : null}
           {showNav ? <TopNav /> : null}
+          <ReferralWelcomePopup />
+          <MatchCelebrations />
           {children}
         </CallProvider>
       </NotificationProvider>

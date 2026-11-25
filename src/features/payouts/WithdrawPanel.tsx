@@ -16,7 +16,7 @@ export type PayoutAccount = {
 
 export type PayoutForm = { method: "bank" | "upi"; accountHolder: string; accountNumber: string; bankName: string; ifsc: string; upiId: string };
 
-export type WithdrawalItem = { id: string; coins: number; amountPaise: number | null; status: "pending" | "completed" | "rejected"; createdAt: string; method: string | null; account: string | null };
+export type WithdrawalItem = { id: string; coins: number; walletSource?: "coins" | "referral"; amountPaise: number | null; status: "pending" | "completed" | "rejected"; createdAt: string; method: string | null; account: string | null };
 
 /** How the panel talks to the server: members and agents use different endpoints. */
 export type PayoutApi = {
@@ -237,10 +237,10 @@ export function WithdrawPanel({ api, earningsLabel }: { api: PayoutApi; earnings
             {history.map((item) => (
               <li key={item.id} className="flex items-center justify-between gap-3 p-3 text-sm">
                 <span className="min-w-0">
-                  <span className="block font-bold">₹{((item.amountPaise ?? item.coins * 100) / 100).toLocaleString("en-IN")} <span className="font-normal text-muted-foreground">({item.coins} coins)</span></span>
+                  <span className="block font-bold">₹{((item.amountPaise ?? item.coins * 100) / 100).toLocaleString("en-IN")} <span className="font-normal text-muted-foreground">{item.walletSource === "referral" ? "Referral rewards" : `(${item.coins} coins)`}</span></span>
                   <span className="block truncate text-xs text-muted-foreground">{item.account || item.method} · {new Date(item.createdAt).toLocaleDateString()}</span>
                 </span>
-                <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-xs font-bold", statusStyle[item.status])}>{statusText[item.status]}</span>
+                <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-xs font-bold", statusStyle[item.status])}>{item.status === "rejected" && item.walletSource === "referral" ? "Rejected (rewards returned)" : statusText[item.status]}</span>
               </li>
             ))}
           </ul>

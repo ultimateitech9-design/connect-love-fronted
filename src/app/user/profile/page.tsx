@@ -1,4 +1,5 @@
 "use client";
+import { ReferralEntry } from "@/features/referrals/ReferralEntry";
 import { apiFetch } from "@/config/runtime";
 
 import { useEffect, useRef, useState } from "react";
@@ -429,7 +430,7 @@ export default function ProfilePage() {
  <div className="pv-stats"><span><HeartIcon/>{insights?.likesReceived ?? "?"}<small>Likes received</small></span><span><Eye/>{insights?.profileViews7d ?? "?"}<small>Views this week</small></span>
  <span className={hasPaidPlan && planName === "Diamond" ? "pv-diamond" : undefined}>
    <Crown/>{hasPaidPlan ? planName : "Free"}<small>Membership</small>
- </span></div></div>
+ </span></div><ReferralEntry gender={profile.gender} compact /></div>
  <div className="pv-actions">
    {profile.kycMatched === true ? (
      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
@@ -788,6 +789,7 @@ export default function ProfilePage() {
  </div>
 
  </div>
+ <ReferralEntry gender={profile.gender} compact />
  <div className="mt-4 h-[8px] w-full overflow-hidden rounded-full bg-muted">
  <div
  className={`h-full rounded-full transition-all duration-700 ${

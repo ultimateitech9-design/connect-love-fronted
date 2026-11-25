@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ReferralEntry } from "@/features/referrals/ReferralEntry";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Banknote, Coins, Loader2, Wallet } from "lucide-react";
 import { toast } from "sonner";
@@ -18,7 +19,7 @@ type Summary = {
   packs: number[];
 };
 
-type Entry = { id: string; type: string; status: string; label: string | null; coins: number; wallet: "coins" | "earnings"; createdAt: string };
+type Entry = { id: string; type: string; status: string; label: string | null; coins: number; wallet: "coins" | "earnings" | "referral"; amountPaise?: number | null; createdAt: string };
 
 const TYPE_NAMES: Record<string, string> = {
   recharge: "Coins bought",
@@ -36,6 +37,7 @@ async function get<T>(path: string): Promise<T> {
 }
 
 export default function WalletPage() {
+  const [gender, setGender] = useState<string>();
   const [coins, setCoins] = useState<number | null>(null);
   const [earnings, setEarnings] = useState<number | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -47,10 +49,11 @@ export default function WalletPage() {
   const load = useCallback(async () => {
     try {
       const [me, nextSummary, history] = await Promise.all([
-        get<{ coinBalance?: number; earnedCoinBalance?: number; user?: { coinBalance?: number; earnedCoinBalance?: number } }>("/users/me"),
+        get<{ gender?: string; coinBalance?: number; earnedCoinBalance?: number; user?: { coinBalance?: number; earnedCoinBalance?: number } }>("/users/me"),
         get<Summary>("/direct-calls/summary"),
         get<Entry[]>("/wallet/transactions"),
       ]);
+      setGender(me.gender);
       setCoins(Number(me.coinBalance ?? me.user?.coinBalance ?? 0));
       setEarnings(Number(me.earnedCoinBalance ?? me.user?.earnedCoinBalance ?? 0));
       setSummary(nextSummary);
@@ -93,6 +96,7 @@ export default function WalletPage() {
 
       {error && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-600">{error}</p>}
 
+      <ReferralEntry gender={gender} />
       <div className="grid gap-4 sm:grid-cols-2">
         <section className="rounded-3xl border border-border bg-card p-5">
           <p className="flex items-center gap-2 text-sm font-semibold text-muted-foreground"><Coins className="h-4 w-4 text-amber-500" /> Coins for calls & gifts</p>
@@ -142,19 +146,19 @@ export default function WalletPage() {
           <ul className="divide-y divide-border">
             {entries.map((entry) => (
               <li key={entry.id} className="flex items-center gap-3 py-3">
-                <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-full", entry.coins >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600")}>
-                  {entry.coins >= 0 ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
+                <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-full", entry.wallet !== "referral" && entry.coins >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600")}>
+                  {entry.wallet !== "referral" && entry.coins >= 0 ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold text-foreground">{TYPE_NAMES[entry.type] ?? entry.type}{entry.label ? ` · ${entry.label}` : ""}</span>
                   <span className="block text-xs text-muted-foreground">
                     {new Date(entry.createdAt).toLocaleString([], { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
-                    {" · "}{entry.wallet === "earnings" ? "Earnings" : "Coins"}
+                    {" · "}{entry.wallet === "referral" ? "Referral rewards" : entry.wallet === "earnings" ? "Earnings" : "Coins"}
                     {entry.status !== "completed" ? ` · ${entry.status === "pending" ? "Pending" : "Rejected"}` : ""}
                   </span>
                 </span>
-                <span className={cn("shrink-0 text-sm font-bold tabular-nums", entry.coins >= 0 ? "text-emerald-600" : "text-rose-600")}>
-                  {entry.coins >= 0 ? "+" : ""}{entry.coins}
+                <span className={cn("shrink-0 text-sm font-bold tabular-nums", entry.wallet !== "referral" && entry.coins >= 0 ? "text-emerald-600" : "text-rose-600")}>
+                  {entry.wallet === "referral" ? `-${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format((entry.amountPaise || 0) / 100)}` : `${entry.coins >= 0 ? "+" : ""}${entry.coins}`}
                 </span>
               </li>
             ))}

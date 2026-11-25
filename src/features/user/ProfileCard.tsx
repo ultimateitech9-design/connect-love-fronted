@@ -665,7 +665,8 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
         <button
           onClick={() => triggerSwipe("pass")}
           className="grid h-12 w-12 place-items-center rounded-full border-2 border-border bg-card text-muted-foreground shadow-md transition hover:scale-105 hover:border-rose-300 hover:text-rose-400 sm:h-[56px] sm:w-[56px]"
-          aria-label="Pass"
+          aria-label="Dislike"
+          title="Dislike"
         >
           <X className="h-6 w-6" strokeWidth={2.5} />
         </button>
@@ -673,6 +674,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
           onClick={() => triggerSwipe("super")}
           className="grid h-11 w-11 place-items-center rounded-full border-2 border-border bg-card text-blue-400 shadow-md transition hover:scale-105 hover:border-blue-300 sm:h-[48px] sm:w-[48px]"
           aria-label="Super like"
+          title="Super Like"
         >
           <Star className="h-5 w-5" strokeWidth={2.5} />
         </button>
@@ -680,6 +682,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
           onClick={() => triggerSwipe("like")}
           className="grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20 transition hover:scale-105 sm:h-14 sm:w-14"
           aria-label="Like"
+          title="Like"
         >
           <Heart className="h-6 w-6" strokeWidth={2.5} fill="currentColor" />
         </button>
@@ -688,7 +691,7 @@ export function ProfileCard({ profiles, onAction, onUndo, canUndo = false, canUs
           onClick={() => setFirstImpressionOpen(true)}
           className="grid h-11 w-11 place-items-center rounded-full bg-[#171d29] text-blue-300 shadow-md transition hover:scale-105 hover:bg-[#20293a] sm:h-[48px] sm:w-[48px]"
           aria-label={`Send a First Impression to ${profile.name}`}
-          title="Send a First Impression"
+          title="First Impression"
         >
           <Send className="h-5 w-5 -rotate-12" strokeWidth={2} />
         </button>

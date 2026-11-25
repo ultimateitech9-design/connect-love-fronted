@@ -97,6 +97,8 @@ export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [otp, setOtp] = useState("");
+  const [referralCode, setReferralCode] = useState("");
+  useEffect(() => { setReferralCode(new URLSearchParams(window.location.search).get("ref") || ""); }, []);
   const [pendingSignup, setPendingSignup] = useState<SignupData | null>(null);
   const [creatingAccount, setCreatingAccount] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
@@ -205,6 +207,7 @@ export default function RegisterPage() {
           locationLongitude: coords?.longitude,
           locationAccuracy: coords?.accuracy,
           otp: verificationCode,
+          ...(referralCode ? { referralCode } : {}),
         }),
       });
 
@@ -426,6 +429,7 @@ export default function RegisterPage() {
               ) : (
               <div>
               <form onSubmit={handleSubmit(onSubmit)} className="mt-4 grid gap-2.5">
+                {referralCode && <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"><p className="font-bold">Women-only invitation · ₹100 for you and your friend</p><p className="mt-1 text-xs">Female signups earn after email verification. Male signups earn no referral reward. Rewards unlock after 30 days; minimum withdrawal ₹1,000. Use the app on 30 different days for an extra ₹100.</p><button type="button" onClick={() => setReferralCode("")} className="mt-2 text-xs underline">Continue without referral</button></div>}
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Full Name" error={errors.name?.message}>
                     <input {...register("name")} id="signup-name" placeholder="Jane Doe" className="field-input" />

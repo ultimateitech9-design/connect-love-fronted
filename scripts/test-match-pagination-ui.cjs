@@ -53,7 +53,7 @@ const summary = { active: 1, received: 1005, sent: 47, sentSuper: 23, blocked: 1
     await page.goto(`${origin}/user/matches`, { waitUntil: 'domcontentloaded' });
     await panel().getByText('Profile active-null-0', { exact: false }).waitFor();
     assert.ok(requests.every(search => new URLSearchParams(search).get('filter') === 'active'), 'unopened tabs never fetched');
-    await tab('Likes Received').click();
+    await tab('Requests Received').click();
     await panel().getByText('Profile received-null-0,', { exact: false }).waitFor();
     await expectCards(20);
     await page.getByRole('button', { name: 'Next', exact: true }).click();
@@ -63,7 +63,7 @@ const summary = { active: 1, received: 1005, sent: 47, sentSuper: 23, blocked: 1
     await tab('Active Matches').click();
     await panel().getByText('Profile active-null-0,', { exact: false }).waitFor();
     assert.equal(requests.filter(search => new URLSearchParams(search).get('filter') === 'active').length, activeBefore, 'fresh tab cache avoids refetch');
-    await tab('Likes Received').click();
+    await tab('Requests Received').click();
     await panel().getByText('Profile received-null-20,', { exact: false }).waitFor();
     assert.equal(await page.getByText('Page 2', { exact: true }).count(), 1, 'each tab retains its page');
     await tab('Pending Requests').click();
@@ -74,7 +74,7 @@ const summary = { active: 1, received: 1005, sent: 47, sentSuper: 23, blocked: 1
     await panel().getByText('Profile sent-super-20,', { exact: false }).waitFor();
     await expectCards(3);
     assert.equal(await page.getByRole('button', { name: 'Next', exact: true }).isDisabled(), true);
-    await tab('Likes Received').click();
+    await tab('Requests Received').click();
     await panel().getByText('Profile received-null-20,', { exact: false }).waitFor();
     failReceivedPage2 = true;
     await page.getByRole('button', { name: 'Next', exact: true }).click();

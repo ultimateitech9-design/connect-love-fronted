@@ -1,0 +1,3 @@
+.shareIcon { animation: referral-sway 3s ease-in-out infinite; transform-origin: center; }
+@keyframes referral-sway { 0%, 75%, 100% { transform: rotate(0deg) scale(1); } 82% { transform: rotate(-12deg) scale(1.12); } 90% { transform: rotate(10deg) scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .shareIcon { animation: none; } }

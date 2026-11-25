@@ -4,7 +4,7 @@ import { API_ORIGIN } from "@/config/runtime";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { clearOnboardingRequired, getToken, clearToken } from "@/lib/auth";
 import { StepProfilePhotos, StepVideoKyc } from "@/features/onboarding/StepPhotosKyc";
@@ -157,7 +157,7 @@ export default function OnboardingPage() {
         </div>
 
         {/* Wizard Card */}
-        <div className={`relative overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur-xl min-[380px]:p-5 sm:p-8 ${currentStepIndex > 0 ? "pt-14 sm:pt-16" : ""}`}>
+        <div className={`relative overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur-xl min-[380px]:p-5 sm:p-8 ${currentStepIndex > 0 ? "pt-20 min-[380px]:pt-20 sm:pt-24" : ""}`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStepIndex}
@@ -187,10 +187,12 @@ export default function OnboardingPage() {
           {/* Back Button (if not first step) */}
           {currentStepIndex > 0 && (
             <button
+              type="button"
               onClick={handleBack}
               disabled={saving}
-              className="absolute left-4 top-4 text-sm font-medium text-slate-400 transition-colors hover:text-white disabled:opacity-50 sm:left-6 sm:top-6"
+              className="absolute left-4 top-4 z-10 inline-flex min-h-11 min-w-28 items-center justify-center gap-2 rounded-xl border border-sky-300 bg-sky-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-300 disabled:cursor-not-allowed disabled:opacity-50 sm:left-6 sm:top-6"
             >
+              <ArrowLeft className="h-5 w-5" />
               Back
             </button>
           )}
