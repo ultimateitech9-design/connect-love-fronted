@@ -114,6 +114,8 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
 
  newSocket.on('connect', () => {
  console.log('Connected to chat server');
+ // Recover messages missed during a broken connection without reloading the page.
+ void queryClient.invalidateQueries({ queryKey: ['messages'] });
  });
 
  newSocket.on('receiveMessage', (message: Message) => {
@@ -122,10 +124,9 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
  if (!old) return [{ ...message, deliveryStatus: message.deliveryStatus || (String(message.senderId) === userId ? 'sent' : undefined) }];
  // Prevent duplicates
  if (old.find(m => m.id === message.id)) return old;
- const withoutMatchingPending = old.filter((m) => {
-   if (m.deliveryStatus !== 'sending') return true;
-   return !(m.content === message.content && String(m.receiverId) === String(message.receiverId));
- });
+ const pendingIndex = old.findIndex(m => m.deliveryStatus === 'sending'
+   && m.content === message.content && String(m.receiverId) === String(message.receiverId));
+ const withoutMatchingPending = old.filter((_, index) => index !== pendingIndex);
  return [...withoutMatchingPending, { ...message, deliveryStatus: message.deliveryStatus || (String(message.senderId) === userId ? 'sent' : undefined) }];
  });
 
@@ -272,11 +273,7 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
 
  useEffect(() => {
   if (!conversationId || !token || !currentUserIdRef.current) return;
-  const sessionKey = `connect-love:messages-synced:v2:${currentUserIdRef.current}:${conversationId}`;
-  if (window.sessionStorage.getItem(sessionKey)) return;
-  void refetchMessages().then((result) => {
-   if (result.isSuccess) window.sessionStorage.setItem(sessionKey, '1');
-  });
+  void refetchMessages();
  }, [conversationId, refetchMessages, token]);
 
  useEffect(() => {
@@ -370,9 +367,11 @@ export function useChatWebSocket(token: string, conversationId: string | null, o
     throw new Error(detail || 'Message send failed');
    }
    const saved = await response.json() as Message;
-   queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) =>
-    (old || []).map((message) => message.id === clientId ? { ...saved, deliveryStatus: 'sent' } : message),
-   );
+   queryClient.setQueryData(['messages', conversationId], (old: Message[] | undefined) => {
+    const remaining = (old || []).filter(message => message.id !== clientId);
+    return remaining.some(message => message.id === saved.id)
+      ? remaining : [...remaining, { ...saved, deliveryStatus: saved.deliveryStatus || 'sent' }];
+   });
    queryClient.invalidateQueries({ queryKey: ["matches"] });
   })
   .catch((error) => {
