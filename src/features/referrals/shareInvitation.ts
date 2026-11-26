@@ -1,21 +1,25 @@
-const PUBLIC_SITE = 'https://connectlove.in';
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.connectlove';
+const CODE = /^[a-f0-9]{24}$/;
 
-/** Shared invitations must be reachable on the recipient's device, including
- * when the sender is testing the app on localhost or a private network. */
-export function referralShareLink(sharePath: string, configuredSite = process.env.NEXT_PUBLIC_REFERRAL_SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || ''): string {
-  let origin = PUBLIC_SITE;
-  try {
-    const site = new URL(configuredSite);
-    const host = site.hostname.toLowerCase();
-    const privateHost = host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')
-      || host === '[::1]' || host === '0.0.0.0' || /^127\./.test(host) || /^10\./.test(host)
-      || /^192\.168\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
-    if (site.protocol === 'https:' && !privateHost && !site.username && !site.password) origin = site.origin;
-  } catch { /* Use the public production site when local configuration is absent. */ }
-  const path = new URL(sharePath, PUBLIC_SITE);
-  return new URL(`/register${path.search}`, origin).href;
+/** Accept either a normal registration link or the Play Install Referrer payload
+ * forwarded by the Android app when it opens registration after installation. */
+export function registrationReferralCode(search: string): string {
+  const params = new URLSearchParams(search);
+  const direct = params.get('ref') || '';
+  if (CODE.test(direct)) return direct;
+  const referrer = new URLSearchParams(params.get('referrer') || '');
+  const installed = referrer.get('ref') || '';
+  return CODE.test(installed) ? installed : '';
+}
+
+/** Google Play retains the encoded invitation for the Android Install Referrer API. */
+export function referralShareLink(sharePath: string): string {
+  const code = registrationReferralCode(new URL(sharePath, 'https://connectlove.in').search);
+  const link = new URL(PLAY_STORE_URL);
+  if (code) link.searchParams.set('referrer', new URLSearchParams({ ref: code, utm_source: 'member_referral' }).toString());
+  return link.href;
 }
 
 export function referralInvitationText(link: string): string {
-  return `Women inviting women: register using my link and verify your email to get ₹100 each. Rewards unlock after 30 days; minimum withdrawal ₹1,000. Use the app on 30 different days for an extra ₹100 activity bonus.\n\n${link}`;
+  return `Women inviting women: download Connect Love from Google Play using my link, then register and verify your email to get ₹100 each. Rewards unlock after 30 days; minimum withdrawal ₹1,000. Use the app on 30 different days for an extra ₹100 activity bonus.\n\n${link}`;
 }

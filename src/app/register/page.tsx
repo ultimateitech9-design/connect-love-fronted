@@ -13,6 +13,7 @@ import { requireOnboarding, scheduleProfileReminder, setToken } from "@/lib/auth
 import { getAccurateCurrentPosition } from "@/lib/geolocation";
 import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options";
 import { markAppInstallPromptPending } from "@/lib/appInstallPrompt";
+import { registrationReferralCode } from "@/features/referrals/shareInvitation";
 
 const API_BASE = API_ORIGIN;
 
@@ -98,7 +99,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [otp, setOtp] = useState("");
   const [referralCode, setReferralCode] = useState("");
-  useEffect(() => { setReferralCode(new URLSearchParams(window.location.search).get("ref") || ""); }, []);
+  useEffect(() => { setReferralCode(registrationReferralCode(window.location.search)); }, []);
   const [pendingSignup, setPendingSignup] = useState<SignupData | null>(null);
   const [creatingAccount, setCreatingAccount] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
