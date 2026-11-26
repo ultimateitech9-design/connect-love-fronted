@@ -58,7 +58,7 @@ export function apiOriginCandidates(): string[] {
   if (typeof window !== "undefined") {
     const currentOrigin = window.location.origin;
     if (window.location.protocol === "https:") {
-      candidates.push(currentOrigin);
+      candidates.push(`${currentOrigin}/backend-api`);
       candidates.push(`https://api.${window.location.hostname.replace(/^www\./, "")}`);
     }
   }
@@ -74,10 +74,19 @@ export async function apiFetch(path: string, init?: RequestInit): Promise<Respon
   for (const origin of origins) {
     try {
       const response = await fetch(`${origin}${normalizedPath}`, init);
+      // An application-level 404 (withdrawn request, unavailable profile, etc.)
+      // is authoritative. Retrying it against the website hid its real reason
+      // behind an HTML 404 and repeated the same failed operation.
+      if (response.status === 404 && response.headers.get('content-type')?.includes('application/json')) {
+        const body = await response.clone().json().catch(() => null);
+        const message = typeof body?.message === 'string' ? body.message : '';
+        if (!/^Cannot (GET|POST|PUT|PATCH|DELETE)\s/i.test(message)) return response;
+      }
       const retryableGatewayError = [404, 502, 503, 504].includes(response.status);
       if (!retryableGatewayError || origin === origins[origins.length - 1]) return response;
       lastError = new Error(`API unavailable at ${origin}${normalizedPath} (${response.status})`);
     } catch (error) {
+      if (init?.signal?.aborted) throw error;
       lastError = error;
     }
   }

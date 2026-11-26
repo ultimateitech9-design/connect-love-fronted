@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMatchPage, useMatchSummary, matchRequest, type MatchRecord as DBMatch, type MatchTab } from '@/hooks/useMatchPage';
+import { useMatchPage, useMatchSummary, matchRequest, MatchRequestError, type MatchRecord as DBMatch, type MatchTab } from '@/hooks/useMatchPage';
 
 type ReceivedFirstImpression = { id: string; sender: { id: string | null; name: string; photo: string | null }; content: string | null; locked: boolean; createdAt: string };
 
@@ -140,6 +140,12 @@ export default function MatchesDashboard() {
      announceNewMatch(match.id, myId);
      await refreshCurrentTab();
    } catch (error) {
+     if (error instanceof MatchRequestError && error.status === 404) {
+       toast.info('This request is no longer available. Your list has been updated.');
+       setSelectedMatchId(null);
+       await refreshCurrentTab();
+       return;
+     }
      const message = error instanceof Error ? error.message : 'Could not accept this match request.';
      toast.error(message);
      if (/plan allows.*matches|match.*limit|upgrade your plan to match/i.test(message)) setShowMatchPlanPopup(true);

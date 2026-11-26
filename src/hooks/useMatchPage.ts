@@ -13,6 +13,9 @@ export type MatchRecord = {
 };
 export type MatchPage = { items: MatchRecord[]; page: number; pageSize: number; hasMore: boolean };
 export const MATCH_PAGE_SIZE = 20;
+export class MatchRequestError extends Error {
+  constructor(message: string, public readonly status: number) { super(message); }
+}
 
 export async function matchRequest<T>(path: string, token: string, init: RequestInit = {}): Promise<T> {
   const response = await apiFetch(path, {
@@ -20,7 +23,8 @@ export async function matchRequest<T>(path: string, token: string, init: Request
   });
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    throw new Error(error?.message || `Matches request failed (${response.status})`);
+    const detail = Array.isArray(error?.message) ? error.message.join(' ') : error?.message;
+    throw new MatchRequestError(detail || (response.status === 404 ? 'This request or profile is no longer available.' : 'Could not load matches. Please try again.'), response.status);
   }
   return response.json();
 }

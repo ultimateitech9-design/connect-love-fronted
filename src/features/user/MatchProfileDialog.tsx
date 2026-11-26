@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ban, BadgeCheck, ChevronLeft, ChevronRight, Clock, Heart, Loader2, MapPin, Star, UserRound, X } from "lucide-react";
-import { matchRequest } from "@/hooks/useMatchPage";
+import { matchRequest, MatchRequestError } from "@/hooks/useMatchPage";
 import { formatDistance } from "@/lib/distance";
 
 type Relationship = "matched" | "received" | "pending" | "blocked";
@@ -30,11 +30,20 @@ function Tags({ title, values }: { title: string; values?: string[] }) {
 export function MatchProfileDialog({ matchId, viewerId, token, onClose }: { matchId: string; viewerId: string; token: string; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [unavailable, setUnavailable] = useState(false);
+  const queries = useQueryClient();
   const { data, isPending, error, refetch, isFetching } = useQuery({
     queryKey: ['matches', 'profile', viewerId, matchId],
     queryFn: ({ signal }) => matchRequest<MatchProfile>(`/matches/${encodeURIComponent(matchId)}/profile`, token, { signal }),
-    staleTime: 0, gcTime: 0, retry: false,
+    enabled: !unavailable,
+    staleTime: 0, gcTime: 0, retry: false, refetchOnWindowFocus: false, refetchOnReconnect: false,
   });
+  useEffect(() => {
+    if (!(error instanceof MatchRequestError) || error.status !== 404) return;
+    setUnavailable(true);
+    // Remove the stale card without re-requesting this unavailable profile.
+    void queries.invalidateQueries({ queryKey: ['matches'], predicate: query => query.queryKey[1] !== 'profile' && query.queryKey[1] !== 'celebration-profile' });
+  }, [error, queries]);
   useEffect(() => {
     const element = dialog.current;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -51,11 +60,11 @@ export function MatchProfileDialog({ matchId, viewerId, token, onClose }: { matc
   const distance = formatDistance(profile?.distanceKm);
 
   return <dialog ref={dialog} aria-labelledby="match-profile-title" onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }} className="m-auto max-h-[92dvh] w-[min(94vw,900px)] max-w-none overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/65 backdrop:backdrop-blur-sm">
-    <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-100 bg-white/95 px-5 py-4 backdrop-blur">
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-slate-100 bg-white/95 px-5 py-4 backdrop-blur dark:border-slate-700 dark:bg-slate-900">
       <div><p className="text-[10px] font-bold uppercase tracking-widest text-rose-500">Member profile</p><h2 id="match-profile-title" className="text-lg font-bold">{profile?.name || "Profile details"}</h2></div>
       <button type="button" onClick={onClose} aria-label="Close profile" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-rose-100 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-rose-500"><X className="h-5 w-5" /></button>
     </header>
-    {isPending ? <div role="status" className="flex min-h-64 items-center justify-center gap-2 text-sm text-slate-500"><Loader2 className="h-5 w-5 animate-spin" />Loading profile...</div> : error ? <div role="alert" className="space-y-4 p-8 text-center"><p className="text-sm text-rose-600">{error instanceof Error ? error.message : "This profile could not be opened."}</p>{/activate a plan/i.test(error.message) ? <Link href="/user/premium" className="inline-block rounded-full bg-rose-500 px-5 py-2 text-sm font-bold text-white">View Plans</Link> : <button type="button" disabled={isFetching} onClick={() => void refetch()} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold">{isFetching ? "Loading..." : "Try again"}</button>}</div> : profile && data && status ? <>
+    {isPending ? <div role="status" className="flex min-h-64 items-center justify-center gap-2 text-sm text-slate-500"><Loader2 className="h-5 w-5 animate-spin" />Loading profile...</div> : unavailable ? <div role="status" className="space-y-4 p-8 text-center"><h3 className="font-semibold">Profile unavailable</h3><p className="text-sm text-slate-600 dark:text-slate-300">{error instanceof Error ? error.message : "This profile or request is no longer available."}</p><p className="text-xs text-slate-500">Your matches have been refreshed.</p><button type="button" onClick={onClose} className="rounded-full bg-rose-500 px-5 py-2 text-sm font-semibold text-white">Back to matches</button></div> : error ? <div role="alert" className="space-y-4 p-8 text-center"><p className="text-sm text-rose-600">{error instanceof Error ? error.message : "This profile could not be opened."}</p>{/activate a plan/i.test(error.message) ? <Link href="/user/premium" className="inline-block rounded-full bg-rose-500 px-5 py-2 text-sm font-bold text-white">View Plans</Link> : <button type="button" disabled={isFetching} onClick={() => void refetch()} className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold">{isFetching ? "Loading..." : "Try again"}</button>}</div> : profile && data && status ? <>
       <div className="border-b border-slate-100 px-5 py-4"><span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${status.color}`}><StatusIcon className="h-3.5 w-3.5" />{status.title}</span>{data.isSuperLike && data.relationship !== 'blocked' && <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600"><Star className="h-3 w-3 fill-current" />Super Like</span>}<p className="mt-2 text-xs text-slate-500">{status.description}</p></div>
       <div className="grid sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <section aria-label="Profile photos" className="min-w-0 bg-slate-50 p-4 sm:p-5">
