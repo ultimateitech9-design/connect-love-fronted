@@ -1,5 +1,5 @@
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.connectlove';
-const CODE = /^[a-f0-9]{24}$/;
+const CODE = /^(?:[a-f0-9]{24}|[a-z0-9]{1,12}-[a-f0-9]{6})$/;
 
 /** Accept either a normal registration link or the Play Install Referrer payload
  * forwarded by the Android app when it opens registration after installation. */
@@ -16,12 +16,11 @@ export function registrationReferralCode(search: string): string {
 export function referralShareLink(sharePath: string): string {
   const code = registrationReferralCode(new URL(sharePath, 'https://connectlove.in').search);
   const link = new URL(PLAY_STORE_URL);
-  if (code) link.searchParams.set('referrer', new URLSearchParams({ ref: code, utm_source: 'member_referral' }).toString());
+  if (code) link.searchParams.set('referrer', new URLSearchParams({ ref: code }).toString());
   return link.href;
 }
 
 export function referralInvitationText(link: string, rewardPaise = 10000): string {
   const amount = rewardPaise === 5000 ? 50 : 100;
-  const group = amount === 50 ? 'Men inviting men' : 'Women inviting women';
-  return `${group}: download Connect Love from Google Play using my link, then register and verify your email to get ₹${amount} each. Rewards unlock after 30 days; minimum withdrawal ₹1,000. Use the app on 30 different days for an extra ₹${amount} activity bonus.\n\n${link}`;
+  return `Join me on Connect Love! Download the app and register using my link to get a ₹${amount} reward.\n\n${link}`;
 }

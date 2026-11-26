@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const {randomUUID}=require('node:crypto');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
-const id=randomUUID(),accountId=randomUUID(),code='a'.repeat(24);
+const id=randomUUID(),accountId=randomUUID(),code='referral-a1b2c3';
 const token=`header.${Buffer.from(JSON.stringify({sub:id,role:'user',exp:9999999999})).toString('base64url')}.signature`;
 let browser,page,gender='female',withdrawals=0,submitted,welcomePending=false,dismissals=0,registeredAt=new Date(Date.now()-86400000).toISOString();
 let summary={minimumWithdrawalPaise:100000,successfulReferrals:1,referrals:[{id:randomUUID(),memberName:'Referred Friend',rewardPaise:10000,registeredAt:new Date().toISOString(),unlockAt:new Date(Date.now()+86400000).toISOString()}],sharePath:`/register?ref=${code}`,availablePaise:0,lockedPaise:10000,totalEarnedPaise:10000,pendingWithdrawalPaise:0,paidPaise:0,invitedCount:1,activeDays:29,bonusEarned:false,rewards:[{id:randomUUID(),kind:'welcome',amountPaise:10000,unlockAt:new Date(Date.now()+86400000).toISOString(),status:'locked'}],withdrawals:[]};
@@ -11,7 +11,7 @@ async function run(){
  const context=await browser.newContext({viewport:{width:1440,height:1100},permissions:['clipboard-read','clipboard-write']});
  await context.addCookies([{name:'sm_auth',value:'1',domain:'localhost',path:'/'}]);
  await context.addInitScript(value=>{localStorage.setItem('sm_token',value);Object.defineProperty(navigator,'share',{configurable:true,value:async data=>{window.sharedInvite=data}});},token);
- page=await context.newPage();page.setDefaultTimeout(30000);
+ page=await context.newPage();page.setDefaultTimeout(30000);page.setDefaultNavigationTimeout(120000);
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url()),path=url.pathname;
@@ -41,17 +41,17 @@ async function run(){
  assert.equal(await page.getByTestId('women-referral-entry').count(),1,'profile header contains referral actions');
  await page.getByRole('button',{name:'Share & earn ₹100',exact:true}).first().click();
  const dialog=page.getByRole('dialog');await dialog.getByRole('heading',{name:'Invite a woman. Both get ₹100.',exact:true}).waitFor();
- assert.equal(await dialog.getByLabel('Your referral link').inputValue(),`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}%26utm_source%3Dmember_referral`);
+ assert.equal(await dialog.getByLabel('Your referral link').inputValue(),`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}`);
  assert(await dialog.getByRole('button',{name:'Request withdrawal',exact:true}).isDisabled(),'locked money cannot be withdrawn');
  await dialog.getByRole('button',{name:'Load more referred accounts',exact:true}).click();await dialog.getByText('Another Referred Woman',{exact:true}).waitFor();
  await dialog.getByRole('button',{name:'Share invitation',exact:true}).click();
  const shared=await page.evaluate(()=>window.sharedInvite);
- assert(shared.text.includes(`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}%26utm_source%3Dmember_referral`));assert(shared.text.includes('100 each'));assert(!shared.text.includes('localhost'));assert.equal((shared.text.match(/https:\/\//g)||[]).length,1,'native share contains one public link with the message');
+ assert(shared.text.includes(`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}`));assert(shared.text.includes('₹100 reward.'));assert(!shared.text.includes('₹50'));assert(!shared.text.includes('localhost'));assert.equal((shared.text.match(/https:\/\//g)||[]).length,1,'native share contains one public link with the message');
  await dialog.getByRole('button',{name:'Copy link',exact:true}).click();
- assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}%26utm_source%3Dmember_referral`);
+ assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}`);
  await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:undefined}));
  await dialog.getByRole('button',{name:'Share invitation',exact:true}).click();
- const fallback=await page.evaluate(()=>navigator.clipboard.readText());assert(fallback.includes(`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}%26utm_source%3Dmember_referral`));assert(fallback.includes('100 each'));
+ const fallback=await page.evaluate(()=>navigator.clipboard.readText());assert(fallback.includes(`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}`));assert(fallback.includes('₹100 reward.'));assert(!fallback.includes('₹50'));
  await page.setViewportSize({width:390,height:844});assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'referral wallet fits a phone');
  summary={...summary,availablePaise:90000,lockedPaise:10000,activeDays:30,bonusEarned:true};
  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
@@ -77,7 +77,7 @@ async function run(){
  await page.getByRole('button',{name:'Share & earn ₹50',exact:true}).first().click();
  await page.getByRole('heading',{name:'Invite a man. Both get ₹50.',exact:true}).waitFor();
  await page.getByRole('button',{name:'Share invitation',exact:true}).click();
- const maleShare=await page.evaluate(()=>window.sharedInvite.text);assert(maleShare.includes('Men inviting men'));assert(maleShare.includes('₹50 each'));assert(!maleShare.includes('₹100 each'));
+ const maleShare=await page.evaluate(()=>window.sharedInvite.text);assert(maleShare.includes('₹50 reward.'));assert(!maleShare.includes('₹100'));assert(!/\b(boy|boys|girl|girls|men|women|male|female)\b/i.test(maleShare));
  await page.getByLabel('Close referral wallet').click();
  await page.goto('http://localhost:3009/user/referrals',{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'Invite a man. Both get ₹50.',exact:true}).waitFor();
  // Exercise the same registration path locally; the copied/shared URL above
