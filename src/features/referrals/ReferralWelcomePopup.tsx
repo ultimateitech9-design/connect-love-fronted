@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getToken } from '@/lib/auth';
 import { directFetch } from '@/lib/api';
 import { currentUserQueryKey, useCurrentUser } from '@/hooks/useCurrentUser';
-import { isWomanMember, ReferralDialog } from './ReferralEntry';
+import { isReferralMember, ReferralDialog } from './ReferralEntry';
 
 /** Pending state belongs to the registered account, so auto-login failure,
  * reloads and another device do not lose the welcome invitation. */
@@ -16,7 +16,7 @@ export function ReferralWelcomePopup() {
   const queries = useQueryClient();
   useEffect(() => { setToken(getToken() || ''); }, []);
   const { data: user } = useCurrentUser(token);
-  const eligible = Boolean(user?.referralWelcomePending && user.role === 'user' && isWomanMember(user.gender) && dismissedFor !== user.id);
+  const eligible = Boolean(user?.referralWelcomePending && user.role === 'user' && isReferralMember(user.gender) && dismissedFor !== user.id);
   const userId = user?.id;
   const registeredAt = user?.createdAt;
   useEffect(() => {
@@ -36,5 +36,5 @@ export function ReferralWelcomePopup() {
       queries.setQueryData(currentUserQueryKey(token), (current: Record<string, unknown> | undefined) => current ? { ...current, referralWelcomePending: false } : current);
     }).catch(() => { /* The account keeps the reminder for a later session if saving fails. */ });
   };
-  return <ReferralDialog welcome onClose={close} />;
+  return <ReferralDialog welcome gender={user.gender} onClose={close} />;
 }

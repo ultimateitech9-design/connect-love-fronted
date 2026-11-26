@@ -21,7 +21,7 @@ async function run(){
   if(req.method()==='OPTIONS')return respond({});
   if(path==='/users/me')return respond({id,name:'Referral Woman',email:'test@example.test',gender,createdAt:registeredAt,referralWelcomePending:welcomePending,role:'user',plan:'free',status:'active',city:'Delhi',birthDate:'1995-01-01',profession:'Designer',bio:'Hello',relationshipGoal:'Long-term',height:'165 cm',religion:'Hindu',zodiac:'Aries',interests:['Music'],hobbies:['Reading'],personalityWords:['Kind'],kycMatched:true,onboardingCompleted:true,photos:['/connect-love-logo.png'],coinBalance:0,earnedCoinBalance:0});
   if(path==='/referrals/welcome/dismiss'){welcomePending=false;dismissals++;return respond({success:true});}
-  if(path==='/referrals/me')return gender==='female'?respond({...summary,referralsHasMore:true,referralsNextPage:1}):route.fulfill({status:403,json:{message:'Referral rewards are available to women members only.'},headers:{'Access-Control-Allow-Origin':'http://localhost:3009'}});
+  if(path==='/referrals/me')return respond({...summary,rewardPaise:gender==='male'?5000:10000,referralGroup:gender==='male'?'men':'women',withdrawalStepPaise:5000,referralsHasMore:true,referralsNextPage:1});
   if(path==='/referrals/accounts')return respond({items:[{id:randomUUID(),memberName:'Another Referred Woman',rewardPaise:10000,registeredAt:new Date().toISOString(),unlockAt:new Date(Date.now()+86400000).toISOString()}],hasMore:false,nextPage:2});
   if(path==='/referrals/withdrawals'){
    withdrawals++;submitted=req.postDataJSON();summary={...summary,availablePaise:0,pendingWithdrawalPaise:100000,withdrawals:[{id:submitted.requestId,amountPaise:100000,status:'pending',createdAt:new Date().toISOString()}]};
@@ -72,12 +72,18 @@ async function run(){
  await page.getByTestId('women-referral-entry').waitFor();
  assert.equal(await page.getByRole('button',{name:'Share & earn ₹100',exact:true}).count(),1,'Your Profile card has its own share action');
  gender='male';await page.goto('http://localhost:3009/user/profile',{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'});await page.locator('.pv-identity h1').waitFor();
- assert.equal(await page.getByTestId('women-referral-entry').count(),0,'men do not see referral controls');
- await page.goto('http://localhost:3009/user/referrals',{waitUntil:'domcontentloaded'});await page.getByRole('alert').getByText('Referral rewards are available to women members only.',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Share & earn ₹50',exact:true}).first().waitFor();
+ assert.equal(await page.getByTestId('men-referral-entry').count(),1,'men have their own referral controls');
+ await page.getByRole('button',{name:'Share & earn ₹50',exact:true}).first().click();
+ await page.getByRole('heading',{name:'Invite a man. Both get ₹50.',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Share invitation',exact:true}).click();
+ const maleShare=await page.evaluate(()=>window.sharedInvite.text);assert(maleShare.includes('Men inviting men'));assert(maleShare.includes('₹50 each'));assert(!maleShare.includes('₹100 each'));
+ await page.getByLabel('Close referral wallet').click();
+ await page.goto('http://localhost:3009/user/referrals',{waitUntil:'domcontentloaded'});await page.getByRole('heading',{name:'Invite a man. Both get ₹50.',exact:true}).waitFor();
  // Exercise the same registration path locally; the copied/shared URL above
  // must remain public, without visiting or creating accounts on production.
- await page.goto(`http://localhost:3009/register?ref=${code}`,{waitUntil:'domcontentloaded'});await page.getByText('Women-only invitation · ₹100 for you and your friend',{exact:true}).waitFor();
- await page.getByRole('button',{name:'Continue without referral',exact:true}).click();assert.equal(await page.getByText('Women-only invitation · ₹100 for you and your friend',{exact:true}).count(),0);
+ await page.goto(`http://localhost:3009/register?ref=${code}`,{waitUntil:'domcontentloaded'});await page.getByText('Referral invitation · Women earn ₹100 each; men earn ₹50 each',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Continue without referral',exact:true}).click();assert.equal(await page.getByText('Referral invitation · Women earn ₹100 each; men earn ₹50 each',{exact:true}).count(),0);
  gender='female';welcomePending=true;registeredAt=new Date().toISOString();
  await page.goto('http://localhost:3009/user/profile',{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'});
  await page.locator('.pv-identity h1').waitFor();

@@ -7,6 +7,7 @@ import { directFetch } from '@/lib/api';
 import { referralInvitationText, referralShareLink } from './shareInvitation';
 
 type Summary = {
+  rewardPaise?: number; referralGroup?: 'men' | 'women'; withdrawalStepPaise?: number;
   sharePath: string; availablePaise: number; lockedPaise: number; totalEarnedPaise: number;
   pendingWithdrawalPaise: number; paidPaise: number; invitedCount: number; activeDays: number | null; bonusEarned: boolean;
   rewards: { id: string; kind: string; amountPaise: number; unlockAt: string; status: string }[];
@@ -55,6 +56,9 @@ export function ReferralPanel() {
     return () => { active = false; clearTimeout(copyTimer.current); window.removeEventListener('focus', onFocus); };
   }, [refresh]);
   const shareLink = data ? referralShareLink(data.sharePath) : '';
+  const reward = data?.rewardPaise ?? 10000;
+  const men = data?.referralGroup === 'men';
+  const withdrawalStep = data?.withdrawalStepPaise ?? 5000;
   const copy = async (value = shareLink) => {
     if (!shareLink) return;
     try {
@@ -68,7 +72,7 @@ export function ReferralPanel() {
     try {
       // A single text payload keeps the message and clickable link together in
       // WhatsApp and targets that ignore the Web Share API's separate URL field.
-      const text = referralInvitationText(shareLink);
+      const text = referralInvitationText(shareLink, reward);
       if (navigator.share) await navigator.share({ title: 'Join me on Connect Love', text });
       else await copy(text);
     } catch (reason) { if (!(reason instanceof DOMException && reason.name === 'AbortError')) setError('Sharing could not open. Copy the link instead.'); }
@@ -86,7 +90,7 @@ export function ReferralPanel() {
   const withdraw = async () => {
     if (submitting.current || !data) return;
     const paise = Number(amount) * 100;
-    if (!Number.isInteger(paise) || paise < (data.minimumWithdrawalPaise || 100000) || paise % 10000 || paise > data.availablePaise) return setError('Minimum withdrawal is ₹1,000 of unlocked rewards, in multiples of ₹100.');
+    if (!Number.isInteger(paise) || paise < (data.minimumWithdrawalPaise || 100000) || paise % withdrawalStep || paise > data.availablePaise) return setError(`Minimum withdrawal is ₹1,000 of unlocked rewards, in multiples of ${money(withdrawalStep)}.`);
     if (!accountId) return setError('Select or add a payout account first.');
     submitting.current = true; setBusy(true); setError(''); setNotice('');
     request.current ||= crypto.randomUUID();
@@ -110,23 +114,23 @@ export function ReferralPanel() {
   };
 
   if (loading) return <p role="status" className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" />Loading referral wallet...</p>;
-  if (!data) return <p role="alert" className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{error || 'Referral rewards are available to women members only.'}</p>;
+  if (!data) return <p role="alert" className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{error || 'Referral rewards are available to active men and women members.'}</p>;
   return <div className="space-y-5">
     <section className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50 p-5 text-slate-800">
-      <Gift className="mb-2 h-7 w-7 text-rose-500" /><h2 className="text-xl font-black">Invite a woman. Both get ₹100.</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">Every new woman who registers using your link and verifies her email earns ₹100 for you and ₹100 for herself. Each reward unlocks 30 days after registration. Male signups do not earn either reward.</p>
-      <p className="mt-2 text-sm font-semibold text-rose-700">Extra ₹100 for her when she uses the app on 30 different days. No extra 30-day lock on the bonus.</p>
+      <Gift className="mb-2 h-7 w-7 text-rose-500" /><h2 className="text-xl font-black">Invite a {men ? 'man' : 'woman'}. Both get {money(reward)}.</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-600">Every new {men ? 'man' : 'woman'} who registers using your link and verifies their email earns {money(reward)} for you and {money(reward)} for themselves. Each reward unlocks 30 days after registration. Only {men ? 'male' : 'female'} signups through your link earn these rewards.</p>
+      <p className="mt-2 text-sm font-semibold text-rose-700">Extra {money(reward)} for the invited member when they use the app on 30 different days. No extra 30-day lock on the bonus.</p>
       <p className="mt-2 text-xs text-slate-500">Sharing or clicking alone does not earn money. Each new member can use one invitation.</p>
       <label className="mt-4 block text-xs font-semibold">Your invitation link<input readOnly aria-label="Your referral link" value={shareLink} className={`${field} mt-1.5 bg-white font-normal`} onFocus={event => event.target.select()} /></label>
       <div className="mt-3 flex flex-wrap gap-2"><button type="button" disabled={sharing} onClick={() => void share()} className="inline-flex items-center gap-2 rounded-full bg-rose-500 px-5 py-2.5 text-sm font-bold text-white"><Share2 className="h-4 w-4" />{sharing ? 'Opening...' : 'Share invitation'}</button><button type="button" onClick={() => void copy()} className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600">{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{copied ? 'Copied' : 'Copy link'}</button></div>
     </section>
     <section aria-label="Referral balances" className="grid grid-cols-2 gap-3">{[['Available to withdraw', data.availablePaise], ['Locked for 30 days', data.lockedPaise], ['Withdrawal pending', data.pendingWithdrawalPaise], ['Already paid', data.paidPaise]].map(([label, value]) => <div key={String(label)} className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-black">{money(Number(value))}</p></div>)}</section>
-    <section aria-label="Successful referrals" className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4"><h3 className="font-bold">Female signups through your link: {data.successfulReferrals ?? data.invitedCount}</h3><p className="mt-1 text-sm text-muted-foreground">₹100 per eligible account · Total referral wallet earnings: {money(data.totalEarnedPaise)}</p>{!!data.referrals?.length && <ul className="mt-3 max-h-60 divide-y divide-border overflow-y-auto">{data.referrals.map(row => <li key={row.id} className="flex justify-between gap-3 py-3 text-sm"><div className="min-w-0"><p className="break-words font-semibold">{row.memberName}</p><p className="mt-1 text-xs text-muted-foreground">Registered {date(row.registeredAt)}</p>{row.unlockAt && <p className="mt-1 text-xs text-muted-foreground">Unlock date: {date(row.unlockAt)}</p>}</div><strong className="shrink-0">{money(row.rewardPaise)}</strong></li>)}</ul>}</section>
+    <section aria-label="Successful referrals" className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4"><h3 className="font-bold">{men ? 'Male' : 'Female'} signups through your link: {data.successfulReferrals ?? data.invitedCount}</h3><p className="mt-1 text-sm text-muted-foreground">{money(reward)} per eligible account · Total referral wallet earnings: {money(data.totalEarnedPaise)}</p>{!!data.referrals?.length && <ul className="mt-3 max-h-60 divide-y divide-border overflow-y-auto">{data.referrals.map(row => <li key={row.id} className="flex justify-between gap-3 py-3 text-sm"><div className="min-w-0"><p className="break-words font-semibold">{row.memberName}</p><p className="mt-1 text-xs text-muted-foreground">Registered {date(row.registeredAt)}</p>{row.unlockAt && <p className="mt-1 text-xs text-muted-foreground">Unlock date: {date(row.unlockAt)}</p>}</div><strong className="shrink-0">{money(row.rewardPaise)}</strong></li>)}</ul>}</section>
     {data.referralsHasMore && <button type="button" disabled={loadingAccounts} onClick={() => void moreAccounts()} className="text-sm font-semibold text-rose-600">{loadingAccounts ? 'Loading accounts...' : 'Load more referred accounts'}</button>}
-    {data.activeDays !== null && <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900"><p className="text-sm font-bold">{data.bonusEarned ? '₹100 activity bonus earned!' : `Activity bonus: ${Math.min(data.activeDays, 30)} / 30 active days`}</p><p className="mt-1 text-xs">One active day per India calendar date. Days need not be consecutive. The original 30-day hold still applies.</p><div className="mt-3 h-2 overflow-hidden rounded-full bg-amber-100"><div className="h-full bg-amber-500" style={{ width: `${Math.min(data.activeDays, 30) / 30 * 100}%` }} /></div></div>}
+    {data.activeDays !== null && <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900"><p className="text-sm font-bold">{data.bonusEarned ? `${money(reward)} activity bonus earned!` : `Activity bonus: ${Math.min(data.activeDays, 30)} / 30 active days`}</p><p className="mt-1 text-xs">One active day per India calendar date. Days need not be consecutive. The original 30-day hold still applies.</p><div className="mt-3 h-2 overflow-hidden rounded-full bg-amber-100"><div className="h-full bg-amber-500" style={{ width: `${Math.min(data.activeDays, 30) / 30 * 100}%` }} /></div></div>}
     <section className="rounded-2xl border border-border p-4"><h3 className="flex items-center gap-2 font-bold"><Wallet className="h-4 w-4 text-emerald-600" />Withdraw referral rewards</h3><p className="mt-1 text-xs text-muted-foreground">Minimum ₹1,000 in unlocked referral rewards. Each reward is held for 30 days. Locked rewards and call/gift coins do not count toward the minimum.</p>
       <fieldset disabled={busy} className="mt-4 space-y-3">
-        <label className="block text-xs font-semibold">Amount (₹)<input type="number" min={(data.minimumWithdrawalPaise || 100000) / 100} step={100} value={amount} onChange={event => { setAmount(event.target.value); request.current = null; }} className={`${field} mt-1`} /></label>
+        <label className="block text-xs font-semibold">Amount (₹)<input type="number" min={(data.minimumWithdrawalPaise || 100000) / 100} step={withdrawalStep / 100} value={amount} onChange={event => { setAmount(event.target.value); request.current = null; }} className={`${field} mt-1`} /></label>
         {!!accounts.length && <label className="block text-xs font-semibold">Payout account<select aria-label="Referral payout account" value={accountId} onChange={event => { setAccountId(event.target.value); request.current = null; }} className={`${field} mt-1`}>{accounts.map(account => <option key={account.id} value={account.id}>{account.method === 'upi' ? account.upiId : `${account.bankName || 'Bank'} · ${account.accountNumberMasked || 'saved account'}`}</option>)}</select></label>}
         {!accounts.length && <div className="space-y-2"><input aria-label="UPI ID for referral withdrawal" value={upi} onChange={event => setUpi(event.target.value)} placeholder="UPI ID, e.g. name@upi" className={field} /><button type="button" onClick={() => void addUpi()} disabled={!upi.trim()} className="text-sm font-semibold text-rose-600">Save UPI account</button></div>}
         <Link href="/user/withdraw" className="inline-block text-xs font-semibold text-rose-600 underline">Manage bank / UPI accounts</Link>

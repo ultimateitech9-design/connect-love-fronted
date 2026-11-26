@@ -8,19 +8,21 @@ const viewer = randomUUID(), peer = randomUUID(), matchId = randomUUID();
 const token = `header.${Buffer.from(JSON.stringify({sub: viewer})).toString('base64url')}.signature`;
 const me = {id:viewer,name:'List Viewer',gender:'female',role:'user',plan:'free',status:'active',onboardingCompleted:true,photos:[]};
 const member = {id:peer,name:'PK Sync Fixture',age:36,photos:['/connect-love-logo.png'],bio:'List synchronization fixture'};
-let state = 'MATCHED', superLike = false, messagesRequests = 0, browser;
+let state = 'MATCHED', superLike = false, messagesRequests = 0, browser, page;
 const record = () => ({id:matchId,senderId:viewer,receiverId:peer,sender:null,receiver:member,status:state,isSuperLike:superLike,locked:false,createdAt:new Date().toISOString(),lastMessage:'No messages yet.'});
 async function run() {
  browser = await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_EXECUTABLE}:{})});
  const context = await browser.newContext({viewport:{width:1365,height:950}});
  await context.addCookies([{name:'sm_auth',value:'1',url:origin}]);
  await context.addInitScript(({token,viewer})=>{localStorage.setItem('sm_token',token);sessionStorage.setItem(`connect-love:matches-synced:v2:${viewer}`,'1');},{token,viewer});
- const page = await context.newPage();page.setDefaultTimeout(30000);
+ page = await context.newPage();page.setDefaultTimeout(30000);
+ if(process.env.MATCH_SYNC_DEBUG==='1')page.on('response',response=>{if(/matches|users\/me/.test(response.url()))console.log(response.status(),response.url());});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{
-  const request=route.request(),url=new URL(request.url()),path=url.pathname.replace(/^\/backend-api/,'');
+  const request=route.request(),url=new URL(request.url()),path=url.pathname.replace(/^\/(?:backend-api|api)(?=\/)/,'');
   if(path.includes('socket.io'))return route.abort();
-  if(!['5002','5003'].includes(url.port)&&!url.pathname.startsWith('/backend-api/'))return route.continue();
+  const memberApi=/^\/(?:users|matches|messages|first-impressions|profile-visitors|direct-calls|video-calls|webrtc|discovery|plans|wallet|referrals)(?:\/|$)/.test(path);
+  if(!['5002','5003'].includes(url.port)&&!url.pathname.startsWith('/backend-api/')&&!memberApi)return route.continue();
   const respond=json=>route.fulfill({json,headers:{'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'*'}});
   if(request.method()==='OPTIONS')return respond({});
   if(path==='/users/me')return respond(me);
@@ -63,4 +65,4 @@ async function run() {
  assert.deepEqual(errors,[]);
  console.log('PASS: old session markers, stale Messages removal, current active/pending tabs, counts, acceptance and super-like filtering remain consistent without socket events.');
 }
-run().catch(e=>{console.error(e);process.exitCode=1}).finally(async()=>{await browser?.close();});
+run().catch(async e=>{console.error(e);if(page)console.error((await page.locator('body').innerText()).slice(-1500));process.exitCode=1}).finally(async()=>{await browser?.close();});

@@ -20,6 +20,8 @@ export function referralShareLink(sharePath: string): string {
   return link.href;
 }
 
-export function referralInvitationText(link: string): string {
-  return `Women inviting women: download Connect Love from Google Play using my link, then register and verify your email to get ₹100 each. Rewards unlock after 30 days; minimum withdrawal ₹1,000. Use the app on 30 different days for an extra ₹100 activity bonus.\n\n${link}`;
+export function referralInvitationText(link: string, rewardPaise = 10000): string {
+  const amount = rewardPaise === 5000 ? 50 : 100;
+  const group = amount === 50 ? 'Men inviting men' : 'Women inviting women';
+  return `${group}: download Connect Love from Google Play using my link, then register and verify your email to get ₹${amount} each. Rewards unlock after 30 days; minimum withdrawal ₹1,000. Use the app on 30 different days for an extra ₹${amount} activity bonus.\n\n${link}`;
 }
