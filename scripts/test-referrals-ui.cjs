@@ -42,7 +42,10 @@ async function run(){
  await page.getByRole('button',{name:'Share & earn ₹100',exact:true}).first().click();
  const dialog=page.getByRole('dialog');await dialog.getByRole('heading',{name:'Invite a woman. Both get ₹100.',exact:true}).waitFor();
  assert.equal(await dialog.getByLabel('Your referral link').inputValue(),`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}`);
- assert(await dialog.getByRole('button',{name:'Request withdrawal',exact:true}).isDisabled(),'locked money cannot be withdrawn');
+ assert(await dialog.getByRole('button',{name:'Request withdrawal',exact:true}).isDisabled(),'balance below the minimum cannot start a request');
+ assert.equal(await dialog.getByText('Locked for 30 days',{exact:true}).count(),0);
+ assert(!(await dialog.innerText()).includes('30 days after'),'the main page does not show the withdrawal waiting-period message');
+ assert.equal(await dialog.getByRole('region',{name:'Withdrawal review'}).count(),0);
  await dialog.getByRole('button',{name:'Load more referred accounts',exact:true}).click();await dialog.getByText('Another Referred Woman',{exact:true}).waitFor();
  await dialog.getByRole('button',{name:'Share invitation',exact:true}).click();
  const shared=await page.evaluate(()=>window.sharedInvite);
@@ -56,12 +59,24 @@ async function run(){
  summary={...summary,availablePaise:90000,lockedPaise:10000,activeDays:30,bonusEarned:true};
  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
  await dialog.getByText('Referred Friend',{exact:true}).waitFor();
- assert(await dialog.getByRole('button',{name:'Request withdrawal',exact:true}).isDisabled(),'900 unlocked rupees cannot meet the minimum even with locked rewards');
+ const requestWithdrawal=dialog.getByRole('button',{name:'Request withdrawal',exact:true});
+ await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(button=>button.textContent==='Request withdrawal'&&!button.disabled));
+ await requestWithdrawal.click();
+ const review=dialog.getByRole('region',{name:'Withdrawal review'});await review.waitFor();
+ await review.getByText('Referral signup rewards can be withdrawn 30 days after registration. Submitting this request does not start a new waiting period.',{exact:true}).waitFor();
+ assert(await review.getByRole('button',{name:'Confirm withdrawal',exact:true}).isDisabled(),'900 eligible rupees cannot fund a 1000-rupee request');
+ assert.equal(withdrawals,0,'reviewing a locked balance never sends a withdrawal');
+ await review.getByRole('button',{name:'Back to form',exact:true}).click();
+ assert.equal(await dialog.getByRole('region',{name:'Withdrawal review'}).count(),0);
  summary={...summary,availablePaise:100000,lockedPaise:0};
  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
  await dialog.getByText('₹100 activity bonus earned!',{exact:true}).waitFor();
  const withdraw=dialog.getByRole('button',{name:'Request withdrawal',exact:true});await withdraw.waitFor();
- await withdraw.evaluate(button=>{button.click();button.click()});
+ await withdraw.click();
+ await review.getByText('Your rewards are eligible. You can request withdrawal now.',{exact:true}).waitFor();
+ assert(!(await review.innerText()).includes('30'),'mature eligible rewards do not show another waiting-period message');
+ assert.equal(withdrawals,0,'eligible withdrawals still require explicit confirmation');
+ await review.getByRole('button',{name:'Confirm withdrawal',exact:true}).evaluate(button=>{button.click();button.click()});
  await dialog.getByText('Withdrawal requested. The team will transfer your money and update the status.',{exact:true}).waitFor();
  assert.equal(withdrawals,1,'double click creates only one payout request');assert.equal(submitted.amountPaise,100000);assert.equal(submitted.accountId,accountId);assert.match(submitted.requestId,/^[a-f0-9-]{36}$/);
  await page.keyboard.press('Escape');await dialog.waitFor({state:'detached'});
@@ -84,6 +99,11 @@ async function run(){
  // must remain public, without visiting or creating accounts on production.
  await page.goto(`http://localhost:3009/register?ref=${code}`,{waitUntil:'domcontentloaded'});await page.getByText('Referral invitation · Women earn ₹100 each; men earn ₹50 each',{exact:true}).waitFor();
  await page.getByRole('button',{name:'Continue without referral',exact:true}).click();assert.equal(await page.getByText('Referral invitation · Women earn ₹100 each; men earn ₹50 each',{exact:true}).count(),0);
+ if(process.env.REFERRAL_UI_QUICK==='1'){
+  assert.deepEqual(errors,[],'no browser runtime errors');
+  console.log('PASS: share/copy, named codes, balance/minimum display, withdrawal disclosure after click, locked confirmation blocked, explicit eligible confirmation, duplicate protection and gender amounts. All financial APIs mocked.');
+  return;
+ }
  gender='female';welcomePending=true;registeredAt=new Date().toISOString();
  await page.goto('http://localhost:3009/user/profile',{waitUntil:'domcontentloaded'});await page.reload({waitUntil:'domcontentloaded'});
  await page.locator('.pv-identity h1').waitFor();
