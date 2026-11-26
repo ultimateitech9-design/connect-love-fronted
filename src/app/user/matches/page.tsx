@@ -68,6 +68,9 @@ export default function MatchesDashboard() {
 
  const pageQuery = useMatchPage(myId, token, mainTab, currentPage, pendingTab);
  const summaryQuery = useMatchSummary(myId, token);
+ useEffect(() => {
+   if (myId && token) void summaryQuery.refetch();
+ }, [myId, token, mainTab, pendingTab]);
  const summary = summaryQuery.data || { active: 0, received: 0, sent: 0, sentSuper: 0, blocked: 0 };
  const items = pageQuery.data?.items || [];
  const isLoading = !myId || pageQuery.isPending;

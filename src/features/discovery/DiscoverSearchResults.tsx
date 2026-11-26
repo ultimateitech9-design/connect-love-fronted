@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, BadgeCheck, Loader2, Search } from 'lucide-react';
 import { ProfileCard } from '@/features/user/ProfileCard';
 import { clearDiscoverySearchCache, discoverySearchThumbnails as thumbnails, getDiscoverySearchThumbnail, getDiscoveryProfileDetails, recordProfileDetailView, searchDiscoveryProfiles, swipeProfile, type DiscoveryFilters } from './api';
@@ -38,6 +39,7 @@ function SearchPhoto({ profile }: { profile: any }) {
 export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremiumActions }: {
   filters: DiscoveryFilters; pending: boolean; onUpgrade: (message: string) => void; canUsePremiumActions: boolean;
 }) {
+  const queryClient = useQueryClient();
   const [items, setItems] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,6 +105,7 @@ export function DiscoverSearchResults({ filters, pending, onUpgrade, canUsePremi
     actingRef.current = true; setActing(true);
     try {
       const result = await swipeProfile(id, action === 'right' || action === 'like' ? 'like' : action === 'super' || action === 'superlike' ? 'superlike' : 'pass');
+      void queryClient.invalidateQueries({ queryKey: ['matches'] });
       clearDiscoverySearchCache();
       if (run !== generation.current) return true;
       setItems(previous => previous.filter(profile => profile.id !== id)); setSelected(null);

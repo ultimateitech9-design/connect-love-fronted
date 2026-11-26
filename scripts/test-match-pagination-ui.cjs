@@ -20,7 +20,7 @@ const summary = { active: 1, received: 1005, sent: 47, sentSuper: 23, blocked: 1
     await page.route('**/*', async route => {
       const url = new URL(route.request().url());
       if (url.pathname.includes('socket.io')) return route.abort();
-      if (url.port !== '5002' && !url.pathname.startsWith('/backend-api/')) return route.continue();
+      if (!['5002', '5003'].includes(url.port) && !url.pathname.startsWith('/backend-api/')) return route.continue();
       const path = url.pathname.replace(/^\/backend-api/, '');
       const respond = value => route.fulfill({ json: value, headers: { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Headers': '*' } });
       if (route.request().method() === 'OPTIONS') return respond({});
@@ -60,9 +60,13 @@ const summary = { active: 1, received: 1005, sent: 47, sentSuper: 23, blocked: 1
     await panel().getByText('Profile received-null-20,', { exact: false }).waitFor();
     await expectCards(20);
     const activeBefore = requests.filter(search => new URLSearchParams(search).get('filter') === 'active').length;
-    await tab('Active Matches').click();
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes('/matches/page?filter=active')),
+      tab('Active Matches').click(),
+    ]);
     await panel().getByText('Profile active-null-0,', { exact: false }).waitFor();
-    assert.equal(requests.filter(search => new URLSearchParams(search).get('filter') === 'active').length, activeBefore, 'fresh tab cache avoids refetch');
+    await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'));
+    assert.ok(requests.filter(search => new URLSearchParams(search).get('filter') === 'active').length > activeBefore, 'returning to a tab revalidates its relationships');
     await tab('Requests Received').click();
     await panel().getByText('Profile received-null-20,', { exact: false }).waitFor();
     assert.equal(await page.getByText('Page 2', { exact: true }).count(), 1, 'each tab retains its page');

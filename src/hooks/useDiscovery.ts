@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { getDiscoveryProfileDetails, getDiscoveryProfiles, swipeProfile, undoSwipeProfile, type DiscoveryFilters } from '@/features/discovery/api';
 import { toast } from 'sonner';
 
@@ -17,6 +18,7 @@ export function clearDiscoveryQueueCache() {
 }
 
 export function useDiscovery(token: string, filters: DiscoveryFilters = {}) {
+  const queryClient = useQueryClient();
   const key = JSON.stringify([token, filters.search, filters.ageMin, filters.ageMax, filters.interestedIn, filters.goals, filters.maxDistance, filters.interests, filters.verifiedOnly]);
   let accountId = '';
   try {
@@ -169,6 +171,7 @@ export function useDiscovery(token: string, filters: DiscoveryFilters = {}) {
     if (run.queue.length < 12) void refillRef.current();
     try {
       const result = await swipeProfile(id, action);
+      void queryClient.invalidateQueries({ queryKey: ['matches'] });
       if (state.current === run && run.legacy && run.queue.length < 12) { run.more = true; setHasMore(true); void refillRef.current(); }
       if (state.current === run && result?.status === 'MATCHED') window.location.href = '/user/messages?id=' + result.id;
       return true;
@@ -186,6 +189,7 @@ export function useDiscovery(token: string, filters: DiscoveryFilters = {}) {
     const run = state.current;
     try {
       await undoSwipeProfile(profile.id);
+      void queryClient.invalidateQueries({ queryKey: ['matches'] });
       if (state.current !== run) return false;
       run.hidden.delete(profile.id); run.queue = [profile, ...run.queue.filter(p => p.id !== profile.id)]; setProfiles([...run.queue]);
       persist(run);

@@ -66,10 +66,11 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
   let cancelled = false;
   setCacheHydrated(false);
   void readCachedMatches(userKey, filter, cacheScope).then((cached) => {
-   if (!cancelled && cached.length > 0) queryClient.setQueryData(queryKey, cached);
+   // Offline hydration must never replace a newer in-memory/server snapshot.
+   if (!cancelled && cached.length > 0 && queryClient.getQueryData(queryKey) === undefined) queryClient.setQueryData(queryKey, cached);
   }).finally(() => { if (!cancelled) setCacheHydrated(true); });
   return () => { cancelled = true; };
- }, [filter, userKey, fetchAll, limit]);
+ }, [filter, userKey, cacheScope]);
 
  const fetchMatches = async () => {
  if (!token) return [];
@@ -101,28 +102,19 @@ export function useMatches(token: string, filter: MatchFilter, options: { enable
  return collected;
  };
 
- const { data, isLoading, isError, refetch } = useQuery({
+ const { data, isLoading, isError } = useQuery({
  // Keep filter second so existing ['matches', 'active'] invalidations refresh
  // this user-scoped query whenever a match is created, blocked, or removed.
  queryKey,
  queryFn: fetchMatches,
  enabled: !!token && isEnabled && cacheHydrated,
- staleTime: filter === 'messages' ? Infinity : 30_000,
+ staleTime: 0,
  gcTime: 24 * 60 * 60_000,
  refetchInterval: false,
- refetchOnWindowFocus: filter === 'messages' ? false : 'always',
- refetchOnMount: filter === 'messages' ? false : 'always',
- refetchOnReconnect: filter === 'messages' ? false : 'always',
+ refetchOnWindowFocus: 'always',
+ refetchOnMount: 'always',
+ refetchOnReconnect: 'always',
  });
-
- useEffect(() => {
-  if (filter !== 'messages' || !token || !isEnabled || !cacheHydrated) return;
-  const sessionKey = `connect-love:matches-synced:v2:${userKey}`;
-  if (window.sessionStorage.getItem(sessionKey)) return;
-  void refetch().then((result) => {
-   if (result.isSuccess) window.sessionStorage.setItem(sessionKey, '1');
-  });
- }, [cacheHydrated, filter, isEnabled, refetch, token, userKey]);
 
  const matches = data ?? EMPTY_MATCHES;
 

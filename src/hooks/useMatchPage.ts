@@ -32,11 +32,11 @@ export const matchPageOptions = (userId: string, token: string, tab: MatchTab, p
     token, { signal },
   ),
   enabled: Boolean(userId && token),
-  staleTime: 60_000,
+  staleTime: 0,
   gcTime: 30 * 60_000,
-  refetchOnMount: true,
-  refetchOnWindowFocus: true,
-  refetchOnReconnect: true,
+  refetchOnMount: 'always' as const,
+  refetchOnWindowFocus: 'always' as const,
+  refetchOnReconnect: 'always' as const,
   retry: 1,
 });
 
@@ -49,7 +49,7 @@ export function useMatchSummary(userId: string, token: string) {
     queryKey: ['matches', 'summary', userId],
     queryFn: ({ signal }) => matchRequest<MatchSummary>('/matches/summary', token, { signal }),
     enabled: Boolean(userId && token),
-    staleTime: 60_000, gcTime: 30 * 60_000,
-    refetchOnMount: true, refetchOnWindowFocus: true, refetchOnReconnect: true,
+    staleTime: 0, gcTime: 30 * 60_000,
+    refetchOnMount: 'always', refetchOnWindowFocus: 'always', refetchOnReconnect: 'always',
   });
 }
