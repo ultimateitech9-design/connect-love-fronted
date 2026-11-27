@@ -6,16 +6,17 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { apiFetch } from "@/lib/api";
 import { FailedEmails } from "@/features/admin-email/FailedEmails";
 
-type Audience = "all" | "female" | "male" | "inactive";
+type Audience = "all" | "female" | "male" | "inactive" | "failed_female" | "failed_male";
 type Member = { id: string; name: string; email: string; gender?: string };
 type Recipients = { users: Member[]; total: number; page: number; limit: number; smtpConfigured: boolean };
 type Campaign = { id: string; subject: string; audience: Audience; total: number; sent: number; failed: number; pending: number; status: string; createdAt: string; failures?: { email: string; error: string }[] };
 const input = "w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100";
 const card = "rounded-2xl border border-border bg-card p-5 shadow-sm";
-const audienceLabel = (value: Audience) => value === "female" ? "Women" : value === "male" ? "Men" : value === "inactive" ? "Inactive (7+ days)" : "All users";
+const audienceLabel = (value: Audience) => value === "female" ? "Women" : value === "male" ? "Men" : value === "inactive" ? "Inactive (7+ days)" : value === "failed_female" ? "Failed emails - Women" : value === "failed_male" ? "Failed emails - Men" : "All users";
 
 export default function EmailSendPage() {
   const [audience, setAudience] = useState<Audience>("all");
+  const failedGender = audience === "failed_female" ? "female" : audience === "failed_male" ? "male" : null;
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -41,7 +42,7 @@ export default function EmailSendPage() {
   const imageInput = useRef<HTMLInputElement>(null);
   const selectedCount = selectAll ? Math.max(0, (data?.total || 0) - excluded.size) : selected.size;
   const recipientsReady = !loading && !listError && search.trim() === query;
-  const ready = recipientsReady && !!data?.smtpConfigured;
+  const ready = !failedGender && recipientsReady && !!data?.smtpConfigured;
 
   const resetSelection = () => {
     setSelected(new Set()); setExcluded(new Set()); setSelectAll(false); requestId.current = null;
@@ -56,6 +57,10 @@ export default function EmailSendPage() {
 
   useEffect(() => {
     let active = true;
+    if (audience === "failed_female" || audience === "failed_male") {
+      setData(null); setLoading(false); setListError("");
+      return () => { active = false; };
+    }
     setLoading(true); setListError("");
     const params = new URLSearchParams({ audience, search: query, page: String(page) });
     apiFetch<Recipients>(`/admin-email/recipients?${params}`).then(value => { if (active) setData(value); })
@@ -140,15 +145,16 @@ export default function EmailSendPage() {
 
   return <div>
     <PageHeader title="Email Send" description="Send a message and photo to all users, women, men, or members inactive for 7+ days." />
-    <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(350px,1fr)]">
+    <div className={`grid items-start gap-6 ${failedGender ? "" : "xl:grid-cols-[minmax(0,1.15fr)_minmax(350px,1fr)]"}`}>
       <section className={card} aria-label="Email recipients">
         <div className="mb-5 flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-xl bg-rose-50 text-rose-600"><Mail className="h-5 w-5" /></div><div><h2 className="font-bold">Select recipients</h2><p className="text-xs text-muted-foreground">Members&apos; registered email addresses</p></div></div>
         <fieldset disabled={submitting} className="space-y-4 disabled:opacity-60">
           <label className="block text-sm font-semibold">Recipient filter
             <select aria-label="Recipient filter" value={audience} onChange={event => { setAudience(event.target.value as Audience); setPage(1); resetSelection(); changed(); }} className={`${input} mt-1.5 font-normal`}>
-              {(["all", "female", "male", "inactive"] as Audience[]).map(value => <option key={value} value={value}>{audienceLabel(value)}</option>)}
+              {(["all", "female", "male", "inactive", "failed_female", "failed_male"] as Audience[]).map(value => <option key={value} value={value}>{audienceLabel(value)}</option>)}
             </select>
           </label>
+          {failedGender ? <FailedEmails key={failedGender} gender={failedGender} /> : <>
           {audience === "inactive" && <p className="text-xs text-muted-foreground">Users last active at least 7 days ago. Users who have never been active are included 7 days after registration.</p>}
           <div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><input aria-label="Search users" value={search} onChange={event => { setSearch(event.target.value); resetSelection(); }} maxLength={100} placeholder="Search name or email..." className={`${input} pl-9`} /></div>
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-rose-50 px-3 py-3 text-sm">
@@ -158,10 +164,11 @@ export default function EmailSendPage() {
           {selectAll && <p className="text-xs text-muted-foreground">All matching users across every page are selected. Uncheck any user to exclude them.</p>}
           {listError ? <p role="alert" className="py-8 text-sm text-rose-600">{listError}</p> : loading ? <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" />Loading users...</div> : !data?.users.length ? <p className="py-16 text-center text-sm text-muted-foreground">No users found.</p> : <div className="max-h-[520px] divide-y divide-border overflow-auto rounded-xl border border-border">{data.users.map(user => <label key={user.id} className="flex cursor-pointer items-center gap-3 px-3 py-3 hover:bg-rose-50/50"><input type="checkbox" aria-label={`Select ${user.email}`} checked={selectAll ? !excluded.has(user.id) : selected.has(user.id)} onChange={() => toggle(user.id)} className="h-4 w-4 shrink-0 accent-rose-500" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{user.name}</p><p className="break-all text-xs text-muted-foreground">{user.email}</p></div><span className="shrink-0 rounded-full bg-muted px-2 py-1 text-[10px] capitalize text-muted-foreground">{user.gender || "Unspecified"}</span></label>)}</div>}
           <div className="flex items-center justify-between text-xs text-muted-foreground"><span>Page {page} of {Math.max(1, Math.ceil((data?.total || 0) / 50))}</span><div className="flex gap-2"><button type="button" aria-label="Previous page" disabled={loading || page <= 1} onClick={() => setPage(value => value - 1)} className="rounded-lg border p-2 disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button><button type="button" aria-label="Next page" disabled={loading || page * 50 >= (data?.total || 0)} onClick={() => setPage(value => value + 1)} className="rounded-lg border p-2 disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button></div></div>
+          </>}
         </fieldset>
       </section>
 
-      <section className={card} aria-label="Compose email">
+      {!failedGender && <section className={card} aria-label="Compose email">
         <h2 className="font-bold">Compose email</h2><p className="mt-1 text-xs text-muted-foreground">Each recipient gets a separate email. Other addresses stay private.</p>
         {data && !data.smtpConfigured && <p role="alert" className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">Email delivery is not configured. Configure SMTP before sending.</p>}
         <form onSubmit={send} className="mt-5 space-y-4">
@@ -178,10 +185,9 @@ export default function EmailSendPage() {
           </fieldset>
         </form>
         {result && <div role="status" className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900"><div className="flex items-center gap-2 font-bold"><CheckCircle2 className="h-5 w-5" />{result.pending ? "Emails queued — sending in background" : "Email campaign completed"}</div><p className="mt-2">{result.sent} sent · {result.pending} pending · {result.failed} failed</p>{!!result.failures?.length && <details className="mt-3"><summary className="cursor-pointer font-semibold">Failed recipients (up to 20)</summary><ul className="mt-2 space-y-2">{result.failures.map(item => <li key={item.email} className="break-words">{item.email}: {item.error}</li>)}</ul></details>}</div>}
-      </section>
+      </section>}
     </div>
 
     <section className={`${card} mt-6`} aria-label="Email history"><h2 className="font-bold">Recent emails</h2><p className="mt-1 text-xs text-muted-foreground">Sent means accepted by the mail server. Counts update automatically.</p>{historyError && <p className="mt-3 text-sm text-amber-700">{historyError}</p>}<div className="mt-4 overflow-x-auto"><table className="w-full text-left text-sm"><thead className="border-b text-xs text-muted-foreground"><tr><th className="py-3 pr-3">Subject</th><th className="pr-3">Audience</th><th className="pr-3">Sent</th><th className="pr-3">Pending</th><th className="pr-3">Failed</th><th>Date</th></tr></thead><tbody className="divide-y">{campaigns.map(item => <tr key={item.id}><td className="max-w-64 py-3 pr-3"><button type="button" onClick={() => setResult(item)} className="text-left font-semibold text-rose-600 hover:underline">{item.subject}</button></td><td className="pr-3">{audienceLabel(item.audience)}</td><td className="pr-3 text-emerald-700">{item.sent}</td><td className="pr-3">{item.pending}</td><td className="pr-3 text-rose-600">{item.failed}</td><td className="whitespace-nowrap text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</td></tr>)}</tbody></table>{!campaigns.length && !historyError && <p className="py-6 text-center text-sm text-muted-foreground">No emails sent yet.</p>}</div></section>
-    <FailedEmails />
   </div>;
 }
