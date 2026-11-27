@@ -105,8 +105,12 @@ export function GlobalPresence() {
     };
 
     socket.on("connect", () => {
+      window.dispatchEvent(new Event('connect-love-referral-changed'));
       queryClient.invalidateQueries({ queryKey: ['profile-visitors'] });
       refreshOnline();
+    });
+    socket.on('referralBalanceChanged', () => {
+      if (getToken() === token) window.dispatchEvent(new Event('connect-love-referral-changed'));
     });
     socket.on('profileVisitorsChanged', () => {
       void queryClient.invalidateQueries({ queryKey: ['profile-visitors'] });

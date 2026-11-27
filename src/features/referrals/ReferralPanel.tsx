@@ -40,21 +40,35 @@ export function ReferralPanel() {
   const request = useRef<string | null>(null);
   const submitting = useRef(false);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const mounted = useRef(false);
+  const refreshSequence = useRef(0);
   const refresh = useCallback(async () => {
+    const sequence = ++refreshSequence.current;
     const value = await directFetch<Summary>('/referrals/me');
-    setData(value);
+    if (mounted.current && sequence === refreshSequence.current) setData(value);
   }, []);
   useEffect(() => {
     let active = true;
-    Promise.all([directFetch<Summary>('/referrals/me'), directFetch<{ accounts: Account[] } | Account[]>('/wallet/payout-accounts')]).then(([value, saved]) => {
+    mounted.current = true;
+    Promise.all([refresh(), directFetch<{ accounts: Account[] } | Account[]>('/wallet/payout-accounts')]).then(([, saved]) => {
       if (!active) return;
       const list = Array.isArray(saved) ? saved : saved.accounts;
-      setData(value); setAccounts(list || []); setAccountId(list?.[0]?.id || '');
+      setAccounts(list || []); setAccountId(list?.[0]?.id || '');
     }).catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Referral wallet could not be loaded.'); })
       .finally(() => { if (active) setLoading(false); });
-    const onFocus = () => { void refresh().catch(() => {}); };
+    const onFocus = () => { if (document.visibilityState === 'visible') void refresh().catch(() => {}); };
     window.addEventListener('focus', onFocus);
-    return () => { active = false; clearTimeout(copyTimer.current); window.removeEventListener('focus', onFocus); };
+    window.addEventListener('connect-love-referral-changed', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    // Recover missed events while a wallet remains open, without reloading the page.
+    const timer = setInterval(onFocus, 10000);
+    return () => {
+      active = false; mounted.current = false; refreshSequence.current++;
+      clearInterval(timer); clearTimeout(copyTimer.current);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('connect-love-referral-changed', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
   }, [refresh]);
   const shareLink = data ? referralShareLink(data.sharePath) : '';
   const reward = data?.rewardPaise ?? 10000;

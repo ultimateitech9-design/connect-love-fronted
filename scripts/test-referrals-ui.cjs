@@ -41,6 +41,14 @@ async function run(){
  assert.equal(await page.getByTestId('women-referral-entry').count(),1,'profile header contains referral actions');
  await page.getByRole('button',{name:'Share & earn ₹100',exact:true}).first().click();
  const dialog=page.getByRole('dialog');await dialog.getByRole('heading',{name:'Invite a woman. Both get ₹100.',exact:true}).waitFor();
+ const referralBalanceBox=dialog.getByRole('region',{name:'Referral balances'}).locator('div').filter({has:page.getByText('Referral balance',{exact:true})});
+ await referralBalanceBox.getByText('₹100',{exact:true}).waitFor();
+ const beforeLiveSignup=summary;
+ summary={...summary,lockedPaise:20000,totalEarnedPaise:20000};
+ await page.evaluate(()=>window.dispatchEvent(new Event('connect-love-referral-changed')));
+ await referralBalanceBox.getByText('₹200',{exact:true}).waitFor();
+ summary=beforeLiveSignup;await page.evaluate(()=>window.dispatchEvent(new Event('connect-love-referral-changed')));
+ await referralBalanceBox.getByText('₹100',{exact:true}).waitFor();
  assert.equal(await dialog.getByLabel('Your referral link').inputValue(),`https://connectlove.in/invite/${code}`);
  assert(await dialog.getByRole('button',{name:'Request withdrawal',exact:true}).isDisabled(),'balance below the minimum cannot start a request');
  assert.equal(await dialog.getByText('Locked for 30 days',{exact:true}).count(),0);
@@ -91,6 +99,9 @@ async function run(){
  assert.equal(await page.getByTestId('men-referral-entry').count(),1,'men have their own referral controls');
  await page.getByRole('button',{name:'Share & earn ₹50',exact:true}).first().click();
  await page.getByRole('heading',{name:'Invite a man. Both get ₹50.',exact:true}).waitFor();
+ summary={...summary,availablePaise:0,lockedPaise:5000,totalEarnedPaise:5000};
+ await page.evaluate(()=>window.dispatchEvent(new Event('connect-love-referral-changed')));
+ await dialog.getByRole('region',{name:'Referral balances'}).locator('div').filter({has:page.getByText('Referral balance',{exact:true})}).getByText('₹50',{exact:true}).waitFor();
  await page.getByRole('button',{name:'Share invitation',exact:true}).click();
  const maleShare=await page.evaluate(()=>window.sharedInvite.text);assert(maleShare.includes('₹50 reward.'));assert(!maleShare.includes('₹100'));assert(!/\b(boy|boys|girl|girls|men|women|male|female)\b/i.test(maleShare));
  await page.getByLabel('Close referral wallet').click();
