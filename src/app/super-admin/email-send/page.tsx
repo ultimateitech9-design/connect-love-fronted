@@ -4,14 +4,15 @@ import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, Mail, Search, Send, X } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { apiFetch } from "@/lib/api";
+import { FailedEmails } from "@/features/admin-email/FailedEmails";
 
-type Audience = "all" | "female" | "male";
+type Audience = "all" | "female" | "male" | "inactive";
 type Member = { id: string; name: string; email: string; gender?: string };
 type Recipients = { users: Member[]; total: number; page: number; limit: number; smtpConfigured: boolean };
 type Campaign = { id: string; subject: string; audience: Audience; total: number; sent: number; failed: number; pending: number; status: string; createdAt: string; failures?: { email: string; error: string }[] };
 const input = "w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100";
 const card = "rounded-2xl border border-border bg-card p-5 shadow-sm";
-const audienceLabel = (value: Audience) => value === "female" ? "Women" : value === "male" ? "Men" : "All users";
+const audienceLabel = (value: Audience) => value === "female" ? "Women" : value === "male" ? "Men" : value === "inactive" ? "Inactive (7+ days)" : "All users";
 
 export default function EmailSendPage() {
   const [audience, setAudience] = useState<Audience>("all");
@@ -48,9 +49,10 @@ export default function EmailSendPage() {
   const changed = () => { requestId.current = null; setError(""); };
 
   useEffect(() => {
+    if (search.trim() === query) return;
     const timer = setTimeout(() => { setQuery(search.trim()); setPage(1); }, 300);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [search, query]);
 
   useEffect(() => {
     let active = true;
@@ -137,12 +139,17 @@ export default function EmailSendPage() {
   };
 
   return <div>
-    <PageHeader title="Email Send" description="Send a message and photo to selected members, women, men, or everyone." />
+    <PageHeader title="Email Send" description="Send a message and photo to all users, women, men, or members inactive for 7+ days." />
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(350px,1fr)]">
       <section className={card} aria-label="Email recipients">
         <div className="mb-5 flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-xl bg-rose-50 text-rose-600"><Mail className="h-5 w-5" /></div><div><h2 className="font-bold">Select recipients</h2><p className="text-xs text-muted-foreground">Members&apos; registered email addresses</p></div></div>
         <fieldset disabled={submitting} className="space-y-4 disabled:opacity-60">
-          <div className="flex gap-2" role="group" aria-label="Filter by gender">{(["all", "female", "male"] as Audience[]).map(value => <button key={value} type="button" aria-pressed={audience === value} onClick={() => { setAudience(value); setPage(1); resetSelection(); }} className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${audience === value ? "border-rose-300 bg-rose-50 text-rose-600" : "border-border hover:bg-muted"}`}>{audienceLabel(value)}</button>)}</div>
+          <label className="block text-sm font-semibold">Recipient filter
+            <select aria-label="Recipient filter" value={audience} onChange={event => { setAudience(event.target.value as Audience); setPage(1); resetSelection(); changed(); }} className={`${input} mt-1.5 font-normal`}>
+              {(["all", "female", "male", "inactive"] as Audience[]).map(value => <option key={value} value={value}>{audienceLabel(value)}</option>)}
+            </select>
+          </label>
+          {audience === "inactive" && <p className="text-xs text-muted-foreground">Users last active at least 7 days ago. Users who have never been active are included 7 days after registration.</p>}
           <div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><input aria-label="Search users" value={search} onChange={event => { setSearch(event.target.value); resetSelection(); }} maxLength={100} placeholder="Search name or email..." className={`${input} pl-9`} /></div>
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-rose-50 px-3 py-3 text-sm">
             <label className="flex cursor-pointer items-center gap-2 font-semibold"><input type="checkbox" aria-label="Select all matching users" checked={selectAll && excluded.size === 0} disabled={!recipientsReady || !data?.total} onChange={event => { changed(); setSelectAll(event.target.checked); setSelected(new Set()); setExcluded(new Set()); }} className="h-4 w-4 accent-rose-500" />Select all {data?.total.toLocaleString() || 0} matching users</label>
@@ -175,5 +182,6 @@ export default function EmailSendPage() {
     </div>
 
     <section className={`${card} mt-6`} aria-label="Email history"><h2 className="font-bold">Recent emails</h2><p className="mt-1 text-xs text-muted-foreground">Sent means accepted by the mail server. Counts update automatically.</p>{historyError && <p className="mt-3 text-sm text-amber-700">{historyError}</p>}<div className="mt-4 overflow-x-auto"><table className="w-full text-left text-sm"><thead className="border-b text-xs text-muted-foreground"><tr><th className="py-3 pr-3">Subject</th><th className="pr-3">Audience</th><th className="pr-3">Sent</th><th className="pr-3">Pending</th><th className="pr-3">Failed</th><th>Date</th></tr></thead><tbody className="divide-y">{campaigns.map(item => <tr key={item.id}><td className="max-w-64 py-3 pr-3"><button type="button" onClick={() => setResult(item)} className="text-left font-semibold text-rose-600 hover:underline">{item.subject}</button></td><td className="pr-3">{audienceLabel(item.audience)}</td><td className="pr-3 text-emerald-700">{item.sent}</td><td className="pr-3">{item.pending}</td><td className="pr-3 text-rose-600">{item.failed}</td><td className="whitespace-nowrap text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}</td></tr>)}</tbody></table>{!campaigns.length && !historyError && <p className="py-6 text-center text-sm text-muted-foreground">No emails sent yet.</p>}</div></section>
+    <FailedEmails />
   </div>;
 }

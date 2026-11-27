@@ -12,8 +12,14 @@ export function registrationReferralCode(search: string): string {
   return CODE.test(installed) ? installed : '';
 }
 
-/** Google Play retains the encoded invitation for the Android Install Referrer API. */
+/** A common entry point captures the invitation before choosing app or web. */
 export function referralShareLink(sharePath: string): string {
+  const code = registrationReferralCode(new URL(sharePath, 'https://connectlove.in').search);
+  return code ? `https://connectlove.in/invite/${code}` : 'https://connectlove.in/register';
+}
+
+/** Google Play retains the encoded invitation for the Android Install Referrer API. */
+export function referralPlayStoreLink(sharePath: string): string {
   const code = registrationReferralCode(new URL(sharePath, 'https://connectlove.in').search);
   const link = new URL(PLAY_STORE_URL);
   if (code) link.searchParams.set('referrer', new URLSearchParams({ ref: code }).toString());

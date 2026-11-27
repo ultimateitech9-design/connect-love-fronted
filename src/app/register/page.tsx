@@ -13,7 +13,7 @@ import { requireOnboarding, scheduleProfileReminder, setToken } from "@/lib/auth
 import { getAccurateCurrentPosition } from "@/lib/geolocation";
 import { REGISTRATION_GENDER_OPTIONS } from "@/features/discovery/gender-options";
 import { markAppInstallPromptPending } from "@/lib/appInstallPrompt";
-import { registrationReferralCode } from "@/features/referrals/shareInvitation";
+import { captureSignupReferral, clearSignupReferral, normalizedInvitationCode, saveSignupReferral } from "@/features/referrals/signupAttribution";
 
 const API_BASE = API_ORIGIN;
 
@@ -99,7 +99,11 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [otp, setOtp] = useState("");
   const [referralCode, setReferralCode] = useState("");
-  useEffect(() => { setReferralCode(registrationReferralCode(window.location.search)); }, []);
+  useEffect(() => { setReferralCode(captureSignupReferral(window.location.search)); }, []);
+  const changeReferralCode = (value: string) => {
+    setReferralCode(value);
+    saveSignupReferral(value);
+  };
   const [pendingSignup, setPendingSignup] = useState<SignupData | null>(null);
   const [creatingAccount, setCreatingAccount] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
@@ -208,7 +212,7 @@ export default function RegisterPage() {
           locationLongitude: coords?.longitude,
           locationAccuracy: coords?.accuracy,
           otp: verificationCode,
-          ...(referralCode ? { referralCode } : {}),
+          ...(normalizedInvitationCode(referralCode) ? { referralCode: normalizedInvitationCode(referralCode) } : {}),
         }),
       });
 
@@ -218,6 +222,7 @@ export default function RegisterPage() {
         return;
       }
 
+      clearSignupReferral();
       markAppInstallPromptPending();
 
       const loginRes = await fetch(`${API_BASE}/auth/login`, {
@@ -245,6 +250,10 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: SignupData) => {
     setError("");
+    if (referralCode.trim() && !normalizedInvitationCode(referralCode)) {
+      setError('Please enter a valid invitation code, such as friend-a1b2c3.');
+      return;
+    }
     setOtp("");
     try {
       await requestOtp(data.email);
@@ -430,7 +439,12 @@ export default function RegisterPage() {
               ) : (
               <div>
               <form onSubmit={handleSubmit(onSubmit)} className="mt-4 grid gap-2.5">
-                {referralCode && <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"><p className="font-bold">Referral invitation · Women earn ₹100 each; men earn ₹50 each</p><p className="mt-1 text-xs">Register and verify your email. You and your inviter must belong to the same gender group to earn rewards. Rewards unlock after 30 days; minimum withdrawal ₹1,000. Use the app on 30 different days for an extra matching activity bonus.</p><button type="button" onClick={() => setReferralCode("")} className="mt-2 text-xs underline">Continue without referral</button></div>}
+                {referralCode && <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700"><p className="font-bold">Referral invitation · Women earn ₹100 each; men earn ₹50 each</p><p className="mt-1 text-xs">Register and verify your email. You and your inviter must belong to the same gender group to earn rewards. Rewards unlock after 30 days; minimum withdrawal ₹1,000. Use the app on 30 different days for an extra matching activity bonus.</p><button type="button" onClick={() => changeReferralCode("")} className="mt-2 text-xs underline">Continue without referral</button></div>}
+                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <label htmlFor="signup-invitation-code" className="text-xs font-bold text-slate-700">Invitation code (optional)</label>
+                  <input id="signup-invitation-code" value={referralCode} onChange={event => changeReferralCode(event.target.value)} placeholder="e.g. friend-a1b2c3" autoCapitalize="none" autoCorrect="off" spellCheck={false} maxLength={24} className="field-input mt-1" aria-describedby="signup-invitation-help" />
+                  <p id="signup-invitation-help" className="mt-1 text-xs text-slate-500">Invited by a friend? Enter the code from their link before registering to claim your referral reward.</p>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Full Name" error={errors.name?.message}>
                     <input {...register("name")} id="signup-name" placeholder="Jane Doe" className="field-input" />

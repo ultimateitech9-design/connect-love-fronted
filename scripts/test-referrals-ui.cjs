@@ -41,7 +41,7 @@ async function run(){
  assert.equal(await page.getByTestId('women-referral-entry').count(),1,'profile header contains referral actions');
  await page.getByRole('button',{name:'Share & earn ₹100',exact:true}).first().click();
  const dialog=page.getByRole('dialog');await dialog.getByRole('heading',{name:'Invite a woman. Both get ₹100.',exact:true}).waitFor();
- assert.equal(await dialog.getByLabel('Your referral link').inputValue(),`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}`);
+ assert.equal(await dialog.getByLabel('Your referral link').inputValue(),`https://connectlove.in/invite/${code}`);
  assert(await dialog.getByRole('button',{name:'Request withdrawal',exact:true}).isDisabled(),'balance below the minimum cannot start a request');
  assert.equal(await dialog.getByText('Locked for 30 days',{exact:true}).count(),0);
  assert(!(await dialog.innerText()).includes('30 days after'),'the main page does not show the withdrawal waiting-period message');
@@ -49,12 +49,12 @@ async function run(){
  await dialog.getByRole('button',{name:'Load more referred accounts',exact:true}).click();await dialog.getByText('Another Referred Woman',{exact:true}).waitFor();
  await dialog.getByRole('button',{name:'Share invitation',exact:true}).click();
  const shared=await page.evaluate(()=>window.sharedInvite);
- assert(shared.text.includes(`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}`));assert(shared.text.includes('₹100 reward.'));assert(!shared.text.includes('₹50'));assert(!shared.text.includes('localhost'));assert.equal((shared.text.match(/https:\/\//g)||[]).length,1,'native share contains one public link with the message');
+ assert(shared.text.includes(`https://connectlove.in/invite/${code}`));assert(shared.text.includes('₹100 reward.'));assert(!shared.text.includes('₹50'));assert(!shared.text.includes('localhost'));assert.equal((shared.text.match(/https:\/\//g)||[]).length,1,'native share contains one public link with the message');
  await dialog.getByRole('button',{name:'Copy link',exact:true}).click();
- assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}`);
+ assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),`https://connectlove.in/invite/${code}`);
  await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:undefined}));
  await dialog.getByRole('button',{name:'Share invitation',exact:true}).click();
- const fallback=await page.evaluate(()=>navigator.clipboard.readText());assert(fallback.includes(`https://play.google.com/store/apps/details?id=com.connectlove&referrer=ref%3D${code}`));assert(fallback.includes('₹100 reward.'));assert(!fallback.includes('₹50'));
+ const fallback=await page.evaluate(()=>navigator.clipboard.readText());assert(fallback.includes(`https://connectlove.in/invite/${code}`));assert(fallback.includes('₹100 reward.'));assert(!fallback.includes('₹50'));
  await page.setViewportSize({width:390,height:844});assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'referral wallet fits a phone');
  summary={...summary,availablePaise:90000,lockedPaise:10000,activeDays:30,bonusEarned:true};
  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));

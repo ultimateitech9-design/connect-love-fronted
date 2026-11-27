@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { API_ORIGIN } from "@/config/runtime";
 import { clearOnboardingRequired, requireOnboarding, setToken } from "@/lib/auth";
 import { markAppInstallPromptPending } from "@/lib/appInstallPrompt";
+import { captureSignupReferral, clearSignupReferral } from "@/features/referrals/signupAttribution";
 
 type GoogleCredentialResponse = { credential?: string };
 
@@ -53,14 +54,16 @@ export function GoogleAuthButton({ mode }: { mode: "signin" | "signup" }) {
       setLoading(true);
       setError("");
       try {
+        const referralCode = captureSignupReferral(window.location.search);
         const result = await fetch(`${API_ORIGIN}/auth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ credential: response.credential }),
+          body: JSON.stringify({ credential: response.credential, ...(referralCode ? { referralCode } : {}) }),
         });
         const body = await result.json();
         if (!result.ok) throw new Error(Array.isArray(body.message) ? body.message[0] : body.message);
 
+        clearSignupReferral();
         setToken(body.access_token, body.user);
         if (body.isNewUser || !body.user?.onboardingCompleted) {
           if (body.isNewUser) markAppInstallPromptPending();
